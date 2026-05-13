@@ -1,51 +1,76 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Matix The Math Club - official website</title>
-
+    <title>Matix The Math Club | Coming Soon</title>
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0f172a; /* Deep dark blue */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #f8fafc;
+            overflow: hidden;
+        }
 
-  body {
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
 
-    display: flex;
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
 
-    flex-direction: column;
+        p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            margin-top: 0;
+        }
 
-    align-items: center;
+        .loader {
+            margin: 30px auto;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #1e293b;
+            border-top: 5px solid #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
 
-    justify-content: center;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-    height: 100vh;
-
-    margin: 0;
-
-    font-family: Arial, sans-serif;
-
-    background-color: #f0f4f8; /* Light blue/grey math-y background */
-
-    color: #333;
-
-  }
-
-  h1 { color: #0056b3; } /* A professional blue */
-
-</style>
-
+        .math-bg {
+            position: absolute;
+            font-size: 10rem;
+            opacity: 0.03;
+            z-index: -1;
+            user-select: none;
+        }
+    </style>
 </head>
-
 <body>
 
-    <h1>Website in progress, stay tuned</h1>
+    <div class="math-bg">∑ π √ Δ</div>
 
-    <p>Scroll to see it so far</p>
+    <div class="container">
+        <h1>Website in progress</h1>
+        <p>Matix The Math Club is leveling up. Stay tuned.</p>
+        <div class="loader"></div>
+    </div>
 
 </body>
-
 </html>
