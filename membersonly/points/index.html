@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEDGER | Matix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #020617;
+            color: #f8fafc;
+            font-family: 'Courier Prime', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .ledger-box {
+            border: 1px solid #334155;
+            background: #0f172a;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.6);
+            width: 320px;
+        }
+
+        .ledger-header {
+            color: #818cf8;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .entry {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            padding: 5px 0;
+        }
+
+        .name { color: #94a3b8; }
+        .points { color: #10b981; font-weight: bold; }
+
+        .footer-note {
+            margin-top: 30px;
+            font-size: 0.7rem;
+            color: #475569;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .back-btn {
+            margin-top: 40px;
+            color: #334155;
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+        .back-btn:hover { color: #818cf8; }
+    </style>
+</head>
+<body>
+
+    <div class="ledger-box">
+        <div class="ledger-header">Points_Ledger_v1</div>
+        
+        <div class="entry">
+            <span class="name">Ghadi:</span>
+            <span class="points">[00]</span>
+        </div>
+
+        <div class="entry">
+            <span class="name">Marwan:</span>
+            <span class="points">[00]</span>
+        </div>
+
+        <div class="entry">
+            <span class="name">Jad:</span>
+            <span class="points">[00]</span>
+        </div>
+
+        <div class="footer-note">
+            Data encrypted. Updates pending.
+        </div>
+    </div>
+
+    <a href="/membersonly" class="back-btn">RETURN TO SECURE GATE</a>
+
+</body>
+</html>
