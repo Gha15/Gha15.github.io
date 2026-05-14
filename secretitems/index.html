@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE VAULT | Matix</title>
+    
+    <!-- Preconnecting for speed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Courier+Prime&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #020617; /* Deep Vault Black */
+            color: #10b981; /* Matrix Green */
+            font-family: 'Courier Prime', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .vault-header {
+            border-bottom: 1px solid #10b981;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            font-size: 1.5rem;
+        }
+
+        .secret-content {
+            text-align: left;
+            border-left: 2px solid #10b981;
+            padding-left: 20px;
+            margin-bottom: 40px;
+        }
+
+        .code-line {
+            margin: 10px 0;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* Members Only Button Styles */
+        .members-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 1s forwards;
+            animation-delay: 1.5s;
+            opacity: 0;
+        }
+
+        .members-btn {
+            padding: 12px 30px;
+            background: transparent;
+            border: 2px solid #818cf8; /* Violet-Blue */
+            color: #818cf8;
+            text-decoration: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .members-btn:hover {
+            background: #818cf8;
+            color: #020617;
+            box-shadow: 0 0 20px rgba(129, 140, 248, 0.4);
+            transform: scale(1.05);
+        }
+
+        .coming-soon {
+            font-family: 'Caveat', cursive;
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .handwritten-note {
+            font-family: 'Caveat', cursive;
+            color: #f8fafc;
+            font-size: 1.4rem;
+            margin: 20px 0;
+            transform: rotate(-1deg);
+        }
+
+        .exit-link {
+            position: absolute;
+            bottom: 20px;
+            color: #334155;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .exit-link:hover { color: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <div class="vault-header">Access Granted</div>
+
+    <div class="secret-content">
+        <p class="code-line" style="animation-delay: 0.2s;">> Initializing secretitems...</p>
+        <p class="code-line" style="animation-delay: 0.5s;">> Decoding math-vault-v1.0.4...</p>
+        <p class="code-line" style="animation-delay: 0.8s;">> Location: HIDDEN SECTOR.</p>
+        
+        <div class="handwritten-note" style="animation-delay: 1.2s; opacity: 0; animation: fadeIn 0.5s forwards 1.2s;">
+            "You weren't supposed to find this yet."
+        </div>
+    </div>
+
+    <!-- The Requested Button & Coming Soon -->
+    <div class="members-section">
+        <a href="/membersonly" class="members-btn">Members Only</a>
+        <span class="coming-soon">coming soon...</span>
+    </div>
+
+    <a href="/" class="exit-link">TERMINATE SESSION (GO HOME)</a>
+
+</body>
+</html>
