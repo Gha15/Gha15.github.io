@@ -4,80 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 - WHAT DID YOU DO?!</title>
+    
+    <!-- Preconnect to fonts to speed up loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #0f172a;
-            font-family: 'Segoe UI', sans-serif;
-            color: #f8fafc;
-            text-align: center;
-            overflow: hidden;
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; background-color: #0f172a;
+            font-family: 'Segoe UI', sans-serif; color: #f8fafc;
+            text-align: center; overflow: hidden;
         }
 
-        .error-container {
-            padding: 20px;
-            max-width: 600px;
+        /* Top Left Home Button */
+        .top-left-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            transition: transform 0.2s ease;
+            z-index: 1000;
         }
 
-        h1 {
-            font-size: 4rem;
-            margin: 0;
+        .top-left-home:hover { transform: scale(1.05); }
+
+        .mini-logo {
+            width: 120px; /* Smaller for the corner */
+            height: auto;
+            display: block;
         }
 
-        /* Specific Color Requests */
-        .blue-text { color: #818cf8; } /* Violets Blue */
-        .red-text { color: #ef4444; font-weight: bold; } /* ERROR Red */
-
+        .error-container { padding: 20px; max-width: 600px; }
+        h1 { font-size: clamp(2rem, 10vw, 4rem); margin: 0; }
+        .blue-text { color: #818cf8; }
+        .red-text { color: #ef4444; }
+        
         .handwritten {
             font-family: 'Caveat', cursive;
-            font-size: 2rem;
-            margin: 20px 0;
-            display: block;
+            font-size: 1.8rem;
+            margin: 15px 0;
         }
 
-        .shouting {
-            font-size: 2.5rem;
-            color: #f8fafc;
-            display: block;
-            margin-bottom: 10px;
-        }
+        .shouting { font-size: 2rem; font-weight: bold; margin: 10px 0; }
 
+        /* The Big Panic Button */
         .home-link {
             display: inline-block;
-            margin-top: 30px;
-            padding: 15px 30px;
+            margin-top: 20px;
+            padding: 12px 24px;
             border: 2px solid #38bdf8;
             color: #38bdf8;
             text-decoration: none;
-            font-weight: bold;
             border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .home-link:hover {
-            background: #38bdf8;
-            color: #0f172a;
-            transform: scale(1.1);
-        }
-
-        .math-bg {
-            position: absolute;
-            font-size: 15vw;
-            opacity: 0.02;
-            z-index: -1;
-            user-select: none;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="math-bg">404 404 404</div>
+    <!-- THE HOME BUTTON (TOP LEFT) -->
+    <a href="https://matixthemathclub.com" class="top-left-home">
+        <img src="logo.webp" alt="Matix Logo" class="mini-logo" loading="eager">
+    </a>
 
     <div class="error-container">
         <h1>404 that <span class="blue-text">IS</span> an error</h1>
@@ -89,15 +80,15 @@
 
         <p class="shouting">WHAT CAN I DO?!</p>
         
-        <p style="color: #94a3b8;">
+        <p style="color: #94a3b8; font-style: italic;">
             atleast it's just you slashing the url :-)
         </p>
 
-        <p class="shouting" style="color: #ef4444; transform: rotate(-2deg);">
+        <p class="shouting" style="color: #ef4444; transform: rotate(-1deg);">
             I DID NOTHING!!!
         </p>
 
-        <p class="handwritten" style="font-size: 1.5rem;">PLEASE I BEG YOU!</p>
+        <p class="handwritten">PLEASE I BEG YOU!</p>
 
         <a href="https://matixthemathclub.com" class="home-link">
             GO BACK TO MATIXTHEMATHCLUB.COM
