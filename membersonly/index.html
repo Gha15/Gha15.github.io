@@ -3,48 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POINTS SYSTEM | Matix</title>
+    <title>IDENTITY CHECK | Matix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #0f172a;
+            background-color: #020617;
             color: #f8fafc;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Courier Prime', monospace;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; margin: 0;
+        }
+
+        .gate-container {
             text-align: center;
-            padding-top: 50px;
+            border: 1px solid #1e293b;
+            padding: 50px;
+            background: #0f172a;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
-        .points-card {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 2px solid #38bdf8;
-            display: inline-block;
-            padding: 40px;
-            border-radius: 20px;
+
+        h1 { color: #818cf8; font-size: 1.2rem; margin-bottom: 30px; letter-spacing: 3px; }
+
+        input {
+            display: block;
+            width: 250px;
+            padding: 12px;
+            margin: 10px auto;
+            background: #020617;
+            border: 1px solid #334155;
+            color: #10b981; /* Hacker Green text */
+            text-align: center;
+            outline: none;
         }
-        .point-val { font-size: 4rem; font-weight: bold; color: #38bdf8; }
-        .label { text-transform: uppercase; letter-spacing: 3px; color: #94a3b8; }
-        
-        .status-badge {
-            background: rgba(56, 189, 248, 0.1);
-            color: #38bdf8;
-            padding: 5px 15px;
-            border-radius: 50px;
-            font-size: 0.8rem;
+
+        .verify-btn {
             margin-top: 20px;
-            display: inline-block;
+            padding: 10px 40px;
+            background: transparent;
+            border: 1px solid #818cf8;
+            color: #818cf8;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: 0.3s;
         }
+
+        .verify-btn:hover {
+            background: #818cf8;
+            color: #020617;
+        }
+
+        #error { color: #ef4444; margin-top: 15px; font-size: 0.8rem; display: none; }
+
+        .members-content { display: none; margin-top: 30px; }
     </style>
 </head>
 <body>
 
-    <div class="points-card">
-        <div class="label">Current Balance</div>
-        <div class="point-val">0</div>
-        <div class="status-badge">RANK: ROOKIE</div>
+    <div class="gate-container" id="gate">
+        <h1>IDENTITY_CHECK_REQUIRED</h1>
+        <input type="text" id="user" placeholder="USERNAME">
+        <input type="password" id="pass" placeholder="PASSWORD">
+        <button class="verify-btn" onclick="verify()">Verify Identity</button>
+        <p id="error">ACCESS_DENIED: UNAUTHORIZED_USER</p>
+
+        <!-- THIS PART ONLY SHOWS AFTER SUCCESSFUL LOGIN -->
+        <div id="members-area" class="members-content">
+            <h2 style="color: #10b981;">ACCESS GRANTED</h2>
+            <p style="color: #94a3b8; font-size: 0.9rem;">Welcome back, Member.</p>
+            <br>
+            <!-- THE BUTTON YOU ASKED FOR -->
+            <a href="/membersonly/points" style="text-decoration: none;">
+                <button class="verify-btn" style="border-color: #10b981; color: #10b981;">Enter Points System</button>
+            </a>
+            <p style="color: #475569; font-size: 0.7rem; margin-top: 10px;">(coming soon...)</p>
+        </div>
     </div>
 
-    <h3 style="margin-top: 40px;">Points History</h3>
-    <p style="color: #64748b;">No activities recorded yet.</p>
+    <script>
+        function verify() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            const err = document.getElementById('error');
+            const area = document.getElementById('members-area');
+            const inputs = document.querySelectorAll('input, .verify-btn:not(#members-area .verify-btn)');
 
-    <a href="/" style="display:block; margin-top: 50px; color: #475569; text-decoration: none;">← Exit Secure Line</a>
-
+            // Current simple check (Username: admin / Pass: matix)
+            if (u === "admin" && p === "matix") {
+                err.style.display = "none";
+                // Hide login inputs
+                document.getElementById('user').style.display = "none";
+                document.getElementById('pass').style.display = "none";
+                document.querySelector('.verify-btn').style.display = "none";
+                // Show the Points button
+                area.style.display = "block";
+            } else {
+                err.style.display = "block";
+            }
+        }
+    </script>
 </body>
 </html>
