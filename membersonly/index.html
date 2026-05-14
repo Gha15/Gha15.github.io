@@ -4,14 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IDENTITY CHECK | Matix</title>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
         body {
-            background-color: #020617;
+            background-color: #020617; /* Deepest black-blue */
             color: #f8fafc;
             font-family: 'Courier Prime', monospace;
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
         }
 
         .gate-container {
@@ -19,88 +27,170 @@
             border: 1px solid #1e293b;
             padding: 50px;
             background: #0f172a;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            box-shadow: 0 0 60px rgba(0,0,0,0.9);
+            width: 350px;
+            transition: border 0.3s ease;
         }
 
-        h1 { color: #818cf8; font-size: 1.2rem; margin-bottom: 30px; letter-spacing: 3px; }
+        h1 { 
+            color: #818cf8; 
+            font-size: 1.1rem; 
+            margin-bottom: 30px; 
+            letter-spacing: 4px; 
+            text-transform: uppercase;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
 
         input {
             display: block;
-            width: 250px;
+            width: 100%;
             padding: 12px;
-            margin: 10px auto;
             background: #020617;
             border: 1px solid #334155;
-            color: #10b981; /* Hacker Green text */
+            color: #10b981; /* Hacker Green for typing */
             text-align: center;
             outline: none;
+            font-family: 'Courier Prime', monospace;
+            box-sizing: border-box;
+        }
+
+        input::placeholder {
+            color: #475569;
+            font-size: 0.8rem;
         }
 
         .verify-btn {
             margin-top: 20px;
-            padding: 10px 40px;
+            padding: 12px 0;
+            width: 100%;
             background: transparent;
             border: 1px solid #818cf8;
             color: #818cf8;
             cursor: pointer;
             text-transform: uppercase;
             font-weight: bold;
-            transition: 0.3s;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
         }
 
         .verify-btn:hover {
             background: #818cf8;
             color: #020617;
+            box-shadow: 0 0 15px rgba(129, 140, 248, 0.4);
         }
 
-        #error { color: #ef4444; margin-top: 15px; font-size: 0.8rem; display: none; }
+        #error { 
+            color: #ef4444; 
+            margin-top: 20px; 
+            font-size: 0.7rem; 
+            display: none; 
+            letter-spacing: 1px;
+        }
 
-        .members-content { display: none; margin-top: 30px; }
+        /* Access Granted Section */
+        #members-area {
+            display: none;
+            margin-top: 10px;
+            animation: fadeIn 0.8s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .points-link-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            border: 1px solid #10b981;
+            color: #10b981;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .points-link-btn:hover {
+            background: #10b981;
+            color: #020617;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .exit-link {
+            position: absolute;
+            bottom: 30px;
+            color: #334155;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
 
     <div class="gate-container" id="gate">
-        <h1>IDENTITY_CHECK_REQUIRED</h1>
-        <input type="text" id="user" placeholder="USERNAME">
-        <input type="password" id="pass" placeholder="PASSWORD">
-        <button class="verify-btn" onclick="verify()">Verify Identity</button>
-        <p id="error">ACCESS_DENIED: UNAUTHORIZED_USER</p>
+        <div id="login-form">
+            <h1>Identity Check</h1>
+            <div class="input-group">
+                <input type="text" id="user" placeholder="USERNAME" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="password" id="pass" placeholder="PASSWORD" autocomplete="off">
+            </div>
+            <button class="verify-btn" onclick="verify()">Verify</button>
+            <p id="error">ERROR: ACCESS_DENIED_INVALID_CREDENTIALS</p>
+        </div>
 
-        <!-- THIS PART ONLY SHOWS AFTER SUCCESSFUL LOGIN -->
-        <div id="members-area" class="members-content">
-            <h2 style="color: #10b981;">ACCESS GRANTED</h2>
-            <p style="color: #94a3b8; font-size: 0.9rem;">Welcome back, Member.</p>
-            <br>
-            <!-- THE BUTTON YOU ASKED FOR -->
-            <a href="/membersonly/points" style="text-decoration: none;">
-                <button class="verify-btn" style="border-color: #10b981; color: #10b981;">Enter Points System</button>
-            </a>
-            <p style="color: #475569; font-size: 0.7rem; margin-top: 10px;">(coming soon...)</p>
+        <!-- The Content revealed after login -->
+        <div id="members-area">
+            <h2 style="color: #10b981; font-size: 1.2rem; margin-bottom: 10px;">ACCESS GRANTED</h2>
+            <p style="color: #94a3b8; font-size: 0.8rem;">Credentials Accepted.</p>
+            
+            <a href="/membersonly/points" class="points-link-btn">OPEN POINTS SYSTEM</a>
         </div>
     </div>
+
+    <a href="/" class="exit-link">RETURN TO SURFACE</a>
 
     <script>
         function verify() {
             const u = document.getElementById('user').value;
             const p = document.getElementById('pass').value;
             const err = document.getElementById('error');
+            const form = document.getElementById('login-form');
             const area = document.getElementById('members-area');
-            const inputs = document.querySelectorAll('input, .verify-btn:not(#members-area .verify-btn)');
+            const gate = document.getElementById('gate');
 
-            // Current simple check (Username: admin / Pass: matix)
-            if (u === "admin" && p === "matix") {
-                err.style.display = "none";
-                // Hide login inputs
-                document.getElementById('user').style.display = "none";
-                document.getElementById('pass').style.display = "none";
-                document.querySelector('.verify-btn').style.display = "none";
-                // Show the Points button
+            // The Harsh Identity Check
+            const isGhadi = (u === "Ghadi" && p === "iamtheownerofmatix");
+            const isJad = (u === "Jad" && p === "ilikebatatameshwiyye");
+            const isMarwan = (u === "Marwan" && p === "ilikebeingnumberonebutiamnumbertwo");
+
+            if (isGhadi || isJad || isMarwan) {
+                // Success
+                form.style.display = "none";
                 area.style.display = "block";
+                gate.style.border = "1px solid #10b981";
             } else {
+                // Fail
                 err.style.display = "block";
+                gate.style.border = "1px solid #ef4444";
+                
+                // Reset border color after 1 second
+                setTimeout(() => {
+                    gate.style.border = "1px solid #1e293b";
+                }, 1000);
             }
         }
+
+        // Allow pressing "Enter" to login
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                verify();
+            }
+        });
     </script>
 </body>
 </html>
