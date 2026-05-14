@@ -3,95 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LEDGER | Matix</title>
+    <title>MATIX | Global Ledger</title>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             background-color: #020617;
             color: #f8fafc;
             font-family: 'Courier Prime', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0;
         }
-
         .ledger-box {
-            border: 1px solid #334155;
-            background: #0f172a;
-            padding: 40px;
-            box-shadow: 0 0 40px rgba(0,0,0,0.6);
-            width: 320px;
+            border: 1px solid #334155; background: #0f172a; padding: 30px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 90%; max-width: 500px;
         }
-
         .ledger-header {
-            color: #818cf8;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-size: 1rem;
-            text-align: center;
+            color: #818cf8; border-bottom: 1px solid #334155; padding-bottom: 15px;
+            margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; text-align: center;
         }
-
-        .entry {
-            display: flex;
-            justify-content: space-between;
-            font-size: 1.2rem;
-            margin: 15px 0;
-            padding: 5px 0;
+        .member-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 0; border-bottom: 1px solid #1e293b;
         }
-
-        .name { color: #94a3b8; }
-        .points { color: #10b981; font-weight: bold; }
-
-        .footer-note {
-            margin-top: 30px;
-            font-size: 0.7rem;
-            color: #475569;
-            text-align: center;
-            text-transform: uppercase;
+        .name { color: #94a3b8; font-size: 1.1rem; }
+        .score { color: #10b981; font-weight: bold; font-size: 1.2rem; min-width: 40px; text-align: right; }
+        .controls { display: flex; gap: 8px; }
+        .add-btn {
+            padding: 5px 10px; border: 1px solid #334155; background: #020617;
+            color: #f8fafc; cursor: pointer; font-size: 0.8rem; font-family: 'Courier Prime', monospace;
         }
-
-        .back-btn {
-            margin-top: 40px;
-            color: #334155;
-            text-decoration: none;
-            font-size: 0.8rem;
-            transition: 0.3s;
-        }
-        .back-btn:hover { color: #818cf8; }
+        .add-btn:hover { background: #1e293b; border-color: #818cf8; }
+        .back-btn { margin-top: 40px; color: #334155; text-decoration: none; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
     <div class="ledger-box">
-        <div class="ledger-header">Points_Ledger_v1</div>
+        <div class="ledger-header">Matix_Sync_Points</div>
         
-        <div class="entry">
-            <span class="name">Ghadi:</span>
-            <span class="points">[00]</span>
+        <!-- Member: Ghadi -->
+        <div class="member-row">
+            <div><span class="name">Ghadi:</span> <span class="score" id="score-ghadi">0</span></div>
+            <div class="controls">
+                <button class="add-btn" onclick="addPoints('ghadi', 1)">+1</button>
+                <button class="add-btn" onclick="addPoints('ghadi', 10)">+10</button>
+            </div>
         </div>
 
-        <div class="entry">
-            <span class="name">Marwan:</span>
-            <span class="points">[00]</span>
+        <!-- Member: Marwan -->
+        <div class="member-row">
+            <div><span class="name">Marwan:</span> <span class="score" id="score-marwan">0</span></div>
+            <div class="controls">
+                <button class="add-btn" onclick="addPoints('marwan', 1)">+1</button>
+                <button class="add-btn" onclick="addPoints('marwan', 10)">+10</button>
+            </div>
         </div>
 
-        <div class="entry">
-            <span class="name">Jad:</span>
-            <span class="points">[00]</span>
-        </div>
-
-        <div class="footer-note">
-            Data encrypted. Updates pending.
+        <!-- Member: Jad -->
+        <div class="member-row">
+            <div><span class="name">Jad:</span> <span class="score" id="score-jad">0</span></div>
+            <div class="controls">
+                <button class="add-btn" onclick="addPoints('jad', 1)">+1</button>
+                <button class="add-btn" onclick="addPoints('jad', 10)">+10</button>
+            </div>
         </div>
     </div>
 
-    <a href="/membersonly" class="back-btn">RETURN TO SECURE GATE</a>
+    <a href="../" class="back-btn">RETURN TO HUB</a>
 
+    <!-- FIREBASE LIBRARIES -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        // 2. PASTE YOUR CONFIG BLOCK FROM FIREBASE HERE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // LIVE LISTEN: Updates points on screen automatically when they change in the cloud
+        db.ref('points').on('value', (snapshot) => {
+            const val = snapshot.val();
+            if (val) {
+                if (val.ghadi !== undefined) document.getElementById('score-ghadi').innerText = val.ghadi;
+                if (val.marwan !== undefined) document.getElementById('score-marwan').innerText = val.marwan;
+                if (val.jad !== undefined) document.getElementById('score-jad').innerText = val.jad;
+            }
+        });
+
+        // UPDATE FUNCTION: Sends the +1 or +10 to the cloud
+        function addPoints(name, amount) {
+            const ref = db.ref('points/' + name);
+            ref.transaction((current) => {
+                return (current || 0) + amount;
+            });
+        }
+    </script>
 </body>
 </html>
