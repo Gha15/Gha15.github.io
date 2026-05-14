@@ -3,194 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IDENTITY CHECK | Matix</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>POINTS SYSTEM | Matix</title>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
-
     <style>
         body {
-            background-color: #020617; /* Deepest black-blue */
+            background-color: #020617;
             color: #f8fafc;
             font-family: 'Courier Prime', monospace;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
+            justify-content: center;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
 
-        .gate-container {
-            text-align: center;
-            border: 1px solid #1e293b;
-            padding: 50px;
-            background: #0f172a;
-            box-shadow: 0 0 60px rgba(0,0,0,0.9);
-            width: 350px;
-            transition: border 0.3s ease;
-        }
-
-        h1 { 
-            color: #818cf8; 
-            font-size: 1.1rem; 
-            margin-bottom: 30px; 
-            letter-spacing: 4px; 
-            text-transform: uppercase;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        input {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background: #020617;
+        .ledger-box {
             border: 1px solid #334155;
-            color: #10b981; /* Hacker Green for typing */
-            text-align: center;
-            outline: none;
-            font-family: 'Courier Prime', monospace;
-            box-sizing: border-box;
+            background: #0f172a;
+            padding: 30px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            width: 90%;
+            max-width: 500px;
         }
 
-        input::placeholder {
-            color: #475569;
-            font-size: 0.8rem;
-        }
-
-        .verify-btn {
-            margin-top: 20px;
-            padding: 12px 0;
-            width: 100%;
-            background: transparent;
-            border: 1px solid #818cf8;
+        .ledger-header {
             color: #818cf8;
-            cursor: pointer;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
             text-transform: uppercase;
+            letter-spacing: 3px;
             font-weight: bold;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
+            text-align: center;
         }
 
-        .verify-btn:hover {
-            background: #818cf8;
-            color: #020617;
-            box-shadow: 0 0 15px rgba(129, 140, 248, 0.4);
+        .member-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #1e293b;
         }
 
-        #error { 
-            color: #ef4444; 
-            margin-top: 20px; 
-            font-size: 0.7rem; 
-            display: none; 
-            letter-spacing: 1px;
+        .member-info {
+            flex: 1;
         }
 
-        /* Access Granted Section */
-        #members-area {
-            display: none;
-            margin-top: 10px;
-            animation: fadeIn 0.8s forwards;
+        .name { color: #94a3b8; font-size: 1.1rem; }
+        .score { color: #10b981; font-weight: bold; font-size: 1.2rem; margin-left: 5px; }
+
+        .controls {
+            display: flex;
+            gap: 8px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .add-btn {
+            padding: 5px 10px;
+            border: 1px solid #334155;
+            background: #020617;
+            color: #f8fafc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: 'Courier Prime', monospace;
+            transition: all 0.2s ease;
         }
 
-        .points-link-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 30px;
-            border: 1px solid #10b981;
-            color: #10b981;
-            text-decoration: none;
-            font-weight: bold;
-            transition: 0.3s;
-        }
+        /* Color Coding the Buttons */
+        .btn-1:hover { border-color: #38bdf8; color: #38bdf8; }
+        .btn-5:hover { border-color: #a855f7; color: #a855f7; }
+        .btn-10:hover { border-color: #fbbf24; color: #fbbf24; }
 
-        .points-link-btn:hover {
-            background: #10b981;
-            color: #020617;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-        }
-
-        .exit-link {
-            position: absolute;
-            bottom: 30px;
+        .back-btn {
+            margin-top: 40px;
             color: #334155;
             text-decoration: none;
             font-size: 0.8rem;
         }
+        .back-btn:hover { color: #ef4444; }
     </style>
 </head>
 <body>
 
-    <div class="gate-container" id="gate">
-        <div id="login-form">
-            <h1>Identity Check</h1>
-            <div class="input-group">
-                <input type="text" id="user" placeholder="USERNAME" autocomplete="off">
+    <div class="ledger-box">
+        <div class="ledger-header">Points_Ledger_v1.0</div>
+        
+        <!-- GHADI -->
+        <div class="member-row">
+            <div class="member-info">
+                <span class="name">Ghadi:</span>
+                <span class="score" id="score-ghadi">0</span>
             </div>
-            <div class="input-group">
-                <input type="password" id="pass" placeholder="PASSWORD" autocomplete="off">
+            <div class="controls">
+                <button class="add-btn btn-1" onclick="updateScore('ghadi', 1)">+1</button>
+                <button class="add-btn btn-5" onclick="updateScore('ghadi', 5)">+5</button>
+                <button class="add-btn btn-10" onclick="updateScore('ghadi', 10)">+10</button>
             </div>
-            <button class="verify-btn" onclick="verify()">Verify</button>
-            <p id="error">ERROR: ACCESS_DENIED_INVALID_CREDENTIALS</p>
         </div>
 
-        <!-- The Content revealed after login -->
-        <div id="members-area">
-            <h2 style="color: #10b981; font-size: 1.2rem; margin-bottom: 10px;">ACCESS GRANTED</h2>
-            <p style="color: #94a3b8; font-size: 0.8rem;">Credentials Accepted.</p>
-            
-            <a href="/membersonly/points" class="points-link-btn">OPEN POINTS SYSTEM</a>
+        <!-- MARWAN -->
+        <div class="member-row">
+            <div class="member-info">
+                <span class="name">Marwan:</span>
+                <span class="score" id="score-marwan">0</span>
+            </div>
+            <div class="controls">
+                <button class="add-btn btn-1" onclick="updateScore('marwan', 1)">+1</button>
+                <button class="add-btn btn-5" onclick="updateScore('marwan', 5)">+5</button>
+                <button class="add-btn btn-10" onclick="updateScore('marwan', 10)">+10</button>
+            </div>
         </div>
+
+        <!-- JAD -->
+        <div class="member-row">
+            <div class="member-info">
+                <span class="name">Jad:</span>
+                <span class="score" id="score-jad">0</span>
+            </div>
+            <div class="controls">
+                <button class="add-btn btn-1" onclick="updateScore('jad', 1)">+1</button>
+                <button class="add-btn btn-5" onclick="updateScore('jad', 5)">+5</button>
+                <button class="add-btn btn-10" onclick="updateScore('jad', 10)">+10</button>
+            </div>
+        </div>
+
     </div>
 
-    <a href="/" class="exit-link">RETURN TO SURFACE</a>
+    <a href="/" class="back-btn">EXIT SECURE AREA</a>
 
     <script>
-        function verify() {
-            const u = document.getElementById('user').value;
-            const p = document.getElementById('pass').value;
-            const err = document.getElementById('error');
-            const form = document.getElementById('login-form');
-            const area = document.getElementById('members-area');
-            const gate = document.getElementById('gate');
-
-            // The Harsh Identity Check
-            const isGhadi = (u === "Ghadi" && p === "iamtheownerofmatix");
-            const isJad = (u === "Jad" && p === "ilikebatatameshwiyye");
-            const isMarwan = (u === "Marwan" && p === "ilikebeingnumberonebutiamnumbertwo");
-
-            if (isGhadi || isJad || isMarwan) {
-                // Success
-                form.style.display = "none";
-                area.style.display = "block";
-                gate.style.border = "1px solid #10b981";
-            } else {
-                // Fail
-                err.style.display = "block";
-                gate.style.border = "1px solid #ef4444";
-                
-                // Reset border color after 1 second
-                setTimeout(() => {
-                    gate.style.border = "1px solid #1e293b";
-                }, 1000);
-            }
+        // Simple function to update the numbers on screen
+        function updateScore(name, amount) {
+            const scoreElement = document.getElementById('score-' + name);
+            let currentScore = parseInt(scoreElement.innerText);
+            scoreElement.innerText = currentScore + amount;
+            
+            // Visual feedback
+            scoreElement.style.color = "#fff";
+            setTimeout(() => { scoreElement.style.color = "#10b981"; }, 300);
         }
-
-        // Allow pressing "Enter" to login
-        document.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                verify();
-            }
-        });
     </script>
+
 </body>
 </html>
