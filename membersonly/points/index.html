@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MATIX | Sync Points</title>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <!-- VIBUR IMPORT -->
+    <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #020617; color: #f8fafc; font-family: 'Courier Prime', monospace;
+            background-color: #020617; color: #f8fafc; 
+            font-family: 'Vibur', cursive; /* VIBUR APPLIED */
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0;
         }
-        .logo-area { color: #818cf8; font-weight: 700; letter-spacing: 2px; margin-bottom: 10px; }
-        
+        .logo-area { margin-bottom: 10px; }
+        .logo-area svg { width: 200px; height: auto; }
+        .logo-area svg g { fill: #818cf8 !important; }
+
         .ledger-box {
             border: 1px solid #334155; background: #0f172a; padding: 30px;
             box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 95%; max-width: 600px;
@@ -20,38 +24,42 @@
         }
         .ledger-header {
             color: #818cf8; border-bottom: 1px solid #334155; padding-bottom: 15px;
-            margin-bottom: 25px; text-transform: uppercase; letter-spacing: 5px; font-weight: 700; text-align: center;
+            margin-bottom: 25px; font-size: 2.8rem; text-align: center;
         }
-        .member-row { padding: 20px 0; border-bottom: 1px solid #1e293b; }
-        .member-info { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .name { color: #94a3b8; font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
-        .score { color: #10b981; font-weight: 700; font-size: 1.4rem; }
-        .controls { display: flex; gap: 5px; justify-content: flex-start; flex-wrap: wrap; }
+        .member-row { padding: 15px 0; border-bottom: 1px solid #1e293b; }
+        .member-info { display: flex; justify-content: space-between; align-items: center; }
+        .name { color: #94a3b8; font-size: 2.2rem; }
+        .score { color: #10b981; font-size: 2.5rem; }
         
         .btn {
-            padding: 8px 12px; border: 1px solid #334155; background: #020617;
-            color: #f8fafc; cursor: pointer; font-size: 0.8rem; font-family: 'Courier Prime', monospace;
-            font-weight: 700; text-transform: uppercase; transition: 0.2s;
+            padding: 5px 15px; border: 1px solid #334155; background: #020617;
+            color: #f8fafc; cursor: pointer; font-size: 1.4rem; 
+            font-family: 'Vibur', cursive; transition: 0.2s;
         }
-        .btn:hover { background: #1e293b; border-color: #818cf8; }
-        .btn-neg { color: #ef4444; border-color: #450a0a; }
-        .btn-reset { color: #f59e0b; border-color: #451a03; }
+        .btn:hover { background: #1e293b; border-color: #818cf8; color: #818cf8; }
+        .btn-neg { color: #ef4444; }
+        .btn-reset { color: #f59e0b; margin-left: auto; }
         
         #login-screen { text-align: center; border: 1px solid #334155; padding: 30px; background: #0f172a; width: 320px; }
-        input { background: #020617; border: 1px solid #334155; color: white; padding: 12px; margin-bottom: 10px; width: 100%; box-sizing: border-box; display: block; font-family: 'Courier Prime', monospace; }
-        #error-msg { color: #ef4444; font-size: 0.7rem; margin-top: 10px; min-height: 1.2em; text-transform: uppercase; letter-spacing: 1px; }
+        input { 
+            background: #020617; border: 1px solid #334155; color: white; 
+            padding: 10px; margin-bottom: 10px; width: 100%; box-sizing: border-box; 
+            font-family: 'Vibur', cursive; font-size: 1.6rem; text-align: center;
+        }
+        #error-msg { color: #ef4444; font-size: 1.2rem; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <!-- Locate the logo-area at the top of the body -->
-
 
     <div class="logo-area">
-        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="173.77" height="51.68" viewBox="0 0 173.77 51.68"><g transform="translate(-153.13,-161.73)"><g fill="#818cf8"><path d="M194.05268,213.35269c-2.45145,0.49029 -2.94174,-1.96116 -2.94174,-1.96116l-0.23157,-1.40539c0,-9.04951 -1.01588,-17.55873 -2.87638,-26.39702c-0.45892,-2.18011 -2.05986,-5.80047 -1.79726,-8.46682c-1.69276,1.11221 -3.02018,2.30525 -4.17995,4.40723c-1.54981,2.80888 -2.71107,8.28259 -6.77123,8.79163c-1.50657,0.18888 -2.74055,-1.33992 -3.97623,-2.22227c-4.5599,-3.256 -7.47398,-9.24515 -11.08407,-13.4581c-0.21833,-0.25479 -0.4636,-0.49803 -0.72228,-0.73428c0.43848,2.4308 0.64813,4.88188 0.52926,7.50731c-0.15612,3.44806 -1.30911,7.02404 -1.64891,10.45517..."></path></g></g></svg>
+        <!-- YOUR SVG LOGO -->
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="173.77" height="51.68" viewBox="0 0 173.77 51.68">
+            <g transform="translate(-153.13,-161.73)"><g fill="#818cf8">
+                <path d="M194.05268,213.35269c-2.45145,0.49029 -2.94174,-1.96116 -2.94174,-1.96116l-0.23157,-1.40539c0,-9.04951 -1.01588,-17.55873 -2.87638,-26.39702c-0.45892,-2.18011 -2.05986,-5.80047 -1.79726,-8.46682c-1.69276,1.11221 -3.02018,2.30525 -4.17995,4.40723c-1.54981,2.80888 -2.71107,8.28259 -6.77123,8.79163c-1.50657,0.18888 -2.74055,-1.33992 -3.97623,-2.22227c-4.5599,-3.256 -7.47398,-9.24515 -11.08407,-13.4581c-0.21833,-0.25479 -0.4636,-0.49803 -0.72228,-0.73428c0.43848,2.4308 0.64813,4.88188 0.52926,7.50731c-0.15612,3.44806 -1.30911,7.02404 -1.64891,10.45517c-0.45916,4.6364 -0.22319,9.9212 0.85651,14.41999c0,0 0.5726,2.43354 -1.86094,3.00614c-2.43354,0.5726 -3.00614,-1.86094 -3.00614,-1.86094c-1.16359,-5.03077 -1.47201,-10.78305 -0.9737,-15.96141c0.32815,-3.41009 1.48143,-6.98101 1.64546,-10.40916c0.20206,-4.22288 -0.68649,-7.91362 -1.81218,-11.92353l0.10094,-0.34675h-0.1251c0,0 0,-2.56229 0,-2.56229c0,-1.38071 1.11929,-2.5 2.5,-2.5c0.69036,0 1.31536,0.27982 1.76777,0.73223l0,0l2.01322,2.01322l-0.35152,0.35152c4.44384,3.4997 7.90684,8.02272 11.24752,12.79474c1.18728,1.69597 2.7894,3.06105 4.1297,4.63888c0.24819,0.29217 0.03568,1.11818 0.41626,1.0721c0.40188,-0.04866 0.18651,-0.79196 0.34536,-1.16431c0.73157,-1.71482 1.46685,-3.43799 2.40047,-5.05174c2.07955,-3.59447 4.35907,-5.37294 7.85945,-7.41166l1.88447,-1.54184c0.43313,-0.36001 0.98979,-0.5765 1.59702,-0.5765c1.38071,0 2.5,1.11929 2.5,2.5v3.11135l-0.45464,0c0.10243,0.85086 0.18757,1.70375 0.26439,2.55536c0.39613,4.39113 2.13576,8.89498 3.06167,13.20308c1.45813,6.78446 1.52107,14.13241 1.52107,21.02866l0.13447,0.42481c0,0 0.49029,2.45145 -1.96116,2.94174z"></path>
+                <!-- ... other paths ... -->
+            </g></g>
+        </svg>
     </div>
-
-    <!-- The rest of your Ledger code remains the same -->
-  
 
     <!-- LOGIN SECTION -->
     <div id="login-screen">
