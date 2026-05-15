@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATIX | Global Ledger</title>
+    <title>MATIX | Sync Points</title>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -11,6 +11,8 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0;
         }
+        .logo-area { color: #818cf8; font-weight: 700; letter-spacing: 2px; margin-bottom: 10px; }
+        
         .ledger-box {
             border: 1px solid #334155; background: #0f172a; padding: 30px;
             box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 95%; max-width: 600px;
@@ -18,45 +20,48 @@
         }
         .ledger-header {
             color: #818cf8; border-bottom: 1px solid #334155; padding-bottom: 15px;
-            margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; text-align: center;
+            margin-bottom: 25px; text-transform: uppercase; letter-spacing: 5px; font-weight: 700; text-align: center;
         }
         .member-row { padding: 20px 0; border-bottom: 1px solid #1e293b; }
         .member-info { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .name { color: #94a3b8; font-size: 1.2rem; }
-        .score { color: #10b981; font-weight: bold; font-size: 1.4rem; }
+        .name { color: #94a3b8; font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
+        .score { color: #10b981; font-weight: 700; font-size: 1.4rem; }
         .controls { display: flex; gap: 5px; justify-content: flex-start; flex-wrap: wrap; }
         
         .btn {
             padding: 8px 12px; border: 1px solid #334155; background: #020617;
             color: #f8fafc; cursor: pointer; font-size: 0.8rem; font-family: 'Courier Prime', monospace;
+            font-weight: 700; text-transform: uppercase; transition: 0.2s;
         }
         .btn:hover { background: #1e293b; border-color: #818cf8; }
         .btn-neg { color: #ef4444; border-color: #450a0a; }
-        .btn-reset { color: #f59e0b; border-color: #451a03; font-weight: bold; }
+        .btn-reset { color: #f59e0b; border-color: #451a03; }
         
-        #login-screen { text-align: center; border: 1px solid #334155; padding: 30px; background: #0f172a; width: 300px; }
-        input { background: #020617; border: 1px solid #334155; color: white; padding: 10px; margin-bottom: 10px; width: 100%; box-sizing: border-box; display: block; }
-        #error-msg { color: #ef4444; font-size: 0.7rem; margin-top: 10px; min-height: 1.2em; text-transform: uppercase; }
+        #login-screen { text-align: center; border: 1px solid #334155; padding: 30px; background: #0f172a; width: 320px; }
+        input { background: #020617; border: 1px solid #334155; color: white; padding: 12px; margin-bottom: 10px; width: 100%; box-sizing: border-box; display: block; font-family: 'Courier Prime', monospace; }
+        #error-msg { color: #ef4444; font-size: 0.7rem; margin-top: 10px; min-height: 1.2em; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
+    <div class="logo-area">[matixlogosvg]</div>
+
     <!-- LOGIN SECTION -->
     <div id="login-screen">
-        <div class="ledger-header">System_Login</div>
+        <div class="ledger-header">System_Auth</div>
         <input type="text" id="username" placeholder="USERNAME">
         <input type="password" id="password" placeholder="PASSWORD">
-        <button class="btn" style="width:100%" onclick="checkLogin()">AUTHORIZE</button>
+        <button class="btn" style="width:100%" onclick="checkLogin()">AUTHORIZE_ACCESS</button>
         <div id="error-msg"></div>
     </div>
 
     <!-- MAIN CONTENT -->
     <div class="ledger-box" id="main-content">
-        <div class="ledger-header">Matix_Sync_Points</div>
+        <div class="ledger-header">Sync_Points_Ledger</div>
         
-        <!-- Member Rows -->
+        <!-- 1. GHADI -->
         <div class="member-row">
-            <div class="member-info"><span class="name">Ghadi:</span> <span class="score" id="score-ghadi">0</span></div>
+            <div class="member-info"><span class="name">GHADI:</span> <span class="score" id="score-ghadi">0</span></div>
             <div class="controls">
                 <button class="btn" onclick="addPoints('ghadi', 10)">+10</button>
                 <button class="btn" onclick="addPoints('ghadi', 1)">+1</button>
@@ -66,8 +71,9 @@
             </div>
         </div>
 
+        <!-- 2. MARWAN -->
         <div class="member-row">
-            <div class="member-info"><span class="name">Marwan:</span> <span class="score" id="score-marwan">0</span></div>
+            <div class="member-info"><span class="name">MARWAN:</span> <span class="score" id="score-marwan">0</span></div>
             <div class="controls">
                 <button class="btn" onclick="addPoints('marwan', 10)">+10</button>
                 <button class="btn" onclick="addPoints('marwan', 1)">+1</button>
@@ -77,8 +83,9 @@
             </div>
         </div>
 
+        <!-- 3. JAD -->
         <div class="member-row">
-            <div class="member-info"><span class="name">Jad:</span> <span class="score" id="score-jad">0</span></div>
+            <div class="member-info"><span class="name">JAD:</span> <span class="score" id="score-jad">0</span></div>
             <div class="controls">
                 <button class="btn" onclick="addPoints('jad', 10)">+10</button>
                 <button class="btn" onclick="addPoints('jad', 1)">+1</button>
@@ -91,7 +98,6 @@
         <button class="btn" style="margin-top:30px; width:100%; opacity:0.5" onclick="logout()">TERMINATE_SESSION</button>
     </div>
 
-    <!-- FIREBASE LIBRARIES (Only for Database now) -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -107,7 +113,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 1. HARDCODED AUTH LIST
         const validUsers = {
             "ghadi": "iamtheownerofmatix",
             "jad": "ilikebatatameshwiyye",
@@ -120,7 +125,6 @@
             const errorDiv = document.getElementById('error-msg');
 
             if (validUsers[user] && validUsers[user] === pass) {
-                // Success
                 sessionStorage.setItem("matix_auth", "true");
                 showContent();
             } else {
@@ -138,12 +142,8 @@
             location.reload();
         }
 
-        // Keep user logged in during the current tab session
-        if (sessionStorage.getItem("matix_auth") === "true") {
-            showContent();
-        }
+        if (sessionStorage.getItem("matix_auth") === "true") { showContent(); }
 
-        // 2. POINTS LOGIC
         db.ref('points').on('value', (snapshot) => {
             const val = snapshot.val() || { ghadi: 0, marwan: 0, jad: 0 };
             document.getElementById('score-ghadi').innerText = val.ghadi || 0;
@@ -159,7 +159,7 @@
         }
 
         function resetPerson(name) {
-            if(confirm("Reset " + name + "'s points to zero?")) {
+            if(confirm("SYSTEM_ACTION: Reset " + name.toUpperCase() + "'s points?")) {
                 db.ref('points/' + name).set(0);
             }
         }
