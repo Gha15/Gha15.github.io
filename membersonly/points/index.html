@@ -7,106 +7,149 @@
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #020617;
-            color: #f8fafc;
-            font-family: 'Courier Prime', monospace;
+            background-color: #020617; color: #f8fafc; font-family: 'Courier Prime', monospace;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0;
         }
         .ledger-box {
             border: 1px solid #334155; background: #0f172a; padding: 30px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 90%; max-width: 500px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 95%; max-width: 600px;
+            display: none; 
         }
         .ledger-header {
             color: #818cf8; border-bottom: 1px solid #334155; padding-bottom: 15px;
             margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; text-align: center;
         }
         .member-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 15px 0; border-bottom: 1px solid #1e293b;
+            padding: 20px 0; border-bottom: 1px solid #1e293b;
         }
-        .name { color: #94a3b8; font-size: 1.1rem; }
-        .score { color: #10b981; font-weight: bold; font-size: 1.2rem; min-width: 40px; text-align: right; }
-        .controls { display: flex; gap: 8px; }
-        .add-btn {
-            padding: 5px 10px; border: 1px solid #334155; background: #020617;
+        .member-info { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .name { color: #94a3b8; font-size: 1.2rem; }
+        .score { color: #10b981; font-weight: bold; font-size: 1.4rem; }
+        .controls { display: flex; gap: 5px; justify-content: flex-start; flex-wrap: wrap; }
+        
+        .btn {
+            padding: 8px 12px; border: 1px solid #334155; background: #020617;
             color: #f8fafc; cursor: pointer; font-size: 0.8rem; font-family: 'Courier Prime', monospace;
         }
-        .add-btn:hover { background: #1e293b; border-color: #818cf8; }
-        .back-btn { margin-top: 40px; color: #334155; text-decoration: none; font-size: 0.8rem; }
+        .btn:hover { background: #1e293b; border-color: #818cf8; }
+        .btn-neg { color: #ef4444; border-color: #450a0a; }
+        .btn-reset { color: #f59e0b; border-color: #451a03; font-weight: bold; }
+        
+        #login-screen { text-align: center; border: 1px solid #334155; padding: 30px; background: #0f172a; }
+        input { background: #020617; border: 1px solid #334155; color: white; padding: 10px; margin-bottom: 10px; width: 200px; display: block; }
     </style>
 </head>
 <body>
 
-    <div class="ledger-box">
+    <div id="login-screen">
+        <div class="ledger-header">Matix_Auth</div>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button class="btn" style="width:100%" onclick="login()">ENTER</button>
+    </div>
+
+    <div class="ledger-box" id="main-content">
         <div class="ledger-header">Matix_Sync_Points</div>
         
         <!-- Member: Ghadi -->
         <div class="member-row">
-            <div><span class="name">Ghadi:</span> <span class="score" id="score-ghadi">0</span></div>
+            <div class="member-info">
+                <span class="name">Ghadi:</span> <span class="score" id="score-ghadi">0</span>
+            </div>
             <div class="controls">
-                <button class="add-btn" onclick="addPoints('ghadi', 1)">+1</button>
-                <button class="add-btn" onclick="addPoints('ghadi', 10)">+10</button>
+                <button class="btn" onclick="addPoints('ghadi', 10)">+10</button>
+                <button class="btn" onclick="addPoints('ghadi', 1)">+1</button>
+                <button class="btn btn-neg" onclick="addPoints('ghadi', -1)">-1</button>
+                <button class="btn btn-neg" onclick="addPoints('ghadi', -10)">-10</button>
+                <button class="btn btn-reset" onclick="resetPerson('ghadi')">RESET</button>
             </div>
         </div>
 
         <!-- Member: Marwan -->
         <div class="member-row">
-            <div><span class="name">Marwan:</span> <span class="score" id="score-marwan">0</span></div>
+            <div class="member-info">
+                <span class="name">Marwan:</span> <span class="score" id="score-marwan">0</span>
+            </div>
             <div class="controls">
-                <button class="add-btn" onclick="addPoints('marwan', 1)">+1</button>
-                <button class="add-btn" onclick="addPoints('marwan', 10)">+10</button>
+                <button class="btn" onclick="addPoints('marwan', 10)">+10</button>
+                <button class="btn" onclick="addPoints('marwan', 1)">+1</button>
+                <button class="btn btn-neg" onclick="addPoints('marwan', -1)">-1</button>
+                <button class="btn btn-neg" onclick="addPoints('marwan', -10)">-10</button>
+                <button class="btn btn-reset" onclick="resetPerson('marwan')">RESET</button>
             </div>
         </div>
 
         <!-- Member: Jad -->
         <div class="member-row">
-            <div><span class="name">Jad:</span> <span class="score" id="score-jad">0</span></div>
+            <div class="member-info">
+                <span class="name">Jad:</span> <span class="score" id="score-jad">0</span>
+            </div>
             <div class="controls">
-                <button class="add-btn" onclick="addPoints('jad', 1)">+1</button>
-                <button class="add-btn" onclick="addPoints('jad', 10)">+10</button>
+                <button class="btn" onclick="addPoints('jad', 10)">+10</button>
+                <button class="btn" onclick="addPoints('jad', 1)">+1</button>
+                <button class="btn btn-neg" onclick="addPoints('jad', -1)">-1</button>
+                <button class="btn btn-neg" onclick="addPoints('jad', -10)">-10</button>
+                <button class="btn btn-reset" onclick="resetPerson('jad')">RESET</button>
             </div>
         </div>
+
+        <button class="btn" style="margin-top:30px; width:100%; opacity:0.5" onclick="firebase.auth().signOut()">LOGOUT</button>
     </div>
 
-    <a href="../" class="back-btn">RETURN TO HUB</a>
-
-    <!-- FIREBASE LIBRARIES -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
     <script>
-        // 2. PASTE YOUR CONFIG BLOCK FROM FIREBASE HERE
         const firebaseConfig = {
-        apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
-        authDomain: "matix-1d538.firebaseapp.com",
-        databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
-        projectId: "matix-1d538",
-        storageBucket: "matix-1d538.firebasestorage.app",
-        messagingSenderId: "176900607358",
-        appId: "1:176900607358:web:19aa9a5dfdaf01da5cf72f",
-        measurementId: "G-55HGFDD8WF"
-        }
-        // Initialize Firebase
+            apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
+            authDomain: "matix-1d538.firebaseapp.com",
+            databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
+            projectId: "matix-1d538",
+            storageBucket: "matix-1d538.firebasestorage.app",
+            messagingSenderId: "176900607358",
+            appId: "1:176900607358:web:19aa9a5dfdaf01da5cf72f"
+        };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const auth = firebase.auth();
 
-        // LIVE LISTEN: Updates points on screen automatically when they change in the cloud
-        db.ref('points').on('value', (snapshot) => {
-            const val = snapshot.val();
-            if (val) {
-                if (val.ghadi !== undefined) document.getElementById('score-ghadi').innerText = val.ghadi;
-                if (val.marwan !== undefined) document.getElementById('score-marwan').innerText = val.marwan;
-                if (val.jad !== undefined) document.getElementById('score-jad').innerText = val.jad;
+        function login() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(e, p).catch(err => alert("Access Denied: " + err.message));
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+            } else {
+                document.getElementById('login-screen').style.display = 'block';
+                document.getElementById('main-content').style.display = 'none';
             }
         });
 
-        // UPDATE FUNCTION: Sends the +1 or +10 to the cloud
+        db.ref('points').on('value', (snapshot) => {
+            const val = snapshot.val() || { ghadi: 0, marwan: 0, jad: 0 };
+            document.getElementById('score-ghadi').innerText = val.ghadi || 0;
+            document.getElementById('score-marwan').innerText = val.marwan || 0;
+            document.getElementById('score-jad').innerText = val.jad || 0;
+        });
+
         function addPoints(name, amount) {
-            const ref = db.ref('points/' + name);
-            ref.transaction((current) => {
-                return (current || 0) + amount;
+            db.ref('points/' + name).transaction((current) => {
+                let newValue = (current || 0) + amount;
+                return newValue < 0 ? 0 : newValue; // Prevent negative scores
             });
+        }
+
+        function resetPerson(name) {
+            if(confirm("Reset " + name + "'s points to zero?")) {
+                db.ref('points/' + name).set(0);
+            }
         }
     </script>
 </body>
