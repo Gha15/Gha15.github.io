@@ -20,52 +20,66 @@
             padding: 40px;
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
             width: 90%;
-            max-width: 400px;
+            max-width: 450px;
+        }
+        .logo-area {
+            margin-bottom: 20px;
+            color: #818cf8;
         }
         .hub-header {
             color: #818cf8;
-            font-size: 1.5rem;
-            letter-spacing: 5px;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
             margin-bottom: 30px;
             text-transform: uppercase;
+            font-weight: bold;
         }
         .nav-link {
             display: block;
-            padding: 15px;
-            margin: 10px 0;
+            padding: 18px;
+            margin: 12px 0;
             border: 1px solid #1e293b;
             background: #020617;
             color: #10b981;
             text-decoration: none;
             transition: 0.3s;
             font-weight: bold;
+            letter-spacing: 1px;
         }
         .nav-link:hover {
             border-color: #818cf8;
             background: #1e293b;
             color: #f8fafc;
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(129, 140, 248, 0.2);
         }
-        .footer-note {
+        .status-tag {
             margin-top: 30px;
-            font-size: 0.7rem;
-            color: #334155;
+            font-size: 0.65rem;
+            color: #475569;
             text-transform: uppercase;
+            letter-spacing: 2px;
         }
     </style>
 </head>
 <body>
 
     <div class="hub-container">
-        <div class="hub-header">Matix_Hub</div>
+        <!-- MATIX LOGO PLACEHOLDER -->
+        <div class="logo-area">
+            <!-- You can paste your <svg> here -->
+            [matixlogosvg]
+        </div>
+
+        <div class="hub-header">Members_Only_Access</div>
         
-        <a href="points/" class="nav-link">VIEW GLOBAL LEDGER</a>
-        <!-- You can add more links here later, like /missions or /logs -->
+        <a href="points/" class="nav-link">ACCESS_SYNC_POINTS</a>
+        <!-- Future modules can be added below -->
         
-        <div class="footer-note">Internal Access Only // No Auth Required</div>
+        <div class="status-tag">System Status: Operational // Encrypted_Link</div>
     </div>
 
-    <a href="/" style="margin-top: 20px; color: #334155; text-decoration: none; font-size: 0.8rem;">EXIT TO PUBLIC SITE</a>
+    <a href="/" style="margin-top: 25px; color: #334155; text-decoration: none; font-size: 0.7rem; letter-spacing: 1px;">EXIT_TO_PUBLIC_INTERFACE</a>
 
 </body>
 </html>
