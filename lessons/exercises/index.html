@@ -240,6 +240,7 @@
         function evaluateAnswers() {
             let perfectRun = true;
 
+            // Checks EVERY question in the multi-question test
             for (const [qId, qData] of Object.entries(runningQuestionsCache)) {
                 const checkedOption = document.querySelector(`input[name="q_${qId}"]:checked`);
                 
@@ -250,11 +251,11 @@
             }
 
             if (!perfectRun) {
-                alert("EVALUATION FAILURE: Discrepancies found in answer stream. Re-evaluate formulas and retry.");
-                return;
+                alert("EVALUATION FAILURE: Discrepancies found. You must get 100% to pass. Retry!");
+                return; // Stops here, doesn't save "done"
             }
 
-            // Save Progress on Perfect Score
+            // Save Progress ONLY on 100% Perfect Score
             if (currentUser === 'guest') {
                 let progress = JSON.parse(localStorage.getItem('matix_guest_exercise_progress') || '{}');
                 progress[activeExerciseLessonId] = true;
@@ -287,6 +288,29 @@
                     opt.innerText = data.title;
                     dropdown.appendChild(opt);
                 }
+
+                // Add an event listener to count questions when you pick a lesson
+                dropdown.addEventListener('change', checkQuestionCount);
+            });
+        }
+
+        function checkQuestionCount() {
+            const selectedLesson = document.getElementById('admin-lesson-select').value;
+            if (!selectedLesson) return;
+
+            db.ref('exercises/' + selectedLesson).once('value', (snapshot) => {
+                const questions = snapshot.val() || {};
+                const count = Object.keys(questions).length;
+                
+                // Creates a little label showing how many questions are in this test
+                let label = document.getElementById('q-count-label');
+                if (!label) {
+                    label = document.createElement('div');
+                    label.id = 'q-count-label';
+                    label.style = "color: #f59e0b; margin-bottom: 10px; font-weight: bold;";
+                    document.getElementById('admin-lesson-select').after(label);
+                }
+                label.innerText = `Current Questions in Test: ${count}`;
             });
         }
 
@@ -307,7 +331,11 @@
             db.ref('exercises/' + selectedLesson).push({
                 question: text, A: a, B: b, C: c, D: d, correct: correct
             }).then(() => {
-                alert("Data node injected successfully into production array.");
+                alert("Question added! You can type another one immediately.");
+                // Update the counter
+                checkQuestionCount();
+                
+                // Clear the text boxes so Ghadi can type the next question easily
                 document.getElementById('q-text').value = '';
                 document.getElementById('opt-a').value = '';
                 document.getElementById('opt-b').value = '';
