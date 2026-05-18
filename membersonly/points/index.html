@@ -28,7 +28,9 @@
         .member-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .name { color: #94a3b8; font-size: 2.2rem; }
         .score { color: #10b981; font-size: 2.5rem; }
-        .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+        
+        /* Buttons are hidden by default via CSS */
+        .controls { display: none; gap: 8px; flex-wrap: wrap; }
         
         .btn {
             padding: 5px 15px; border: 1px solid #334155; background: #020617;
@@ -65,7 +67,6 @@
         </svg>
     </div>
 
-    <!-- LOGIN SCREEN -->
     <div id="login-screen">
         <div class="ledger-header">System_Auth</div>
         <input type="text" id="username" placeholder="USERNAME">
@@ -74,11 +75,9 @@
         <div id="error-msg"></div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="ledger-box" id="main-content">
         <div class="ledger-header">Sync_Points_Ledger</div>
         
-        <!-- GHADI -->
         <div class="member-row">
             <div class="member-info"><span class="name">Ghadi:</span> <span class="score" id="score-ghadi">0</span></div>
             <div class="controls">
@@ -90,7 +89,6 @@
             </div>
         </div>
 
-        <!-- MARWAN -->
         <div class="member-row">
             <div class="member-info"><span class="name">Marwan:</span> <span class="score" id="score-marwan">0</span></div>
             <div class="controls">
@@ -102,7 +100,6 @@
             </div>
         </div>
 
-        <!-- JAD -->
         <div class="member-row">
             <div class="member-info"><span class="name">Jad:</span> <span class="score" id="score-jad">0</span></div>
             <div class="controls">
@@ -117,7 +114,6 @@
         <button class="btn" style="margin-top:40px; width:100%; opacity:0.4; border:none;" onclick="logout()">Terminate_Session</button>
     </div>
 
-    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -145,7 +141,8 @@
             const errorDiv = document.getElementById('error-msg');
 
             if (validUsers[user] && validUsers[user] === pass) {
-                sessionStorage.setItem("matix_auth", "true");
+                // Store the username directly so we can check it after refresh
+                sessionStorage.setItem("matix_auth_user", user);
                 showContent();
             } else {
                 errorDiv.innerText = "ACCESS_DENIED: INVALID_CREDENTIALS";
@@ -155,14 +152,25 @@
         function showContent() {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
+            
+            // Check if the signed-in user is 'ghadi'
+            const activeUser = sessionStorage.getItem("matix_auth_user");
+            if (activeUser === 'ghadi') {
+                // Select all control elements and display them
+                const allControls = document.querySelectorAll('.controls');
+                allControls.forEach(controlBlock => {
+                    controlBlock.style.display = 'flex';
+                });
+            }
         }
 
         function logout() {
-            sessionStorage.removeItem("matix_auth");
+            sessionStorage.removeItem("matix_auth_user");
             location.reload();
         }
 
-        if (sessionStorage.getItem("matix_auth") === "true") { showContent(); }
+        // Keep session open if already authorized
+        if (sessionStorage.getItem("matix_auth_user")) { showContent(); }
 
         // REALTIME LISTENER
         db.ref('points').on('value', (snapshot) => {
