@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>THE VAULT | Matix</title>
     
-    <!-- Preconnecting for speed -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Courier+Prime&display=swap" rel="stylesheet">
@@ -48,7 +47,15 @@
 
         @keyframes fadeIn { to { opacity: 1; } }
 
-        /* Members Only Button Styles */
+        /* Navigation Container Setup */
+        .navigation-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
         .members-section {
             display: flex;
             flex-direction: column;
@@ -77,6 +84,28 @@
             background: #818cf8;
             color: #020617;
             box-shadow: 0 0 20px rgba(129, 140, 248, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Styling for the brand new Lessons Button */
+        .lessons-btn {
+            padding: 12px 30px;
+            background: transparent;
+            border: 2px solid #10b981; /* Matrix Green */
+            color: #10b981;
+            text-decoration: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .lessons-btn:hover {
+            background: #10b981;
+            color: #020617;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
             transform: scale(1.05);
         }
 
@@ -119,9 +148,11 @@
         </div>
     </div>
 
-    <!-- The Requested Button & Coming Soon -->
     <div class="members-section">
-        <a href="/membersonly" class="members-btn">Members Only</a>
+        <div class="navigation-row">
+            <a href="/membersonly" class="members-btn">Members Only</a>
+            <a href="/lessons" class="lessons-btn">Lessons Vault</a>
+        </div>
         <span class="coming-soon">coming soon...</span>
     </div>
 
