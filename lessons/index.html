@@ -1,1 +1,285 @@
-hllo
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATIX | Lessons Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vibur&family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #020617; color: #10b981; font-family: 'Courier Prime', monospace;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;
+        }
+
+        /* --- UI BOXES --- */
+        .container {
+            border: 1px solid #10b981; background: #0f172a; padding: 30px;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2); width: 100%; max-width: 700px;
+            display: none; /* Hidden until auth */
+            margin-bottom: 20px;
+        }
+
+        .header-title {
+            color: #818cf8; border-bottom: 1px solid #334155; padding-bottom: 10px;
+            margin-bottom: 20px; font-size: 2rem; text-align: center; font-family: 'Vibur', cursive;
+        }
+
+        /* --- AUTH SCREEN --- */
+        #auth-screen { display: block; text-align: center; max-width: 400px; margin-top: 10vh; }
+        input, textarea { 
+            background: #020617; border: 1px solid #334155; color: #f8fafc; 
+            padding: 12px; margin-bottom: 15px; width: 100%; box-sizing: border-box; 
+            font-family: 'Courier Prime', monospace; font-size: 1rem;
+        }
+        
+        .btn {
+            padding: 10px 20px; border: 1px solid #10b981; background: transparent;
+            color: #10b981; cursor: pointer; font-size: 1.1rem; font-family: 'Courier Prime', monospace;
+            transition: 0.3s; width: 100%; margin-bottom: 10px; text-transform: uppercase;
+        }
+        .btn:hover { background: #10b981; color: #020617; }
+        .btn-guest { border-color: #94a3b8; color: #94a3b8; }
+        .btn-guest:hover { background: #94a3b8; color: #020617; }
+        #auth-error { color: #ef4444; margin-bottom: 10px; font-size: 0.9rem; }
+
+        /* --- ADMIN PANEL --- */
+        #admin-panel { display: none; border-color: #818cf8; box-shadow: 0 0 30px rgba(129, 140, 248, 0.2); }
+        .admin-label { color: #818cf8; font-size: 0.9rem; margin-bottom: 5px; display: block; }
+        textarea { resize: vertical; min-height: 100px; }
+        .btn-admin { border-color: #818cf8; color: #818cf8; }
+        .btn-admin:hover { background: #818cf8; color: #020617; }
+
+        /* --- LESSON LIST --- */
+        #lesson-list { display: flex; flex-direction: column; gap: 10px; }
+        .lesson-btn {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; background: #1e293b; border: 1px solid #334155;
+            color: #f8fafc; cursor: pointer; transition: 0.2s; text-align: left;
+            font-size: 1.1rem; border-radius: 5px;
+        }
+        .lesson-btn:hover { border-color: #10b981; background: #0f172a; }
+        .lesson-status { font-size: 1.2rem; }
+
+        /* --- LESSON VIEWER --- */
+        #lesson-viewer { display: none; }
+        #viewer-content { color: #cbd5e1; line-height: 1.6; margin-bottom: 30px; border-left: 2px solid #818cf8; padding-left: 15px; white-space: pre-wrap; }
+        .btn-done { border-color: #f59e0b; color: #f59e0b; }
+        .btn-done:hover { background: #f59e0b; color: #020617; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="auth-screen">
+        <div class="header-title">Vault_Access</div>
+        <div id="auth-error"></div>
+        <input type="text" id="username" placeholder="USERNAME">
+        <input type="password" id="password" placeholder="PASSWORD">
+        <button class="btn" onclick="loginMember()">Authorize_Member</button>
+        <div style="margin: 15px 0; color: #334155;">--- OR ---</div>
+        <button class="btn btn-guest" onclick="loginGuest()">Access_As_Guest</button>
+    </div>
+
+    <div class="container" id="admin-panel">
+        <div class="header-title" style="color:#818cf8;">Admin_Lesson_Creator</div>
+        <span class="admin-label">Lesson Title:</span>
+        <input type="text" id="new-title" placeholder="e.g. Algebra 101">
+        
+        <span class="admin-label">Short Description:</span>
+        <input type="text" id="new-desc" placeholder="What is this about?">
+        
+        <span class="admin-label">Lesson Text/Content:</span>
+        <textarea id="new-content" placeholder="Type the lesson content here..."></textarea>
+        
+        <button class="btn btn-admin" onclick="addLesson()">Deploy_Lesson</button>
+    </div>
+
+    <div class="container" id="dashboard-screen">
+        <div class="header-title">Available_Modules</div>
+        <div id="user-display" style="text-align:center; margin-bottom: 20px; color: #94a3b8;"></div>
+        <div id="lesson-list">
+            </div>
+        <button class="btn btn-guest" style="margin-top: 30px; opacity: 0.5;" onclick="logout()">Terminate_Session</button>
+    </div>
+
+    <div class="container" id="lesson-viewer">
+        <div class="header-title" id="viewer-title">Lesson Title</div>
+        <div style="color: #94a3b8; margin-bottom: 20px; font-style: italic;" id="viewer-desc">Description</div>
+        <div id="viewer-content">Content goes here...</div>
+        
+        <button class="btn btn-done" onclick="finishLesson()">Complete_&_Go_To_Exercises</button>
+        <button class="btn btn-guest" onclick="backToDashboard()">Return_To_Modules</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        // --- 1. FIREBASE SETUP ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
+            authDomain: "matix-1d538.firebaseapp.com",
+            databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
+            projectId: "matix-1d538",
+            storageBucket: "matix-1d538.firebasestorage.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- 2. AUTHENTICATION LOGIC ---
+        const validUsers = {
+            "ghadi": "iamtheownerofmatix",
+            "jad": "ilikebatatameshwiyye",
+            "marwan": "ilikebeingnumberonebutiamnumbertwo"
+        };
+
+        let currentUser = sessionStorage.getItem("matix_auth_user");
+        let activeLessonId = null; 
+
+        // Check if already logged in on page load
+        if (currentUser) { loadDashboard(); }
+
+        function loginMember() {
+            const user = document.getElementById('username').value.trim().toLowerCase();
+            const pass = document.getElementById('password').value;
+            if (validUsers[user] && validUsers[user] === pass) {
+                currentUser = user;
+                sessionStorage.setItem("matix_auth_user", user);
+                loadDashboard();
+            } else {
+                document.getElementById('auth-error').innerText = "ERROR: Invalid credentials.";
+            }
+        }
+
+        function loginGuest() {
+            currentUser = "guest";
+            sessionStorage.setItem("matix_auth_user", "guest");
+            // Initialize local browser storage for guest if it doesn't exist
+            if(!localStorage.getItem('matix_guest_progress')) {
+                localStorage.setItem('matix_guest_progress', JSON.stringify({}));
+            }
+            loadDashboard();
+        }
+
+        function logout() {
+            sessionStorage.removeItem("matix_auth_user");
+            location.reload();
+        }
+
+        // --- 3. DASHBOARD & DATA LOGIC ---
+        function loadDashboard() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('lesson-viewer').style.display = 'none';
+            document.getElementById('dashboard-screen').style.display = 'block';
+            document.getElementById('user-display').innerText = `Active User: ${currentUser.toUpperCase()}`;
+
+            // Show Admin Panel ONLY for Ghadi
+            if (currentUser === 'ghadi') {
+                document.getElementById('admin-panel').style.display = 'block';
+            }
+
+            // Fetch lessons from Firebase
+            db.ref('lessons').on('value', (snapshot) => {
+                const lessons = snapshot.val() || {};
+                renderLessonButtons(lessons);
+            });
+        }
+
+        function renderLessonButtons(lessons) {
+            const listDiv = document.getElementById('lesson-list');
+            listDiv.innerHTML = ''; // Clear loading state
+
+            // Determine where we are checking progress
+            let userProgress = {};
+            
+            if (currentUser === 'guest') {
+                // Get from Browser Memory
+                userProgress = JSON.parse(localStorage.getItem('matix_guest_progress') || '{}');
+                buildButtons(lessons, userProgress);
+            } else {
+                // Get from Firebase Memory
+                db.ref('progress/' + currentUser).once('value').then((snap) => {
+                    userProgress = snap.val() || {};
+                    buildButtons(lessons, userProgress);
+                });
+            }
+        }
+
+        function buildButtons(lessons, userProgress) {
+            const listDiv = document.getElementById('lesson-list');
+            for (const [lessonId, data] of Object.entries(lessons)) {
+                
+                const isDone = userProgress[lessonId] === true;
+                const emoji = isDone ? '✔️' : '❌';
+
+                const btn = document.createElement('button');
+                btn.className = 'lesson-btn';
+                btn.innerHTML = `<span>${data.title}</span> <span class="lesson-status">${emoji}</span>`;
+                
+                // When clicked, open the viewer!
+                btn.onclick = () => openLesson(lessonId, data);
+                
+                listDiv.appendChild(btn);
+            }
+        }
+
+        // --- 4. ADMIN: ADD LESSON ---
+        function addLesson() {
+            const title = document.getElementById('new-title').value;
+            const desc = document.getElementById('new-desc').value;
+            const content = document.getElementById('new-content').value;
+
+            if(!title || !content) return alert("Title and Content are required!");
+
+            // Push generates a unique ID for the lesson
+            db.ref('lessons').push({
+                title: title,
+                description: desc,
+                content: content
+            }).then(() => {
+                alert("Lesson deployed to network!");
+                // Clear inputs
+                document.getElementById('new-title').value = '';
+                document.getElementById('new-desc').value = '';
+                document.getElementById('new-content').value = '';
+            });
+        }
+
+        // --- 5. LESSON VIEWER & PROGRESS LOGIC ---
+        function openLesson(lessonId, data) {
+            activeLessonId = lessonId;
+            document.getElementById('dashboard-screen').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'none';
+            
+            document.getElementById('lesson-viewer').style.display = 'block';
+            document.getElementById('viewer-title').innerText = data.title;
+            document.getElementById('viewer-desc').innerText = data.description;
+            document.getElementById('viewer-content').innerText = data.content;
+        }
+
+        function backToDashboard() {
+            activeLessonId = null;
+            loadDashboard();
+        }
+
+        function finishLesson() {
+            // 1. Save Progress
+            if (currentUser === 'guest') {
+                let progress = JSON.parse(localStorage.getItem('matix_guest_progress') || '{}');
+                progress[activeLessonId] = true;
+                localStorage.setItem('matix_guest_progress', JSON.stringify(progress));
+            } else {
+                db.ref('progress/' + currentUser + '/' + activeLessonId).set(true);
+            }
+
+            // 2. Alert and redirect to exercises (Placeholder for now)
+            alert("Progress Saved! Routing to Exercises...");
+            
+            // NEXT STEP: You can redirect them to a specific URL based on the lesson
+            // window.location.href = `/exercises?lesson=${activeLessonId}`;
+            
+            backToDashboard();
+        }
+    </script>
+</body>
+</html>
