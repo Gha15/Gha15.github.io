@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATIX | Training Ground</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vibur&family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #020617; color: #10b981; font-family: 'Courier Prime', monospace;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;
+        }
+
+        .container {
+            border: 1px solid #10b981; background: #0f172a; padding: 30px;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2); width: 100%; max-width: 700px;
+            display: none; margin-bottom: 20px;
+        }
+
+        .header-title {
+            color: #818cf8; border-bottom: 1px solid #334155; padding-bottom: 10px;
+            margin-bottom: 20px; font-size: 2rem; text-align: center; font-family: 'Vibur', cursive;
+        }
+
+        /* --- AUTH PROTECTION LOCK --- */
+        #lock-screen { display: block; text-align: center; max-width: 450px; margin-top: 15vh; }
+
+        input, textarea, select { 
+            background: #020617; border: 1px solid #334155; color: #f8fafc; 
+            padding: 12px; margin-bottom: 15px; width: 100%; box-sizing: border-box; 
+            font-family: 'Courier Prime', monospace; font-size: 1rem;
+        }
+
+        select option { background: #0f172a; color: #f8fafc; }
+        
+        .btn {
+            padding: 10px 20px; border: 1px solid #10b981; background: transparent;
+            color: #10b981; cursor: pointer; font-size: 1.1rem; font-family: 'Courier Prime', monospace;
+            transition: 0.3s; width: 100%; margin-bottom: 10px; text-transform: uppercase;
+        }
+        .btn:hover { background: #10b981; color: #020617; }
+        .btn-guest { border-color: #94a3b8; color: #94a3b8; }
+        .btn-guest:hover { background: #94a3b8; color: #020617; }
+
+        /* --- ADMIN PANEL --- */
+        #admin-panel { border-color: #818cf8; box-shadow: 0 0 30px rgba(129, 140, 248, 0.2); }
+        .admin-label { color: #818cf8; font-size: 0.9rem; margin-bottom: 5px; display: block; }
+        .btn-admin { border-color: #818cf8; color: #818cf8; }
+        .btn-admin:hover { background: #818cf8; color: #020617; }
+
+        /* --- EXERCISE HUB LIST --- */
+        #exercise-list { display: flex; flex-direction: column; gap: 10px; }
+        .exercise-btn {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; background: #1e293b; border: 1px solid #334155;
+            color: #f8fafc; cursor: pointer; transition: 0.2s; text-align: left;
+            font-size: 1.1rem; border-radius: 5px;
+        }
+        .exercise-btn:hover { border-color: #10b981; background: #0f172a; }
+        .status-tracker { font-weight: bold; letter-spacing: 1px; }
+
+        /* --- LIVE QUIZ INTERFACE --- */
+        #quiz-viewer { display: none; }
+        .q-card { background: #020617; border: 1px solid #334155; padding: 20px; margin-bottom: 15px; border-radius: 5px; }
+        .q-text { color: #f8fafc; margin-bottom: 15px; font-size: 1.1rem; }
+        .option-container { display: flex; flex-direction: column; gap: 8px; }
+        .option-label { 
+            display: flex; align-items: center; gap: 10px; background: #1e293b; 
+            padding: 10px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; 
+            transition: 0.2s; color: #cbd5e1;
+        }
+        .option-label:hover { border-color: #818cf8; color: #f8fafc; }
+        input[type="radio"] { width: auto; margin: 0; accent-color: #10b981; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="lock-screen">
+        <div class="header-title" style="color: #ef4444;">Access_Restricted</div>
+        <p style="color: #94a3b8; margin-bottom: 25px;">You must establish a secure link via the main Lessons Portal before accessing this sector.</p>
+        <button class="btn" onclick="window.location.href='/lessons'">Go To Lessons Portal</button>
+    </div>
+
+    <div class="container" id="admin-panel">
+        <div class="header-title" style="color:#818cf8;">Matrix_Problem_Generator</div>
+        
+        <span class="admin-label">Select Destination Module:</span>
+        <select id="admin-lesson-select">
+            <option value="">-- Loading Available Lessons --</option>
+        </select>
+
+        <span class="admin-label">Question Text:</span>
+        <input type="text" id="q-text" placeholder="e.g. Solve for x: 2x + 5 = 15">
+        
+        <span class="admin-label">Multiple Choice Alternatives:</span>
+        <input type="text" id="opt-a" placeholder="Option A">
+        <input type="text" id="opt-b" placeholder="Option B">
+        <input type="text" id="opt-c" placeholder="Option C">
+        <input type="text" id="opt-d" placeholder="Option D">
+        
+        <span class="admin-label">Designated Solution Core:</span>
+        <select id="opt-correct">
+            <option value="A">Option A is Correct</option>
+            <option value="B">Option B is Correct</option>
+            <option value="C">Option C is Correct</option>
+            <option value="D">Option D is Correct</option>
+        </select>
+        
+        <button class="btn btn-admin" onclick="uploadQuestion()">Inject_Question_Data</button>
+    </div>
+
+    <div class="container" id="dashboard-screen">
+        <div class="header-title">Matrix_Target_Parameters</div>
+        <div id="user-display" style="text-align:center; margin-bottom: 20px; color: #94a3b8;"></div>
+        
+        <div id="exercise-list">
+            </div>
+        
+        <button class="btn btn-guest" style="margin-top: 30px; opacity: 0.5;" onclick="window.location.href='/lessons'">Return to Modules</button>
+    </div>
+
+    <div class="container" id="quiz-viewer">
+        <div class="header-title" id="quiz-title">Target Objective</div>
+        
+        <div id="questions-hydrator">
+            </div>
+        
+        <button class="btn" style="border-color: #f59e0b; color: #f59e0b;" onclick="evaluateAnswers()">Evaluate_Submission_Stream</button>
+        <button class="btn btn-guest" onclick="abortQuiz()">Abort_Mission</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        // --- FIREBASE INTERACTION ENGINE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
+            authDomain: "matix-1d538.firebaseapp.com",
+            databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
+            projectId: "matix-1d538",
+            storageBucket: "matix-1d538.firebasestorage.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- SESSION PARSER ---
+        let currentUser = sessionStorage.getItem("matix_auth_user");
+        let activeExerciseLessonId = null;
+        let runningQuestionsCache = {};
+
+        if (currentUser) {
+            document.getElementById('lock-screen').style.display = 'none';
+            initExerciseHub();
+        }
+
+        function initExerciseHub() {
+            document.getElementById('dashboard-screen').style.display = 'block';
+            document.getElementById('user-display').innerText = `Operative: ${currentUser.toUpperCase()}`;
+
+            if (currentUser === 'ghadi') {
+                document.getElementById('admin-panel').style.display = 'block';
+                populateAdminDropdown();
+            }
+
+            // Real-time synchronization loop
+            db.ref('lessons').on('value', (lessonSnapshot) => {
+                const lessons = lessonSnapshot.val() || {};
+                
+                if (currentUser === 'guest') {
+                    const guestProgress = JSON.parse(localStorage.getItem('matix_guest_exercise_progress') || '{}');
+                    renderExerciseHubButtons(lessons, guestProgress);
+                } else {
+                    db.ref('exercise_progress/' + currentUser).on('value', (progressSnapshot) => {
+                        const memberProgress = progressSnapshot.val() || {};
+                        renderExerciseHubButtons(lessons, memberProgress);
+                    });
+                }
+            });
+        }
+
+        // --- RENDER SECTOR ---
+        function renderExerciseHubButtons(lessons, progressData) {
+            const listContainer = document.getElementById('exercise-list');
+            listContainer.innerHTML = '';
+
+            for (const [lessonId, data] of Object.entries(lessons)) {
+                const isCleared = progressData[lessonId] === true;
+                const visualIndicator = isCleared ? '✔️' : '...';
+
+                const blockBtn = document.createElement('button');
+                blockBtn.className = 'exercise-btn';
+                blockBtn.innerHTML = `<span>[EXERCISE] ${data.title}</span> <span class="status-tracker">${visualIndicator}</span>`;
+                
+                blockBtn.onclick = () => startTargetQuiz(lessonId, data.title);
+                listContainer.appendChild(blockBtn);
+            }
+        }
+
+        // --- QUIZ GAME ENGINE ---
+        function startTargetQuiz(lessonId, lessonTitle) {
+            db.ref('exercises/' + lessonId).once('value', (snapshot) => {
+                const questions = snapshot.val() || {};
+                if (Object.keys(questions).length === 0) {
+                    alert("SYSTEM NOTICE: No training exercises deployed for this track yet.");
+                    return;
+                }
+
+                activeExerciseLessonId = lessonId;
+                runningQuestionsCache = questions;
+
+                document.getElementById('dashboard-screen').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'none';
+                document.getElementById('quiz-viewer').style.display = 'block';
+                document.getElementById('quiz-title').innerText = `${lessonTitle} // Testing Protocol`;
+
+                const questionHydrator = document.getElementById('questions-hydrator');
+                questionHydrator.innerHTML = '';
+
+                let index = 0;
+                for (const [qId, qData] of Object.entries(questions)) {
+                    const card = document.createElement('div');
+                    card.className = 'q-card';
+                    card.innerHTML = `
+                        <div class="q-text">${index + 1}. ${qData.question}</div>
+                        <div class="option-container">
+                            <label class="option-label"><input type="radio" name="q_${qId}" value="A"> A) ${qData.A}</label>
+                            <label class="option-label"><input type="radio" name="q_${qId}" value="B"> B) ${qData.B}</label>
+                            <label class="option-label"><input type="radio" name="q_${qId}" value="C"> C) ${qData.C}</label>
+                            <label class="option-label"><input type="radio" name="q_${qId}" value="D"> D) ${qData.D}</label>
+                        </div>
+                    `;
+                    questionHydrator.appendChild(card);
+                    index++;
+                }
+            });
+        }
+
+        function evaluateAnswers() {
+            let perfectRun = true;
+
+            for (const [qId, qData] of Object.entries(runningQuestionsCache)) {
+                const checkedOption = document.querySelector(`input[name="q_${qId}"]:checked`);
+                
+                if (!checkedOption || checkedOption.value !== qData.correct) {
+                    perfectRun = false;
+                    break;
+                }
+            }
+
+            if (!perfectRun) {
+                alert("EVALUATION FAILURE: Discrepancies found in answer stream. Re-evaluate formulas and retry.");
+                return;
+            }
+
+            // Save Progress on Perfect Score
+            if (currentUser === 'guest') {
+                let progress = JSON.parse(localStorage.getItem('matix_guest_exercise_progress') || '{}');
+                progress[activeExerciseLessonId] = true;
+                localStorage.setItem('matix_guest_exercise_progress', JSON.stringify(progress));
+            } else {
+                db.ref('exercise_progress/' + currentUser + '/' + activeExerciseLessonId).set(true);
+            }
+
+            alert("EVALUATION SUCCESS: All criteria checked. Performance archived!");
+            abortQuiz();
+        }
+
+        function abortQuiz() {
+            activeExerciseLessonId = null;
+            runningQuestionsCache = {};
+            document.getElementById('quiz-viewer').style.display = 'none';
+            initExerciseHub();
+        }
+
+        // --- GHADI ADMIN SYSTEMS ---
+        function populateAdminDropdown() {
+            db.ref('lessons').once('value', (snapshot) => {
+                const lessons = snapshot.val() || {};
+                const dropdown = document.getElementById('admin-lesson-select');
+                dropdown.innerHTML = '<option value="">-- Choose Module Association --</option>';
+
+                for (const [id, data] of Object.entries(lessons)) {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.innerText = data.title;
+                    dropdown.appendChild(opt);
+                }
+            });
+        }
+
+        function uploadQuestion() {
+            const selectedLesson = document.getElementById('admin-lesson-select').value;
+            const text = document.getElementById('q-text').value;
+            const a = document.getElementById('opt-a').value;
+            const b = document.getElementById('opt-b').value;
+            const c = document.getElementById('opt-c').value;
+            const d = document.getElementById('opt-d').value;
+            const correct = document.getElementById('opt-correct').value;
+
+            if (!selectedLesson || !text || !a || !b || !c || !d) {
+                alert("ADMIN ERROR: Structural generation requires all operational fields filled.");
+                return;
+            }
+
+            db.ref('exercises/' + selectedLesson).push({
+                question: text, A: a, B: b, C: c, D: d, correct: correct
+            }).then(() => {
+                alert("Data node injected successfully into production array.");
+                document.getElementById('q-text').value = '';
+                document.getElementById('opt-a').value = '';
+                document.getElementById('opt-b').value = '';
+                document.getElementById('opt-c').value = '';
+                document.getElementById('opt-d').value = '';
+            });
+        }
+    </script>
+</body>
+</html>
