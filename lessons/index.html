@@ -262,8 +262,8 @@
             loadDashboard();
         }
 
-        function finishLesson() {
-            // 1. Save Progress
+function finishLesson() {
+            // 1. Save Progress so it actually marks as DONE (✔️)
             if (currentUser === 'guest') {
                 let progress = JSON.parse(localStorage.getItem('matix_guest_progress') || '{}');
                 progress[activeLessonId] = true;
@@ -272,13 +272,9 @@
                 db.ref('progress/' + currentUser + '/' + activeLessonId).set(true);
             }
 
-            // 2. Alert and redirect to exercises (Placeholder for now)
-            alert("Progress Saved! Routing to Exercises...");
-            
-            // NEXT STEP: You can redirect them to a specific URL based on the lesson
-            // window.location.href = `/exercises?lesson=${activeLessonId}`;
-            
-            backToDashboard();
+            // 2. Alert and TELEPORT to the exercises folder
+            alert("Progress Saved! Routing to Target Exercises...");
+            window.location.href = '/lessons/exercises'; 
         }
     </script>
 </body>
