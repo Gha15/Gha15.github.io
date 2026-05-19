@@ -137,7 +137,7 @@
         <button class="btn btn-guest" onclick="backToDashboard()">Return_To_Modules</button>
     </div>
 
-    <!-- Firebase SDK Imports -->
+    <!-- FIXED FIREBASE SDK IMPORTS (v8 Compat Packages) -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
 
@@ -163,173 +163,159 @@
         let currentUser = sessionStorage.getItem("matix_auth_user");
         let activeLessonId = null; 
 
-        if (currentUser) { loadDashboard(); }
+        // Auto-login session recovery
+        if (currentUser) { 
+            loadDashboard(); 
+        }
 
         function loginMember() {
-            const user = document.getElementById('username').value.trim().toLowerCase();
-            const pass = document.getElementById('password').value;
+            const userField = document.getElementById('username');
+            const passField = document.getElementById('password');
+            const errorDiv = document.getElementById('auth-error');
+
+            if (!userField || !passField) return;
+
+            const user = userField.value.trim().toLowerCase();
+            const pass = passField.value;
+
             if (validUsers[user] && validUsers[user] === pass) {
                 currentUser = user;
                 sessionStorage.setItem("matix_auth_user", user);
+                errorDiv.innerText = ""; // Clear errors
                 loadDashboard();
             } else {
-                document.getElementById('auth-error').innerText = "ERROR: Invalid credentials.";
+                errorDiv.innerText = "ACCESS_DENIED: INVALID CREDENTIALS";
             }
         }
 
         function loginGuest() {
             currentUser = "guest";
             sessionStorage.setItem("matix_auth_user", "guest");
-            if(!localStorage.getItem('matix_guest_progress')) {
-                localStorage.setItem('matix_guest_progress', JSON.stringify({}));
-            }
+            document.getElementById('auth-error').innerText = ""; 
             loadDashboard();
         }
 
         function logout() {
             sessionStorage.removeItem("matix_auth_user");
+            currentUser = null;
             location.reload();
         }
 
-        // --- 3. DASHBOARD & DATA LOGIC ---
-        function loadDashboard() {
+        // --- 3. UI VIEW CONTROLLER ---
+        function hideAllContainers() {
+            // Forces all screen boxes to hide
             document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('lesson-viewer').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'none';
             document.getElementById('edit-panel').style.display = 'none';
-            document.getElementById('dashboard-screen').style.display = 'block';
-            document.getElementById('user-display').innerText = `Active_User: ${currentUser.toUpperCase()}`;
+            document.getElementById('dashboard-screen').style.display = 'none';
+            document.getElementById('lesson-viewer').style.display = 'none';
+        }
 
-            // Show Admin Panel Creator ONLY if user is Ghadi
+        function loadDashboard() {
+            hideAllContainers();
+            
+            // Display dashboard container
+            document.getElementById('dashboard-screen').style.display = 'block';
+            document.getElementById('user-display').innerText = `ACCESS_LEVEL: ${currentUser.toUpperCase()}`;
+            
+            // Show deployer console for Ghadi only
             if (currentUser === "ghadi") {
                 document.getElementById('admin-panel').style.display = 'block';
-            } else {
-                document.getElementById('admin-panel').style.display = 'none';
             }
-
             fetchLessons();
         }
 
-        function fetchLessons() {
-            const lessonListDiv = document.getElementById('lesson-list');
-            
-            db.ref('lessons').on('value', (snapshot) => {
-                lessonListDiv.innerHTML = "";
-                const data = snapshot.val();
-                
-                if (data) {
-                    Object.keys(data).forEach((key) => {
-                        const lesson = data[key];
-                        
-                        const lessonCard = document.createElement('div');
-                        lessonCard.className = "lesson-btn";
-                        
-                        const contentSpan = document.createElement('span');
-                        contentSpan.innerText = lesson.title;
-                        contentSpan.style.flexGrow = "1";
-                        contentSpan.onclick = () => viewLesson(key, lesson);
-                        lessonCard.appendChild(contentSpan);
-
-                        const controlsDiv = document.createElement('div');
-                        controlsDiv.className = "lesson-controls";
-
-                        // Conditional validation constraint checking
-                        if (currentUser === "ghadi") {
-                            const editBtn = document.createElement('button');
-                            editBtn.className = "btn btn-edit";
-                            editBtn.innerText = "EDIT";
-                            editBtn.onclick = (e) => {
-                                e.stopPropagation(); // Stops lesson view opening handler execution
-                                openEditPanel(key, lesson);
-                            };
-                            controlsDiv.appendChild(editBtn);
-                        }
-
-                        lessonCard.appendChild(controlsDiv);
-                        lessonListDiv.appendChild(lessonCard);
-                    });
-                } else {
-                    lessonListDiv.innerHTML = "<div style='text-align:center; color:#334155;'>No modules deployed.</div>";
-                }
-            });
+        function backToDashboard() {
+            loadDashboard();
         }
 
+        // --- 4. FIREBASE DATABASE ACTIONS ---
         function addLesson() {
             const title = document.getElementById('new-title').value.trim();
             const desc = document.getElementById('new-desc').value.trim();
             const content = document.getElementById('new-content').value.trim();
 
-            if (!title || !content) {
-                alert("Please fill in Title and Content.");
-                return;
-            }
+            if(!title || !content) return alert("Title and Content required.");
 
             db.ref('lessons').push({
                 title: title,
                 desc: desc,
                 content: content
             }).then(() => {
-                document.getElementById('new-title').value = "";
-                document.getElementById('new-desc').value = "";
-                document.getElementById('new-content').value = "";
-                alert("Lesson deployed safely.");
-            }).catch((error) => {
-                console.error("Deploy failure:", error);
+                document.getElementById('new-title').value = '';
+                document.getElementById('new-desc').value = '';
+                document.getElementById('new-content').value = '';
             });
         }
 
-        // --- 4. EDIT SYSTEM HANDLERS ---
-        function openEditPanel(id, lesson) {
-            document.getElementById('dashboard-screen').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'none';
+        function fetchLessons() {
+            db.ref('lessons').on('value', (snapshot) => {
+                const listDiv = document.getElementById('lesson-list');
+                if(!listDiv) return;
+                
+                listDiv.innerHTML = '';
+                const data = snapshot.val();
+                
+                if(!data) {
+                    listDiv.innerHTML = '<div style="text-align:center; color:#334155; padding: 10px;">NO MODULES DEPLOYED</div>';
+                    return;
+                }
+
+                for(let id in data) {
+                    const lesson = data[id];
+                    let editButton = '';
+                    
+                    if(currentUser === "ghadi") {
+                        editButton = `<button class="btn btn-edit" onclick="event.stopPropagation(); openEditPanel('${id}', '${escape(lesson.title)}', '${escape(lesson.desc)}', '${escape(lesson.content)}')">EDIT</button>`;
+                    }
+
+                    listDiv.innerHTML += `
+                        <div class="lesson-btn" onclick="viewLesson('${id}', '${escape(lesson.title)}', '${escape(lesson.desc)}', '${escape(lesson.content)}')">
+                            <div>
+                                <div style="font-weight:bold; color:#10b981;">${lesson.title}</div>
+                                <div style="font-size:0.85rem; color:#94a3b8;">${lesson.desc || ''}</div>
+                            </div>
+                            ${editButton}
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function viewLesson(id, title, desc, content) {
+            hideAllContainers();
+            document.getElementById('lesson-viewer').style.display = 'block';
+            document.getElementById('viewer-title').innerText = unescape(title);
+            document.getElementById('viewer-desc').innerText = unescape(desc);
+            document.getElementById('viewer-content').innerText = unescape(content);
+        }
+
+        function openEditPanel(id, title, desc, content) {
+            hideAllContainers();
             document.getElementById('edit-panel').style.display = 'block';
-            
             document.getElementById('edit-id').value = id;
-            document.getElementById('edit-title').value = lesson.title || '';
-            document.getElementById('edit-desc').value = lesson.desc || '';
-            document.getElementById('edit-content').value = lesson.content || '';
+            document.getElementById('edit-title').value = unescape(title);
+            document.getElementById('edit-desc').value = unescape(desc);
+            document.getElementById('edit-content').value = unescape(content);
         }
 
         function saveEditedLesson() {
             const id = document.getElementById('edit-id').value;
-            const updatedTitle = document.getElementById('edit-title').value.trim();
-            const updatedDesc = document.getElementById('edit-desc').value.trim();
-            const updatedContent = document.getElementById('edit-content').value.trim();
-
-            if (!updatedTitle || !updatedContent) {
-                alert("Title and Content structures cannot be blank values.");
-                return;
-            }
+            const title = document.getElementById('edit-title').value.trim();
+            const desc = document.getElementById('edit-desc').value.trim();
+            const content = document.getElementById('edit-content').value.trim();
 
             db.ref('lessons/' + id).update({
-                title: updatedTitle,
-                desc: updatedDesc,
-                content: updatedContent
+                title: title,
+                desc: desc,
+                content: content
             }).then(() => {
                 loadDashboard();
-            }).catch((error) => {
-                console.error("Firebase Update Error: ", error);
-                alert("Failed updating remote node cluster.");
             });
         }
 
-        // --- 5. VIEWER & UTILITY LOGIC ---
-        function viewLesson(id, lesson) {
-            activeLessonId = id;
-            document.getElementById('dashboard-screen').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'none';
-            document.getElementById('lesson-viewer').style.display = 'block';
-            
-            document.getElementById('viewer-title').innerText = lesson.title;
-            document.getElementById('viewer-desc').innerText = lesson.desc || 'No description provided.';
-            document.getElementById('viewer-content').innerText = lesson.content;
-        }
-
         function finishLesson() {
-            alert("Module processing pipeline completed successfully!");
-            backToDashboard();
-        }
-
-        function backToDashboard() {
+            alert("Proceeding to application tasks/exercises!");
             loadDashboard();
         }
     </script>
