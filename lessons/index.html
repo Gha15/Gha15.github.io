@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MATIX | Lessons</title>
+    <!-- Fixed Google Fonts Link Syntax -->
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
         body {
@@ -137,33 +138,22 @@
         <button class="btn btn-guest" onclick="backToDashboard()">Return_To_Modules</button>
     </div>
 
-    <!-- FIXED FIREBASE SDK IMPORTS (v8 Compat Packages) -->
+    <!-- CLEAN V8 COMPAT FIREBASE CDN LINKS -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
 
     <script>
-        // --- 1. SAFE FIREBASE SETUP ---
-        let db = null;
-        let localMode = false;
-
+        // --- 1. FIREBASE SETUP ---
         const firebaseConfig = {
             apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
-            authDomain: "://firebaseapp.com",
-            // NOTE: If your server is outside the US, change the domain format to:
-            // "https://firebasedatabase.app" 
-            databaseURL: "https://firebaseio.com",
+            authDomain: "matix-1d538.firebaseapp.com",
+            databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
             projectId: "matix-1d538",
             storageBucket: "matix-1d538.firebasestorage.app"
         };
-
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
-            console.log("Firebase initialized successfully.");
-        } catch (error) {
-            console.error("Firebase network blocked or config mismatch. Switching to Sandbox Mode:", error);
-            localMode = true;
-        }
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         // --- 2. AUTHENTICATION LOGIC ---
         const validUsers = {
@@ -172,16 +162,9 @@
             "marwan": "ilikebeingnumberonebutiamnumbertwo"
         };
 
-        // Mock database for sandbox local operation if network is offline
-        let localLessonsBackup = {
-            "mock_id_1": { title: "Introduction to Matix", desc: "System operational overview", content: "Welcome to the terminal layout panels." }
-        };
-
         let currentUser = sessionStorage.getItem("matix_auth_user");
 
-        // Session validation check on load
         if (currentUser) { 
-            // Wait for DOM layout layers to settle down
             window.addEventListener('DOMContentLoaded', () => { loadDashboard(); });
         }
 
@@ -226,17 +209,11 @@
         function loadDashboard() {
             hideAllContainers();
             
-            const dashboard = document.getElementById('dashboard-screen');
-            const userDisplay = document.getElementById('user-display');
-            
-            if (dashboard) dashboard.style.display = 'block';
-            if (userDisplay) {
-                userDisplay.innerText = `ACCESS_LEVEL: ${currentUser.toUpperCase()} ${localMode ? '(OFFLINE_SANDBOX)' : ''}`;
-            }
+            document.getElementById('dashboard-screen').style.display = 'block';
+            document.getElementById('user-display').innerText = `ACCESS_LEVEL: ${currentUser.toUpperCase()}`;
             
             if (currentUser === "ghadi") {
-                const adminPanel = document.getElementById('admin-panel');
-                if (adminPanel) adminPanel.style.display = 'block';
+                document.getElementById('admin-panel').style.display = 'block';
             }
             fetchLessons();
         }
@@ -245,7 +222,7 @@
             loadDashboard();
         }
 
-        // --- 4. DATA SYNCHRONIZATION ---
+        // --- 4. DATA SYNCHRONIZATION WITH REAL FIREBASE ---
         function addLesson() {
             const title = document.getElementById('new-title').value.trim();
             const desc = document.getElementById('new-desc').value.trim();
@@ -253,67 +230,57 @@
 
             if(!title || !content) return alert("Title and Content required.");
 
-            if (localMode || !db) {
-                const customId = "local_" + Date.now();
-                localLessonsBackup[customId] = { title, desc, content };
-                renderLessons(localLessonsBackup);
-                clearInputs();
-            } else {
-                db.ref('lessons').push({ title, desc, content }).then(() => {
-                    clearInputs();
-                }).catch(err => {
-                    alert("Database write rejected. Check your Firebase Security Rules tab.");
-                });
-            }
-        }
-
-        function clearInputs() {
-            document.getElementById('new-title').value = '';
-            document.getElementById('new-desc').value = '';
-            document.getElementById('new-content').value = '';
+            // Directly push straight to your cloud 'lessons' path
+            db.ref('lessons').push({
+                title: title,
+                desc: desc,
+                content: content
+            }).then(() => {
+                document.getElementById('new-title').value = '';
+                document.getElementById('new-desc').value = '';
+                document.getElementById('new-content').value = '';
+            }).catch(err => {
+                alert("Database write error! Check your Firebase Realtime Rules tab.");
+                console.error(err);
+            });
         }
 
         function fetchLessons() {
-            if (localMode || !db) {
-                renderLessons(localLessonsBackup);
-            } else {
-                db.ref('lessons').on('value', (snapshot) => {
-                    renderLessons(snapshot.val());
-                }, (error) => {
-                    console.error("Firebase Rules Blocked Read. Dropping back to Sandbox layout.", error);
-                    renderLessons(localLessonsBackup);
-                });
-            }
-        }
-
-        function renderLessons(data) {
-            const listDiv = document.getElementById('lesson-list');
-            if(!listDiv) return;
-            
-            listDiv.innerHTML = '';
-            if(!data) {
-                listDiv.innerHTML = '<div style="text-align:center; color:#334155; padding:10px;">NO MODULES DEPLOYED</div>';
-                return;
-            }
-
-            for(let id in data) {
-                const lesson = data[id];
-                let editButton = '';
+            // Live-listening to your cloud Firebase database layout mutations
+            db.ref('lessons').on('value', (snapshot) => {
+                const listDiv = document.getElementById('lesson-list');
+                if(!listDiv) return;
                 
-                if(currentUser === "ghadi") {
-                    editButton = `<button class="btn btn-edit" onclick="event.stopPropagation(); openEditPanel('${id}', '${escape(lesson.title)}', '${escape(lesson.desc)}', '${escape(lesson.content)}')">EDIT</button>`;
+                listDiv.innerHTML = '';
+                const data = snapshot.val();
+                
+                if(!data) {
+                    listDiv.innerHTML = '<div style="text-align:center; color:#334155; padding:10px;">NO MODULES DEPLOYED IN FIREBASE</div>';
+                    return;
                 }
 
-                listDiv.innerHTML += `
-                    <div class="lesson-btn" onclick="viewLesson('${id}', '${escape(lesson.title)}', '${escape(lesson.desc)}', '${escape(lesson.content)}')">
-                        <div>
-                            <div style="font-weight:bold; color:#10b981;">${lesson.title}</div>
-                            <div style="font-size:0.85rem; color:#94a3b8;">${lesson.desc || ''}</div>
+                for(let id in data) {
+                    const lesson = data[id];
+                    let editButton = '';
+                    
+                    if(currentUser === "ghadi") {
+                        editButton = `<button class="btn btn-edit" onclick="event.stopPropagation(); openEditPanel('${id}', '${escape(lesson.title)}', '${escape(lesson.desc)}', '${escape(lesson.content)}')">EDIT</button>`;
+                    }
+
+                    listDiv.innerHTML += `
+                        <div class="lesson-btn" onclick="viewLesson('${id}', '${escape(lesson.title)}', '${escape(lesson.desc)}', '${escape(lesson.content)}')">
+                            <div>
+                                <div style="font-weight:bold; color:#10b981;">${lesson.title}</div>
+                                <div style="font-size:0.85rem; color:#94a3b8;">${lesson.desc || ''}</div>
+                            </div>
+                            ${editButton}
                         </div>
-                        ${editButton}
-                    </div>
-                `;
-            }
+                    `;
+                }
+            }, (error) => {
+                console.error("Firebase read blocked by Rules layout settings:", error);
+                document.getElementById('lesson-list').innerHTML = `<div style="color:#ef4444; padding:10px;">FIREBASE READ BLOCKED (Check Security Rules)</div>`;
+            });
         }
 
         function viewLesson(id, title, desc, content) {
@@ -339,14 +306,16 @@
             const desc = document.getElementById('edit-desc').value.trim();
             const content = document.getElementById('edit-content').value.trim();
 
-            if (localMode || !db) {
-                localLessonsBackup[id] = { title, desc, content };
+            // Direct Realtime update reference map configuration
+            db.ref('lessons/' + id).update({
+                title: title,
+                desc: desc,
+                content: content
+            }).then(() => {
                 loadDashboard();
-            } else {
-                db.ref('lessons/' + id).update({ title, desc, content }).then(() => {
-                    loadDashboard();
-                });
-            }
+            }).catch(err => {
+                alert("Update failed. Check database write configurations.");
+            });
         }
 
         function finishLesson() {
@@ -354,6 +323,5 @@
             loadDashboard();
         }
     </script>
-
 </body>
 </html>
