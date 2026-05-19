@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MATIX | Lessons</title>
-    <!-- Fixed Google Fonts Link Syntax -->
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
         body {
@@ -138,24 +137,26 @@
         <button class="btn btn-guest" onclick="backToDashboard()">Return_To_Modules</button>
     </div>
 
-    <!-- CLEAN V8 COMPAT FIREBASE CDN LINKS -->
+    <!-- ADDED FIREBASE AUTH COMPAT SCRIPT EXTRACTION LINK -->
+    <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
 
     <script>
-        // --- 1. FIREBASE SETUP ---
+        // --- 1. FIREBASE INITIALIZATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
-            authDomain: "matix-1d538.firebaseapp.com",
-            databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
+            authDomain: "://firebaseapp.com",
+            databaseURL: "https://firebaseio.com",
             projectId: "matix-1d538",
             storageBucket: "matix-1d538.firebasestorage.app"
         };
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const auth = firebase.auth(); // Hook up authentication channel
 
-        // --- 2. AUTHENTICATION LOGIC ---
+        // --- 2. AUTHENTICATION CONTROLLER MAP ---
         const validUsers = {
             "ghadi": "iamtheownerofmatix",
             "jad": "ilikebatatameshwiyye",
@@ -164,8 +165,25 @@
 
         let currentUser = sessionStorage.getItem("matix_auth_user");
 
+        // Keep session open automatically if verified previously
         if (currentUser) { 
             window.addEventListener('DOMContentLoaded', () => { loadDashboard(); });
+        }
+
+        function executeCloudSignIn(usernameLabel) {
+            // Signs user into Firebase Auth anonymously behind the scenes 
+            // to fulfill security rules validation requirements
+            auth.signInAnonymously()
+                .then(() => {
+                    currentUser = usernameLabel;
+                    sessionStorage.setItem("matix_auth_user", usernameLabel);
+                    document.getElementById('auth-error').innerText = ""; 
+                    loadDashboard();
+                })
+                .catch((error) => {
+                    console.error("Firebase Auth Failure:", error);
+                    document.getElementById('auth-error').innerText = "CLOUD SIGN-IN ERROR: Verify Anonymous Auth is Enabled.";
+                });
         }
 
         function loginMember() {
@@ -174,30 +192,25 @@
             const errorDiv = document.getElementById('auth-error');
 
             if (validUsers[user] && validUsers[user] === pass) {
-                currentUser = user;
-                sessionStorage.setItem("matix_auth_user", user);
-                errorDiv.innerText = ""; 
-                loadDashboard();
+                executeCloudSignIn(user);
             } else {
                 errorDiv.innerText = "ACCESS_DENIED: INVALID CREDENTIALS";
             }
         }
 
         function loginGuest() {
-            currentUser = "guest";
-            sessionStorage.setItem("matix_auth_user", "guest");
-            const errorDiv = document.getElementById('auth-error');
-            if (errorDiv) errorDiv.innerText = ""; 
-            loadDashboard();
+            executeCloudSignIn("guest");
         }
 
         function logout() {
-            sessionStorage.removeItem("matix_auth_user");
-            currentUser = null;
-            location.reload();
+            auth.signOut().then(() => {
+                sessionStorage.removeItem("matix_auth_user");
+                currentUser = null;
+                location.reload();
+            });
         }
 
-        // --- 3. UI VIEW CONTROLLER ---
+        // --- 3. DISPLAY LAYOUT CONFIGURATION ---
         function hideAllContainers() {
             const views = ['auth-screen', 'admin-panel', 'edit-panel', 'dashboard-screen', 'lesson-viewer'];
             views.forEach(id => {
@@ -208,7 +221,6 @@
 
         function loadDashboard() {
             hideAllContainers();
-            
             document.getElementById('dashboard-screen').style.display = 'block';
             document.getElementById('user-display').innerText = `ACCESS_LEVEL: ${currentUser.toUpperCase()}`;
             
@@ -222,7 +234,7 @@
             loadDashboard();
         }
 
-        // --- 4. DATA SYNCHRONIZATION WITH REAL FIREBASE ---
+        // --- 4. CLOUD SYNCHRONIZATION ---
         function addLesson() {
             const title = document.getElementById('new-title').value.trim();
             const desc = document.getElementById('new-desc').value.trim();
@@ -230,7 +242,6 @@
 
             if(!title || !content) return alert("Title and Content required.");
 
-            // Directly push straight to your cloud 'lessons' path
             db.ref('lessons').push({
                 title: title,
                 desc: desc,
@@ -241,12 +252,10 @@
                 document.getElementById('new-content').value = '';
             }).catch(err => {
                 alert("Database write error! Check your Firebase Realtime Rules tab.");
-                console.error(err);
             });
         }
 
         function fetchLessons() {
-            // Live-listening to your cloud Firebase database layout mutations
             db.ref('lessons').on('value', (snapshot) => {
                 const listDiv = document.getElementById('lesson-list');
                 if(!listDiv) return;
@@ -255,7 +264,7 @@
                 const data = snapshot.val();
                 
                 if(!data) {
-                    listDiv.innerHTML = '<div style="text-align:center; color:#334155; padding:10px;">NO MODULES DEPLOYED IN FIREBASE</div>';
+                    listDiv.innerHTML = '<div style="text-align:center; color:#334155; padding:10px;">NO MODULES DEPLOYED</div>';
                     return;
                 }
 
@@ -279,7 +288,7 @@
                 }
             }, (error) => {
                 console.error("Firebase read blocked by Rules layout settings:", error);
-                document.getElementById('lesson-list').innerHTML = `<div style="color:#ef4444; padding:10px;">FIREBASE READ BLOCKED (Check Security Rules)</div>`;
+                document.getElementById('lesson-list').innerHTML = `<div style="color:#ef4444; padding:10px;">READ BLOCKED (Check Realtime Database Rules)</div>`;
             });
         }
 
@@ -306,18 +315,16 @@
             const desc = document.getElementById('edit-desc').value.trim();
             const content = document.getElementById('edit-content').value.trim();
 
-            // Direct Realtime update reference map configuration
             db.ref('lessons/' + id).update({
                 title: title,
                 desc: desc,
                 content: content
             }).then(() => {
                 loadDashboard();
-            }).catch(err => {
-                alert("Update failed. Check database write configurations.");
             });
         }
 
+        // Complete the exercises alert sequence
         function finishLesson() {
             alert("Proceeding to application tasks/exercises!");
             loadDashboard();
