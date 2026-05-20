@@ -16,18 +16,34 @@
       min-height: 100vh;
       box-sizing: border-box;
     }
-
     .footer-text {
-      /* Apply the Roboto font */
-      font-family: 'Roboto', sans-serif;
-      font-size: 16px;
-      font-weight: 400;
-      
-      /* Pin the text to the bottom */
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
+  /* Apply the Roboto font */
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  
+  /* Pin the text to the bottom */
+  position: fixed;
+  bottom: 20px;          /* FIXED: Added 'px' and changed to positive so it is visible */
+  left: 0;
+  width: 100%;
+  
+  /* Glide Effect Settings */
+  white-space: nowrap;   /* Keeps text on one line */
+  animation: glideSideways 10s linear infinite; /* Loops the glide forever */
+}
+
+/* The Glide Animation */
+@keyframes glideSideways {
+  0% {
+    transform: translateX(100%);   /* Starts completely off-screen to the right */
+  }
+  100% {
+    transform: translateX(-100%);  /* Ends completely off-screen to the left */
+  }
+}
+
+ 
       
       /* Styling for visibility */
       background-color: #f1f1f1;
