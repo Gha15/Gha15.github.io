@@ -10,6 +10,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Courier+Prime&display=swap" rel="stylesheet">
 
     <style>
+            body {
+      margin: 0;
+      padding-bottom: 60px; /* Prevents main content from hiding behind the footer */
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .footer-text {
+      /* Apply the Roboto font */
+      font-family: 'Roboto', sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      
+      /* Pin the text to the bottom */
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      
+      /* Styling for visibility */
+      background-color: #f1f1f1;
+      text-align: center;
+      padding: 15px 0;
+    }
         body {
             margin: 0; padding: 0;
             display: flex; justify-content: center; align-items: center;
@@ -159,8 +183,12 @@
             <a href="/games" class="nav-btn">Games</a>
             <a href="/button" class="nav-btn">Just a Button</a>
         </nav>
-        div class="handwritten-box">©matixthemathclub 2026</a>
-    </div>
+          <div class="footer-text">
+    
+  </div>
+      © 2026 matixthemathclub all rights reserved.
+      </div>
+    
 
 </body>
 </html>
