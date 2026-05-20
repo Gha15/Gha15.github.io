@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATIX | Lessons</title>
-    <link href="https://googleapis.com" rel="stylesheet">
+    <title>MATIX | Lessons Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vibur&family=Courier+Prime&display=swap" rel="stylesheet">
     <style>
         body {
             background-color: #020617; color: #10b981; font-family: 'Courier Prime', monospace;
@@ -12,12 +12,10 @@
             min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;
         }
 
-        /* --- UI BOXES --- */
         .container {
             border: 1px solid #10b981; background: #0f172a; padding: 30px;
             box-shadow: 0 0 30px rgba(16, 185, 129, 0.2); width: 100%; max-width: 700px;
-            display: none; /* Hidden until auth */
-            margin-bottom: 20px;
+            display: none; margin-bottom: 20px;
         }
 
         .header-title {
@@ -25,7 +23,6 @@
             margin-bottom: 20px; font-size: 2rem; text-align: center; font-family: 'Vibur', cursive;
         }
 
-        /* --- AUTH SCREEN --- */
         #auth-screen { display: block; text-align: center; max-width: 400px; margin-top: 10vh; }
         input, textarea { 
             background: #020617; border: 1px solid #334155; color: #f8fafc; 
@@ -41,20 +38,17 @@
         .btn:hover { background: #10b981; color: #020617; }
         .btn-guest { border-color: #94a3b8; color: #94a3b8; }
         .btn-guest:hover { background: #94a3b8; color: #020617; }
-        #auth-error { color: #ef4444; margin-bottom: 10px; font-size: 0.9rem; }
 
-        /* --- ADMIN PANEL --- */
+        /* --- ADMIN CONTROLS --- */
         #admin-panel { display: none; border-color: #818cf8; box-shadow: 0 0 30px rgba(129, 140, 248, 0.2); }
         .admin-label { color: #818cf8; font-size: 0.9rem; margin-bottom: 5px; display: block; }
         textarea { resize: vertical; min-height: 100px; }
         .btn-admin { border-color: #818cf8; color: #818cf8; }
         .btn-admin:hover { background: #818cf8; color: #020617; }
-
-        /* --- EDIT PANEL --- */
-        #edit-panel { display: none; border-color: #f59e0b; box-shadow: 0 0 30px rgba(245, 158, 11, 0.2); }
-        .btn-edit { border-color: #f59e0b; color: #f59e0b; font-size: 0.8rem; padding: 5px 10px; width: auto; margin: 0; }
-        .btn-edit:hover { background: #f59e0b; color: #020617; }
-        .lesson-controls { display: flex; align-items: center; gap: 10px; }
+        
+        .admin-edit-row { display: flex; justify-content: space-between; background: #020617; padding: 8px; margin-bottom: 5px; border: 1px dashed #334155; font-size: 0.9rem;}
+        .inline-del-btn { color: #ef4444; cursor: pointer; background: transparent; border: none; font-family: monospace; }
+        .inline-edit-btn { color: #60a5fa; cursor: pointer; background: transparent; border: none; font-family: monospace; margin-right: 10px;}
 
         /* --- LESSON LIST --- */
         #lesson-list { display: flex; flex-direction: column; gap: 10px; }
@@ -65,8 +59,8 @@
             font-size: 1.1rem; border-radius: 5px;
         }
         .lesson-btn:hover { border-color: #10b981; background: #0f172a; }
+        .lesson-status { font-size: 1.2rem; }
 
-        /* --- LESSON VIEWER --- */
         #lesson-viewer { display: none; }
         #viewer-content { color: #cbd5e1; line-height: 1.6; margin-bottom: 30px; border-left: 2px solid #818cf8; padding-left: 15px; white-space: pre-wrap; }
         .btn-done { border-color: #f59e0b; color: #f59e0b; }
@@ -75,10 +69,9 @@
 </head>
 <body>
 
-    <!-- AUTH SCREEN -->
     <div class="container" id="auth-screen">
         <div class="header-title">Vault_Access</div>
-        <div id="auth-error"></div>
+        <div id="auth-error" style="color: #ef4444; margin-bottom:10px;"></div>
         <input type="text" id="username" placeholder="USERNAME">
         <input type="password" id="password" placeholder="PASSWORD">
         <button class="btn" onclick="loginMember()">Authorize_Member</button>
@@ -86,9 +79,10 @@
         <button class="btn btn-guest" onclick="loginGuest()">Access_As_Guest</button>
     </div>
 
-    <!-- ADMIN PANEL CREATOR -->
     <div class="container" id="admin-panel">
-        <div class="header-title" style="color:#818cf8;">Admin_Lesson_Creator</div>
+        <div class="header-title" style="color:#818cf8;" id="admin-panel-title">Admin_Lesson_Creator</div>
+        <input type="hidden" id="editing-id" value="">
+        
         <span class="admin-label">Lesson Title:</span>
         <input type="text" id="new-title" placeholder="e.g. Algebra 101">
         
@@ -98,28 +92,15 @@
         <span class="admin-label">Lesson Text/Content:</span>
         <textarea id="new-content" placeholder="Type the lesson content here..."></textarea>
         
-        <button class="btn btn-admin" onclick="addLesson()">Deploy_Lesson</button>
+        <button class="btn btn-admin" id="submit-admin-btn" onclick="addLesson()">Deploy_Lesson</button>
+        <button class="btn btn-guest" id="cancel-edit-btn" style="display:none; border-color:#ef4444; color:#ef4444;" onclick="resetAdminForm()">Cancel_Edit</button>
+        
+        <div style="margin-top:20px; border-top: 1px dashed #334155; padding-top:15px;">
+            <span class="admin-label" style="margin-bottom:10px;">Modify Deployed Content Nodes:</span>
+            <div id="admin-raw-list"></div>
+        </div>
     </div>
 
-    <!-- EDIT PANEL -->
-    <div class="container" id="edit-panel">
-        <div class="header-title" style="color:#f59e0b;">Edit_Lesson</div>
-        <input type="hidden" id="edit-id">
-        
-        <span class="admin-label" style="color:#f59e0b;">Lesson Title:</span>
-        <input type="text" id="edit-title">
-        
-        <span class="admin-label" style="color:#f59e0b;">Short Description:</span>
-        <input type="text" id="edit-desc">
-        
-        <span class="admin-label" style="color:#f59e0b;">Lesson Text/Content:</span>
-        <textarea id="edit-content"></textarea>
-        
-        <button class="btn" style="border-color:#f59e0b; color:#f59e0b;" onclick="saveEditedLesson()">Save_Changes</button>
-        <button class="btn btn-guest" onclick="backToDashboard()">Cancel</button>
-    </div>
-
-    <!-- DASHBOARD SCREEN -->
     <div class="container" id="dashboard-screen">
         <div class="header-title">Available_Modules</div>
         <div id="user-display" style="text-align:center; margin-bottom: 20px; color: #94a3b8;"></div>
@@ -127,207 +108,198 @@
         <button class="btn btn-guest" style="margin-top: 30px; opacity: 0.5;" onclick="logout()">Terminate_Session</button>
     </div>
 
-    <!-- LESSON VIEWER -->
     <div class="container" id="lesson-viewer">
         <div class="header-title" id="viewer-title">Lesson Title</div>
         <div style="color: #94a3b8; margin-bottom: 20px; font-style: italic;" id="viewer-desc">Description</div>
         <div id="viewer-content">Content goes here...</div>
-        
         <button class="btn btn-done" onclick="finishLesson()">Complete_&_Go_To_Exercises</button>
         <button class="btn btn-guest" onclick="backToDashboard()">Return_To_Modules</button>
     </div>
 
-    <!-- ADDED FIREBASE AUTH COMPAT SCRIPT EXTRACTION LINK -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
-        // --- 1. FIREBASE INITIALIZATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
-            authDomain: "://firebaseapp.com",
-            databaseURL: "https://firebaseio.com",
+            authDomain: "matix-1d538.firebaseapp.com",
+            databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
             projectId: "matix-1d538",
             storageBucket: "matix-1d538.firebasestorage.app"
         };
-        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const auth = firebase.auth(); // Hook up authentication channel
 
-        // --- 2. AUTHENTICATION CONTROLLER MAP ---
-        const validUsers = {
-            "ghadi": "iamtheownerofmatix",
-            "jad": "ilikebatatameshwiyye",
-            "marwan": "ilikebeingnumberonebutiamnumbertwo"
-        };
-
+        const validUsers = { "ghadi": "iamtheownerofmatix", "jad": "ilikebatatameshwiyye", "marwan": "ilikebeingnumberonebutiamnumbertwo" };
         let currentUser = sessionStorage.getItem("matix_auth_user");
+        let activeLessonId = null; 
 
-        // Keep session open automatically if verified previously
-        if (currentUser) { 
-            window.addEventListener('DOMContentLoaded', () => { loadDashboard(); });
-        }
-
-        function executeCloudSignIn(usernameLabel) {
-            // Signs user into Firebase Auth anonymously behind the scenes 
-            // to fulfill security rules validation requirements
-            auth.signInAnonymously()
-                .then(() => {
-                    currentUser = usernameLabel;
-                    sessionStorage.setItem("matix_auth_user", usernameLabel);
-                    document.getElementById('auth-error').innerText = ""; 
-                    loadDashboard();
-                })
-                .catch((error) => {
-                    console.error("Firebase Auth Failure:", error);
-                    document.getElementById('auth-error').innerText = "CLOUD SIGN-IN ERROR: Verify Anonymous Auth is Enabled.";
-                });
-        }
+        if (currentUser) { loadDashboard(); }
 
         function loginMember() {
             const user = document.getElementById('username').value.trim().toLowerCase();
             const pass = document.getElementById('password').value;
-            const errorDiv = document.getElementById('auth-error');
-
             if (validUsers[user] && validUsers[user] === pass) {
-                executeCloudSignIn(user);
-            } else {
-                errorDiv.innerText = "ACCESS_DENIED: INVALID CREDENTIALS";
-            }
+                currentUser = user;
+                sessionStorage.setItem("matix_auth_user", user);
+                loadDashboard();
+            } else { document.getElementById('auth-error').innerText = "ERROR: Invalid credentials."; }
         }
 
         function loginGuest() {
-            executeCloudSignIn("guest");
+            currentUser = "guest";
+            sessionStorage.setItem("matix_auth_user", "guest");
+            if(!localStorage.getItem('matix_guest_progress')) localStorage.setItem('matix_guest_progress', JSON.stringify({}));
+            if(!localStorage.getItem('matix_guest_exercise_progress')) localStorage.setItem('matix_guest_exercise_progress', JSON.stringify({}));
+            loadDashboard();
         }
 
-        function logout() {
-            auth.signOut().then(() => {
-                sessionStorage.removeItem("matix_auth_user");
-                currentUser = null;
-                location.reload();
-            });
-        }
-
-        // --- 3. DISPLAY LAYOUT CONFIGURATION ---
-        function hideAllContainers() {
-            const views = ['auth-screen', 'admin-panel', 'edit-panel', 'dashboard-screen', 'lesson-viewer'];
-            views.forEach(id => {
-                const target = document.getElementById(id);
-                if (target) target.style.display = 'none';
-            });
-        }
+        function logout() { sessionStorage.removeItem("matix_auth_user"); location.reload(); }
 
         function loadDashboard() {
-            hideAllContainers();
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('lesson-viewer').style.display = 'none';
             document.getElementById('dashboard-screen').style.display = 'block';
-            document.getElementById('user-display').innerText = `ACCESS_LEVEL: ${currentUser.toUpperCase()}`;
-            
-            if (currentUser === "ghadi") {
-                document.getElementById('admin-panel').style.display = 'block';
-            }
-            fetchLessons();
-        }
+            document.getElementById('user-display').innerText = `Active User: ${currentUser.toUpperCase()}`;
 
-        function backToDashboard() {
-            loadDashboard();
-        }
+            if (currentUser === 'ghadi') { document.getElementById('admin-panel').style.display = 'block'; }
 
-        // --- 4. CLOUD SYNCHRONIZATION ---
-        function addLesson() {
-            const title = document.getElementById('new-title').value.trim();
-            const desc = document.getElementById('new-desc').value.trim();
-            const content = document.getElementById('new-content').value.trim();
-
-            if(!title || !content) return alert("Title and Content required.");
-
-            db.ref('lessons').push({
-                title: title,
-                desc: desc,
-                content: content
-            }).then(() => {
-                document.getElementById('new-title').value = '';
-                document.getElementById('new-desc').value = '';
-                document.getElementById('new-content').value = '';
-            }).catch(err => {
-                alert("Database write error! Check your Firebase Realtime Rules tab.");
-            });
-        }
-
-        function fetchLessons() {
             db.ref('lessons').on('value', (snapshot) => {
-                const listDiv = document.getElementById('lesson-list');
-                if(!listDiv) return;
-                
-                listDiv.innerHTML = '';
-                const data = snapshot.val();
-                
-                if(!data) {
-                    listDiv.innerHTML = '<div style="text-align:center; color:#334155; padding:10px;">NO MODULES DEPLOYED</div>';
-                    return;
-                }
-
-                for(let id in data) {
-                    const lesson = data[id];
-                    let editButton = '';
-                    
-                    if(currentUser === "ghadi") {
-                        editButton = `<button class="btn btn-edit" onclick="event.stopPropagation(); openEditPanel('${id}', '${escape(lesson.title)}', '${escape(lesson.desc)}', '${escape(lesson.content)}')">EDIT</button>`;
-                    }
-
-                    listDiv.innerHTML += `
-                        <div class="lesson-btn" onclick="viewLesson('${id}', '${escape(lesson.title)}', '${escape(lesson.desc)}', '${escape(lesson.content)}')">
-                            <div>
-                                <div style="font-weight:bold; color:#10b981;">${lesson.title}</div>
-                                <div style="font-size:0.85rem; color:#94a3b8;">${lesson.desc || ''}</div>
-                            </div>
-                            ${editButton}
-                        </div>
-                    `;
-                }
-            }, (error) => {
-                console.error("Firebase read blocked by Rules layout settings:", error);
-                document.getElementById('lesson-list').innerHTML = `<div style="color:#ef4444; padding:10px;">READ BLOCKED (Check Realtime Database Rules)</div>`;
+                const lessons = snapshot.val() || {};
+                renderLessonButtons(lessons);
+                if (currentUser === 'ghadi') { renderAdminManagementList(lessons); }
             });
         }
 
-        function viewLesson(id, title, desc, content) {
-            hideAllContainers();
+        function renderLessonButtons(lessons) {
+            if (currentUser === 'guest') {
+                const readProg = JSON.parse(localStorage.getItem('matix_guest_progress') || '{}');
+                const exProg = JSON.parse(localStorage.getItem('matix_guest_exercise_progress') || '{}');
+                buildButtons(lessons, readProg, exProg);
+            } else {
+                db.ref('progress/' + currentUser).once('value').then((readSnap) => {
+                    const readProg = readSnap.val() || {};
+                    db.ref('exercise_progress/' + currentUser).once('value').then((exSnap) => {
+                        const exProg = exSnap.val() || {};
+                        buildButtons(lessons, readProg, exProg);
+                    });
+                });
+            }
+        }
+
+        function buildButtons(lessons, readProg, exProg) {
+            const listDiv = document.getElementById('lesson-list');
+            listDiv.innerHTML = '';
+            for (const [lessonId, data] of Object.entries(lessons)) {
+                const hasRead = readProg[lessonId] === true;
+                const hasDoneEx = exProg[lessonId] === true;
+                
+                let emoji = '❌'; 
+                if (hasRead && !hasDoneEx) { emoji = '...'; } 
+                else if (hasRead && hasDoneEx) { emoji = '✔️'; }
+
+                const btn = document.createElement('button');
+                btn.className = 'lesson-btn';
+                btn.innerHTML = `<span>${data.title}</span> <span class="lesson-status">${emoji}</span>`;
+                btn.onclick = () => openLesson(lessonId, data);
+                listDiv.appendChild(btn);
+            }
+        }
+
+        /* --- CRUD CORE OPERATIONS --- */
+        function renderAdminManagementList(lessons) {
+            const container = document.getElementById('admin-raw-list');
+            container.innerHTML = '';
+            for (const [id, data] of Object.entries(lessons)) {
+                const div = document.createElement('div');
+                div.className = 'admin-edit-row';
+                div.innerHTML = `
+                    <span>${data.title}</span>
+                    <div>
+                        <button class="inline-edit-btn" onclick="prepEditLesson('${id}', \`${data.title.replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`, \`${data.description.replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`, \`${data.content.replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">[EDIT]</button>
+                        <button class="inline-del-btn" onclick="deleteLesson('${id}')">[DELETE]</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function addLesson() {
+            const title = document.getElementById('new-title').value;
+            const desc = document.getElementById('new-desc').value;
+            const content = document.getElementById('new-content').value;
+            const editId = document.getElementById('editing-id').value;
+
+            if(!title || !content) return alert("Title and Content are required!");
+
+            if(editId) {
+                // Update Path
+                db.ref('lessons/' + editId).update({ title, description: desc, content }).then(() => {
+                    alert("Lesson updated successfully.");
+                    resetAdminForm();
+                });
+            } else {
+                // Production Push Path
+                db.ref('lessons').push({ title, description: desc, content }).then(() => {
+                    alert("Lesson deployed to network!");
+                    resetAdminForm();
+                });
+            }
+        }
+
+        function prepEditLesson(id, title, desc, content) {
+            document.getElementById('editing-id').value = id;
+            document.getElementById('new-title').value = title;
+            document.getElementById('new-desc').value = desc;
+            document.getElementById('new-content').value = content;
+            
+            document.getElementById('admin-panel-title').innerText = "Admin_Data_Modifier";
+            document.getElementById('submit-admin-btn').innerText = "Save_System_Changes";
+            document.getElementById('cancel-edit-btn').style.display = "block";
+        }
+
+        function resetAdminForm() {
+            document.getElementById('editing-id').value = '';
+            document.getElementById('new-title').value = '';
+            document.getElementById('new-desc').value = '';
+            document.getElementById('new-content').value = '';
+            
+            document.getElementById('admin-panel-title').innerText = "Admin_Lesson_Creator";
+            document.getElementById('submit-admin-btn').innerText = "Deploy_Lesson";
+            document.getElementById('cancel-edit-btn').style.display = "none";
+        }
+
+        function deleteLesson(id) {
+            if(confirm("CRITICAL INTERVENTION: Delete this lesson module and all associated parameters?")) {
+                db.ref('lessons/' + id).remove();
+                db.ref('exercises/' + id).remove(); // Clears quiz arrays alongside module
+                alert("Data node completely purged.");
+                if(document.getElementById('editing-id').value === id) { resetAdminForm(); }
+            }
+        }
+
+        function openLesson(lessonId, data) {
+            activeLessonId = lessonId;
+            document.getElementById('dashboard-screen').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'none';
             document.getElementById('lesson-viewer').style.display = 'block';
-            document.getElementById('viewer-title').innerText = unescape(title);
-            document.getElementById('viewer-desc').innerText = unescape(desc);
-            document.getElementById('viewer-content').innerText = unescape(content);
+            document.getElementById('viewer-title').innerText = data.title;
+            document.getElementById('viewer-desc').innerText = data.description;
+            document.getElementById('viewer-content').innerText = data.content;
         }
 
-        function openEditPanel(id, title, desc, content) {
-            hideAllContainers();
-            document.getElementById('edit-panel').style.display = 'block';
-            document.getElementById('edit-id').value = id;
-            document.getElementById('edit-title').value = unescape(title);
-            document.getElementById('edit-desc').value = unescape(desc);
-            document.getElementById('edit-content').value = unescape(content);
-        }
+        function backToDashboard() { activeLessonId = null; loadDashboard(); }
 
-        function saveEditedLesson() {
-            const id = document.getElementById('edit-id').value;
-            const title = document.getElementById('edit-title').value.trim();
-            const desc = document.getElementById('edit-desc').value.trim();
-            const content = document.getElementById('edit-content').value.trim();
-
-            db.ref('lessons/' + id).update({
-                title: title,
-                desc: desc,
-                content: content
-            }).then(() => {
-                loadDashboard();
-            });
-        }
-
-        // Complete the exercises alert sequence
         function finishLesson() {
-            alert("Proceeding to application tasks/exercises!");
-            loadDashboard();
+            if (currentUser === 'guest') {
+                let progress = JSON.parse(localStorage.getItem('matix_guest_progress') || '{}');
+                progress[activeLessonId] = true;
+                localStorage.setItem('matix_guest_progress', JSON.stringify(progress));
+            } else {
+                db.ref('progress/' + currentUser + '/' + activeLessonId).set(true);
+            }
+            alert("Progress Saved! Routing to Target Exercises...");
+            window.location.href = '/lessons/exercises'; 
         }
     </script>
 </body>
