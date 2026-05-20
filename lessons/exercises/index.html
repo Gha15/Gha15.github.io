@@ -23,9 +23,7 @@
             margin-bottom: 20px; font-size: 2rem; text-align: center; font-family: 'Vibur', cursive;
         }
 
-        /* --- AUTH PROTECTION LOCK --- */
         #lock-screen { display: block; text-align: center; max-width: 450px; margin-top: 15vh; }
-
         input, textarea, select { 
             background: #020617; border: 1px solid #334155; color: #f8fafc; 
             padding: 12px; margin-bottom: 15px; width: 100%; box-sizing: border-box; 
@@ -43,11 +41,14 @@
         .btn-guest { border-color: #94a3b8; color: #94a3b8; }
         .btn-guest:hover { background: #94a3b8; color: #020617; }
 
-        /* --- ADMIN PANEL --- */
+        /* --- ADMIN OVERHAUL --- */
         #admin-panel { border-color: #818cf8; box-shadow: 0 0 30px rgba(129, 140, 248, 0.2); }
         .admin-label { color: #818cf8; font-size: 0.9rem; margin-bottom: 5px; display: block; }
         .btn-admin { border-color: #818cf8; color: #818cf8; }
         .btn-admin:hover { background: #818cf8; color: #020617; }
+        
+        .q-inspect-card { background: #020617; padding: 10px; border: 1px dashed #4f46e5; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; font-size: 0.85rem;}
+        .inline-del { color: #ef4444; background: transparent; border: none; cursor: pointer; font-family: monospace; font-weight: bold; }
 
         /* --- EXERCISE HUB LIST --- */
         #exercise-list { display: flex; flex-direction: column; gap: 10px; }
@@ -58,6 +59,8 @@
             font-size: 1.1rem; border-radius: 5px;
         }
         .exercise-btn:hover { border-color: #10b981; background: #0f172a; }
+        .exercise-btn.gated { opacity: 0.4; cursor: not-allowed; }
+        .exercise-btn.gated:hover { border-color: #334155; background: #1e293b; }
         .status-tracker { font-weight: bold; letter-spacing: 1px; }
 
         /* --- LIVE QUIZ INTERFACE --- */
@@ -85,21 +88,21 @@
     <div class="container" id="admin-panel">
         <div class="header-title" style="color:#818cf8;">Matrix_Problem_Generator</div>
         
-        <span class="admin-label">Select Destination Module:</span>
+        <span class="admin-label">Select Target Module Association:</span>
         <select id="admin-lesson-select">
-            <option value="">-- Loading Available Lessons --</option>
+            <option value="">-- Loading Deployed Modules --</option>
         </select>
 
-        <span class="admin-label">Question Text:</span>
-        <input type="text" id="q-text" placeholder="e.g. Solve for x: 2x + 5 = 15">
+        <span class="admin-label">Question Text Formulation:</span>
+        <input type="text" id="q-text" placeholder="e.g. Solve for x: √x = 8">
         
-        <span class="admin-label">Multiple Choice Alternatives:</span>
+        <span class="admin-label">Multiple Choice Parameters:</span>
         <input type="text" id="opt-a" placeholder="Option A">
         <input type="text" id="opt-b" placeholder="Option B">
         <input type="text" id="opt-c" placeholder="Option C">
         <input type="text" id="opt-d" placeholder="Option D">
         
-        <span class="admin-label">Designated Solution Core:</span>
+        <span class="admin-label">Designated Correct Verification Key:</span>
         <select id="opt-correct">
             <option value="A">Option A is Correct</option>
             <option value="B">Option B is Correct</option>
@@ -108,24 +111,23 @@
         </select>
         
         <button class="btn btn-admin" onclick="uploadQuestion()">Inject_Question_Data</button>
+        
+        <div style="margin-top:20px; border-top:1px dashed #334155; padding-top:15px;">
+            <span class="admin-label" style="color:#f59e0b; margin-bottom:10px;">Active Questions In Selected Module:</span>
+            <div id="admin-questions-inspector"></div>
+        </div>
     </div>
 
     <div class="container" id="dashboard-screen">
         <div class="header-title">Matrix_Target_Parameters</div>
         <div id="user-display" style="text-align:center; margin-bottom: 20px; color: #94a3b8;"></div>
-        
-        <div id="exercise-list">
-            </div>
-        
+        <div id="exercise-list"></div>
         <button class="btn btn-guest" style="margin-top: 30px; opacity: 0.5;" onclick="window.location.href='/lessons'">Return to Modules</button>
     </div>
 
     <div class="container" id="quiz-viewer">
         <div class="header-title" id="quiz-title">Target Objective</div>
-        
-        <div id="questions-hydrator">
-            </div>
-        
+        <div id="questions-hydrator"></div>
         <button class="btn" style="border-color: #f59e0b; color: #f59e0b;" onclick="evaluateAnswers()">Evaluate_Submission_Stream</button>
         <button class="btn btn-guest" onclick="abortQuiz()">Abort_Mission</button>
     </div>
@@ -134,7 +136,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
-        // --- FIREBASE INTERACTION ENGINE ---
         const firebaseConfig = {
             apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
             authDomain: "matix-1d538.firebaseapp.com",
@@ -145,7 +146,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- SESSION PARSER ---
         let currentUser = sessionStorage.getItem("matix_auth_user");
         let activeExerciseLessonId = null;
         let runningQuestionsCache = {};
@@ -164,46 +164,57 @@
                 populateAdminDropdown();
             }
 
-            // Real-time synchronization loop
             db.ref('lessons').on('value', (lessonSnapshot) => {
                 const lessons = lessonSnapshot.val() || {};
                 
                 if (currentUser === 'guest') {
-                    const guestProgress = JSON.parse(localStorage.getItem('matix_guest_exercise_progress') || '{}');
-                    renderExerciseHubButtons(lessons, guestProgress);
+                    const lessonReadProg = JSON.parse(localStorage.getItem('matix_guest_progress') || '{}');
+                    const quizProg = JSON.parse(localStorage.getItem('matix_guest_exercise_progress') || '{}');
+                    renderExerciseHubButtons(lessons, quizProg, lessonReadProg);
                 } else {
-                    db.ref('exercise_progress/' + currentUser).on('value', (progressSnapshot) => {
-                        const memberProgress = progressSnapshot.val() || {};
-                        renderExerciseHubButtons(lessons, memberProgress);
+                    db.ref('progress/' + currentUser).once('value').then((readSnap) => {
+                        const lessonReadProg = readSnap.val() || {};
+                        db.ref('exercise_progress/' + currentUser).on('value', (progressSnapshot) => {
+                            const quizProg = progressSnapshot.val() || {};
+                            renderExerciseHubButtons(lessons, quizProg, lessonReadProg);
+                        });
                     });
                 }
             });
         }
 
-        // --- RENDER SECTOR ---
-        function renderExerciseHubButtons(lessons, progressData) {
+        /* --- THE GATED SYSTEM ARCHITECTURE --- */
+        function renderExerciseHubButtons(lessons, quizProg, lessonReadProg) {
             const listContainer = document.getElementById('exercise-list');
             listContainer.innerHTML = '';
 
             for (const [lessonId, data] of Object.entries(lessons)) {
-                const isCleared = progressData[lessonId] === true;
-                const visualIndicator = isCleared ? '✔️' : '...';
-
-                const blockBtn = document.createElement('button');
-                blockBtn.className = 'exercise-btn';
-                blockBtn.innerHTML = `<span>[EXERCISE] ${data.title}</span> <span class="status-tracker">${visualIndicator}</span>`;
+                const hasReadLesson = lessonReadProg[lessonId] === true;
+                const isCleared = quizProg[lessonId] === true;
                 
-                blockBtn.onclick = () => startTargetQuiz(lessonId, data.title);
+                const blockBtn = document.createElement('button');
+
+                if (!hasReadLesson) {
+                    // Locked state
+                    blockBtn.className = 'exercise-btn gated';
+                    blockBtn.innerHTML = `<span>🔒 [LOCKED] ${data.title}</span> <span class="status-tracker" style="color:#ef4444; font-size:0.85rem;">READ LESSON FIRST</span>`;
+                    blockBtn.onclick = () => alert("ACCESS REJECTED: Main learning data logs unread. Complete the text element first.");
+                } else {
+                    // Active unlocked state
+                    const visualIndicator = isCleared ? '✔️' : '...';
+                    blockBtn.className = 'exercise-btn';
+                    blockBtn.innerHTML = `<span>[EXERCISE] ${data.title}</span> <span class="status-tracker">${visualIndicator}</span>`;
+                    blockBtn.onclick = () => startTargetQuiz(lessonId, data.title);
+                }
                 listContainer.appendChild(blockBtn);
             }
         }
 
-        // --- QUIZ GAME ENGINE ---
         function startTargetQuiz(lessonId, lessonTitle) {
             db.ref('exercises/' + lessonId).once('value', (snapshot) => {
                 const questions = snapshot.val() || {};
                 if (Object.keys(questions).length === 0) {
-                    alert("SYSTEM NOTICE: No training exercises deployed for this track yet.");
+                    alert("SYSTEM ERROR: Data matrices are blank. No quiz strings loaded for this sector.");
                     return;
                 }
 
@@ -239,23 +250,18 @@
 
         function evaluateAnswers() {
             let perfectRun = true;
-
-            // Checks EVERY question in the multi-question test
             for (const [qId, qData] of Object.entries(runningQuestionsCache)) {
                 const checkedOption = document.querySelector(`input[name="q_${qId}"]:checked`);
-                
                 if (!checkedOption || checkedOption.value !== qData.correct) {
-                    perfectRun = false;
-                    break;
+                    perfectRun = false; break;
                 }
             }
 
             if (!perfectRun) {
-                alert("EVALUATION FAILURE: Discrepancies found. You must get 100% to pass. Retry!");
-                return; // Stops here, doesn't save "done"
+                alert("EVALUATION FAILURE: Mismatched answer streams found. Read carefully and try again.");
+                return;
             }
 
-            // Save Progress ONLY on 100% Perfect Score
             if (currentUser === 'guest') {
                 let progress = JSON.parse(localStorage.getItem('matix_guest_exercise_progress') || '{}');
                 progress[activeExerciseLessonId] = true;
@@ -264,7 +270,7 @@
                 db.ref('exercise_progress/' + currentUser + '/' + activeExerciseLessonId).set(true);
             }
 
-            alert("EVALUATION SUCCESS: All criteria checked. Performance archived!");
+            alert("EVALUATION SUCCESS: Quiz perfectly cleared. Progress pushed.");
             abortQuiz();
         }
 
@@ -275,7 +281,7 @@
             initExerciseHub();
         }
 
-        // --- GHADI ADMIN SYSTEMS ---
+        /* --- ADVANCED QUESTION HANDLING & LIST MANAGEMENT --- */
         function populateAdminDropdown() {
             db.ref('lessons').once('value', (snapshot) => {
                 const lessons = snapshot.val() || {};
@@ -288,29 +294,37 @@
                     opt.innerText = data.title;
                     dropdown.appendChild(opt);
                 }
-
-                // Add an event listener to count questions when you pick a lesson
-                dropdown.addEventListener('change', checkQuestionCount);
+                dropdown.addEventListener('change', inspectCurrentQuestions);
             });
         }
 
-        function checkQuestionCount() {
+        function inspectCurrentQuestions() {
             const selectedLesson = document.getElementById('admin-lesson-select').value;
-            if (!selectedLesson) return;
+            const displayArea = document.getElementById('admin-questions-inspector');
+            if (!selectedLesson) { displayArea.innerHTML = ''; return; }
 
-            db.ref('exercises/' + selectedLesson).once('value', (snapshot) => {
+            db.ref('exercises/' + selectedLesson).on('value', (snapshot) => {
                 const questions = snapshot.val() || {};
-                const count = Object.keys(questions).length;
+                displayArea.innerHTML = '';
                 
-                // Creates a little label showing how many questions are in this test
-                let label = document.getElementById('q-count-label');
-                if (!label) {
-                    label = document.createElement('div');
-                    label.id = 'q-count-label';
-                    label.style = "color: #f59e0b; margin-bottom: 10px; font-weight: bold;";
-                    document.getElementById('admin-lesson-select').after(label);
+                if(Object.keys(questions).length === 0) {
+                    displayArea.innerHTML = '<div style="color:#94a3b8; font-size:0.9rem;">No questions active in this path.</div>';
+                    return;
                 }
-                label.innerText = `Current Questions in Test: ${count}`;
+
+                for (const [qId, qData] of Object.entries(questions)) {
+                    const div = document.createElement('div');
+                    div.className = 'q-inspect-card';
+                    div.innerHTML = `
+                        <div>
+                            <strong>Q: ${qData.question}</strong><br>
+                            <span style="color:#94a3b8;">A: ${qData.A} | B: ${qData.B} | C: ${qData.C} | D: ${qData.D}</span><br>
+                            <span style="color:#10b981;">Correct Key: Key_${qData.correct}</span>
+                        </div>
+                        <button class="inline-del" onclick="deleteTargetQuestion('${selectedLesson}', '${qId}')">[DELETE]</button>
+                    `;
+                    displayArea.appendChild(div);
+                }
             });
         }
 
@@ -324,24 +338,27 @@
             const correct = document.getElementById('opt-correct').value;
 
             if (!selectedLesson || !text || !a || !b || !c || !d) {
-                alert("ADMIN ERROR: Structural generation requires all operational fields filled.");
+                alert("ADMIN ERROR: Complete all structural form parameters before injecting data nodes.");
                 return;
             }
 
             db.ref('exercises/' + selectedLesson).push({
                 question: text, A: a, B: b, C: c, D: d, correct: correct
             }).then(() => {
-                alert("Question added! You can type another one immediately.");
-                // Update the counter
-                checkQuestionCount();
-                
-                // Clear the text boxes so Ghadi can type the next question easily
                 document.getElementById('q-text').value = '';
                 document.getElementById('opt-a').value = '';
                 document.getElementById('opt-b').value = '';
                 document.getElementById('opt-c').value = '';
                 document.getElementById('opt-d').value = '';
             });
+        }
+
+        function deleteTargetQuestion(lessonId, qId) {
+            if(confirm("Purge this question permanently from the database array?")) {
+                db.ref('exercises/' + lessonId + '/' + qId).remove().then(() => {
+                    alert("Question node deleted.");
+                });
+            }
         }
     </script>
 </body>
