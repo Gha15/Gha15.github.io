@@ -34,7 +34,7 @@
             font-weight: 400;
             
             /* Pin the text safely near the bottom */
-            position: fixed;
+            position: absolute;
             bottom: -50px;          
             left: 0;
             width: 100%;
@@ -60,8 +60,8 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            width: 4px;
-            height: 4px;
+            width: 10px;
+            height: 10px;
             background-color: rgba(255, 255, 255, 0.15);
             border-radius: 50%;
             text-decoration: none;
@@ -71,8 +71,8 @@
 
         .secret-dot:hover {
             background-color: #fff;
-            box-shadow: 0 0 15px #fff;
-            transform: scale(2);
+            box-shadow: 0 0 20px #fff;
+            transform: scale(3);
             cursor: pointer;
         }
 
@@ -144,8 +144,8 @@
         /* SCATTERED BG SYMBOLS */
         .math-bg {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0.03;
+            top: 0; left: 0; width: 300%; height: 300%;
+            opacity: 0.5;
             pointer-events: none;
             z-index: 1;
             font-family: 'Courier Prime', monospace;
@@ -161,9 +161,7 @@
     <a href="/secretitems" class="secret-dot"></a>
 
     <div class="math-bg">
-        √x=8 &nbsp;&nbsp; f(x)=y &nbsp;&nbsp; ∑&pi; <br>
-        &Delta;t &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x&sup2;+y&sup2;=r&sup2; <br>
-        &infin; &nbsp;&nbsp; &int;2x dx &nbsp;&nbsp; &theta;
+      <span>&plus; &#43; &minus; &#8722; &times; &#215; &divide; &#247; &equals; &#61; &ne; &#8800; &plusmn; &#177; &mp; &#8723; &divonx; &#8725; &lowast; &#8727; &compfn; &#8728; &bullet; &#8729; &equiv; &#8780; &nequiv; &#8802; &sim; &#8764; &bsim; &#8765; &simeq; &#8771; &nsimeq; &#8772; &cong; &#8773; &approxne; &#8774; &ncong; &#8775; &approx; &#8776; &napprox; &#8777; &coloneq; &#8788; &eqcolon; &#8789; &lt; &#60; &gt; &#62; &le; &#8804; &ge; &#8805; &lE; &#8806; &gE; &#8807; &lneq; &#8808; &gneq; &#8809; &ll; &#8810; &gg; &#8811; &nlt; &#8814; &ngt; &#8815; &nle; &#8816; &nge; &#8817; &lnsim; &#8818; &gnsim; &#8819; &nles; &#8820; &nges; &#8821; &prec; &#8826; &succ; &#8827; &preccurlyeq; &#8830; &succcurlyeq; &#8831; &empty; &#8709; &isin; &#8712; &notin; &#8713; &ni; &#8715; &notni; &#8717; &cap; &#8745; &cup; &#8746; &sub; &#8834; &sup; &#8835; &nsub; &#8836; &sube; &#8838; &supe; &#8839; &subne; &#8842; &supne; &#8843; &ssetmn; &#8726; &comp; &#8705; &forall; &#8704; &exist; &#8707; &nexist; &#8708; &there4; &#8756; &becaus; &#8757; &not; &#172; &and; &#8743; &or; &#8744; &oplus; &#8853; &otimes; &#8855; &vdash; &#8866; &models; &#8871; &radic; &#8730; &croot; &#8731; &rroot; &#8732; &infin; &#8734; &part; &#8706; &nabla; &#8711; &sum; &#8721; &prod; &#8719; &int; &#8747; &Int; &#8748; &tint; &#8749; &conint; &#8750; &prop; &#8733; &ang; &#8736; &angmsd; &#8737; &angsph; &#8738; &perp; &#8869; &sup1; &#185; &sup2; &#178; &sup3; &#179; &frac12; &#189; &frac14; &#188; &frac34; &#190; &frac18; &#8539; &frac38; &#8540; &frac58; &#8541; &frac78; &#8542; &par; &#8741; &npar; &#8742; &squf; &#9632; &square; &#9633; &utrif; &#9650; &dtrif; &#9660; &cir; &#9675; &loz; &#9674; &larr; &#8592; &rarr; &#8594; &uarr; &#8593; &darr; &#8595; &harr; &#8596; &lArr; &#8656; &rArr; &#8658; &hArr; &#8660; &map; &#8614;</span>
     </div>
 
     <div class="container">
