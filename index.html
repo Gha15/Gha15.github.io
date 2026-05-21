@@ -27,41 +27,18 @@
             box-sizing: border-box;
         }
 
-        /* GLIDING FOOTER TEXT */
+        /* 1. Normal state: Make the text white */
         .footer-text {
-            font-family: 'Roboto', sans-serif;
-            font-size: 16px;
-            font-weight: 400;
-            color: white;
-
-            /* Pin the text safely near the bottom */
-            position: absolute;
-            bottom: -50px;          
-            left: 0;
-            width: 100%;
-            z-index: 50;
-
-            /* Glide Effect Settings */
-            white-space: nowrap;   
-            animation: glideSideways 0.5s linear infinite; 
+        color: #ffffff; /* Turns text white */
+        text-decoration: none; /* Removes underline if it is a link */
         }
 
-        /* The Glide Animation */
-        @keyframes glideSideways {
-            100% {
-                transform: translateX(100%);   
-            }
-            100% {
-                transform: translateX(-100%);  
-            }
-        }
+        /* 2. Hover state: Make the text red */
         .footer-text:hover {
-        color: #FF0000;
-        background-color: #FF0000;
-        box-shadow: 0 0 20px #fff;
-        transform: scale(3);
-        cursor: pointer;
+        color: #ff0000; /* Turns text red on hover */
         }
+
+       
 
         /* THE SECRET WHITE DOT */
         .secret-dot {
