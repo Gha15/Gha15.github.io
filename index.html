@@ -27,18 +27,27 @@
             box-sizing: border-box;
         }
 
-        /* 1. Normal state: Make the text white */
+        /* FIXED FOOTER TEXT */
         .footer-text {
-        color: #ffffff; /* Turns text white */
-        text-decoration: none; /* Removes underline if it is a link */
+            color: #ffffff !important;
+            text-decoration: none;
+            
+            /* Stick to the bottom of the page */
+            position: fixed;
+            bottom: 10px; /* 10px spacing from the very bottom */
+            left: 10px;   /* Starting position from the left */
+            z-index: 9999; /* Keeps it on top of other elements */
+            
+            /* Smooth hover transitions for both color and gliding movement */
+            transition: color 0.3s ease, transform 0.3s ease; 
         }
 
-        /* 2. Hover state: Make the text red */
         .footer-text:hover {
-        color: #ff0000; /* Turns text red on hover */
+            color: #ff0000 !important;
+            
+            /* Glides 15px to the right when hovered */
+            transform: translateX(15px); 
         }
-
-       
 
         /* THE SECRET WHITE DOT */
         .secret-dot {
@@ -52,25 +61,6 @@
             text-decoration: none;
             z-index: 1000;
             transition: all 0.3s ease;
-        }
-
-        .secret-dot:hover {
-            background-color: #fff;
-            box-shadow: 0 0 20px #fff;
-            transform: scale(3);
-            cursor: pointer;
-        }
-
-        .container { 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center; 
-            z-index: 10; 
-            width: 100%;
-            max-width: 400px;
-            padding: 0 20px;
-            box-sizing: border-box;
         }
 
         /* SVG LOGO */
@@ -92,9 +82,23 @@
             margin-bottom: 30px;
         }
 
-        .the-math { font-size: 1.6rem; color: #94a3b8; text-transform: lowercase; line-height: 0.9; }
-        .club-com { font-size: 2.8rem; font-weight: 700; color: #f8fafc; line-height: 1; }
-        .dot-com { color: #38bdf8; }
+        .the-math { 
+            font-size: 1.6rem; 
+            color: #94a3b8; 
+            text-transform: lowercase; 
+            line-height: 0.9; 
+        }
+        
+        .club-com { 
+            font-size: 2.8rem; 
+            font-weight: 700; 
+            color: #f8fafc; 
+            line-height: 1; 
+        }
+        
+        .dot-com { 
+            color: #38bdf8; 
+        }
 
         /* MENU BUTTON MATRIX */
         .menu-grid {
@@ -127,7 +131,8 @@
         }
 
         /* SCATTERED BG SYMBOLS */
-        .math-bg {  display: flex;
+        .math-bg {  
+            display: flex;
             justify-content: center; /* Horizontal centering */
             align-items: center;   
             height: 300px;
@@ -167,7 +172,7 @@
           <div class="footer-text">
 
   </div>
-          <a href="https://matixthemathclub.com/" class="footer-text" style="text-decoration: none;">© 2026 matixthemathclub all rights reserved.</a>
+          <a href="https://matixthemathclub.com" class="footer-text">© 2026 matixthemathclub all rights reserved.</a>
       </div>
 
 
