@@ -40,13 +40,22 @@
             
             /* Smooth hover transitions for both color and gliding movement */
             transition: color 0.3s ease, transform 0.3s ease; 
+            display: inline-block;
+            animation: glide 3s ease-in-out infinite;
+            }
+
+            @keyframes glide {
+           0%, 100% {
+           transform: translateX(0);
+           }
+          50% {
+          transform: translateX(-30px);
+          }
         }
 
         .footer-text:hover {
             color: #ff0000 !important;
             
-            /* Glides 15px to the right when hovered */
-            transform: translateX(15px); 
         }
 
         /* THE SECRET WHITE DOT */
