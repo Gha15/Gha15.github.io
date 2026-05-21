@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matix The Math Club</title>
+    <title>Matrix The Math Club</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Courier+Prime&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Caveat:wght@700&family=Courier+Prime&display=swap" rel="stylesheet">
 
     <style>
         /* GLOBAL STYLES */
@@ -27,140 +27,46 @@
             box-sizing: border-box;
         }
 
-        /* GLIDING FOOTER TEXT */
-        .footer-text {
-            font-family: 'Roboto', sans-serif;
-            font-size: 16px;
-            font-weight: 400;
-            
+        /* GLIDING FOOTER CONTAINER */
+        .footer-container {
             /* Pin the text safely near the bottom */
             position: absolute;
-            bottom: -50px;          
+            bottom: 20px; /* Raised from -50px so it is visible on screen */         
             left: 0;
             width: 100%;
             z-index: 50;
+            overflow: hidden;
+        }
+
+        /* GLIDING LINK TEXT */
+        .footer-link,
+        .footer-link:visited,
+        .footer-link:active {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            font-weight: 400;
+            display: inline-block;
+            color: white;
+            text-decoration: none;
             
             /* Glide Effect Settings */
             white-space: nowrap;   
-            animation: glideSideways 0.5s linear infinite; 
+            animation: glideSideways 15s linear infinite; /* Slowed down from 0.5s so it is readable */
+        }
+
+        /* Hover state changes to red */
+        .footer-link:hover {
+            color: red;
         }
 
         /* The Glide Animation */
         @keyframes glideSideways {
-            100% {
+            0% {
                 transform: translateX(100%);   
             }
             100% {
                 transform: translateX(-100%);  
             }
-        }
-        .footer-text:hover {
-        background-color: #FF0000;
-        box-shadow: 0 0 20px #fff;
-        transform: scale(3);
-        cursor: pointer;
-        }
-
-        /* THE SECRET WHITE DOT */
-        .secret-dot {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 10px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            text-decoration: none;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .secret-dot:hover {
-            background-color: #fff;
-            box-shadow: 0 0 20px #fff;
-            transform: scale(3);
-            cursor: pointer;
-        }
-
-        .container { 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center; 
-            z-index: 10; 
-            width: 100%;
-            max-width: 400px;
-            padding: 0 20px;
-            box-sizing: border-box;
-        }
-
-        /* SVG LOGO */
-        .main-logo {
-            width: clamp(200px, 30vw, 350px);
-            height: auto;
-            margin-bottom: 10px; 
-        }
-
-        /* THE HANDWRITTEN BOX */
-        .handwritten-box {
-            display: inline-block;
-            padding: 10px 25px;
-            border: 2px solid #38bdf8;
-            font-family: 'Caveat', cursive;
-            transform: rotate(-1.5deg);
-            background: rgba(15, 23, 42, 0.9);
-            text-decoration: none;
-            margin-bottom: 30px;
-        }
-
-        .the-math { font-size: 1.6rem; color: #94a3b8; text-transform: lowercase; line-height: 0.9; }
-        .club-com { font-size: 2.8rem; font-weight: 700; color: #f8fafc; line-height: 1; }
-        .dot-com { color: #38bdf8; }
-
-        /* MENU BUTTON MATRIX */
-        .menu-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .nav-btn {
-            padding: 12px 20px;
-            border: 1px solid #334155;
-            background: rgba(30, 41, 59, 0.5);
-            color: #cbd5e1;
-            font-family: 'Courier Prime', monospace;
-            font-size: 1rem;
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s ease-in-out;
-            box-sizing: border-box;
-        }
-
-        .nav-btn:hover {
-            border-color: #38bdf8;
-            color: #38bdf8;
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-            transform: translateY(-1px);
-        }
-
-        /* SCATTERED BG SYMBOLS */
-        .math-bg {  display: flex;
-            justify-content: center; /* Horizontal centering */
-            align-items: center;   
-            height: 300px;
-            width: 300px;    
-            opacity: 0.5;
-            pointer-events: none;
-            z-index: 1;
-            font-family: 'Courier Prime', monospace;
-            font-size: 1.5rem;
-            padding: 20px;
-            box-sizing: border-box;
-            user-select: none;
         }
     </style>
 </head>
@@ -189,7 +95,8 @@
 
   </div>
 
-          <a href="https://matixthemathclub.com/"style="text-decoration: none;">© 2026 matixthemathclub all rights reserved.</a>
+          <a href="https://matixthemathclub.com" class="footer-text">© 2026 MatixTheMathClub. All Rights Reserved.</a>
+
       </div>
 
 
