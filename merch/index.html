@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coming Soon - Something Amazing</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cloudflare.com">
     <style>
         * {
             margin: 0;
@@ -28,7 +28,7 @@
             width: 100%;
             height: 100%;
             opacity: 0.03;
-            background-image: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="1"><polygon points="30 0 60 30 30 60 0 30"/></g></g></svg>');
+            background-image: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://w3.org"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="1"><polygon points="30 0 60 30 30 60 0 30"/></g></g></svg>');
             z-index: -1;
             animation: float 20s ease-in-out infinite;
         }
@@ -54,7 +54,7 @@
         .hero-image {
             width: 300px;
             height: 200px;
-            background: url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=600&h=400&fit=crop&crop=center') center/cover;
+            background: url('https://unsplash.com') center/cover;
             border-radius: 20px;
             margin-bottom: 3rem;
             position: relative;
@@ -145,6 +145,13 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
+        .scratch-icon {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+            transition: fill 0.3s ease;
+        }
+
         .floating-elements {
             position: absolute;
             width: 100%;
@@ -208,7 +215,9 @@
                 <i class="fab fa-github"></i>
             </a>
             <a href="https://mit.edu" target="_blank" class="social-link" title="Scratch">
-                <i class="fas fa-code"></i>
+                <svg class="scratch-icon" viewBox="0 0 24 24" xmlns="http://w3.org">
+                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1.03 14.156c-1.396.643-2.98.711-4.225-.011-1.614-.937-2.073-2.894-1.127-4.524.945-1.63 2.92-2.115 4.534-1.179 1.107.643 1.705 1.83 1.725 3.016l1.961-.433c-.157-1.89-1.258-3.694-3.125-4.775-2.73-1.59-6.195-.717-7.738 1.944-1.543 2.66-.632 6.046 2.098 7.636 2.025 1.178 4.453.947 6.13-.393l-1.458-1.295z"/>
+                </svg>
             </a>
         </div>
     </div>
