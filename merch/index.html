@@ -3,83 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coming Soon</title>
+    <title>Coming Soon | Something Awesome is Brewing</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://unsplash.com') no-repeat center center/cover;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            /* Darkened overlay gradient + abstract background image */
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
-                        url('https://unsplash.com') no-repeat center center/cover;
-            color: #fff;
-            text-align: center;
+            color: #ffffff;
             overflow: hidden;
         }
 
-        /* Glassmorphism card effect */
-        .card {
-            background: rgba(255, 255, 255, 0.05);
+        .container {
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            padding: 50px 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            max-width: 500px;
+            padding: 50px 30px;
             width: 90%;
-            animation: fadeIn 1.5s ease-out;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
         h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            letter-spacing: 3px;
+            font-size: 3rem;
             margin-bottom: 15px;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            background: linear-gradient(45deg, #ffffff, #a3b1ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #e0e0e0;
-            letter-spacing: 1px;
+            line-height: 1.6;
         }
 
-        /* Smooth entry animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media(max-width: 480px) {
-            h1 { font-size: 2.5rem; }
-            p { font-size: 1rem; }
-            .card { padding: 40px 20px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>Coming Soon</h1>
-        <p>Something beautiful is on the way.</p>
+    <div class="container">
+        <h1>We're Launching Soon!</h1>
+        <p>Our website is currently under construction. Check back shortly to see what we've been working on.</p>
     </div>
 
 </body>
