@@ -1,150 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matix The Math Club</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Something Big is Brewing</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --accent: #6366f1;
+        }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Courier+Prime&display=swap" rel="stylesheet">
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Inter', -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
 
-    <style>
-        /* GLOBAL STYLES */
-        body {
-            margin: 0; 
-            padding: 0;
-            padding-bottom: 80px; /* Prevents center content from hiding behind the sliding footer */
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            height: 100vh; 
-            background-color: #0f172a;
-            font-family: 'Segoe UI', sans-serif; 
-            color: #f8fafc;
-            overflow: hidden;
-            position: relative;
-            box-sizing: border-box;
-        }
+        /* Animated Mesh Background */
+        .bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, #2e1065 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, #1e1b4b 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, #0f172a 0%, transparent 50%);
+            filter: blur(80px);
+            z-index: -1;
+            animation: drift 15s ease-in-out infinite alternate;
+        }
 
-        /* FIXED FOOTER TEXT */
-        .footer-text {
-            color: #ffffff !important;
-            text-decoration: none;
-            
-            /* Stick to the bottom of the page */
-             position: fixed;
-             bottom: 10px;
-             left: 100;
-             transform: translate(-50%, -50%);
-             z-index: 9999; /* Keeps it on top of other elements */
-            
-            /* Smooth hover transitions for both color and gliding movement */
-            transition: color 0.3s ease, transform 0.3s ease; 
-            display: inline-block;
-            animation: glide 3s ease-in-out infinite;
-            }
+        @keyframes drift {
+            from { transform: scale(1) rotate(0deg); }
+            to { transform: scale(1.2) rotate(5deg); }
+        }
 
-            @keyframes glide {
-           0%, 100% {
-           transform: translateX(100px);
-           }
-          50% {
-          transform: translateX(-100px);
-          }
-        }
+        .container {
+            text-align: center;
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+        }
 
-        .footer-text:hover {
-            color: #ff0000 !important;
-            
-        }
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-        /* THE SECRET WHITE DOT */
-        .secret-dot {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 10px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            text-decoration: none;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
+        p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
 
-        /* SVG LOGO */
-        .main-logo {
-            width: clamp(200px, 30vw, 350px);
-            height: auto;
-            margin-bottom: 10px; 
-        }
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
 
-        /* THE HANDWRITTEN BOX */
-         .handwritten-box {
-            display: inline-block;
-            padding: 10px 25px;
-            border: 2px solid #38bdf8;
-            font-family: 'Caveat', cursive;
-            transform: rotate(-1.5deg);
-            background: rgba(15, 23, 42, 0.9);
-            text-decoration: none;
-            margin-bottom: 30px;
-        }
+        /* The "Stuffed" effect - a simple list that hints at scale */
+        .features {
+            margin-top: 2rem;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            opacity: 0.6;
+        }
 
-        .the-math { font-size: 1.6rem; color: #94a3b8; text-transform: lowercase; line-height: 0.9; }
-        .club-com { font-size: 2.8rem; font-weight: 700; color: #f8fafc; line-height: 1; }
-        .dot-com { color: #38bdf8; }
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
 
-        /* MENU BUTTON MATRIX */
-        .menu-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
 
-        .nav-btn {
-            padding: 12px 20px;
-            border: 1px solid #334155;
-            background: rgba(30, 41, 59, 0.5);
-            color: #cbd5e1;
-            font-family: 'Courier Prime', monospace;
-            font-size: 1rem;
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s ease-in-out;
-            box-sizing: border-box;
-        }
-
-        .nav-btn:hover {
-            border-color: #38bdf8;
-            color: #38bdf8;
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-            transform: translateY(-1px);
-        }
-
-        /* SCATTERED BG SYMBOLS */
-        .math-bg {  
-            display: flex;
-            justify-content: center; /* Horizontal centering */
-            align-items: center;   
-            height: 300px;
-            width: 300px;    
-            opacity: 0.5;
-            pointer-events: none;
-            z-index: 1;
-            font-family: 'Courier Prime', monospace;
-            font-size: 1.5rem;
-            padding: 20px;
-            box-sizing: border-box;
-            user-select: none;
-        }
-    </style>
+        .footer-note {
+            position: absolute;
+            bottom: 2rem;
+            font-size: 0.75rem;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+    </style>
 </head>
 <body>
-<div class=="footer-text">coming soon</div>
+
+    <div class="bg"></div>
+
+    <div class="container">
+        <div class="badge">BUILDING IN PUBLIC</div>
+        <h1>Too much to show.</h1>
+        <p>We’re packing a massive ecosystem into this space. It’s dense, it’s fast, and it’s almost ready.</p>
+        
+        <div class="features">
+            <div class="dot"></div>
+            <div class="dot" style="animation-delay: 0.2s"></div>
+            <div class="dot" style="animation-delay: 0.4s"></div>
+        </div>
+    </div>
+
+    <div class="footer-note">Coming at the speed of light</div>
+
 </body>
 </html>
