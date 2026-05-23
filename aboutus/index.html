@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Responsive Scrollable Document</title>
+    <title>Strict Vertical Scroll</title>
     <style>
         body {
             margin: 0;
-            padding: 5vh 5vw; /* Responsive margins using viewport units */
+            padding: 5vh 5vw; 
             font-family: sans-serif;
             background-color: #0b1d3a; 
             box-sizing: border-box;
@@ -16,28 +16,30 @@
             background-color: white;
             text-shadow: 2px 2px 0px #f0f0f0;
             
-            /* Responsive Scrollable Magic */
-            max-height: 80vh;         /* Limits box to 80% of any screen height */
-            overflow-y: auto;         /* Scrolls vertically when content overflows */
+            /* Vertical Scroll Settings */
+            max-height: 80vh;         /* Caps vertical height */
+            overflow-y: auto;         /* Allows vertical scrolling */
+            overflow-x: hidden;        /* Strict block on horizontal scrolling */
+            word-break: break-word;   /* Forces long words to wrap instead of pushing sideways */
             
             padding: 20px;            
             box-sizing: border-box;   
-            border-radius: 8px;       /* Rounded corners look better on mobile */
+            border-radius: 8px;       
             
             transition: transform 0.3s ease, background-color 0.3s ease;
         }
         .veryverycooltext:hover {
             background-color: #808080;
-            /* Scale effect can feel clunky on mobile touchscreens, */
-            /* but 1.02 is safe and subtle. */
-            transform: scale(1.02);   
+            transform: scale(1.01);   /* Kept very small so it doesn't push off the screen edge */
         }
     </style>
 </head>
 <body>
 
     <div class="veryverycooltext">
-        <p>gryreeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeuuergbtuvgtbguihtruivhefhjgbefhjbevvvvvvbbbbbbbbbbbbbbbbejjrhhhhhhhhhhhhhhhhhhhhhhhhhbvvvvvvvvvvvvvebgjhrbhjebvhefbgvhjfb cjkvhfdvboidsfhskvfhjdifdfghygfghjgfghjjgfghjhgfhjkjfghjkfghjgfhjgfhjgfhjkhgfhjhgfhjgfhjjjcjhhjdfhyuhjcdyufhnmdfryfhmdruhndjerfuhjnyghbyujghbyjhbyujhnbhnhfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff</p>
+        <h2>Strict Vertical Scrolling</h2>
+        <p>This box will only grow and scroll up and down.</p>
+        <p>Even if you type a massive single word like supercalifragilisticexpialidocious, it will break to the next line instead of forcing horizontal scroll.</p>
     </div>
 
 </body>
