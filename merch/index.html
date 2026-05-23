@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coming Soon | Something Awesome is Brewing</title>
+    <title>Coming Soon - Something Amazing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -13,53 +14,210 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://unsplash.com') no-repeat center center/cover;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: #0a0a0a;
             color: #ffffff;
-            overflow: hidden;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="1"><polygon points="30 0 60 30 30 60 0 30"/></g></g></svg>');
+            z-index: -1;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 50px 30px;
-            width: 90%;
-            max-width: 500px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            position: relative;
+        }
+
+        .hero-image {
+            width: 300px;
+            height: 200px;
+            background: url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=600&h=400&fit=crop&crop=center') center/cover;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: transform 0.6s ease;
+        }
+
+        .hero-image:hover {
+            transform: scale(1.05);
+        }
+
+        .hero-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: white;
+            z-index: 2;
         }
 
         h1 {
-            font-size: 3rem;
-            margin-bottom: 15px;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 300;
             letter-spacing: 2px;
-            text-transform: uppercase;
+            margin-bottom: 1rem;
+            opacity: 0;
+            animation: slideUp 1s ease 0.3s forwards;
         }
 
-        p {
-            font-size: 1.1rem;
-            color: #e0e0e0;
-            line-height: 1.6;
+        .subtitle {
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            color: #888;
+            margin-bottom: 3rem;
+            font-weight: 300;
+            opacity: 0;
+            animation: slideUp 1s ease 0.6s forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+            opacity: 0;
+            animation: slideUp 1s ease 0.9s forwards;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .social-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 2rem;
+            animation: floatRandom 15s linear infinite;
+        }
+
+        @keyframes floatRandom {
+            from {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
         }
 
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2.2rem;
+            .hero-image {
+                width: 250px;
+                height: 166px;
+            }
+
+            .container {
+                padding: 1rem;
             }
         }
     </style>
 </head>
 <body>
 
+    <div class="background-pattern"></div>
+
     <div class="container">
-        <h1>We're Launching Soon!</h1>
-        <p>Our website is currently under construction. Check back shortly to see what we've been working on.</p>
+        <div class="hero-image">
+            <div class="logo">
+                <i class="fas fa-rocket"></i>
+            </div>
+        </div>
+
+        <h1>Coming Soon</h1>
+        <div class="subtitle">Something amazing is in the works. Stay tuned!</div>
+
+        <div class="social-links">
+            <a href="https://github.com" target="_blank" class="social-link" title="GitHub">
+                <i class="fab fa-github"></i>
+            </a>
+            <a href="https://mit.edu" target="_blank" class="social-link" title="Scratch">
+                <i class="fas fa-code"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="floating-elements">
+        <div class="floating-element" style="left: 10%; animation-delay: 0s;"><i class="fas fa-code"></i></div>
+        <div class="floating-element" style="left: 30%; animation-delay: 4s;"><i class="fas fa-laptop"></i></div>
+        <div class="floating-element" style="left: 70%; animation-delay: 2s;"><i class="fas fa-terminal"></i></div>
+        <div class="floating-element" style="left: 90%; animation-delay: 6s;"><i class="fas fa-cube"></i></div>
     </div>
 
 </body>
