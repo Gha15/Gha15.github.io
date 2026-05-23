@@ -1,150 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matix The Math Club</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Courier+Prime&display=swap" rel="stylesheet">
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* Darkened overlay gradient + abstract background image */
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                        url('https://unsplash.com') no-repeat center center/cover;
+            color: #fff;
+            text-align: center;
+            overflow: hidden;
+        }
 
-    <style>
-        /* GLOBAL STYLES */
-        body {
-            margin: 0; 
-            padding: 0;
-            padding-bottom: 80px; /* Prevents center content from hiding behind the sliding footer */
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            height: 100vh; 
-            background-color: #0f172a;
-            font-family: 'Segoe UI', sans-serif; 
-            color: #f8fafc;
-            overflow: hidden;
-            position: relative;
-            box-sizing: border-box;
-        }
+        /* Glassmorphism card effect */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 50px 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            animation: fadeIn 1.5s ease-out;
+        }
 
-        /* FIXED FOOTER TEXT */
-        .footer-text {
-            color: #ffffff !important;
-            text-decoration: none;
-            
-            /* Stick to the bottom of the page */
-             position: fixed;
-             bottom: 10px;
-             left: 100;
-             transform: translate(-50%, -50%);
-             z-index: 9999; /* Keeps it on top of other elements */
-            
-            /* Smooth hover transitions for both color and gliding movement */
-            transition: color 0.3s ease, transform 0.3s ease; 
-            display: inline-block;
-            animation: glide 3s ease-in-out infinite;
-            }
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #ffffff, #a3b1ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-            @keyframes glide {
-           0%, 100% {
-           transform: translateX(100px);
-           }
-          50% {
-          transform: translateX(-100px);
-          }
-        }
+        p {
+            font-size: 1.2rem;
+            color: #e0e0e0;
+            letter-spacing: 1px;
+        }
 
-        .footer-text:hover {
-            color: #ff0000 !important;
-            
-        }
+        /* Smooth entry animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-        /* THE SECRET WHITE DOT */
-        .secret-dot {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 10px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            text-decoration: none;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        /* SVG LOGO */
-        .main-logo {
-            width: clamp(200px, 30vw, 350px);
-            height: auto;
-            margin-bottom: 10px; 
-        }
-
-        /* THE HANDWRITTEN BOX */
-         .handwritten-box {
-            display: inline-block;
-            padding: 10px 25px;
-            border: 2px solid #38bdf8;
-            font-family: 'Caveat', cursive;
-            transform: rotate(-1.5deg);
-            background: rgba(15, 23, 42, 0.9);
-            text-decoration: none;
-            margin-bottom: 30px;
-        }
-
-        .the-math { font-size: 1.6rem; color: #94a3b8; text-transform: lowercase; line-height: 0.9; }
-        .club-com { font-size: 2.8rem; font-weight: 700; color: #f8fafc; line-height: 1; }
-        .dot-com { color: #38bdf8; }
-
-        /* MENU BUTTON MATRIX */
-        .menu-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .nav-btn {
-            padding: 12px 20px;
-            border: 1px solid #334155;
-            background: rgba(30, 41, 59, 0.5);
-            color: #cbd5e1;
-            font-family: 'Courier Prime', monospace;
-            font-size: 1rem;
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s ease-in-out;
-            box-sizing: border-box;
-        }
-
-        .nav-btn:hover {
-            border-color: #38bdf8;
-            color: #38bdf8;
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-            transform: translateY(-1px);
-        }
-
-        /* SCATTERED BG SYMBOLS */
-        .math-bg {  
-            display: flex;
-            justify-content: center; /* Horizontal centering */
-            align-items: center;   
-            height: 300px;
-            width: 300px;    
-            opacity: 0.5;
-            pointer-events: none;
-            z-index: 1;
-            font-family: 'Courier Prime', monospace;
-            font-size: 1.5rem;
-            padding: 20px;
-            box-sizing: border-box;
-            user-select: none;
-        }
-    </style>
+        @media(max-width: 480px) {
+            h1 { font-size: 2.5rem; }
+            p { font-size: 1rem; }
+            .card { padding: 40px 20px; }
+        }
+    </style>
 </head>
 <body>
-<div class="footer-text">coming soon</div>
+
+    <div class="card">
+        <h1>Coming Soon</h1>
+        <p>Something beautiful is on the way.</p>
+    </div>
+
 </body>
 </html>
