@@ -3,133 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Something Big is Brewing</title>
+    <title>Coming Soon</title>
     <style>
-        :root {
-            --bg-color: #0a0a0c;
-            --accent: #6366f1;
-        }
-
-        body, html {
+        * {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: var(--bg-color);
-            font-family: 'Inter', -apple-system, sans-serif;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
             display: flex;
-            align-items: center;
             justify-content: center;
-            color: white;
-        }
-
-        /* Animated Mesh Background */
-        .bg {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: 
-                radial-gradient(circle at 20% 30%, #2e1065 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, #1e1b4b 0%, transparent 40%),
-                radial-gradient(circle at 50% 50%, #0f172a 0%, transparent 50%);
-            filter: blur(80px);
-            z-index: -1;
-            animation: drift 15s ease-in-out infinite alternate;
-        }
-
-        @keyframes drift {
-            from { transform: scale(1) rotate(0deg); }
-            to { transform: scale(1.2) rotate(5deg); }
-        }
-
-        .container {
+            align-items: center;
+            min-height: 100vh;
+            /* Darkened overlay gradient + abstract background image */
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                        url('https://unsplash.com') no-repeat center center/cover;
+            color: #fff;
             text-align: center;
-            backdrop-filter: blur(10px);
-            padding: 3rem;
-            border-radius: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.03);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        /* Glassmorphism card effect */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 50px 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             max-width: 500px;
+            width: 90%;
+            animation: fadeIn 1.5s ease-out;
         }
 
         h1 {
             font-size: 3.5rem;
-            font-weight: 800;
-            letter-spacing: -2px;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(to right, #fff, #94a3b8);
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #ffffff, #a3b1ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         p {
-            color: #94a3b8;
-            font-size: 1.1rem;
-            line-height: 1.6;
+            font-size: 1.2rem;
+            color: #e0e0e0;
+            letter-spacing: 1px;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background: rgba(99, 102, 241, 0.1);
-            color: #818cf8;
-            border-radius: 99px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(99, 102, 241, 0.2);
+        /* Smooth entry animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* The "Stuffed" effect - a simple list that hints at scale */
-        .features {
-            margin-top: 2rem;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            opacity: 0.6;
-        }
-
-        .dot {
-            width: 6px;
-            height: 6px;
-            background: var(--accent);
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.5); }
-        }
-
-        .footer-note {
-            position: absolute;
-            bottom: 2rem;
-            font-size: 0.75rem;
-            color: #475569;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        @media(max-width: 480px) {
+            h1 { font-size: 2.5rem; }
+            p { font-size: 1rem; }
+            .card { padding: 40px 20px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="bg"></div>
-
-    <div class="container">
-        <div class="badge">BUILDING IN PUBLIC</div>
-        <h1>Too much to show.</h1>
-        <p>We’re packing a massive ecosystem into this space. It’s dense, it’s fast, and it’s almost ready.</p>
-        
-        <div class="features">
-            <div class="dot"></div>
-            <div class="dot" style="animation-delay: 0.2s"></div>
-            <div class="dot" style="animation-delay: 0.4s"></div>
-        </div>
+    <div class="card">
+        <h1>Coming Soon</h1>
+        <p>Something beautiful is on the way.</p>
     </div>
-
-    <div class="footer-note">Coming at the speed of light</div>
 
 </body>
 </html>
