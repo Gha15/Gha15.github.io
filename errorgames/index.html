@@ -1,1 +1,233 @@
-zbshjdhewjsfejdkjfvkdfvcfdjcvcdfkvffrfrfed it is in progress
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRITICAL CORRUPTION - Subdirectory Gateway</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --neon-red: #ff3b3b;
+            --neon-dim: #551111;
+            --bg-dark: #05070b;
+            --panel-bg: #0c0f17;
+            --text-gray: #7e899a;
+            --text-light: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Share Tech Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Scanline Overlay Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 99;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .terminal-panel {
+            width: 100%;
+            max-width: 440px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--neon-dim);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(255, 59, 59, 0.05);
+            padding: 30px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Diagnostic Warning Box Header */
+        .alert-banner {
+            border: 1px dashed var(--neon-red);
+            background: rgba(255, 59, 59, 0.05);
+            padding: 15px;
+            margin-bottom: 30px;
+            text-align: left;
+            position: relative;
+        }
+
+        .alert-banner::before {
+            content: 'STATUS: UNSTABLE';
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: var(--panel-bg);
+            padding: 0 8px;
+            font-size: 0.75rem;
+            color: var(--neon-red);
+            letter-spacing: 1px;
+        }
+
+        .alert-title {
+            font-size: 1.4rem;
+            color: var(--neon-red);
+            font-weight: 700;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .alert-subtitle {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            margin: 0;
+        }
+
+        /* Sector Directory List */
+        .directory-tree {
+            text-align: left;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            margin-bottom: 20px;
+            padding-left: 5px;
+        }
+
+        .directory-tree span {
+            color: var(--neon-red);
+        }
+
+        /* Interactive Menu Link Matrix */
+        .subroutine-links {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 35px;
+        }
+
+        .link-node {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: #111520;
+            border-left: 3px solid var(--neon-dim);
+            color: #a3b3c9;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .link-node .node-index {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.75rem;
+            color: var(--neon-dim);
+            transition: color 0.2s;
+        }
+
+        /* Hover States */
+        .link-node:hover {
+            background: #161c2b;
+            border-left-color: var(--neon-red);
+            color: var(--text-light);
+            transform: translateX(4px);
+            box-shadow: -5px 0 15px rgba(255, 59, 59, 0.1);
+        }
+
+        .link-node:hover .node-index {
+            color: var(--neon-red);
+        }
+
+        /* Terminal Footer Operations */
+        .system-ops {
+            border-top: 1px solid #1a2333;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .ops-btn {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color 0.15s;
+        }
+
+        .ops-btn:hover {
+            color: #38bdf8;
+        }
+
+        /* Abstract Grid Element in Background */
+        .grid-bg {
+            position: absolute;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.01);
+            top: 10px;
+            left: 10px;
+            pointer-events: none;
+            user-select: none;
+            text-align: left;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-bg">
+        [0x7FFF5FBFFD98] &bull; STACK_OVERFLOW<br>
+        [ALLOC_FAIL] &bull; MEM_METRIC_NULL<br>
+        [SECTOR_Void] &bull; index_ptr_corrupt
+    </div>
+
+    <div class="terminal-panel">
+        
+        <div class="alert-banner">
+            <h1 class="alert-title">Data Rupture</h1>
+            <p class="alert-subtitle">Unexpected routing down-link mapped to unsafe game instances.</p>
+        </div>
+
+        <div class="directory-tree">
+            root@matix_club:~# cd <span>/errorgames/</span>
+        </div>
+
+        <nav class="subroutine-links">
+            <a href="/errorgames" class="link-node">
+                <span>Connection Timeout Game</span>
+                <span class="node-index">[01]</span>
+            </a>
+            <a href="/errorgames/connection" class="link-node">
+                <span>URL Not Found Game</span>
+                <span class="node-index">[02]</span>
+            </a>
+            <a href="/errorgames/notfound" class="link-node">
+                <span>Not Found</span>
+                <span class="node-index">[03]</span>
+            </a>
+        </nav>
+
+        <div class="system-ops">
+            <a href="/" class="ops-btn">&lt; Return_Home</a>
+            <a href="/games" class="ops-btn">Public_Arcade &gt;</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
