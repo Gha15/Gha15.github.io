@@ -3,364 +3,444 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERR_CONNECTION_TIMED_OUT | Math Arcade</title>
+    <title>MATH DINO: EXCEPTION RUNNER // 1994 ARCADE EDITION</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&family=Press+Start+2P&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --neon-cyan: #00f3ff;
-            --neon-pink: #ff007f;
-            --bg-dark: #080510;
-            --panel-bg: #110922;
-            --text-dark: #4e4069;
-            --text-light: #ffffff;
+            --neon-green: #39ff14;
+            --neon-red: #ff003c;
+            --neon-blue: #00f3ff;
+            --cab-gold: #ffcc00;
+            --bg-dark: #020205;
+            --surface: #0a0a14;
         }
 
         body {
             margin: 0; padding: 0;
             background-color: var(--bg-dark);
-            color: var(--text-light);
-            font-family: 'Share Tech Mono', monospace;
+            color: #fff;
+            font-family: 'Press Start 2P', monospace;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             min-height: 100vh; overflow: hidden;
-            box-sizing: border-box;
+            user-select: none;
         }
 
-        /* Retro CRT Scanlines overlay */
+        /* 90s CRT Monitor Distortion and Glass Curvature Overlay */
         body::before {
             content: " "; display: block; position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-            z-index: 999; background-size: 100% 4px;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04));
+            z-index: 999; background-size: 100% 6px, 6px 100%;
             pointer-events: none;
         }
 
-        .browser-frame {
-            width: 100%; max-width: 650px;
-            background-color: var(--panel-bg);
-            border: 2px solid var(--neon-cyan);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-            padding: 25px; box-sizing: border-box;
+        /* Outer Wooden Cabinet Bezel Frame */
+        .arcade-cabinet {
+            background-color: var(--surface);
+            border: 12px solid #222;
+            outline: 4px solid var(--cab-gold);
+            box-shadow: 0 0 40px rgba(255, 204, 0, 0.15), inset 0 0 60px rgba(0,0,0,0.9);
+            padding: 20px; width: 100%; max-width: 640px;
+            box-sizing: border-box; text-align: center;
             position: relative;
         }
 
-        /* Chrome Error Tab style Header */
-        .tab-error-header {
-            text-align: left;
-            border-bottom: 1px dashed var(--text-dark);
-            padding-bottom: 15px; margin-bottom: 20px;
+        /* Retro Neon Header Marquee */
+        .marquee {
+            border: 4px solid var(--neon-blue);
+            background: #000;
+            padding: 12px; margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
         }
 
-        .error-title {
-            font-size: 1.5rem; color: var(--neon-pink);
-            margin: 0 0 5px 0; letter-spacing: 1px;
-            text-shadow: 0 0 5px var(--neon-pink);
+        .marquee h1 {
+            font-size: 1.1rem; color: var(--cab-gold); margin: 0 0 6px 0;
+            letter-spacing: 2px; text-shadow: 0 0 8px var(--cab-gold);
         }
 
-        .error-code {
-            font-family: 'Courier Prime', monospace;
-            font-size: 0.85rem; color: var(--text-dark);
+        /* Setup/Rules Modal System Overlay */
+        #menu-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 15, 0.98); z-index: 100;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 30px; box-sizing: border-box;
         }
 
-        /* Dynamic Network Loading Bar */
-        .loading-container {
-            width: 100%; background: #1a0e30;
-            height: 6px; position: relative; margin-bottom: 20px;
-            border: 1px solid rgba(0, 243, 255, 0.2);
+        .rules-box {
+            border: 2px dashed var(--cab-gold); background: #000;
+            padding: 15px; margin-bottom: 25px; text-align: left; max-width: 500px;
         }
 
-        #buffer-bar {
-            width: 100%; height: 100%;
-            background: var(--neon-cyan);
-            box-shadow: 0 0 8px var(--neon-cyan);
-            transition: width 0.1s linear;
+        .rules-box p {
+            font-family: 'Courier Prime', monospace; font-size: 0.85rem;
+            line-height: 1.6; color: #bbb; margin: 8px 0;
         }
 
-        /* Game Canvas Platform */
-        .canvas-container {
-            position: relative; width: 100%;
-            background: #0d061a;
-            border: 1px solid rgba(255, 0, 127, 0.2);
+        .rules-box span.green { color: var(--neon-green); font-weight: bold; }
+        .rules-box span.red { color: var(--neon-red); font-weight: bold; }
+
+        .device-selector {
+            display: flex; gap: 20px; width: 100%; max-width: 500px;
         }
 
-        canvas {
-            display: block; width: 100%; height: auto;
+        .arcade-btn {
+            flex: 1; background: #111; border: 3px solid var(--neon-blue);
+            color: var(--neon-blue); font-family: 'Press Start 2P', monospace;
+            padding: 15px; font-size: 0.65rem; cursor: pointer;
+            box-shadow: 0 4px 0 var(--neon-blue); transition: all 0.1s;
         }
 
-        /* Game Instructions Overlay */
-        .controls-hint {
-            margin-top: 15px; display: flex;
-            justify-content: space-between;
-            font-family: 'Courier Prime', monospace;
-            font-size: 0.8rem; color: var(--text-dark);
+        .arcade-btn:active {
+            transform: translateY(4px); box-shadow: 0 0 0 transparent;
         }
 
-        .controls-hint span { color: var(--neon-cyan); }
-
-        /* Reset Button hidden until crash */
-        .action-container {
-            margin-top: 20px; display: flex; gap: 15px; justify-content: flex-start;
+        .arcade-btn:hover {
+            background: var(--neon-blue); color: #000;
         }
 
-        .btn {
-            background: transparent; border: 1px solid var(--neon-cyan);
-            color: var(--neon-cyan); padding: 10px 20px;
-            font-family: 'Share Tech Mono', monospace; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s;
+        /* Vital Instrument Dashboard Panel */
+        .hud-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; background: #000; padding: 10px;
+            border: 2px solid #222;
         }
 
-        .btn:hover {
-            background: var(--neon-cyan); color: var(--bg-dark);
-            box-shadow: 0 0 10px var(--neon-cyan);
+        .score-counter {
+            font-size: 0.75rem; color: #fff;
         }
 
-        .btn-alt {
-            border-color: var(--text-dark); color: var(--text-dark); text-decoration: none;
-            padding: 10px 20px; font-size: 0.9rem; display: inline-block;
+        /* Health Instrumentation Matrix */
+        .health-wrapper {
+            display: flex; align-items: center; gap: 10px;
         }
-        .btn-alt:hover { color: var(--text-light); border-color: var(--text-light); }
+
+        .health-text {
+            font-size: 0.75rem; font-family: 'Press Start 2P', monospace;
+            color: var(--neon-green); min-width: 80px; text-align: right;
+        }
+
+        .health-meter {
+            width: 140px; height: 16px; background: #1a0005;
+            border: 2px solid #ff003c; box-sizing: border-box; position: relative;
+        }
+
+        #health-fill {
+            width: 100%; height: 100%; background: var(--neon-green);
+            box-shadow: 0 0 8px var(--neon-green); transition: width 0.15s ease-out;
+        }
+
+        /* Canvas Wrapper Screen */
+        .viewport {
+            background: #000; border: 4px solid #333; position: relative;
+        }
+
+        canvas { display: block; width: 100%; height: auto; background: #030308; }
+
+        /* Dynamic Virtual Cabinet Controls Bar */
+        #mobile-controls {
+            display: none; margin-top: 15px; gap: 20px; width: 100%;
+        }
+
+        .control-pad {
+            flex: 1; background: #220011; border: 3px solid var(--neon-red);
+            color: var(--neon-red); font-family: 'Press Start 2P', monospace;
+            padding: 18px; font-size: 0.8rem; cursor: pointer;
+            box-shadow: 0 4px 0 var(--neon-red);
+        }
+        .control-pad.pos {
+            background: #002211; border-color: var(--neon-green); color: var(--neon-green);
+            box-shadow: 0 4px 0 var(--neon-green);
+        }
+
+        /* Retro System Abort Link */
+        .exit-link {
+            display: inline-block; margin-top: 15px; font-family: 'Courier Prime', monospace;
+            font-size: 0.8rem; color: #555; text-decoration: none; text-transform: uppercase;
+        }
+        .exit-link:hover { color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="browser-frame">
-        <div class="tab-error-header">
-            <h1 class="error-title">This site can’t be reached</h1>
-            <div class="error-code">matix_club_upstream took too long to respond.</div>
-            <div class="error-code" style="margin-top: 5px; color: var(--neon-cyan);">ERR_MATH_TIMEOUT_LIMIT_EXCEEDED</div>
+    <div class="arcade-cabinet">
+        
+        <div id="menu-screen">
+            <div class="marquee" style="width:100%; box-sizing:border-box;">
+                <h1>INSERT TOKEN: SYSTEM RUNNER</h1>
+            </div>
+            
+            <div class="rules-box">
+                <p>&bull; DEFEND THE BASERUN LIMITS WITH THE ALGEBRAIC MATH DINO.</p>
+                <p>&bull; MATCH SIGN POLARITY BEFORE COLLIDING WITH INCOMING WAVE SECTORS.</p>
+                <p>&bull; CORRECT LANE MATCH NETS <span class="green">+5 HEALTH</span>.</p>
+                <p>&bull; MISMATCH OR TIMEOUT SMASHES CORE FOR <span class="red">-10 HEALTH</span>.</p>
+                <p>&bull; TIME QUANTUMS AND LANE SPEEDS ROTATE RANDOMLY EN ROUTE!</p>
+            </div>
+
+            <div style="font-size:0.6rem; color:var(--cab-gold); margin-bottom:15px;">CHOOSE INPUT HARDWARE MECHANISM:</div>
+            <div class="device-selector">
+                <button class="arcade-btn" onclick="initCabinet('pc')">JOYSTICK (ARROWS)</button>
+                <button class="arcade-btn" onclick="initCabinet('mobile')">TOUCH PAD (SCREEN)</button>
+            </div>
         </div>
 
-        <div class="loading-container">
-            <div id="buffer-bar"></div>
+        <div class="hud-row">
+            <div class="score-counter" id="score-val">1P - 000000</div>
+            
+            <div class="health-wrapper">
+                <div class="health-meter">
+                    <div id="health-fill"></div>
+                </div>
+                <div class="health-text" id="health-num">HP:100/100</div>
+            </div>
         </div>
 
-        <div class="canvas-container">
-            <canvas id="dinoCanvas" width="600" height="220"></canvas>
+        <div class="viewport">
+            <canvas id="arcadeCanvas" width="600" height="240"></canvas>
         </div>
 
-        <div class="controls-hint">
-            <div>[↑/↓ ARROWS] or [TAP TOP/BOTTOM]: Switch Sign (<span>+</span> / <span>-</span>)</div>
-            <div id="score-board">DETERMINANT: 0000</div>
+        <div id="mobile-controls">
+            <button class="control-pad pos" ontouchstart="triggerSign(1)">[+] POSITIVE</button>
+            <button class="control-pad" ontouchstart="triggerSign(-1)">[-] NEGATIVE</button>
         </div>
 
-        <div class="action-container">
-            <button class="btn" id="reload-btn" onclick="resetGame()">Load Matrix</button>
-            <a href="/errorgames" class="btn-alt">&lt; Abort Subroutine</a>
-        </div>
+        <a href="/errorgames" class="exit-link">&lt; FLIP SERVICE SWITCH (ABORT)</a>
     </div>
 
     <script>
-        const canvas = document.getElementById('dinoCanvas');
+        const canvas = document.getElementById('arcadeCanvas');
         const ctx = canvas.getContext('2d');
-        const bufferBar = document.getElementById('buffer-bar');
-        const scoreBoard = document.getElementById('score-board');
+        const healthFill = document.getElementById('health-fill');
+        const healthNum = document.getElementById('health-num');
+        const scoreVal = document.getElementById('score-val');
+        const menuScreen = document.getElementById('menu-screen');
+        const mobileControls = document.getElementById('mobile-controls');
 
-        // Game Metrics Configuration
+        // Game State Core Metrics
         let score = 0;
-        let gameActive = true;
-        let bufferEnergy = 100;
-        let gameSpeed = 3.5;
-        let obstacleTimer = 0;
+        let health = 100;
+        let gameActive = false;
+        let currentInputType = 'pc';
+        
         let obstacles = [];
+        let nextSpawnTime = 0; // Random frame threshold timing variable
+        let frameCounter = 0;
 
-        // Math Dino entity properties
         const dino = {
-            x: 50,
-            y: 110, // Centered on the operational axis line
-            width: 30,
-            height: 30,
-            sign: 1, // 1 for Positive (+), -1 for Negative (-)
-            targetY: 110
+            x: 60, y: 120,
+            width: 28, height: 28,
+            sign: 1, currentTrackY: 70
         };
 
-        // Math Equation Matrix Obstacles arrays
-        const mathExpressions = [
-            { text: "÷ 0", type: "undefined" },
-            { text: "√-1", type: "imaginary" },
-            { text: "∞", type: "infinity" },
-            { text: "x/0", type: "undefined" },
-            { text: "∫ dx/x", type: "log" }
-        ];
+        const mathGlitchPool = ["÷0", "√-1", "∞", "X/0", "0/0", "tan(90)"];
 
-        // Process Controller Tracking User Controls
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') { dino.sign = 1; }
-            if (e.key === 'ArrowDown') { dino.sign = -1; }
-        });
-
-        // Touch Input targeting for portable devices
-        canvas.addEventListener('touchstart', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const touchY = e.touches[0].clientY - rect.top;
-            if (touchY < canvas.height / 2) {
-                dino.sign = 1;
+        function initCabinet(type) {
+            currentInputType = type;
+            menuScreen.style.display = 'none';
+            if(type === 'mobile') {
+                mobileControls.style.display = 'flex';
             } else {
-                dino.sign = -1;
+                mobileControls.style.display = 'none';
             }
-        });
+            setupInputListeners();
+            bootGame();
+        }
 
-        function spawnObstacle() {
-            const randomExpr = mathExpressions[Math.floor(Math.random() * mathExpressions.length)];
-            const trackSign = Math.random() > 0.5 ? 1 : -1;
+        function setupInputListeners() {
+            if (currentInputType === 'pc') {
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowUp') dino.sign = 1;
+                    if (e.key === 'ArrowDown') dino.sign = -1;
+                    if (!gameActive && (e.key === ' ' || e.key === 'Enter')) bootGame();
+                });
+            }
             
-            obstacles.push({
-                x: canvas.width + 20,
-                y: trackSign === 1 ? 65 : 155,
-                text: randomExpr.text,
-                signRequirement: trackSign,
-                width: 45,
-                height: 25
+            // Allow tap restarts on the canvas screen area directly
+            canvas.addEventListener('touchstart', () => {
+                if(!gameActive) bootGame();
             });
         }
 
-        function resetGame() {
+        function triggerSign(val) {
+            dino.sign = val;
+        }
+
+        function bootGame() {
             score = 0;
-            gameActive = true;
-            bufferEnergy = 100;
-            gameSpeed = 3.5;
+            health = 100;
             obstacles = [];
+            frameCounter = 0;
+            nextSpawnTime = 20;
             dino.sign = 1;
-            document.getElementById('reload-btn').innerText = "Reload Stream";
-            loop();
+            gameActive = true;
+            updateHUDMetrics();
+            runArcadeEngine();
         }
 
-        function drawDino() {
-            // Lerp tracking position smooth transition
-            dino.targetY = dino.sign === 1 ? 65 : 155;
-            dino.y += (dino.targetY - dino.y) * 0.25;
-
-            ctx.save();
-            // Render Math Dino Body Frame Box
-            ctx.fillStyle = dino.sign === 1 ? '#00f3ff' : '#ff007f';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = ctx.fillStyle;
+        function updateHUDMetrics() {
+            // Constrain health parameters
+            health = Math.max(0, Math.min(100, health));
             
-            // Draw a styled minimalist blocky "Math Dino" with angular vertexes
-            ctx.fillRect(dino.x, dino.y - 15, dino.width, dino.height);
-            
-            // Draw Dino eye tracking sensor
-            ctx.fillStyle = '#0d061a';
-            ctx.fillRect(dino.x + 20, dino.y - 10, 4, 4);
+            healthFill.style.width = health + "%";
+            healthNum.innerText = `HP:${health}/100`;
+            scoreVal.innerText = `1P - ${String(score).padStart(6, '0')}`;
 
-            // Draw current operational state value marker icon next to Dino
-            ctx.font = "bold 14px Share Tech Mono";
-            ctx.fillStyle = dino.sign === 1 ? '#00f3ff' : '#ff007f';
-            ctx.fillText(dino.sign === 1 ? "[+]" : "[-]", dino.x - 28, dino.y + 5);
-            ctx.restore();
+            // Adjust neon readout hues based on remaining processing health
+            if (health > 40) {
+                healthFill.style.background = "#39ff14";
+                healthNum.style.color = "#39ff14";
+            } else {
+                healthFill.style.background = "#ff003c";
+                healthNum.style.color = "#ff003c";
+            }
         }
 
-        function loop() {
+        function spawnRandomObstacle() {
+            // Compute entirely randomized path profiles
+            const targetLane = Math.random() > 0.5 ? 1 : -1;
+            const textString = mathGlitchPool[Math.floor(Math.random() * mathGlitchPool.length)];
+            const randomSpeed = 4 + Math.random() * 4.5; // Random individual vector velocity
+
+            obstacles.push({
+                x: canvas.width + 30,
+                y: targetLane === 1 ? 70 : 170,
+                text: textString,
+                requiredSign: targetLane,
+                speed: randomSpeed,
+                width: 50, height: 26
+            });
+        }
+
+        function runArcadeEngine() {
             if (!gameActive) return;
 
-            // Clear Screen Matrix
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            frameCounter++;
 
-            // Drain connection buffer energy continuously over runtime framework
-            bufferEnergy -= 0.04;
-            if (bufferEnergy <= 0) {
-                bufferEnergy = 0;
-                gameActive = false;
-            }
-            bufferBar.style.width = bufferEnergy + "%";
+            // Draw 90s grid guidelines matrix line markers
+            ctx.strokeStyle = '#111126';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 45, canvas.width, canvas.height - 90);
 
-            // Draw middle algebraic baseline axis limits matrix
-            ctx.strokeStyle = '#4e4069';
+            ctx.strokeStyle = '#221133';
             ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
+            ctx.setLineDash([8, 8]);
             ctx.beginPath();
             ctx.moveTo(0, canvas.height / 2);
             ctx.lineTo(canvas.width, canvas.height / 2);
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Draw top and bottom boundary tracks
-            ctx.strokeStyle = 'rgba(78, 64, 105, 0.3)';
-            ctx.strokeRect(0, 35, canvas.width, 1);
-            ctx.strokeRect(0, 185, canvas.width, 1);
-
-            // Process dynamic obstacle spawning frequency metrics
-            obstacleTimer++;
-            if (obstacleTimer > 70) {
-                spawnObstacle();
-                obstacleTimer = 0;
-                if (gameSpeed < 7) gameSpeed += 0.1; // gradual curve speed limits escalation
+            // Dynamic algorithmic variable spawning loops
+            if (frameCounter >= nextSpawnTime) {
+                spawnRandomObstacle();
+                frameCounter = 0;
+                nextSpawnTime = Math.floor(45 + Math.random() * 50); // Completely random timing gaps
             }
 
-            // Draw and Update incoming obstacle vectors
+            // Move and render Math Dino
+            dino.currentTrackY += ((dino.sign === 1 ? 70 : 170) - dino.currentTrackY) * 0.3;
+            
+            ctx.save();
+            ctx.fillStyle = dino.sign === 1 ? varColor('--neon-blue') : varColor('--neon-red');
+            ctx.shadowBlur = 12; ctx.shadowColor = ctx.fillStyle;
+            
+            // Render 8-bit aesthetic blocky runner sprite body
+            ctx.fillRect(dino.x - 14, dino.currentTrackY - 14, dino.width, dino.height);
+            ctx.fillStyle = "#000";
+            ctx.fillRect(dino.x + 6, dino.currentTrackY - 10, 4, 4); // Vision pixel eye
+
+            // Mini binary trace indicator text
+            ctx.font = "10px 'Press Start 2P'";
+            ctx.fillStyle = dino.sign === 1 ? varColor('--neon-blue') : varColor('--neon-red');
+            ctx.fillText(dino.sign === 1 ? "+" : "-", dino.x - 30, dino.currentTrackY + 4);
+            ctx.restore();
+
+            // Evaluate tracking array loops
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
-                obs.x -= gameSpeed;
+                obs.x -= obs.speed; // Individualized speeds active
 
+                // Draw retro diagnostic grid node vector boundaries
                 ctx.save();
-                ctx.fillStyle = obs.signRequirement === 1 ? 'rgba(0, 243, 255, 0.15)' : 'rgba(255, 0, 127, 0.15)';
-                ctx.strokeStyle = obs.signRequirement === 1 ? '#00f3ff' : '#ff007f';
-                ctx.lineWidth = 1;
-                ctx.fillRect(obs.x, obs.y - 12, obs.width, obs.height);
-                ctx.strokeRect(obs.x, obs.y - 12, obs.width, obs.height);
+                ctx.strokeStyle = obs.requiredSign === 1 ? varColor('--neon-blue') : varColor('--neon-red');
+                ctx.lineWidth = 2;
+                ctx.fillStyle = "rgba(0,0,0,0.85)";
+                ctx.fillRect(obs.x - (obs.width/2), obs.y - 13, obs.width, obs.height);
+                ctx.strokeRect(obs.x - (obs.width/2), obs.y - 13, obs.width, obs.height);
 
-                // Print the mathematical runtime error string value
-                ctx.font = "14px Share Tech Mono";
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.fillText(obs.text, obs.x + (obs.width / 2), obs.y + 5);
+                // Render glitched mathematical problem character strings
+                ctx.font = "9px 'Press Start 2P'";
+                ctx.fillStyle = "#fff";
+                ctx.textAlign = "center";
+                ctx.fillText(obs.text, obs.x, obs.y + 4);
                 ctx.restore();
 
-                // Axis collision checking tracking calculations
-                if (obs.x < dino.x + dino.width && obs.x + obs.width > dino.x) {
-                    // Check if Dino coordinates align with the track lane profile
-                    if ((obs.signRequirement === 1 && dino.sign === 1 && dino.y < 100) ||
-                        (obs.signRequirement === -1 && dino.sign === -1 && dino.y > 100)) {
-                        
-                        // Clean calculation matching conversion! Refresh pipeline buffer metric
-                        bufferEnergy = Math.min(100, bufferEnergy + 8);
-                        score += 10;
+                // Compute standard hitbox proximity coordinates matching bounds
+                if (obs.x - (obs.width/2) < dino.x + 14 && obs.x + (obs.width/2) > dino.x - 14) {
+                    if (Math.abs(dino.currentTrackY - obs.y) < 25) {
+                        // Position overlap active! Check verification sign polarity match
+                        if (dino.sign === obs.requiredSign) {
+                            health += 5; // Matrix conversion clean execution match
+                            score += 100;
+                        } else {
+                            health -= 10; // Inversion conflict anomaly strike failure!
+                        }
+                        updateHUDMetrics();
                         obstacles.splice(i, 1);
+                        
+                        if (health <= 0) {
+                            gameActive = false;
+                            executeCrashScreen();
+                        }
                         continue;
-                    } else if (Math.abs(dino.y - obs.y) < 35) {
-                        // Math Sign mismatch inside collision vector threshold! System failure crash.
-                        gameActive = false;
                     }
                 }
 
-                // Delete index elements clearing space behind track border margins
-                if (obs.x < -50) {
+                // Delete index element safely out of camera boundaries
+                if (obs.x < -60) {
                     obstacles.splice(i, 1);
-                    score += 1;
+                    score += 25; // Passive survival score accrual
+                    updateHUDMetrics();
                 }
             }
 
-            // Render operational entity positions
-            drawDino();
-
-            // Refresh Score metrics board terminal text
-            scoreBoard.innerText = "DETERMINANT: " + String(score).padStart(4, '0');
-
             if (gameActive) {
-                requestAnimationFrame(loop);
-            } else {
-                // Draw Glitched Terminal Termination Screen Overlay
-                ctx.fillStyle = 'rgba(13, 6, 26, 0.85)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.font = "bold 20px Share Tech Mono";
-                ctx.fillStyle = '#ff007f';
-                ctx.textAlign = 'center';
-                ctx.fillText("CRITICAL_MATRIX_COLLAPSE", canvas.width / 2, canvas.height / 2 - 10);
-                
-                ctx.font = "14px Courier Prime";
-                ctx.fillStyle = '#4e4069';
-                ctx.fillText("Output Exception: Cannot evaluate indeterminate form.", canvas.width / 2, canvas.height / 2 + 15);
-                
-                document.getElementById('reload-btn').innerText = "Recompute Matrix";
+                requestAnimationFrame(runArcadeEngine);
             }
         }
 
-        // Initialize simulation execution track loops on start
-        loop();
+        function executeCrashScreen() {
+            ctx.fillStyle = "rgba(5, 2, 10, 0.9)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = "16px 'Press Start 2P'";
+            ctx.fillStyle = varColor('--neon-red');
+            ctx.textAlign = "center";
+            ctx.fillText("1P PLAYER DIED", canvas.width / 2, canvas.height / 2 - 20);
+            
+            ctx.font = "8px 'Press Start 2P'";
+            ctx.fillStyle = varColor('--cab-gold');
+            ctx.fillText(`FINAL CALCULATED MATRIX: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
+            
+            ctx.fillStyle = "#fff";
+            ctx.fillText(currentInputType === 'pc' ? "PRESS [SPACE / ENTER] TO RE-RUN" : "TAP SCREEN TO INSERT TOKEN", canvas.width / 2, canvas.height / 2 + 35);
+            
+            // Instantly flip visibility flags of the setup console modal to accept fresh runs
+            menuScreen.style.display = 'flex';
+        }
+
+        // Helper interface to parse programmatic variables values directly from CSS tokens
+        function varColor(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
     </script>
 </body>
 </html>
