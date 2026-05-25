@@ -29,16 +29,16 @@
     .modal-text { font-size: 14px; color: #4a5568; margin-bottom: 20px; }
     .modal-btn { background: #1c2541; color: white; padding: 10px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; }
     @media (max-width: 480px) { body { padding: 15px; } .form-container { padding: 20px; } }
-    iframe#hidden_iframe { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- FIXED METHOD: Direct native forms names map directly into Formspree dashboard categories columns -->
-  <form id="ticketForm" action="https://formspree.io" method="POST" target="hidden_iframe" onsubmit="return handleSubmission(event)" class="form-container">
+  <!-- FIXED METHOD: Direct HTML form transmission allows tracking cookies to parse seamlessly -->
+  <form id="ticketForm" action="https://formspree.io" method="POST" onsubmit="return handleSubmission(event)" class="form-container">
     <h2>contact us</h2>
     
-    <!-- Subject string parameter identifier mapping link -->
+    <!-- Next URL loop routes users back with a success flag parameter after saving -->
+    <input type="hidden" name="_next" value="https://matixthemathclub.com">
     <input type="hidden" id="hiddenSubject" name="_subject">
 
     <div class="input-group">
@@ -73,8 +73,6 @@
     <button type="submit" id="sendBtn">Send Email</button>
   </form>
 
-  <iframe name="hidden_iframe" id="hidden_iframe" onload="handleIframeResponse()"></iframe>
-
   <div id="alertModal" class="custom-modal">
     <div class="modal-content">
       <div id="modalTitle" class="modal-title">Notification</div>
@@ -84,8 +82,15 @@
   </div>
 
   <script>
-    let formSubmitted = false;
-    let shouldClearForm = false;
+    // Listens for Formspree return loop redirect to instantly trigger your custom success modal notice
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('status') === 'success') {
+        showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+        // Cleans the URL parameter so refreshing the page won't reopen the alert box repeatedly
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    });
 
     function showAlert(title, message, isError = true) {
       const titleEl = document.getElementById('modalTitle');
@@ -93,21 +98,10 @@
       titleEl.style.color = isError ? '#e53e3e' : '#28a745';
       document.getElementById('modalText').innerText = message;
       document.getElementById('alertModal').style.display = 'flex';
-      shouldClearForm = !isError;
     }
 
-    // Triggers input wipe ONLY when the user reads success notification and hits OK
     window.closeModal = function() {
       document.getElementById('alertModal').style.display = 'none';
-      
-      if (shouldClearForm) {
-        document.getElementById('fullName').value = "";
-        document.getElementById('email').value = "";
-        document.getElementById('subjectSelect').value = "";
-        document.getElementById('description').value = "";
-        document.getElementById('otherSubjectContainer').style.display = "none";
-        shouldClearForm = false;
-      }
     };
 
     function toggleOtherInput() {
@@ -142,8 +136,9 @@
         return false;
       }
 
-      const atIndex = email.lastIndexOf("@");
-      const domain = atIndex !== -1 ? email.slice(atIndex + 1).toLowerCase() : "";
+      // RegEx match avoids array-split cutoff formatting issues
+      const domainMatch = email.match(/@([^@]+)$/);
+      const domain = domainMatch ? domainMatch[1].toLowerCase() : "";
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
         event.preventDefault();
@@ -151,25 +146,13 @@
         return false;
       }
 
-      // Automatically maps dynamic tracking metadata categories properties headers
+      // Set dynamic subject parameter headers
       document.getElementById('hiddenSubject').value = `New Ticket: ${subj}`;
 
-      formSubmitted = true;
       sendBtn.disabled = true;
       sendBtn.innerText = "Sending...";
 
-      return true; 
-    }
-
-    function handleIframeResponse() {
-      if (!formSubmitted) return; 
-      
-      const sendBtn = document.getElementById('sendBtn');
-      showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-
-      sendBtn.disabled = false;
-      sendBtn.innerText = "Send Email";
-      formSubmitted = false; 
+      return true; // Let browser process native form action delivery seamlessly
     }
   </script>
 
