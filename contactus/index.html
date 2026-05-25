@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>contact us - matix the math club</title>
   <!-- Google Fonts: Poppins & Pinyon Script -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://googleapis.com" rel="stylesheet">
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=Pinyon+Script&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   
   <style>
     /* Reset and Theme Setup */
@@ -36,8 +36,8 @@
       margin-top: 0;
       margin-bottom: 10px;
       color: #1c2541;
-      font-family: 'Pinyon Script', cursive; /* Fancy Font Applied Here */
-      font-size: 52px; /* Adjusted size for the handwriting font style */
+      font-family: 'Pinyon Script', cursive;
+      font-size: 52px;
       font-weight: 400;
       text-align: center;
     }
@@ -86,10 +86,6 @@
     }
     button:hover {
       background-color: #218838;
-    }
-    button:disabled {
-      background-color: #a0aec0;
-      cursor: not-allowed;
     }
     button:active {
       transform: scale(0.98);
@@ -162,9 +158,16 @@
 </head>
 <body>
 
-  <div class="form-container">
+  <!-- FIXED: Standard form action delivery removes the fetch network error block completely -->
+  <form id="ticketForm" action="https://formspree.io" method="POST" onsubmit="return validateAndFormat(event)" class="form-container">
     <h2>contact us</h2>
     
+    <!-- Hidden element that translates variable data to Formspree -->
+    <input type="hidden" id="hiddenMessage" name="message">
+    
+    <!-- Hidden element to route them back to your site with a custom success flag -->
+    <input type="hidden" name="_next" value="https://matixthemathclub.com">
+
     <div class="input-group">
       <label for="fullName">Full Name:</label>
       <input type="text" id="fullName" placeholder="Enter your full name">
@@ -194,8 +197,8 @@
       <textarea id="description" placeholder="Describe your problem here"></textarea>
     </div>
 
-    <button id="sendBtn" onclick="sendEmail()">Send Email</button>
-  </div>
+    <button type="submit" id="sendBtn">Send Email</button>
+  </form>
 
   <!-- Custom Alert Modal Structure -->
   <div id="alertModal" class="custom-modal">
@@ -207,6 +210,16 @@
   </div>
 
   <script>
+    // Automatically trigger your custom success modal if redirected back with the success tag
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('status') === 'success') {
+        showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+        // Clean URL parameter so refreshing won't launch the modal repeatedly
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    });
+
     function showAlert(title, message, isError = true) {
       const titleEl = document.getElementById('modalTitle');
       titleEl.innerText = title;
@@ -231,12 +244,11 @@
       }
     }
 
-    function sendEmail() {
+    function validateAndFormat(event) {
       const nameVariable = document.getElementById('fullName').value.trim();
       const emailVariable = document.getElementById('email').value.trim();
       const selectBox = document.getElementById('subjectSelect');
       const descriptionVariable = document.getElementById('description').value.trim();
-      const sendBtn = document.getElementById('sendBtn');
       
       let subjectVariable = selectBox.value;
       if (subjectVariable === "Other") {
@@ -245,60 +257,25 @@
 
       // 1. Strict Blank Field Validation
       if (!nameVariable || !emailVariable || !subjectVariable || !descriptionVariable) {
+        event.preventDefault();
         showAlert("Missing Fields", "All text boxes and choices must be completely filled out!", true);
-        return; 
+        return false; 
       }
 
       // 2. Strict Gmail Validation
       if (!emailVariable.toLowerCase().endsWith("@gmail.com")) {
+        event.preventDefault();
         showAlert("Invalid Email", "You must use a valid Gmail address (@gmail.com)!", true);
-        return; 
+        return false; 
       }
 
-      // 3. Format message layout 
+      // 3. Format message variables layout string matching your request
       const formattedMessage = `name:${nameVariable}\nemail:${emailVariable}\nsubject:${subjectVariable}\ntext:${descriptionVariable}`;
       
-      // FIXED URL: Restored your active unique Formspree form ID
-      const formspreeUrl = "https://formspree.io";
+      // Inject the values down to the hidden transit block before transmission
+      document.getElementById('hiddenMessage').value = formattedMessage;
 
-      // Disable button while processing
-      sendBtn.disabled = true;
-      sendBtn.innerText = "Sending...";
-
-      // Send the request over live HTTPS protocol
-      fetch(formspreeUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          _subject: `New Ticket: ${subjectVariable}`,
-          message: formattedMessage
-        })
-      })
-      .then(response => {
-        sendBtn.disabled = false;
-        sendBtn.innerText = "Send Email";
-
-        if (response.ok) {
-          showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-          // Reset form fields
-          document.getElementById('fullName').value = "";
-          document.getElementById('email').value = "";
-          document.getElementById('subjectSelect').value = "";
-          document.getElementById('description').value = "";
-          document.getElementById('otherSubjectContainer').style.display = "none";
-        } else {
-          showAlert("Submission Failed", "The server rejected the form request. Double-check your setup.", true);
-        }
-      })
-      .catch(error => {
-        sendBtn.disabled = false;
-        sendBtn.innerText = "Send Email";
-        console.error('Error:', error);
-        showAlert("Network Error", "Unable to transmit data. Ensure your connection is stable.", true);
-      });
+      return true;
     }
   </script>
 
