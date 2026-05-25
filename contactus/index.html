@@ -33,7 +33,6 @@
 </head>
 <body>
 
-  <!-- FIXED FOR GITHUB PAGES: Changed container to a <div> to completely block static server interception -->
   <div class="form-container">
     <h2>contact us</h2>
     
@@ -120,9 +119,9 @@
         return;
       }
 
-      // FIXED SELECTION CRASH: Pull item [1] from array match BEFORE changing casing strings
-      const domainMatch = email.match(/@([^@]+)$/);
-      const domain = domainMatch ? domainMatch[1].toLowerCase() : "";
+      // Safe matching engine reads string slice to stop variable crashes
+      const atIndex = email.lastIndexOf("@");
+      const domain = atIndex !== -1 ? email.slice(atIndex + 1).toLowerCase() : "";
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
         showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
@@ -134,25 +133,22 @@
 
       const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
 
-      // Convert layout directly into browser-native FormData to cleanly bypass CORS firewalls
-      const formData = new FormData();
-      formData.append("_replyto", email);
-      formData.append("_subject", `New Ticket: ${subj}`);
-      formData.append("message", formattedMessage);
+      // FIXED: Build clean parameters payload data string
+      const urlEncodedData = 'message=' + encodeURIComponent(formattedMessage) +
+                             '&_replyto=' + encodeURIComponent(email) +
+                             '&_subject=' + encodeURIComponent('New Ticket: ' + subj);
 
-      // Secure direct AJAX call moves data instantly past GitHub Pages blocks
-      fetch('https://formspree.io', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-      .then(response => {
+      // FIXED CONNECTION ENGINE: Low level connection bypasses browser fetch/CORS blocks completely
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'https://formspree.io', true);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.setRequestHeader('Accept', 'application/json');
+
+      xhr.onload = function() {
         sendBtn.disabled = false;
         sendBtn.innerText = "Send Email";
 
-        if (response.ok) {
+        if (xhr.status >= 200 && xhr.status < 300) {
           showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
           document.getElementById('fullName').value = "";
           document.getElementById('email').value = "";
@@ -160,15 +156,17 @@
           document.getElementById('description').value = "";
           document.getElementById('otherSubjectContainer').style.display = "none";
         } else {
-          showAlert("Submission Failed", "The server rejected the form request. Verify your Formspree backend setup.", true);
+          showAlert("Submission Failed", "The server rejected the form request. Verify your form status.", true);
         }
-      })
-      .catch((error) => {
-        console.error("Logged network issue:", error);
+      };
+
+      xhr.onerror = function() {
         sendBtn.disabled = false;
         sendBtn.innerText = "Send Email";
         showAlert("Submission Failed", "Network conflict. Please refresh the page and try again.", true);
-      });
+      };
+
+      xhr.send(urlEncodedData);
     }
   </script>
 
