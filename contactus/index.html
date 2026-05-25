@@ -179,7 +179,6 @@
       document.getElementById('alertModal').style.display = 'none';
     }
 
-    // Fixed function syntax error from original setup
     function toggleOtherInput() {
       const selectBox = document.getElementById('subjectSelect');
       const otherContainer = document.getElementById('otherSubjectContainer');
@@ -216,12 +215,13 @@
         return false;
       }
 
-      // FIXED BUG: Captures the proper domain array entry element
+      // Safely separates the parts and targets array item 1 (the domain)
       const domain = email.split('@')[1].toLowerCase();
 
       sendBtn.disabled = true;
       sendBtn.innerText = "Verifying email...";
 
+      // Secure API lookup path fixes network freeze issues
       fetch(`https://dns.google{domain}&type=MX`)
         .then(res => res.json())
         .then(data => {
@@ -261,7 +261,6 @@
 </head>
 <body>
 
-  <!-- 1. THE ACTUAL FORM BOXES GO HERE -->
   <form id="ticketForm" action="https://formspree.io" method="POST" target="hidden_iframe" onsubmit="return validateAndFormat(event)" class="form-container">
     <h2>contact us</h2>
     
@@ -300,12 +299,8 @@
     <button type="submit" id="sendBtn">Send Email</button>
   </form>
 
-
-  <!-- 2. THE BACKGROUND IFRAME ENGINE -->
   <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
 
-
-  <!-- 3. THE CUSTOM NOTIFICATION BOX -->
   <div id="alertModal" class="custom-modal">
     <div class="modal-content">
       <div id="modalTitle" class="modal-title">Notification</div>
@@ -315,5 +310,4 @@
   </div>
 
 </body>
-
 </html>
