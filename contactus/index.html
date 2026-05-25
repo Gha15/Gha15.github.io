@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Form Data</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+    }
+    .form-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    input[type="text"], input[type="email"], textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <!-- Full Name Box -->
+    <div class="input-group">
+      <label for="fullName">Full Name:</label>
+      <input type="text" id="fullName" placeholder="Enter your full name">
+    </div>
+
+    <!-- Email Box -->
+    <div class="input-group">
+      <label for="email">Email Address:</label>
+      <input type="email" id="email" placeholder="name@example.com">
+    </div>
+
+    <!-- Subject Box -->
+    <div class="input-group">
+      <label for="subject">Subject / Kind of Problem:</label>
+      <input type="text" id="subject" placeholder="e.g., Login issue">
+    </div>
+
+    <!-- Text Box -->
+    <div class="input-group">
+      <label for="description">Text:</label>
+      <textarea id="description" placeholder="Describe your problem here"></textarea>
+    </div>
+
+    <!-- Send Button -->
+    <button onclick="sendEmail()">Send Email</button>
+  </div>
+
+  <script>
+    function sendEmail() {
+      // 1. Store the box inputs into JavaScript variables
+      const nameVariable = document.getElementById('fullName').value;
+      const emailVariable = document.getElementById('email').value;
+      const subjectVariable = document.getElementById('subject').value;
+      const textVariable = document.getElementById('description').value;
+
+      // 2. Format the message into the exact box style you requested
+      const formattedMessage = `name:${nameVariable}\nemail:${emailVariable}\nsubject:${subjectVariable}\ntext:${textVariable}`;
+
+      // 3. Your active Formspree endpoint URL
+      const formspreeUrl = "https://formspree.io";
+
+      // 4. Send the variables silently over the internet
+      fetch(formspreeUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          subject: subjectVariable, 
+          message: formattedMessage  
+        })
+      })
+      .then(response => {
+        if (response.ok) {
+          alert("Email sent successfully!");
+          // Optional: Clears the boxes after sending
+          document.getElementById('fullName').value = "";
+          document.getElementById('email').value = "";
+          document.getElementById('subject').value = "";
+          document.getElementById('description').value = "";
+        } else {
+          alert("Error sending email. Please try again.");
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Network error. Could not connect to the server.");
+      });
+    }
+  </script>
+
+</body>
+</html>
