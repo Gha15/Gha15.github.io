@@ -29,16 +29,16 @@
     .modal-text { font-size: 14px; color: #4a5568; margin-bottom: 20px; }
     .modal-btn { background: #1c2541; color: white; padding: 10px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; }
     @media (max-width: 480px) { body { padding: 15px; } .form-container { padding: 20px; } }
-    iframe#hidden_iframe { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- FIXED DELIVERY PATH: Submitting to an iframe stops Formspree connection drops completely -->
-  <form id="ticketForm" action="https://formspree.io" method="POST" target="hidden_iframe" onsubmit="return handleSubmission(event)" class="form-container">
+  <!-- FIXED: Standard submission route eliminates iframe timing conflicts and secures data processing -->
+  <form id="ticketForm" action="https://formspree.io" method="POST" onsubmit="return handleSubmission(event)" class="form-container">
     <h2>contact us</h2>
     
-    <!-- Parameter values setup for structural formatting data tracking -->
+    <!-- Automatic return routing loops users right back to your page -->
+    <input type="hidden" name="_next" value="https://matixthemathclub.com">
     <input type="hidden" id="hiddenSubject" name="_subject">
     <input type="hidden" id="hiddenMessage" name="message">
 
@@ -74,8 +74,6 @@
     <button type="submit" id="sendBtn">Send Email</button>
   </form>
 
-  <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
-
   <div id="alertModal" class="custom-modal">
     <div class="modal-content">
       <div id="modalTitle" class="modal-title">Notification</div>
@@ -85,6 +83,15 @@
   </div>
 
   <script>
+    // Listens for Formspree return redirect to instantly trigger your custom success modal
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('status') === 'success') {
+        showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    });
+
     function showAlert(title, message, isError = true) {
       const titleEl = document.getElementById('modalTitle');
       titleEl.innerText = title;
@@ -113,7 +120,6 @@
       const email = document.getElementById('email').value.trim();
       const selectBox = document.getElementById('subjectSelect');
       const desc = document.getElementById('description').value.trim();
-      const sendBtn = document.getElementById('sendBtn');
       
       let subj = selectBox.value === "Other" ? document.getElementById('customSubject').value.trim() : selectBox.value;
 
@@ -129,7 +135,7 @@
         return false;
       }
 
-      // FIXED WITHOUT CRASHES: Target array item index 1 explicitly to read domain text string
+      // Regex validation fix
       const domainMatch = email.match(/@([^@]+)$/);
       const domain = domainMatch ? domainMatch[1].toLowerCase() : "";
 
@@ -139,29 +145,11 @@
         return false;
       }
 
-      // Package data text boxes variables formatting matching your original request
+      // Format parameter blocks
       document.getElementById('hiddenSubject').value = `New Ticket: ${subj}`;
       document.getElementById('hiddenMessage').value = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
 
-      // Show success popup instantly
-      showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-
-      // Disable button submission loops
-      sendBtn.disabled = true;
-      sendBtn.innerText = "Sending...";
-
-      // Reset layout forms elements smoothly
-      setTimeout(() => {
-        document.getElementById('fullName').value = "";
-        document.getElementById('email').value = "";
-        document.getElementById('subjectSelect').value = "";
-        document.getElementById('description').value = "";
-        document.getElementById('otherSubjectContainer').style.display = "none";
-        sendBtn.disabled = false;
-        sendBtn.innerText = "Send Email";
-      }, 150);
-
-      return true; // Form submits natively directly to the invisible iframe without CORS problems
+      return true; // Let browser process native post data seamlessly
     }
   </script>
 
