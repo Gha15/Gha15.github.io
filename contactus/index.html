@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Send Form Data</title>
+  <title>contact us - matix the math club</title>
   <!-- Google Font: Poppins -->
   <link rel="preconnect" href="https://googleapis.com">
   <link rel="preconnect" href="https://gstatic.com" crossorigin>
-  <link href="https://googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://googleapis.com/css2?family=Pinyon Script:wght@400;600;700&display=swap" rel="stylesheet">
   
   <style>
     /* Reset and Theme Setup */
@@ -29,7 +29,7 @@
       padding: 30px;
       border-radius: 16px;
       width: 100%;
-      max-width: 450px; /* Perfect desktop constraint */
+      max-width: 450px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
     h2 {
@@ -85,6 +85,10 @@
     button:hover {
       background-color: #218838;
     }
+    button:disabled {
+      background-color: #a0aec0;
+      cursor: not-allowed;
+    }
     button:active {
       transform: scale(0.98);
     }
@@ -129,6 +133,9 @@
       color: white;
       padding: 10px 20px;
       font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
     }
     .modal-btn:hover {
       background: #0b132b;
@@ -139,11 +146,10 @@
       to { transform: scale(1); opacity: 1; }
     }
 
-    /* Mobile Responsive Optimizations */
     @media (max-width: 480px) {
       body {
         padding: 15px;
-        align-items: flex-start; /* Better scroll dynamic on small screens */
+        align-items: flex-start;
       }
       .form-container {
         padding: 20px;
@@ -186,7 +192,7 @@
       <textarea id="description" placeholder="Describe your problem here"></textarea>
     </div>
 
-    <button onclick="sendEmail()">Send Email</button>
+    <button id="sendBtn" onclick="sendEmail()">Send Email</button>
   </div>
 
   <!-- Custom Alert Modal Structure -->
@@ -199,7 +205,6 @@
   </div>
 
   <script>
-    // Custom Alert Logic instead of standard browser popups
     function showAlert(title, message, isError = true) {
       const titleEl = document.getElementById('modalTitle');
       titleEl.innerText = title;
@@ -229,55 +234,66 @@
       const emailVariable = document.getElementById('email').value.trim();
       const selectBox = document.getElementById('subjectSelect');
       const descriptionVariable = document.getElementById('description').value.trim();
+      const sendBtn = document.getElementById('sendBtn');
       
       let subjectVariable = selectBox.value;
       if (subjectVariable === "Other") {
         subjectVariable = document.getElementById('customSubject').value.trim();
       }
 
-      // Strict Field Validation
+      // 1. Strict Blank Field Validation
       if (!nameVariable || !emailVariable || !subjectVariable || !descriptionVariable) {
-        showAlert("Missing Fields", "All text boxes and choices must be completely filled out!");
+        showAlert("Missing Fields", "All text boxes and choices must be completely filled out!", true);
         return; 
       }
 
-      // Strict Gmail Validation
+      // 2. Strict Gmail Validation
       if (!emailVariable.toLowerCase().endsWith("@gmail.com")) {
-        showAlert("Invalid Email", "You must use a valid Gmail address (@gmail.com)!");
+        showAlert("Invalid Email", "You must use a valid Gmail address (@gmail.com)!", true);
         return; 
       }
 
+      // 3. Format message layout 
       const formattedMessage = `name:${nameVariable}\nemail:${emailVariable}\nsubject:${subjectVariable}\ntext:${descriptionVariable}`;
       const formspreeUrl = "https://formspree.io";
 
-      // Fixed Connection Protocol using standard Form Data matching to prevent AJAX/CORS drops
-      const formData = new FormData();
-      formData.append("subject", subjectVariable);
-      formData.append("message", formattedMessage);
+      // Disable button while processing
+      sendBtn.disabled = true;
+      sendBtn.innerText = "Sending...";
 
+      // Send the request over live HTTPS protocol
       fetch(formspreeUrl, {
         method: 'POST',
-        body: formData,
         headers: {
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          _subject: `New Ticket: ${subjectVariable}`,
+          message: formattedMessage
+        })
       })
       .then(response => {
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send Email";
+
         if (response.ok) {
-          showAlert("Success!", "Email sent successfully!", false);
-          // Clear input fields
+          showAlert("Success!", "Your ticket was sent directly to Matix The Math Club!", false);
+          // Reset form fields
           document.getElementById('fullName').value = "";
           document.getElementById('email').value = "";
           document.getElementById('subjectSelect').value = "";
           document.getElementById('description').value = "";
           document.getElementById('otherSubjectContainer').style.display = "none";
         } else {
-          showAlert("Submission Failed", "The form endpoint rejected the request. Verify Formspree activation.");
+          showAlert("Submission Failed", "The server rejected the form request. Double-check your setup.", true);
         }
       })
       .catch(error => {
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send Email";
         console.error('Error:', error);
-        showAlert("Network Error", "Could not link to server. Check your connection or Formspree setup.");
+        showAlert("Network Error", "Unable to transmit data. Ensure your connection is stable.", true);
       });
     }
   </script>
