@@ -1,4 +1,4 @@
-let isDnsVerified = false;
+let isApiVerified = false;
 
 // Open Custom Notification Box
 function showAlert(title, message, isError = true) {
@@ -28,8 +28,8 @@ function toggleOtherInput() {
 
 // Form Validation and Structuring Logic
 function validateAndFormat(event) {
-  if (isDnsVerified) {
-    isDnsVerified = false; 
+  if (isApiVerified) {
+    isApiVerified = false; 
     return true;
   }
   event.preventDefault();
@@ -48,51 +48,39 @@ function validateAndFormat(event) {
     return false; 
   }
 
-  // 2. Syntax Check
+  // 2. Quick Syntax Check
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     showAlert("Invalid Email", "Please enter a correctly formatted email address!", true);
     return false;
   }
 
-  // Safely split and convert the domain text block to lowercase using index 1
-  const emailParts = email.split('@');
-  const domain = emailParts[1].toLowerCase();
-
-  // Consumer addresses skip the DNS lookup step entirely to speed up loading
-  if (domain === "gmail.com") {
-    proceedWithSubmission(name, email, subj, desc);
-    return false;
-  }
-
   sendBtn.disabled = true;
-  sendBtn.innerText = "Checking Google Workspace...";
+  sendBtn.innerText = "Verifying email account...";
 
-  // 3. Live Server Check against Google Public DNS Database for custom organizations
-  fetch('https://dns.google' + domain + '&type=MX')
+  // 3. Query the Mailboxlayer API with your live token key
+  const apiKey = "2e269486accbdba86f6f644a63d31d9e";
+  
+  fetch('https://apilayer.net' + apiKey + '&email=' + encodeURIComponent(email))
     .then(res => res.json())
     .then(data => {
-      let isGoogleWorkspace = false;
+      // Check if the domain is configured for email and if the inbox actually exists
+      const hasActiveMailServers = data.mx_found;
+      const isRealAccount = data.format_valid && data.smtp_check;
 
-      if (data.Answer && data.Answer.length > 0) {
-        // Enforce checking if the custom domain points back to Google Workspace infrastructure
-        isGoogleWorkspace = data.Answer.some(record => {
-          const recordData = record.data.toLowerCase();
-          return recordData.includes("google.com") || recordData.includes("googlemail.com");
-        });
-      }
-
-      if (isGoogleWorkspace) {
+      if (hasActiveMailServers && isRealAccount) {
+        // If it passes live account check, fire the form!
         proceedWithSubmission(name, email, subj, desc);
       } else {
         sendBtn.disabled = false;
         sendBtn.innerText = "Send Email";
-        showAlert("Access Restricted", "This form only accepts standard Gmail accounts or verified Google Workspace custom domains!", true);
+        showAlert("Invalid Account", "This email account does not exist or cannot receive mail. Please type a real email!", true);
       }
     })
-    .catch(() => {
+    .catch(error => {
+      console.error("API Verification crashed:", error);
       sendBtn.disabled = false;
       sendBtn.innerText = "Send Email";
-      showAlert("Verification Error", "Could not complete lookups. Check your connection.", true);
+      showAlert("Verification Error", "Could not complete account lookups. Check your connection.", true);
     });
 
   return false; 
@@ -107,7 +95,7 @@ function proceedWithSubmission(name, email, subj, desc) {
 
   showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
 
-  isDnsVerified = true;
+  isApiVerified = true;
   document.getElementById('ticketForm').submit();
 
   // Reset inputs cleanly
