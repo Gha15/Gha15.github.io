@@ -33,7 +33,6 @@
 </head>
 <body>
 
-  <!-- Notice: The HTML form no longer has direct method actions, stopping your server from blocking the submission route -->
   <div class="form-container">
     <h2>contact us</h2>
     
@@ -86,9 +85,10 @@
       document.getElementById('alertModal').style.display = 'flex';
     }
 
-    function closeModal() {
+    // Explicitly declaring window scope wrapper ensures click event handler stability
+    window.closeModal = function() {
       document.getElementById('alertModal').style.display = 'none';
-    }
+    };
 
     function toggleOtherInput() {
       const selectBox = document.getElementById('subjectSelect');
@@ -120,10 +120,8 @@
         return;
       }
 
-      // FIXED ARRAY BUG: Select index [1] explicitly BEFORE running lowercase strings
       const domain = email.split('@')[1].toLowerCase();
 
-      // Enforce the rule: only accept standard gmail or your exact workspace domain
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
         showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
         return;
@@ -134,18 +132,17 @@
 
       const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
 
-      // Package data specifically for Formspree API requirements
-      const payload = {
-        _replyto: email,
-        _subject: `New Ticket: ${subj}`,
-        message: formattedMessage
-      };
+      // FIXED CONTENT TYPE PACKAGING: URL encode the body to bypass CORS preflight blocks
+      const formPayload = new URLSearchParams();
+      formPayload.append("_replyto", email);
+      formPayload.append("_subject", `New Ticket: ${subj}`);
+      formPayload.append("message", formattedMessage);
 
       fetch('https://formspree.io', {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: formPayload,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Accept': 'application/json'
         }
       })
@@ -164,7 +161,8 @@
           showAlert("Submission Failed", "The server rejected the form request.", true);
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Transmission error logged:", error);
         sendBtn.disabled = false;
         sendBtn.innerText = "Send Email";
         showAlert("Transmission Error", "Unable to securely reach Formspree servers.", true);
