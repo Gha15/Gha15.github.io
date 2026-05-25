@@ -57,18 +57,15 @@ function validateAndFormat(event) {
   sendBtn.disabled = true;
   sendBtn.innerText = "Verifying email account...";
 
-  // 3. Query the Mailboxlayer API with your live token key
-  const apiKey = "2e269486accbdba86f6f644a63d31d9e";
-  
-  fetch('https://apilayer.net' + apiKey + '&email=' + encodeURIComponent(email))
+  // 3. Query the Free, Secure EmailCheck API (No API Key Required)
+  fetch('https://emailcheck.cc' + encodeURIComponent(email))
     .then(res => res.json())
     .then(data => {
-      // Check if the domain is configured for email and if the inbox actually exists
-      const hasActiveMailServers = data.mx_found;
-      const isRealAccount = data.format_valid && data.smtp_check;
+      // emailcheck.cc returns true for valid, existing emails
+      const isRealAccount = data.valid;
 
-      if (hasActiveMailServers && isRealAccount) {
-        // If it passes live account check, fire the form!
+      if (isRealAccount) {
+        // If it passes the live account check, fire the form!
         proceedWithSubmission(name, email, subj, desc);
       } else {
         sendBtn.disabled = false;
