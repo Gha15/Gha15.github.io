@@ -85,7 +85,6 @@
       document.getElementById('alertModal').style.display = 'flex';
     }
 
-    // Explicitly declaring window scope wrapper ensures click event handler stability
     window.closeModal = function() {
       document.getElementById('alertModal').style.display = 'none';
     };
@@ -120,7 +119,9 @@
         return;
       }
 
-      const domain = email.split('@')[1].toLowerCase();
+      // FIXED ARRAY CRASH BUG: Isolate array item index 1 explicitly BEFORE lowercasing
+      const emailParts = email.split('@');
+      const domain = emailParts[1].toLowerCase();
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
         showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
@@ -132,7 +133,6 @@
 
       const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
 
-      // FIXED CONTENT TYPE PACKAGING: URL encode the body to bypass CORS preflight blocks
       const formPayload = new URLSearchParams();
       formPayload.append("_replyto", email);
       formPayload.append("_subject", `New Ticket: ${subj}`);
