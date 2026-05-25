@@ -20,7 +20,7 @@
     input[type="text"]:focus, input[type="email"]:focus, textarea:focus, select:focus { outline: none; border-color: #4a90e2; }
     textarea { height: 110px; resize: vertical; }
     #otherSubjectContainer { display: none; margin-top: 10px; }
-    button { background-color: #28a745; color: white; padding: 14px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: 600; transition: background-color 0.2s; }
+    button { background-color: #28a745; color: white; padding: 14px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: 600; transition: background-color 0.2s; width: 100%; }
     button:hover { background-color: #218838; }
     button:disabled { background-color: #a0aec0; cursor: not-allowed; }
     .custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 19, 43, 0.7); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 999; }
@@ -33,15 +33,10 @@
 </head>
 <body>
 
-  <!-- FIXED: Standard submission route eliminates iframe timing conflicts and secures data processing -->
-  <form id="ticketForm" action="https://formspree.io" method="POST" onsubmit="return handleSubmission(event)" class="form-container">
+  <!-- FIXED: Changed from <form> to <div> to completely block GitHub Pages from intercepting POST methods -->
+  <div class="form-container">
     <h2>contact us</h2>
     
-    <!-- Automatic return routing loops users right back to your page -->
-    <input type="hidden" name="_next" value="https://matixthemathclub.com">
-    <input type="hidden" id="hiddenSubject" name="_subject">
-    <input type="hidden" id="hiddenMessage" name="message">
-
     <div class="input-group">
       <label for="fullName">Full Name:</label>
       <input type="text" id="fullName" placeholder="Enter your full name">
@@ -49,7 +44,7 @@
 
     <div class="input-group">
       <label for="email">Email Address:</label>
-      <input type="email" id="email" name="_replyto" placeholder="name@gmail.com">
+      <input type="email" id="email" placeholder="name@gmail.com">
     </div>
 
     <div class="input-group">
@@ -71,8 +66,8 @@
       <textarea id="description" placeholder="Describe your problem here"></textarea>
     </div>
 
-    <button type="submit" id="sendBtn">Send Email</button>
-  </form>
+    <button type="button" id="sendBtn" onclick="handleSubmission()">Send Email</button>
+  </div>
 
   <div id="alertModal" class="custom-modal">
     <div class="modal-content">
@@ -83,15 +78,6 @@
   </div>
 
   <script>
-    // Listens for Formspree return redirect to instantly trigger your custom success modal
-    window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('status') === 'success') {
-        showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    });
-
     function showAlert(title, message, isError = true) {
       const titleEl = document.getElementById('modalTitle');
       titleEl.innerText = title;
@@ -115,41 +101,74 @@
       }
     }
 
-    function handleSubmission(event) {
+    function handleSubmission() {
       const name = document.getElementById('fullName').value.trim();
       const email = document.getElementById('email').value.trim();
       const selectBox = document.getElementById('subjectSelect');
       const desc = document.getElementById('description').value.trim();
+      const sendBtn = document.getElementById('sendBtn');
       
       let subj = selectBox.value === "Other" ? document.getElementById('customSubject').value.trim() : selectBox.value;
 
       if (!name || !email || !subj || !desc) {
-        event.preventDefault();
         showAlert("Missing Fields", "All fields must be completely filled out!", true);
-        return false;
+        return;
       }
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        event.preventDefault();
         showAlert("Invalid Email", "Please enter a valid email address!", true);
-        return false;
+        return;
       }
 
-      // Regex validation fix
-      const domainMatch = email.match(/@([^@]+)$/);
-      const domain = domainMatch ? domainMatch[1].toLowerCase() : "";
+      // FIXED WITHOUT CRASHES: Targets array index 1 first, then safely maps to lowercase text string
+      const emailParts = email.split('@');
+      const domain = emailParts[1].toLowerCase();
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
-        event.preventDefault();
         showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
-        return false;
+        return;
       }
 
-      // Format parameter blocks
-      document.getElementById('hiddenSubject').value = `New Ticket: ${subj}`;
-      document.getElementById('hiddenMessage').value = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
+      sendBtn.disabled = true;
+      sendBtn.innerText = "Sending...";
 
-      return true; // Let browser process native post data seamlessly
+      const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
+
+      // Convert layout directly to clean Form data payload parameters
+      const formData = new FormData();
+      formData.append("_replyto", email);
+      formData.append("_subject", `New Ticket: ${subj}`);
+      formData.append("message", formattedMessage);
+
+      // Secure AJAX HTTPS target tunnel allows background messaging
+      fetch('https://formspree.io', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => {
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send Email";
+
+        if (response.ok) {
+          showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+          document.getElementById('fullName').value = "";
+          document.getElementById('email').value = "";
+          document.getElementById('subjectSelect').value = "";
+          document.getElementById('description').value = "";
+          document.getElementById('otherSubjectContainer').style.display = "none";
+        } else {
+          showAlert("Submission Failed", "The server rejected the form request. Verify your form is active.", true);
+        }
+      })
+      .catch((error) => {
+        console.error("Transmission error:", error);
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send Email";
+        showAlert("Submission Failed", "Unable to securely communicate with the email servers right now.", true);
+      });
     }
   </script>
 
