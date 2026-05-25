@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>contact us - matix the math club</title>
   <!-- Google Fonts: Poppins & Pinyon Script -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://googleapis.com">
   <link rel="preconnect" href="https://gstatic.com" crossorigin>
-  <link href="https://googleapis.com" rel="stylesheet">
+  <link href="https://googleapis.com/css2?family=Pinyon+Script&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   
   <style>
     /* Reset and Theme Setup */
@@ -87,6 +87,10 @@
     button:hover {
       background-color: #218838;
     }
+    button:disabled {
+      background-color: #a0aec0;
+      cursor: not-allowed;
+    }
     button:active {
       transform: scale(0.98);
     }
@@ -139,7 +143,6 @@
       background: #0b132b;
     }
 
-    /* Hidden Iframe to prevent page redirect/errors */
     iframe#hidden_iframe {
       display: none;
     }
@@ -160,14 +163,109 @@
       }
     }
   </style>
+
+  <script>
+    let isDnsVerified = false;
+
+    function showAlert(title, message, isError = true) {
+      const titleEl = document.getElementById('modalTitle');
+      titleEl.innerText = title;
+      titleEl.style.color = isError ? '#e53e3e' : '#28a745';
+      document.getElementById('modalText').innerText = message;
+      document.getElementById('alertModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('alertModal').style.display = 'none';
+    }
+
+    // Fixed function syntax error from original setup
+    function toggleOtherInput() {
+      const selectBox = document.getElementById('subjectSelect');
+      const otherContainer = document.getElementById('otherSubjectContainer');
+      if (selectBox.value === "Other") {
+        otherContainer.style.display = "block";
+      } else {
+        otherContainer.style.display = "none";
+        document.getElementById('customSubject').value = "";
+      }
+    }
+
+    function validateAndFormat(event) {
+      if (isDnsVerified) {
+        isDnsVerified = false; 
+        return true;
+      }
+      event.preventDefault();
+
+      const name = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const selectBox = document.getElementById('subjectSelect');
+      const desc = document.getElementById('description').value.trim();
+      const sendBtn = document.getElementById('sendBtn');
+      
+      let subj = selectBox.value === "Other" ? document.getElementById('customSubject').value.trim() : selectBox.value;
+
+      if (!name || !email || !subj || !desc) {
+        showAlert("Missing Fields", "All text boxes and choices must be completely filled out!", true);
+        return false; 
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showAlert("Invalid Email", "Please enter a correctly formatted email address!", true);
+        return false;
+      }
+
+      // FIXED BUG: Captures the proper domain array entry element
+      const domain = email.split('@')[1].toLowerCase();
+
+      sendBtn.disabled = true;
+      sendBtn.innerText = "Verifying email...";
+
+      fetch(`https://dns.google{domain}&type=MX`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.Answer && data.Answer.length > 0) {
+            document.getElementById('hiddenSubject').value = `New Ticket: ${subj}`;
+            document.getElementById('hiddenMessage').value = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
+
+            showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+
+            isDnsVerified = true;
+            document.getElementById('ticketForm').submit();
+
+            setTimeout(() => {
+              document.getElementById('fullName').value = "";
+              document.getElementById('email').value = "";
+              document.getElementById('subjectSelect').value = "";
+              document.getElementById('description').value = "";
+              document.getElementById('otherSubjectContainer').style.display = "none";
+              sendBtn.disabled = false;
+              sendBtn.innerText = "Send Email";
+            }, 100);
+          } else {
+            sendBtn.disabled = false;
+            sendBtn.innerText = "Send Email";
+            showAlert("Invalid Domain", "This email domain cannot receive emails. Please provide a real email!", true);
+          }
+        })
+        .catch(() => {
+          sendBtn.disabled = false;
+          sendBtn.innerText = "Send Email";
+          showAlert("Verification Error", "Could not complete lookups. Check your connection.", true);
+        });
+
+      return false; 
+    }
+  </script>
 </head>
 <body>
 
-  <!-- TARGETING HIDDEN IFRAME: Bypasses server CORS / host interferences completely -->
+  <!-- 1. THE ACTUAL FORM BOXES GO HERE -->
   <form id="ticketForm" action="https://formspree.io" method="POST" target="hidden_iframe" onsubmit="return validateAndFormat(event)" class="form-container">
     <h2>contact us</h2>
     
-    <!-- Hidden element that packages variable text boxes for Formspree -->
+    <input type="hidden" id="hiddenSubject" name="_subject">
     <input type="hidden" id="hiddenMessage" name="message">
 
     <div class="input-group">
@@ -176,8 +274,8 @@
     </div>
 
     <div class="input-group">
-      <label for="email">Email Address (Gmail Only):</label>
-      <input type="email" id="email" placeholder="name@gmail.com">
+      <label for="email">Email Address:</label>
+      <input type="email" id="email" name="_replyto" placeholder="name@gmail.com">
     </div>
 
     <div class="input-group">
@@ -202,10 +300,12 @@
     <button type="submit" id="sendBtn">Send Email</button>
   </form>
 
-  <!-- Invisible iframe that silently handles the submission task behind the scenes -->
+
+  <!-- 2. THE BACKGROUND IFRAME ENGINE -->
   <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
 
-  <!-- Custom Alert Modal Structure -->
+
+  <!-- 3. THE CUSTOM NOTIFICATION BOX -->
   <div id="alertModal" class="custom-modal">
     <div class="modal-content">
       <div id="modalTitle" class="modal-title">Notification</div>
@@ -214,77 +314,6 @@
     </div>
   </div>
 
-  <script>
-    function showAlert(title, message, isError = true) {
-      const titleEl = document.getElementById('modalTitle');
-      titleEl.innerText = title;
-      titleEl.style.color = isError ? '#e53e3e' : '#28a745';
-      document.getElementById('modalText').innerText = message;
-      document.getElementById('alertModal').style.display = 'flex';
-    }
-
-    function closeModal() {
-      document.getElementById('alertModal').style.display = 'none';
-    }
-
-    function toggleOtherInput() {
-      const selectBox = document.getElementById('subjectSelect');
-      const otherContainer = document.getElementById('otherSubjectContainer');
-      
-      if (selectBox.value === "Other") {
-        otherContainer.style.display = "block";
-      } else {
-        otherContainer.style.display = "none";
-        document.getElementById('customSubject').value = "";
-      }
-    }
-
-    function validateAndFormat(event) {
-      const nameVariable = document.getElementById('fullName').value.trim();
-      const emailVariable = document.getElementById('email').value.trim();
-      const selectBox = document.getElementById('subjectSelect');
-      const descriptionVariable = document.getElementById('description').value.trim();
-      
-      let subjectVariable = selectBox.value;
-      if (subjectVariable === "Other") {
-        subjectVariable = document.getElementById('customSubject').value.trim();
-      }
-
-      // 1. Strict Blank Field Validation
-      if (!nameVariable || !emailVariable || !subjectVariable || !descriptionVariable) {
-        event.preventDefault();
-        showAlert("Missing Fields", "All text boxes and choices must be completely filled out!", true);
-        return false; 
-      }
-
-      // 2. Strict Gmail Validation
-      if (!emailVariable.toLowerCase().endsWith("@gmail.com")) {
-        event.preventDefault();
-        showAlert("Invalid Email", "You must use a valid Gmail address (@gmail.com)!", true);
-        return false; 
-      }
-
-      // 3. Format message variables layout string matching your request
-      const formattedMessage = `name:${nameVariable}\nemail:${emailVariable}\nsubject:${subjectVariable}\ntext:${descriptionVariable}`;
-      
-      // Inject variables into the invisible background submission transit element
-      document.getElementById('hiddenMessage').value = formattedMessage;
-
-      // 4. Instantly trigger your custom success window right here!
-      showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-
-      // Reset field boxes immediately for a smooth user experience
-      setTimeout(() => {
-        document.getElementById('fullName').value = "";
-        document.getElementById('email').value = "";
-        document.getElementById('subjectSelect').value = "";
-        document.getElementById('description').value = "";
-        document.getElementById('otherSubjectContainer').style.display = "none";
-      }, 100);
-
-      return true; // Let the iframe submit it natively
-    }
-  </script>
-
 </body>
+
 </html>
