@@ -119,9 +119,9 @@
         return;
       }
 
-      // FIXED ARRAY CRASH BUG: Isolate array item index 1 explicitly BEFORE lowercasing
-      const emailParts = email.split('@');
-      const domain = emailParts[1].toLowerCase();
+      // FIXED WITHOUT ARRAYS: Uses RegExp matching to read the domain without breaking text blocks
+      const domainMatch = email.match(/@([^@]+)$/);
+      const domain = domainMatch ? domainMatch[1].toLowerCase() : "";
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
         showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
