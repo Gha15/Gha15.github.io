@@ -34,7 +34,6 @@
 </head>
 <body>
 
-  <!-- FIXED WAY: Standard action targeting an invisible frame completely stops cross-origin errors -->
   <form id="ticketForm" action="https://formspree.io" method="POST" target="hidden_iframe" onsubmit="return handleSubmission(event)" class="form-container">
     <h2>contact us</h2>
     
@@ -73,8 +72,7 @@
     <button type="submit" id="sendBtn">Send Email</button>
   </form>
 
-  <!-- This invisible iframe catches the Formspree response silently -->
-  <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
+  <iframe name="hidden_iframe" id="hidden_iframe" onload="handleIframeResponse()"></iframe>
 
   <div id="alertModal" class="custom-modal">
     <div class="modal-content">
@@ -85,16 +83,32 @@
   </div>
 
   <script>
+    let formSubmitted = false;
+    let shouldClearForm = false; // Flag to check if popup is for a success message
+
     function showAlert(title, message, isError = true) {
       const titleEl = document.getElementById('modalTitle');
       titleEl.innerText = title;
       titleEl.style.color = isError ? '#e53e3e' : '#28a745';
       document.getElementById('modalText').innerText = message;
       document.getElementById('alertModal').style.display = 'flex';
+      
+      // If it's a green success message, set clearing flag to true
+      shouldClearForm = !isError;
     }
 
+    // FIXED: Form resets ONLY when clicking the "OK" button on a success alert
     window.closeModal = function() {
       document.getElementById('alertModal').style.display = 'none';
+      
+      if (shouldClearForm) {
+        document.getElementById('fullName').value = "";
+        document.getElementById('email').value = "";
+        document.getElementById('subjectSelect').value = "";
+        document.getElementById('description').value = "";
+        document.getElementById('otherSubjectContainer').style.display = "none";
+        shouldClearForm = false; // Reset the clearing flag
+      }
     };
 
     function toggleOtherInput() {
@@ -129,7 +143,6 @@
         return false;
       }
 
-      // Safe domain string extraction
       const atIndex = email.lastIndexOf("@");
       const domain = atIndex !== -1 ? email.slice(atIndex + 1).toLowerCase() : "";
 
@@ -139,29 +152,29 @@
         return false;
       }
 
-      // Format parameter text strings before sending
+      // Package variables data completely into hidden transport blocks
       document.getElementById('hiddenSubject').value = `New Ticket: ${subj}`;
       document.getElementById('hiddenMessage').value = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
 
-      // Trigger your success notice instantly
-      showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-
-      // Disable button submission loops
+      // Set submission flags and loading strings
+      formSubmitted = true;
       sendBtn.disabled = true;
       sendBtn.innerText = "Sending...";
 
-      // Reset layout input elements cleanly
-      setTimeout(() => {
-        document.getElementById('fullName').value = "";
-        document.getElementById('email').value = "";
-        document.getElementById('subjectSelect').value = "";
-        document.getElementById('description').value = "";
-        document.getElementById('otherSubjectContainer').style.display = "none";
-        sendBtn.disabled = false;
-        sendBtn.innerText = "Send Email";
-      }, 200);
+      return true; 
+    }
 
-      return true; // Form submits natively directly to the invisible iframe with NO javascript cross-domain errors
+    function handleIframeResponse() {
+      if (!formSubmitted) return; 
+      
+      const sendBtn = document.getElementById('sendBtn');
+
+      // Trigger success popup layout without resetting fields
+      showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+
+      sendBtn.disabled = false;
+      sendBtn.innerText = "Send Email";
+      formSubmitted = false; 
     }
   </script>
 
