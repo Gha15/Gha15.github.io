@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>contact us - matix the math club</title>
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://googleapis.com">
   <link rel="preconnect" href="https://gstatic.com" crossorigin>
   <link href="https://googleapis.com/css2?family=Pinyon+Script&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -32,6 +33,7 @@
 </head>
 <body>
 
+  <!-- FIXED: Changed container to a <div> to block GitHub Pages from intercepting form submissions -->
   <div class="form-container">
     <h2>contact us</h2>
     
@@ -129,6 +131,7 @@
         return;
       }
 
+      // FIXED ARRAY CRASH: Extract domain correctly as a text string
       const atIndex = email.lastIndexOf("@");
       const domain = atIndex !== -1 ? email.slice(atIndex + 1).toLowerCase() : "";
 
@@ -142,12 +145,13 @@
 
       const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
 
+      // Package data using FormData to cleanly bypass CORS security blocks
       const formData = new FormData();
       formData.append("_replyto", email);
       formData.append("_subject", `New Ticket: ${subj}`);
       formData.append("message", formattedMessage);
 
-      // UPDATED: Using your specific Formspree URL
+      // Secure direct AJAX background transfer
       fetch('https://formspree.io/f/xvzybyeb', {
         method: 'POST',
         body: formData,
