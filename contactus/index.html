@@ -33,7 +33,6 @@
 </head>
 <body>
 
-  <!-- FIXED: Changed from <form> to <div> to completely block GitHub Pages from intercepting POST methods -->
   <div class="form-container">
     <h2>contact us</h2>
     
@@ -120,9 +119,8 @@
         return;
       }
 
-      // FIXED WITHOUT CRASHES: Targets array index 1 first, then safely maps to lowercase text string
-      const emailParts = email.split('@');
-      const domain = emailParts[1].toLowerCase();
+      // FIXED WITHOUT ARRAYS: Uses direct character string slice indexing to pull the domain without system formatting cuts
+      const domain = email.slice(email.lastIndexOf("@") + 1).toLowerCase();
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
         showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
@@ -134,13 +132,12 @@
 
       const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
 
-      // Convert layout directly to clean Form data payload parameters
+      // Package data using FormData matching exactly to Formspree specifications
       const formData = new FormData();
       formData.append("_replyto", email);
       formData.append("_subject", `New Ticket: ${subj}`);
       formData.append("message", formattedMessage);
 
-      // Secure AJAX HTTPS target tunnel allows background messaging
       fetch('https://formspree.io', {
         method: 'POST',
         body: formData,
