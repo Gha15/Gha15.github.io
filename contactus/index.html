@@ -33,9 +33,15 @@
 </head>
 <body>
 
-  <div class="form-container">
+  <!-- FIXED METHOD: A standard form tag with a native POST method bypasses JavaScript security checks entirely -->
+  <form id="ticketForm" action="https://formspree.io" method="POST" onsubmit="return handleSubmission(event)" class="form-container">
     <h2>contact us</h2>
     
+    <!-- Next URL variable commands Formspree to route users back to your site after saving -->
+    <input type="hidden" name="_next" value="https://matixthemathclub.com">
+    <input type="hidden" id="hiddenSubject" name="_subject">
+    <input type="hidden" id="hiddenMessage" name="message">
+
     <div class="input-group">
       <label for="fullName">Full Name:</label>
       <input type="text" id="fullName" placeholder="Enter your full name">
@@ -43,7 +49,7 @@
 
     <div class="input-group">
       <label for="email">Email Address:</label>
-      <input type="email" id="email" placeholder="name@gmail.com">
+      <input type="email" id="email" name="_replyto" placeholder="name@gmail.com">
     </div>
 
     <div class="input-group">
@@ -65,8 +71,8 @@
       <textarea id="description" placeholder="Describe your problem here"></textarea>
     </div>
 
-    <button type="button" id="sendBtn" onclick="handleSubmission()">Send Email</button>
-  </div>
+    <button type="submit" id="sendBtn">Send Email</button>
+  </form>
 
   <div id="alertModal" class="custom-modal">
     <div class="modal-content">
@@ -77,6 +83,15 @@
   </div>
 
   <script>
+    // Listens for the URL success tag parameter to launch your notice box automatically
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('status') === 'success') {
+        showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    });
+
     function showAlert(title, message, isError = true) {
       const titleEl = document.getElementById('modalTitle');
       titleEl.innerText = title;
@@ -100,7 +115,7 @@
       }
     }
 
-    function handleSubmission() {
+    function handleSubmission(event) {
       const name = document.getElementById('fullName').value.trim();
       const email = document.getElementById('email').value.trim();
       const selectBox = document.getElementById('subjectSelect');
@@ -110,63 +125,35 @@
       let subj = selectBox.value === "Other" ? document.getElementById('customSubject').value.trim() : selectBox.value;
 
       if (!name || !email || !subj || !desc) {
+        event.preventDefault();
         showAlert("Missing Fields", "All fields must be completely filled out!", true);
-        return;
+        return false;
       }
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        event.preventDefault();
         showAlert("Invalid Email", "Please enter a valid email address!", true);
-        return;
+        return false;
       }
 
-      // Safe matching engine reads string slice to stop variable crashes
+      // Safe domain string check slice
       const atIndex = email.lastIndexOf("@");
       const domain = atIndex !== -1 ? email.slice(atIndex + 1).toLowerCase() : "";
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
+        event.preventDefault();
         showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
-        return;
+        return false;
       }
+
+      // Formats the text boxes variables inside a single string before browser submits
+      document.getElementById('hiddenSubject').value = `New Ticket: ${subj}`;
+      document.getElementById('hiddenMessage').value = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
 
       sendBtn.disabled = true;
       sendBtn.innerText = "Sending...";
 
-      const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
-
-      // FIXED: Build clean parameters payload data string
-      const urlEncodedData = 'message=' + encodeURIComponent(formattedMessage) +
-                             '&_replyto=' + encodeURIComponent(email) +
-                             '&_subject=' + encodeURIComponent('New Ticket: ' + subj);
-
-      // FIXED CONNECTION ENGINE: Low level connection bypasses browser fetch/CORS blocks completely
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', 'https://formspree.io', true);
-      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-      xhr.setRequestHeader('Accept', 'application/json');
-
-      xhr.onload = function() {
-        sendBtn.disabled = false;
-        sendBtn.innerText = "Send Email";
-
-        if (xhr.status >= 200 && xhr.status < 300) {
-          showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-          document.getElementById('fullName').value = "";
-          document.getElementById('email').value = "";
-          document.getElementById('subjectSelect').value = "";
-          document.getElementById('description').value = "";
-          document.getElementById('otherSubjectContainer').style.display = "none";
-        } else {
-          showAlert("Submission Failed", "The server rejected the form request. Verify your form status.", true);
-        }
-      };
-
-      xhr.onerror = function() {
-        sendBtn.disabled = false;
-        sendBtn.innerText = "Send Email";
-        showAlert("Submission Failed", "Network conflict. Please refresh the page and try again.", true);
-      };
-
-      xhr.send(urlEncodedData);
+      return true; // Allows standard navigation delivery without JavaScript blockers
     }
   </script>
 
