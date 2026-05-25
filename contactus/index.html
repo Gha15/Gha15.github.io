@@ -164,7 +164,7 @@
     }
   </style>
 
-    <script>
+  <script>
     let isDnsVerified = false;
 
     function showAlert(title, message, isError = true) {
@@ -215,14 +215,12 @@
         return false;
       }
 
-      // FIXED BUG: Target item 1 from the array split BEFORE calling lowercase
       const domain = email.split('@')[1].toLowerCase();
 
       sendBtn.disabled = true;
       sendBtn.innerText = "Verifying email...";
 
-      // Secure API lookup path fixes network freeze issues
-      fetch(`https://dns.google{domain}&type=MX`)
+      fetch('https://dns.google' + domain + '&type=MX')
         .then(res => res.json())
         .then(data => {
           if (data.Answer && data.Answer.length > 0) {
@@ -258,7 +256,6 @@
       return false; 
     }
   </script>
-
 </head>
 <body>
 
