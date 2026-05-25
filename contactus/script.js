@@ -48,29 +48,37 @@ function validateAndFormat(event) {
     return false; 
   }
 
-  // 2. Quick Syntax Check
+  // 2. Syntax Check using browser email validation standards
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     showAlert("Invalid Email", "Please enter a correctly formatted email address!", true);
     return false;
   }
 
-  sendBtn.disabled = true;
-  sendBtn.innerText = "Verifying email account...";
+  // Isolate the email address text block domain safely
+  const emailParts = email.split('@');
+  const domain = emailParts[1].toLowerCase();
 
-  // 3. Query the Free, Secure EmailCheck API (No API Key Required)
-  fetch('https://emailcheck.cc' + encodeURIComponent(email))
+  // 3. Strict Check: If it is standard gmail or your exact live club domain, pass it immediately without an API lookup
+  if (domain === "gmail.com" || domain === "matixthemathclub.com") {
+    proceedWithSubmission(name, email, subj, desc);
+    return false;
+  }
+
+  sendBtn.disabled = true;
+  sendBtn.innerText = "Verifying email domain...";
+
+  // 4. Query Kickbox's free public open domain API for external custom addresses
+  fetch('https://kickbox.com' + encodeURIComponent(domain))
     .then(res => res.json())
     .then(data => {
-      // emailcheck.cc returns true for valid, existing emails
-      const isRealAccount = data.valid;
-
-      if (isRealAccount) {
-        // If it passes the live account check, fire the form!
-        proceedWithSubmission(name, email, subj, desc);
-      } else {
+      // If the domain is marked as fake/disposable, block it immediately
+      if (data.disposable === true) {
         sendBtn.disabled = false;
         sendBtn.innerText = "Send Email";
-        showAlert("Invalid Account", "This email account does not exist or cannot receive mail. Please type a real email!", true);
+        showAlert("Invalid Domain", "This email domain is blocked or temporary. Please provide a real email!", true);
+      } else {
+        // If it passes checking, allow submission to Formspree
+        proceedWithSubmission(name, email, subj, desc);
       }
     })
     .catch(error => {
