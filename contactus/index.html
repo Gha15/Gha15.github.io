@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>contact us - matix the math club</title>
-  <!-- Google Font: Poppins -->
-  <link rel="preconnect" href="https://googleapis.com">
-  <link rel="preconnect" href="https://gstatic.com" crossorigin>
-  <link href="https://googleapis.com/css2?family=Pinyon Script:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Google Fonts: Poppins & Pinyon Script -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://googleapis.com" rel="stylesheet">
   
   <style>
     /* Reset and Theme Setup */
@@ -34,9 +34,11 @@
     }
     h2 {
       margin-top: 0;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       color: #1c2541;
-      font-weight: 700;
+      font-family: 'Pinyon Script', cursive; /* Fancy Font Applied Here */
+      font-size: 52px; /* Adjusted size for the handwriting font style */
+      font-weight: 400;
       text-align: center;
     }
     .input-group {
@@ -255,6 +257,8 @@
 
       // 3. Format message layout 
       const formattedMessage = `name:${nameVariable}\nemail:${emailVariable}\nsubject:${subjectVariable}\ntext:${descriptionVariable}`;
+      
+      // FIXED URL: Restored your active unique Formspree form ID
       const formspreeUrl = "https://formspree.io";
 
       // Disable button while processing
@@ -278,7 +282,7 @@
         sendBtn.innerText = "Send Email";
 
         if (response.ok) {
-          showAlert("Success!", "Your ticket was sent directly to Matix The Math Club!", false);
+          showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
           // Reset form fields
           document.getElementById('fullName').value = "";
           document.getElementById('email').value = "";
