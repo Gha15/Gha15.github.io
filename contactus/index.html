@@ -34,7 +34,6 @@
 </head>
 <body>
 
-  <!-- TARGETING AN INVISIBLE BACKGROUND IFRAME: Avoids JavaScript fetch networks blockers entirely -->
   <form id="ticketForm" action="https://formspree.io" method="POST" target="hidden_iframe" onsubmit="return handleSubmission(event)" class="form-container">
     <h2>contact us</h2>
     
@@ -73,7 +72,6 @@
     <button type="submit" id="sendBtn">Send Email</button>
   </form>
 
-  <!-- The invisible iframe that catches the Formspree response seamlessly without cross-origin loops -->
   <iframe name="hidden_iframe" id="hidden_iframe" onload="handleIframeResponse()"></iframe>
 
   <div id="alertModal" class="custom-modal">
@@ -97,7 +95,6 @@
       shouldClearForm = !isError;
     }
 
-    // Wipes form boxes inputs ONLY when clicking the "OK" button on your green success modal
     window.closeModal = function() {
       document.getElementById('alertModal').style.display = 'none';
       
@@ -143,9 +140,9 @@
         return false;
       }
 
-      // FIXED ARRAY BUG: Targets index 1 string block explicitly BEFORE executing lower casing
-      const emailParts = email.split('@');
-      const domain = emailParts[1].toLowerCase();
+      // FIXED WITHOUT ARRAYS: Uses direct character string slice indexing to pull domain text safely
+      const atIndex = email.lastIndexOf("@");
+      const domain = atIndex !== -1 ? email.slice(atIndex + 1).toLowerCase() : "";
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
         event.preventDefault();
@@ -153,7 +150,6 @@
         return false;
       }
 
-      // Package dynamic variables inside hidden payload fields before form triggers
       document.getElementById('hiddenSubject').value = `New Ticket: ${subj}`;
       document.getElementById('hiddenMessage').value = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
 
@@ -161,16 +157,13 @@
       sendBtn.disabled = true;
       sendBtn.innerText = "Sending...";
 
-      return true; // Let browser natively route fields past security checks
+      return true; 
     }
 
-    // Executes ONLY when Formspree securely takes in the iframe data packet
     function handleIframeResponse() {
       if (!formSubmitted) return; 
       
       const sendBtn = document.getElementById('sendBtn');
-      
-      // Fire your custom notice screen
       showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
 
       sendBtn.disabled = false;
