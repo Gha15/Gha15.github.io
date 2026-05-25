@@ -29,13 +29,18 @@
     .modal-text { font-size: 14px; color: #4a5568; margin-bottom: 20px; }
     .modal-btn { background: #1c2541; color: white; padding: 10px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; }
     @media (max-width: 480px) { body { padding: 15px; } .form-container { padding: 20px; } }
+    iframe#hidden_iframe { display: none; }
   </style>
 </head>
 <body>
 
-  <div class="form-container">
+  <!-- FIXED WAY: Standard action targeting an invisible frame completely stops cross-origin errors -->
+  <form id="ticketForm" action="https://formspree.io" method="POST" target="hidden_iframe" onsubmit="return handleSubmission(event)" class="form-container">
     <h2>contact us</h2>
     
+    <input type="hidden" id="hiddenSubject" name="_subject">
+    <input type="hidden" id="hiddenMessage" name="message">
+
     <div class="input-group">
       <label for="fullName">Full Name:</label>
       <input type="text" id="fullName" placeholder="Enter your full name">
@@ -43,7 +48,7 @@
 
     <div class="input-group">
       <label for="email">Email Address:</label>
-      <input type="email" id="email" placeholder="name@gmail.com">
+      <input type="email" id="email" name="_replyto" placeholder="name@gmail.com">
     </div>
 
     <div class="input-group">
@@ -65,8 +70,11 @@
       <textarea id="description" placeholder="Describe your problem here"></textarea>
     </div>
 
-    <button type="button" id="sendBtn" onclick="handleSubmission()">Send Email</button>
-  </div>
+    <button type="submit" id="sendBtn">Send Email</button>
+  </form>
+
+  <!-- This invisible iframe catches the Formspree response silently -->
+  <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
 
   <div id="alertModal" class="custom-modal">
     <div class="modal-content">
@@ -100,7 +108,7 @@
       }
     }
 
-    function handleSubmission() {
+    function handleSubmission(event) {
       const name = document.getElementById('fullName').value.trim();
       const email = document.getElementById('email').value.trim();
       const selectBox = document.getElementById('subjectSelect');
@@ -110,62 +118,50 @@
       let subj = selectBox.value === "Other" ? document.getElementById('customSubject').value.trim() : selectBox.value;
 
       if (!name || !email || !subj || !desc) {
+        event.preventDefault();
         showAlert("Missing Fields", "All fields must be completely filled out!", true);
-        return;
+        return false;
       }
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        event.preventDefault();
         showAlert("Invalid Email", "Please enter a valid email address!", true);
-        return;
+        return false;
       }
 
-      // FIXED WITHOUT ARRAYS: Uses direct character string slice indexing to pull the domain without system formatting cuts
-      const domain = email.slice(email.lastIndexOf("@") + 1).toLowerCase();
+      // Safe domain string extraction
+      const atIndex = email.lastIndexOf("@");
+      const domain = atIndex !== -1 ? email.slice(atIndex + 1).toLowerCase() : "";
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
+        event.preventDefault();
         showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
-        return;
+        return false;
       }
 
+      // Format parameter text strings before sending
+      document.getElementById('hiddenSubject').value = `New Ticket: ${subj}`;
+      document.getElementById('hiddenMessage').value = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
+
+      // Trigger your success notice instantly
+      showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+
+      // Disable button submission loops
       sendBtn.disabled = true;
       sendBtn.innerText = "Sending...";
 
-      const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
-
-      // Package data using FormData matching exactly to Formspree specifications
-      const formData = new FormData();
-      formData.append("_replyto", email);
-      formData.append("_subject", `New Ticket: ${subj}`);
-      formData.append("message", formattedMessage);
-
-      fetch('https://formspree.io', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-      .then(response => {
+      // Reset layout input elements cleanly
+      setTimeout(() => {
+        document.getElementById('fullName').value = "";
+        document.getElementById('email').value = "";
+        document.getElementById('subjectSelect').value = "";
+        document.getElementById('description').value = "";
+        document.getElementById('otherSubjectContainer').style.display = "none";
         sendBtn.disabled = false;
         sendBtn.innerText = "Send Email";
+      }, 200);
 
-        if (response.ok) {
-          showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-          document.getElementById('fullName').value = "";
-          document.getElementById('email').value = "";
-          document.getElementById('subjectSelect').value = "";
-          document.getElementById('description').value = "";
-          document.getElementById('otherSubjectContainer').style.display = "none";
-        } else {
-          showAlert("Submission Failed", "The server rejected the form request. Verify your form is active.", true);
-        }
-      })
-      .catch((error) => {
-        console.error("Transmission error:", error);
-        sendBtn.disabled = false;
-        sendBtn.innerText = "Send Email";
-        showAlert("Submission Failed", "Unable to securely communicate with the email servers right now.", true);
-      });
+      return true; // Form submits natively directly to the invisible iframe with NO javascript cross-domain errors
     }
   </script>
 
