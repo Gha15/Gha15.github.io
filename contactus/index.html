@@ -164,7 +164,7 @@
     }
   </style>
 
-  <script>
+    <script>
     let isDnsVerified = false;
 
     function showAlert(title, message, isError = true) {
@@ -215,7 +215,7 @@
         return false;
       }
 
-      // Safely separates the parts and targets array item 1 (the domain)
+      // FIXED BUG: Target item 1 from the array split BEFORE calling lowercase
       const domain = email.split('@')[1].toLowerCase();
 
       sendBtn.disabled = true;
@@ -258,6 +258,7 @@
       return false; 
     }
   </script>
+
 </head>
 <body>
 
