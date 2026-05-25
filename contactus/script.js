@@ -54,11 +54,11 @@ function validateAndFormat(event) {
     return false;
   }
 
-  // Isolate the email address text block domain safely
+  // FIXED: Targets array item 1 (the domain text block) before calling lowercase
   const emailParts = email.split('@');
   const domain = emailParts[1].toLowerCase();
 
-  // 3. Strict Check: If it is standard gmail or your exact live club domain, pass it immediately without an API lookup
+  // 3. Instant Bypass: If it is standard gmail or your exact live club domain, pass it immediately
   if (domain === "gmail.com" || domain === "matixthemathclub.com") {
     proceedWithSubmission(name, email, subj, desc);
     return false;
@@ -71,13 +71,11 @@ function validateAndFormat(event) {
   fetch('https://kickbox.com' + encodeURIComponent(domain))
     .then(res => res.json())
     .then(data => {
-      // If the domain is marked as fake/disposable, block it immediately
       if (data.disposable === true) {
         sendBtn.disabled = false;
         sendBtn.innerText = "Send Email";
         showAlert("Invalid Domain", "This email domain is blocked or temporary. Please provide a real email!", true);
       } else {
-        // If it passes checking, allow submission to Formspree
         proceedWithSubmission(name, email, subj, desc);
       }
     })
