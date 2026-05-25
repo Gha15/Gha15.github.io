@@ -33,27 +33,23 @@
 </head>
 <body>
 
-  <!-- FIXED METHOD: Direct HTML form transmission allows tracking cookies to parse seamlessly -->
-  <form id="ticketForm" action="https://formspree.io" method="POST" onsubmit="return handleSubmission(event)" class="form-container">
+  <!-- FIXED FOR GITHUB PAGES: Changed container to a <div> to completely block static server interception -->
+  <div class="form-container">
     <h2>contact us</h2>
     
-    <!-- Next URL loop routes users back with a success flag parameter after saving -->
-    <input type="hidden" name="_next" value="https://matixthemathclub.com">
-    <input type="hidden" id="hiddenSubject" name="_subject">
-
     <div class="input-group">
       <label for="fullName">Full Name:</label>
-      <input type="text" id="fullName" name="Full Name" placeholder="Enter your full name">
+      <input type="text" id="fullName" placeholder="Enter your full name">
     </div>
 
     <div class="input-group">
       <label for="email">Email Address:</label>
-      <input type="email" id="email" name="_replyto" placeholder="name@gmail.com">
+      <input type="email" id="email" placeholder="name@gmail.com">
     </div>
 
     <div class="input-group">
       <label for="subjectSelect">Kind of Problem:</label>
-      <select id="subjectSelect" name="Problem Category" onchange="toggleOtherInput()">
+      <select id="subjectSelect" onchange="toggleOtherInput()">
         <option value="">-- Select an option --</option>
         <option value="Bugs in website">Bugs in website</option>
         <option value="Technical issue">Technical issue</option>
@@ -61,17 +57,17 @@
       </select>
       
       <div id="otherSubjectContainer">
-        <input type="text" id="customSubject" name="Custom Specified Problem" placeholder="Please specify your problem">
+        <input type="text" id="customSubject" placeholder="Please specify your problem">
       </div>
     </div>
 
     <div class="input-group">
       <label for="description">Text:</label>
-      <textarea id="description" name="Message Description Details" placeholder="Describe your problem here"></textarea>
+      <textarea id="description" placeholder="Describe your problem here"></textarea>
     </div>
 
-    <button type="submit" id="sendBtn">Send Email</button>
-  </form>
+    <button type="button" id="sendBtn" onclick="handleSubmission()">Send Email</button>
+  </div>
 
   <div id="alertModal" class="custom-modal">
     <div class="modal-content">
@@ -82,16 +78,6 @@
   </div>
 
   <script>
-    // Listens for Formspree return loop redirect to instantly trigger your custom success modal notice
-    window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('status') === 'success') {
-        showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-        // Cleans the URL parameter so refreshing the page won't reopen the alert box repeatedly
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    });
-
     function showAlert(title, message, isError = true) {
       const titleEl = document.getElementById('modalTitle');
       titleEl.innerText = title;
@@ -115,7 +101,7 @@
       }
     }
 
-    function handleSubmission(event) {
+    function handleSubmission() {
       const name = document.getElementById('fullName').value.trim();
       const email = document.getElementById('email').value.trim();
       const selectBox = document.getElementById('subjectSelect');
@@ -125,34 +111,64 @@
       let subj = selectBox.value === "Other" ? document.getElementById('customSubject').value.trim() : selectBox.value;
 
       if (!name || !email || !subj || !desc) {
-        event.preventDefault();
         showAlert("Missing Fields", "All fields must be completely filled out!", true);
-        return false;
+        return;
       }
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        event.preventDefault();
         showAlert("Invalid Email", "Please enter a valid email address!", true);
-        return false;
+        return;
       }
 
-      // RegEx match avoids array-split cutoff formatting issues
+      // FIXED SELECTION CRASH: Pull item [1] from array match BEFORE changing casing strings
       const domainMatch = email.match(/@([^@]+)$/);
       const domain = domainMatch ? domainMatch[1].toLowerCase() : "";
 
       if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
-        event.preventDefault();
         showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
-        return false;
+        return;
       }
-
-      // Set dynamic subject parameter headers
-      document.getElementById('hiddenSubject').value = `New Ticket: ${subj}`;
 
       sendBtn.disabled = true;
       sendBtn.innerText = "Sending...";
 
-      return true; // Let browser process native form action delivery seamlessly
+      const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
+
+      // Convert layout directly into browser-native FormData to cleanly bypass CORS firewalls
+      const formData = new FormData();
+      formData.append("_replyto", email);
+      formData.append("_subject", `New Ticket: ${subj}`);
+      formData.append("message", formattedMessage);
+
+      // Secure direct AJAX call moves data instantly past GitHub Pages blocks
+      fetch('https://formspree.io', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => {
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send Email";
+
+        if (response.ok) {
+          showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+          document.getElementById('fullName').value = "";
+          document.getElementById('email').value = "";
+          document.getElementById('subjectSelect').value = "";
+          document.getElementById('description').value = "";
+          document.getElementById('otherSubjectContainer').style.display = "none";
+        } else {
+          showAlert("Submission Failed", "The server rejected the form request. Verify your Formspree backend setup.", true);
+        }
+      })
+      .catch((error) => {
+        console.error("Logged network issue:", error);
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send Email";
+        showAlert("Submission Failed", "Network conflict. Please refresh the page and try again.", true);
+      });
     }
   </script>
 
