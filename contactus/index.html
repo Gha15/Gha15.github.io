@@ -87,6 +87,10 @@
     button:hover {
       background-color: #218838;
     }
+    button:disabled {
+      background-color: #a0aec0;
+      cursor: not-allowed;
+    }
     button:active {
       transform: scale(0.98);
     }
@@ -158,16 +162,10 @@
 </head>
 <body>
 
-  <!-- FIXED: Standard form action delivery removes the fetch network error block completely -->
-  <form id="ticketForm" action="https://formspree.io" method="POST" onsubmit="return validateAndFormat(event)" class="form-container">
+  <!-- FIXED: Removed direct attributes to completely stop your server's validation interception -->
+  <div class="form-container">
     <h2>contact us</h2>
     
-    <!-- Hidden element that translates variable data to Formspree -->
-    <input type="hidden" id="hiddenMessage" name="message">
-    
-    <!-- Hidden element to route them back to your site with a custom success flag -->
-    <input type="hidden" name="_next" value="https://matixthemathclub.com">
-
     <div class="input-group">
       <label for="fullName">Full Name:</label>
       <input type="text" id="fullName" placeholder="Enter your full name">
@@ -197,8 +195,8 @@
       <textarea id="description" placeholder="Describe your problem here"></textarea>
     </div>
 
-    <button type="submit" id="sendBtn">Send Email</button>
-  </form>
+    <button type="button" id="sendBtn" onclick="handleFormSubmission()">Send Email</button>
+  </div>
 
   <!-- Custom Alert Modal Structure -->
   <div id="alertModal" class="custom-modal">
@@ -210,16 +208,6 @@
   </div>
 
   <script>
-    // Automatically trigger your custom success modal if redirected back with the success tag
-    window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('status') === 'success') {
-        showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
-        // Clean URL parameter so refreshing won't launch the modal repeatedly
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    });
-
     function showAlert(title, message, isError = true) {
       const titleEl = document.getElementById('modalTitle');
       titleEl.innerText = title;
@@ -244,11 +232,12 @@
       }
     }
 
-    function validateAndFormat(event) {
+    function handleFormSubmission() {
       const nameVariable = document.getElementById('fullName').value.trim();
       const emailVariable = document.getElementById('email').value.trim();
       const selectBox = document.getElementById('subjectSelect');
       const descriptionVariable = document.getElementById('description').value.trim();
+      const sendBtn = document.getElementById('sendBtn');
       
       let subjectVariable = selectBox.value;
       if (subjectVariable === "Other") {
@@ -257,25 +246,63 @@
 
       // 1. Strict Blank Field Validation
       if (!nameVariable || !emailVariable || !subjectVariable || !descriptionVariable) {
-        event.preventDefault();
         showAlert("Missing Fields", "All text boxes and choices must be completely filled out!", true);
-        return false; 
+        return; 
       }
 
       // 2. Strict Gmail Validation
       if (!emailVariable.toLowerCase().endsWith("@gmail.com")) {
-        event.preventDefault();
         showAlert("Invalid Email", "You must use a valid Gmail address (@gmail.com)!", true);
-        return false; 
+        return; 
       }
 
       // 3. Format message variables layout string matching your request
       const formattedMessage = `name:${nameVariable}\nemail:${emailVariable}\nsubject:${subjectVariable}\ntext:${descriptionVariable}`;
       
-      // Inject the values down to the hidden transit block before transmission
-      document.getElementById('hiddenMessage').value = formattedMessage;
+      // Setup the proper Formspree target package format
+      const formPayload = {
+        email: emailVariable,
+        _subject: `New Ticket: ${subjectVariable}`,
+        message: formattedMessage
+      };
 
-      return true;
+      // UI button state updates
+      sendBtn.disabled = true;
+      sendBtn.innerText = "Sending...";
+
+      // 4. Formspree official AJAX protocol processing path
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://formspree.io");
+      xhr.setRequestHeader("Accept", "application/json");
+      xhr.setRequestHeader("Content-Type", "application/json");
+      
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== XMLHttpRequest.DONE) return;
+        
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send Email";
+        
+        if (xhr.status === 200) {
+          // Success Callback Notice Display Logic
+          showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+          
+          // Clear field boxes
+          document.getElementById('fullName').value = "";
+          document.getElementById('email').value = "";
+          document.getElementById('subjectSelect').value = "";
+          document.getElementById('description').value = "";
+          document.getElementById('otherSubjectContainer').style.display = "none";
+        } else {
+          try {
+            const errorResult = JSON.parse(xhr.responseText);
+            showAlert("Submission Error", errorResult.error || "Formspree rejected the delivery block.", true);
+          } catch(e) {
+            showAlert("Transmission Failed", "Connection error. Make sure your Formspree form is active.", true);
+          }
+        }
+      };
+      
+      xhr.send(JSON.stringify(formPayload));
     }
   </script>
 
