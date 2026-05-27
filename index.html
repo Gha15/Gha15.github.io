@@ -34,7 +34,7 @@
       /* remive Pin accurately to the bottom center of the page */ 
       position: fixed;  
       left: 50%; 
-      bottom: -10vh;
+      bottom: 10vh;
       z-index: 9999; /* Keeps it on top of other elements */  
       display: inline-block; 
       /* Smooth color change on hover */ 
@@ -60,14 +60,16 @@
     /* THE SECRET WHITE DOT */ 
     .secret-dot { 
       position: fixed; 
-      top: 10vh; 
-      right: 10vh; 
-      width: 10vh; 
-      height: 10vh; 
+      top: 3px; 
+      right: 3px; 
+      width: 3px; 
+      height: 3px; 
       background-color: rgba(255, 255, 255, 0.15); 
       text-decoration: none; 
       z-index: 1000; 
       transition: all 0.3s ease; 
+      top: 0;
+      left: 0%
     } 
     .secret-dot:hover { 
       background-color: #FFFFFF; 
