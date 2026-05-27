@@ -14,14 +14,18 @@
         .redtext a {
              color: white ;
              font-family: 'Vibur', cursive;
-             font-size: 3rem;
+             font-size: 1.5rem;
              text-decoration: none;  
              display: inline-block;
              transition: transform 0.2s ease, color 0.2s ease;
             
         }
-        .redtext a:hover { transform: scale(1.1); color: red;}
-
+        .redtext a:hover { transform: scale(1.1); color: red; text-decoration: underline; animation: pulseScale 1.2s infinite ease-in-out;}
+        @keyframes pulseScale {
+             0% { transform: scale(1); }
+             50% { transform: scale(1.15); } /* Grows to 115% size */
+             100% { transform: scale(1); } /* Shrinks back to 100% size */
+        }
         .container {
             border: 1px solid #10b981; background: #0f172a; padding: 30px;
             box-shadow: 0 0 30px rgba(16, 185, 129, 0.2); width: 100%; max-width: 700px;
