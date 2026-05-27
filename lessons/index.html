@@ -11,12 +11,16 @@
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
             min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;
         }
-        .redtext {
-             color: red !important;
+        .redtext a {
+             color: white ;
              font-family: 'Vibur', cursive;
-             font-size: 1rem;
-             text-decoration: none; 
+             font-size: 3rem;
+             text-decoration: none;  
+             display: inline-block;
+             transition: transform 0.2s ease, color 0.2s ease;
+            
         }
+        .redtext a:hover { transform: scale(1.1); color: red;}
 
         .container {
             border: 1px solid #10b981; background: #0f172a; padding: 30px;
