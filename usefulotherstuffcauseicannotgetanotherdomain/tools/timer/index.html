@@ -111,6 +111,7 @@
   <div class="input-panel">
     <button class="button" id="addMinBtn">+1 Min</button>
     <button class="button" id="addSecBtn">+10 Sec</button>
+    <button class="button" id="addOneSecBtn">+1 Sec</button>
     <button class="button button-reset" id="clearBtn">Clear</button>
   </div>
 
@@ -186,6 +187,12 @@
 
     document.getElementById('addSecBtn').addEventListener('click', () => {
       timeLeft += 10000;
+      pickedTime = timeLeft;
+      updateDisplay();
+    });
+
+    document.getElementById('addOneSecBtn').addEventListener('click', () => {
+      timeLeft += 1000;
       pickedTime = timeLeft;
       updateDisplay();
     });
