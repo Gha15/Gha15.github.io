@@ -3,9 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>timer - matix the math club</title>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #ffffff;
+            font-family: 'Vibur', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #ffeb3b;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* Center container for the entire timer element */
+        .stopwatch-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            background: #111111;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #ffeb3b;
+            box-shadow: 0 0 20px rgba(255, 235, 59, 0.15);
+            margin-bottom: 30px;
+        }
+
+        /* Symmetrical styles for math symbol side panels */
+        .math-signs-at-the-left, 
+        .math-signs-at-the-right {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            color: #ffeb3b;
+            font-size: 1.8rem;
+            opacity: 0.6;
+            user-select: none;
+        }
+
+        /* Clock readout display handling 00:00:000 */
+        .time-00-00-format {
+            color: white;
+            font-size: 4.5rem; 
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            min-width: 320px; 
+            text-align: center;
+            user-select: none;
+        }
+
+        /* Group panels for clean spacing blocks */
+        .input-panel, .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .button {
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid #ffeb3b;
+            padding: 10px 25px;
+            font-family: 'Vibur', cursive;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .button:hover {
+            color: #0d0d0d;
+            background-color: #ffeb3b;
+            transform: scale(1.05);
+        }
+
+        .button-reset {
+            border-color: #ff3b3b;
+        }
+        .button-reset:hover {
+            background-color: #ff3b3b;
+            color: white;
+        }
+
+        .return-link {
+            margin-top: 40px;
+            color: #ff3b3b;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+    </style>
+    <!-- Importing Vibur Font -->
+    <link href="https://googleapis.com" rel="stylesheet">
 </head>
 <body>
-    
+
+    <h1>> TIMER</h1>
+
+    <div class="stopwatch-container">
+        <!-- Math symbols floating on the left -->
+        <div class="math-signs-at-the-left">
+            <span>&plus;</span>
+            <span>&minus;</span>
+            <span>&times;</span>
+        </div>
+
+        <!-- The 00:00:000 clock readout display -->
+        <div class="time-00-00-format" id="display">00:00:000</div>
+
+        <!-- Math symbols floating on the right -->
+        <div class="math-signs-at-the-right">
+            <span>&divide;</span>
+            <span>&pi;</span>
+            <span>&radic;</span>
+        </div>
+    </div>
+
+    <!-- Mobile Quick Input Setup -->
+    <div class="input-panel">
+        <button class="button" id="addMinBtn">+1 Min</button>
+        <button class="button" id="addSecBtn">+10 Sec</button>
+        <button class="button button-reset" id="clearBtn">Clear</button>
+    </div>
+
+    <!-- Updated Interface Control Buttons (Start / Pause / Stop) -->
+    <div class="controls">
+        <button class="button" id="startBtn">Start</button>
+        <button class="button" id="pauseBtn">Pause</button>
+        <button class="button button-reset" id="stopBtn">Stop</button>
+    </div>
+
+    <a href="../" class="return-link">[ Return to Tools ]</a>
+
+    <script>
+        // TRACKING VARIABLES
+        let timeLeft = 0;         // Tracks changing countdown numbers in milliseconds
+        let pickedTime = 0;       // Stores the initial chosen time layout
+        let isRunning = false;     // Checks if the countdown loop engine is active
+        let timerInterval = null;  // Holds the continuous interval ticking process
+
+        // FORMATTING ENGINE
+        function updateDisplay() {
+            let totalMs = timeLeft;
+            if (totalMs < 0) totalMs = 0;
+
+            let minutes = Math.floor(totalMs / 60000);
+            let seconds = Math.floor((totalMs % 60000) / 1000);
+            let milliseconds = totalMs % 1000;
+
+            let minStr = String(minutes).padStart(2, '0');
+            let secStr = String(seconds).padStart(2, '0');
+            let msStr = String(milliseconds).padStart(3, '0');
+
+            let formattedTime = `${minStr}:${secStr}:${msStr}`;
+            
+            document.getElementById('display').innerText = formattedTime;
+
+            // Update browser tab based on your instructions
+            if (isRunning) {
+                document.title = `timer:[${formattedTime}] - matix the math club`;
+            } else {
+                document.title = "timer - matix the math club";
+            }
+        }
+    </script>
 </body>
 </html>
