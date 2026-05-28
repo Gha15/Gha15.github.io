@@ -55,7 +55,7 @@ function appendNumber(num) {
     displayElement.textContent = currentDisplay + num;
 }
 
-// Appends a decimal point safely, preventing duplicates inside a single number
+// Appends a decimal point safely
 function appendDecimal() {
     if (flashInterval) return;
 
@@ -67,16 +67,13 @@ function appendDecimal() {
         return;
     }
 
-    // Split text by spaces to look at only the current active number being typed
     let parts = currentDisplay.split(" ");
     let activeSegment = parts[parts.length - 1];
 
-    // If the active number segment already contains a decimal point, reject the new one
     if (activeSegment.includes(".")) {
         return;
     }
 
-    // If the user starts with a decimal point, append it as "0." instead of just "."
     if (currentDisplay === "" || currentDisplay.endsWith(" ")) {
         displayElement.textContent = currentDisplay + "0.";
     } else {
@@ -91,7 +88,6 @@ function setOperator(op) {
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
     
-    // If inside a root parenthesis, append the operator natively within the brackets
     if (currentDisplay.includes("(")) {
         if (currentDisplay.length >= thedigitsthatfittothescreen) {
             triggerErrorFlash();
@@ -174,14 +170,13 @@ function clearScreen() {
     document.getElementById("result").textContent = "0";
 }
 
-// Destructive backspace function to delete single characters
+// Backspace function
 function removelastdigit() {
     if (flashInterval) return;
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
     
     if (currentDisplay.length > 1) {
-        // If the last character is surrounded by trailing whitespace design layout spaces
         if (currentDisplay.endsWith(" ")) {
             displayElement.textContent = currentDisplay.slice(0, -3);
         } else {
@@ -192,98 +187,28 @@ function removelastdigit() {
     }
 }
 
-// Extracts and processes calculations located inside parenthetical symbols
-function parseParenthesisExpression(displayStr) {
-    let startIndex = displayStr.indexOf("(") + 1;
-    let endIndex = displayStr.indexOf(")");
-    if (endIndex === -1) {
-        endIndex = displayStr.length;
-    }
-    let internalExpression = displayStr.slice(startIndex, endIndex);
-    // Runs mathematical compilation safely through an isolated execution shell
-    let innerResult = new Function(`return ${internalExpression}`)();
-    return innerResult;
-}
-
 // Primary mathematical evaluation router
 function calculate() {
     if (flashInterval) return;
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
 
-    // 1. Process Radical Bracket Expressions
-    if (currentDisplay.includes("√(")) {
-        let insideValue = parseParenthesisExpression(currentDisplay);
-        result = Math.sqrt(insideValue);
-        updateDisplay(result);
-        return;
-    }
+    try {
+        // Replace roots with JS functions everywhere
+        let jsExpression = currentDisplay
+            .replace(/√\(([^()]*)\)/g, "Math.sqrt($1)")
+            .replace(/³√\(([^()]*)\)/g, "Math.cbrt($1)");
 
-    if (currentDisplay.includes("³√(")) {
-        let insideValue = parseParenthesisExpression(currentDisplay);
-        result = Math.cbrt(insideValue);
-        updateDisplay(result);
-        return;
-    }
-
-    // 2. Process Percentage Operations
-    if (currentDisplay.includes("%")) {
-        let parts = currentDisplay.split(" ");
-        
-        // Standalone Percentage Conversion (e.g., "50 %")
-        if (parts.length < 3 || parts[2] === "" || parts[2] === "%") {
-            let baseNum = parseFloat(parts[0]);
-            result = baseNum / 100;
-            updateDisplay(result);
-            return;
-        }
-        
-        // Percent of a Value Context Formula (e.g., "100 + 15 %")
-        num1 = parseFloat(parts[0]);
-        let actualOp = parts[1];
-        let percentageValue = parseFloat(parts[2]);
-        let fractionalAmount = (num1 / 100) * percentageValue; 
-
-        switch (actualOp) {
-            case "+": result = num1 + fractionalAmount; break;
-            case "-": result = num1 - fractionalAmount; break;
-            case "*": result = num1 * fractionalAmount; break; 
-            case "/": result = num1 / fractionalAmount; break;
-            default: return;
-        }
-        
+        // Evaluate full expression
+        result = new Function(`return ${jsExpression}`)();
         updateDisplay(result);
         textcontent = displayElement.textContent;
-        return;
+    } catch (e) {
+        displayElement.textContent = "Error";
     }
-
-    // 3. Process Core Standard Operations (+, -, *, /)
-    let parts = currentDisplay.split(" ");
-    num1 = parseFloat(parts[0]);
-    let currentOp = parts[1];
-    num2 = parseFloat(parts[2]);
-
-    if (isNaN(num2)) num2 = 0; 
-
-    switch (currentOp) {
-        case "+": result = num1 + num2; break;
-        case "-": result = num1 - num2; break;
-        case "*": result = num1 * num2; break;
-        case "/": 
-            if (num2 === 0) {
-                displayElement.textContent = "Error";
-                return;
-            }
-            result = num1 / num2; 
-            break;
-        default: return;
-    }
-
-    updateDisplay(result);
-    textcontent = displayElement.textContent;
 }
 
-// Outputs result strings to layout view, handling extreme values using precision notation
+// Outputs result strings to layout view
 function updateDisplay(val) {
     let output = val.toString();
     if (output.length > thedigitsthatfittothescreen) {
