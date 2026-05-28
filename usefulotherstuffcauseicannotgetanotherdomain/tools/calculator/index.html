@@ -1,14 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
-    <title>Calculator - matix the math club</title>
-    <script src="script.js" defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculator - matix the math club</title>
+    <!-- Your Google Font is back in action -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
+    <h1>&gt; Calculator</h1>
     
+    <div class="calculator">
+        <div class="displaytext">
+            <p id="result">0</p>
+        </div>
+
+        <div class="buttons">
+            <!-- Row 1 -->
+            <button class="number">7</button>
+            <button class="number">8</button>
+            <button class="number">9</button>
+            <button class="division">&divide;</button>
+
+            <!-- Row 2 -->
+            <button class="number">4</button>
+            <button class="number">5</button>
+            <button class="number">6</button>
+            <button class="multiplication">&times;</button>
+
+            <!-- Row 3 -->
+            <button class="number">1</button>
+            <button class="number">2</button>
+            <button class="number">3</button>
+            <button class="subtraction">-</button>
+
+            <!-- Row 4 -->
+            <button class="number">0</button>
+            <button class="number">.</button>
+            <button class="equals">=</button>
+            <button class="addition">+</button>
+        </div>
+    </div>
 </body>
 </html>

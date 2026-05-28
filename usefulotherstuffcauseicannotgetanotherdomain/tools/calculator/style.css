@@ -1,0 +1,83 @@
+body {
+      background-color: #0d0d0d;
+      color: #ffffff;
+      font-family: 'Vibur', cursive;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+    color: #ffeb3b;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    }
+
+    .calculator {
+      background-color: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+    .displaytext {
+      background-color: #333333;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-size: 24px;
+      text-align: right;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .addition, .subtraction, .multiplication, .division {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .addition:hover, .subtraction:hover, .multiplication:hover, .division:hover {
+      background-color: #45a049;
+    }
+    .number {
+      background-color: #555555;
+      color: white;
+      border: none;
+      padding: 15px;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .number:hover {
+      background-color: #777777;
+    }
+    .equals {
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      padding: 15px;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      grid-column: span 4;
+    }
+    .equals:hover {
+      background-color: #0b7dda;
+    }
+    .math-signs-at-the-left, .math-signs-at-the-right {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            color: #ffeb3b;
+            font-size: 1.8rem;
+            opacity: 0.6;
+            user-select: none;
+        }
