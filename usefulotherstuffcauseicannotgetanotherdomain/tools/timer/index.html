@@ -178,6 +178,13 @@
       timeLeft = pickedTime;
       updateDisplay();
     }
+    function clearTimer() {
+      clearInterval(0);
+      isRunning = false;
+      timeLeft = 0;
+      pickedTime = 0;
+      updateDisplay();
+    }
 
     document.getElementById('addMinBtn').addEventListener('click', () => {
       isRunning = false;
@@ -200,13 +207,7 @@
       updateDisplay();
     });
 
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      timeLeft = 0;
-      pickedTime = 0.000000000; // reset to zero with high precision format for consistency, even though milliseconds are not displayed
-      updateDisplay();
-      isRunning = false;
-    });
-
+    document.getElementById('clearBtn').addEventListener('click', clearTimer);
     document.getElementById('startBtn').addEventListener('click', startTimer);
     document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
     document.getElementById('stopBtn').addEventListener('click', stopTimer);
