@@ -45,11 +45,16 @@
             
             <!-- Row 5 -->
             <button class="number" onclick="appendNumber('0')">0</button>
-            <button class="number" onclick="appendNumber('.')">.</button>
-            <button class="number" onclick="setOperator('√')">&radic;</button>
-            <button class="number" onclick="setOperator('³√')">&#8731;</button>
-            <!-- Row 6 -->
-            <button class="equals" onclick="calculateResult()">=</button>
+            <button class="number" onclick="appendDecimal()">.</button>
+            <button class="number" onclick="startCubeRoot()">∛</button>
+            <button class="number" onclick="startSquareRoot()">&radic;</button>
+            <!-- Row 6 --->
+            <div class="spacer"></div>
+            <button class="number" onclick="closeParenthesis()">)</button>
+            <div class="spacer"></div>
+            <div class="spacer"></div>
+            <!-- Row 7 --->
+            <button class="equals" onclick="calculate()">=</button>
         </div>
     </div>
 </body>
