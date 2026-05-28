@@ -3,9 +3,13 @@ let num1 = 0
 let num2 = 0
 let operator = ""
 let result = 0
+let thedigitsthatfittothescreen = 22 // Variable to store the maximum digits that fit on the screen
 
 // Adds clicked numbers to the display screen
 function appendNumber(num) {
+    if (textcontent.length < (thedigitsthatfittothescreen + 1)) { //made a varible to store the max digits that fit on the screen and used it here to prevent the user from inputting more digits than the screen can handle
+        textcontent = "too many digits"
+    }
     let currentDisplay = document.getElementById("result").textContent
     if (currentDisplay === "0") {
         document.getElementById("result").textContent = num
@@ -55,6 +59,12 @@ function divisionofthetwonumbers() {
         document.getElementById("result").textContent = result
     }
 }
+function findpercentofthetwonumberstogether() {
+    result = (num1 / 100) * num2
+    document.getElementById("result").textContent = result
+}
+
+
 
 // Main execution function
 function calculate() {
@@ -72,6 +82,9 @@ function calculate() {
             break
         case "/":
             divisionofthetwonumbers()
+            break
+        case "%": //percentage calculation
+            findpercentofthetwonumberstogether()
             break
         default:
             document.getElementById("result").textContent = "Error: Invalid operator"

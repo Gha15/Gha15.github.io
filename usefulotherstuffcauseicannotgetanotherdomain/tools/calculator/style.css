@@ -18,9 +18,6 @@ body {
     border-radius: 12px;
     border: 1px solid #ffeb3b;
     box-shadow: 0 0 20px rgba(255, 235, 59, 0.15);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
 }
 
 /* Display Screen */
@@ -32,7 +29,7 @@ body {
     font-size: 3rem;
     text-align: right;
     color: white;
-    letter-spacing: 2px;
+    margin-bottom: 20px;
     user-select: none;
 }
 
@@ -43,8 +40,8 @@ body {
     gap: 15px;
 }
 
-/* Base Button Style */
-.button {
+/* Base style for all buttons */
+.addition, .subtraction, .multiplication, .division, .number, .equals {
     background: #1a1a1a;
     color: white;
     border: 1px solid #ffeb3b;
@@ -55,13 +52,14 @@ body {
     transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
-.button:hover {
+/* Hover effect for all buttons */
+.addition:hover, .subtraction:hover, .multiplication:hover, .division:hover, .number:hover, .equals:hover {
     color: #0d0d0d;
     background-color: #ffeb3b;
     transform: scale(1.05);
 }
 
-/* Operator and Equals Specifics */
+/* Equals Button Specifics */
 .equals {
     grid-column: span 4;
     border-color: #ff3b3b;
@@ -73,8 +71,7 @@ body {
 }
 
 /* Side Panels */
-.math-signs-at-the-left, 
-.math-signs-at-the-right {
+.math-signs-at-the-left, .math-signs-at-the-right {
     display: flex;
     flex-direction: column;
     gap: 15px;
