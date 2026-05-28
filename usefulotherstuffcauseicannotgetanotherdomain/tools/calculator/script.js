@@ -5,198 +5,265 @@ let operator = ""
 let result = 0
 let thedigitsthatfittothescreen = 15 
 let isOperatorActive = false 
-let flashInterval = null // Stores the timer for the flashing animation
+let flashInterval = null // Tracking variable for our error flash timing loops
 
-// Displays a flashing error message on the screen
+// Displays a flashing warning message when layout bounds are reached
 function triggerErrorFlash() {
-    // If it is already flashing, don't start a duplicate timer
     if (flashInterval) return; 
 
     let display = document.getElementById("result");
     let isVisible = true;
     let flashCount = 0;
-    
-    // Save what was on the screen before the error occurred
     let originalText = display.textContent; 
 
     flashInterval = setInterval(() => {
         if (isVisible) {
             display.textContent = "Error: Too many numbers";
-            display.style.color = "red"; // Changes text to red for visual impact
+            display.style.color = "red"; 
         } else {
-            display.textContent = ""; // Empties screen to create the blinking effect
+            display.textContent = ""; 
         }
         
         isVisible = !isVisible;
         flashCount++;
 
-        // Stop flashing after 6 blinks (about 1.5 seconds)
         if (flashCount >= 6) {
             clearInterval(flashInterval);
             flashInterval = null;
-            display.textContent = originalText; // Safely restore their typed numbers
-            display.style.color = ""; // Resets text color back to normal
+            display.textContent = originalText; 
+            display.style.color = ""; 
         }
-    }, 250); // Blinks every 250 milliseconds
+    }, 250); 
 }
 
-// Adds clicked numbers to the display screen
+// Appends numbers 0-9 to the interface screen
 function appendNumber(num) {
-    let currentDisplay = document.getElementById("result").textContent
-
-    // Block typing completely if the screen is currently flashing an error
     if (flashInterval) return;
 
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+
     if (currentDisplay === "0") {
-        currentDisplay = ""
+        currentDisplay = "";
     }
 
-    // Trigger flashing error if user goes past the digit threshold
     if (currentDisplay.length >= thedigitsthatfittothescreen) {
         triggerErrorFlash();
         return; 
     }
 
-    document.getElementById("result").textContent = currentDisplay + num
+    displayElement.textContent = currentDisplay + num;
 }
 
-// Handles standard operators (+, -, *, /, %)
+// Appends a decimal point safely, preventing duplicates inside a single number
+function appendDecimal() {
+    if (flashInterval) return;
+
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+
+    if (currentDisplay.length >= thedigitsthatfittothescreen) {
+        triggerErrorFlash();
+        return;
+    }
+
+    // Split text by spaces to look at only the current active number being typed
+    let parts = currentDisplay.split(" ");
+    let activeSegment = parts[parts.length - 1];
+
+    // If the active number segment already contains a decimal point, reject the new one
+    if (activeSegment.includes(".")) {
+        return;
+    }
+
+    // If the user starts with a decimal point, append it as "0." instead of just "."
+    if (currentDisplay === "" || currentDisplay.endsWith(" ")) {
+        displayElement.textContent = currentDisplay + "0.";
+    } else {
+        displayElement.textContent = currentDisplay + ".";
+    }
+}
+
+// Handles setup for standard calculations (+, -, *, /, %)
 function setOperator(op) {
-    if (flashInterval) return; // Block input if error is flashing
+    if (flashInterval) return; 
     
-    let currentDisplay = document.getElementById("result").textContent
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
     
+    // If inside a root parenthesis, append the operator natively within the brackets
     if (currentDisplay.includes("(")) {
         if (currentDisplay.length >= thedigitsthatfittothescreen) {
             triggerErrorFlash();
             return;
         }
-        document.getElementById("result").textContent = currentDisplay + " " + op + " "
-        return
+        displayElement.textContent = currentDisplay + " " + op + " ";
+        return;
     }
 
-    num1 = parseFloat(currentDisplay)
-    operator = op
-    document.getElementById("result").textContent = num1 + " " + operator + " "
-    isOperatorActive = true
+    num1 = parseFloat(currentDisplay);
+    operator = op;
+    displayElement.textContent = num1 + " " + operator + " ";
+    isOperatorActive = true;
 }
 
-// Special function to start a Square Root with an open parenthesis
+// Activates square root processing with brackets
 function startSquareRoot() {
     if (flashInterval) return;
-    let currentDisplay = document.getElementById("result").textContent
-    operator = "√"
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+    operator = "√";
     
     if (currentDisplay === "0") {
-        document.getElementById("result").textContent = "√("
+        displayElement.textContent = "√(";
     } else {
         if (currentDisplay.length >= thedigitsthatfittothescreen) {
             triggerErrorFlash();
             return;
         }
-        document.getElementById("result").textContent = currentDisplay + "√("
+        displayElement.textContent = currentDisplay + "√(";
     }
 }
 
-// Special function to start a Cube Root with an open parenthesis
+// Activates cube root processing with brackets
 function startCubeRoot() {
     if (flashInterval) return;
-    let currentDisplay = document.getElementById("result").textContent
-    operator = "³√"
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+    operator = "³√";
     
     if (currentDisplay === "0") {
-        document.getElementById("result").textContent = "³√("
+        displayElement.textContent = "³√(";
     } else {
         if (currentDisplay.length >= thedigitsthatfittothescreen) {
             triggerErrorFlash();
             return;
         }
-        document.getElementById("result").textContent = currentDisplay + "³√("
+        displayElement.textContent = currentDisplay + "³√(";
     }
 }
 
-// Closes the open parenthesis on the screen
+// Closes any active open math parenthesis brackets
 function closeParenthesis() {
     if (flashInterval) return;
-    let currentDisplay = document.getElementById("result").textContent
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+    
     if (currentDisplay.includes("(")) {
         if (currentDisplay.length >= thedigitsthatfittothescreen) {
             triggerErrorFlash();
             return;
         }
-        document.getElementById("result").textContent = currentDisplay + ")"
+        displayElement.textContent = currentDisplay + ")";
     }
 }
 
-// Resets all calculations back to zero
+// Complete system reset button
 function clearScreen() {
-    // If an error is flashing, forcibly stop it when Clear is hit
     if (flashInterval) {
         clearInterval(flashInterval);
         flashInterval = null;
         document.getElementById("result").style.color = "";
     }
-    num1 = 0
-    num2 = 0
-    operator = ""
-    result = 0
-    textcontent = ""
-    isOperatorActive = false
-    document.getElementById("result").textContent = "0"
+    num1 = 0;
+    num2 = 0;
+    operator = "";
+    result = 0;
+    textcontent = "";
+    isOperatorActive = false;
+    document.getElementById("result").textContent = "0";
 }
 
-// Function to remove the last character from the display
+// Destructive backspace function to delete single characters
 function removelastdigit() {
     if (flashInterval) return;
-    let currentDisplay = document.getElementById("result").textContent
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+    
     if (currentDisplay.length > 1) {
+        // If the last character is surrounded by trailing whitespace design layout spaces
         if (currentDisplay.endsWith(" ")) {
-            document.getElementById("result").textContent = currentDisplay.slice(0, -3)
+            displayElement.textContent = currentDisplay.slice(0, -3);
         } else {
-            document.getElementById("result").textContent = currentDisplay.slice(0, -1)
+            displayElement.textContent = currentDisplay.slice(0, -1);
         }
     } else {
-        document.getElementById("result").textContent = "0"
+        displayElement.textContent = "0";
     }
 }
 
-// Helper function to safely process the math inside parentheses
+// Extracts and processes calculations located inside parenthetical symbols
 function parseParenthesisExpression(displayStr) {
-    let startIndex = displayStr.indexOf("(") + 1
-    let endIndex = displayStr.indexOf(")")
+    let startIndex = displayStr.indexOf("(") + 1;
+    let endIndex = displayStr.indexOf(")");
     if (endIndex === -1) {
-        endIndex = displayStr.length
+        endIndex = displayStr.length;
     }
-    let internalExpression = displayStr.slice(startIndex, endIndex)
-    let innerResult = new Function(`return ${internalExpression}`)()
-    return innerResult
+    let internalExpression = displayStr.slice(startIndex, endIndex);
+    // Runs mathematical compilation safely through an isolated execution shell
+    let innerResult = new Function(`return ${internalExpression}`)();
+    return innerResult;
 }
 
-// Main execution function
+// Primary mathematical evaluation router
 function calculate() {
     if (flashInterval) return;
-    let currentDisplay = document.getElementById("result").textContent
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
 
+    // 1. Process Radical Bracket Expressions
     if (currentDisplay.includes("√(")) {
-        let insideValue = parseParenthesisExpression(currentDisplay)
-        result = Math.sqrt(insideValue)
-        updateDisplay(result)
-        return
+        let insideValue = parseParenthesisExpression(currentDisplay);
+        result = Math.sqrt(insideValue);
+        updateDisplay(result);
+        return;
     }
 
     if (currentDisplay.includes("³√(")) {
-        let insideValue = parseParenthesisExpression(currentDisplay)
-        result = Math.cbrt(insideValue)
-        updateDisplay(result)
-        return
+        let insideValue = parseParenthesisExpression(currentDisplay);
+        result = Math.cbrt(insideValue);
+        updateDisplay(result);
+        return;
     }
 
-    let parts = currentDisplay.split(" ")
-    num1 = parseFloat(parts[0])
-    let currentOp = parts[1]
-    num2 = parseFloat(parts[2])
+    // 2. Process Percentage Operations
+    if (currentDisplay.includes("%")) {
+        let parts = currentDisplay.split(" ");
+        
+        // Standalone Percentage Conversion (e.g., "50 %")
+        if (parts.length < 3 || parts[2] === "" || parts[2] === "%") {
+            let baseNum = parseFloat(parts[0]);
+            result = baseNum / 100;
+            updateDisplay(result);
+            return;
+        }
+        
+        // Percent of a Value Context Formula (e.g., "100 + 15 %")
+        num1 = parseFloat(parts[0]);
+        let actualOp = parts[1];
+        let percentageValue = parseFloat(parts[2]);
+        let fractionalAmount = (num1 / 100) * percentageValue; 
 
-    if (isNaN(num2)) num2 = 0 
+        switch (actualOp) {
+            case "+": result = num1 + fractionalAmount; break;
+            case "-": result = num1 - fractionalAmount; break;
+            case "*": result = num1 * fractionalAmount; break; 
+            case "/": result = num1 / fractionalAmount; break;
+            default: return;
+        }
+        
+        updateDisplay(result);
+        textcontent = displayElement.textContent;
+        return;
+    }
+
+    // 3. Process Core Standard Operations (+, -, *, /)
+    let parts = currentDisplay.split(" ");
+    num1 = parseFloat(parts[0]);
+    let currentOp = parts[1];
+    num2 = parseFloat(parts[2]);
+
+    if (isNaN(num2)) num2 = 0; 
 
     switch (currentOp) {
         case "+": result = num1 + num2; break;
@@ -204,24 +271,23 @@ function calculate() {
         case "*": result = num1 * num2; break;
         case "/": 
             if (num2 === 0) {
-                document.getElementById("result").textContent = "Error";
+                displayElement.textContent = "Error";
                 return;
             }
             result = num1 / num2; 
             break;
-        case "%": result = (num1 / 100) * num2; break;
         default: return;
     }
 
-    updateDisplay(result)
-    textcontent = document.getElementById("result").textContent
+    updateDisplay(result);
+    textcontent = displayElement.textContent;
 }
 
-// Helper function to handle screen overflow and update display
+// Outputs result strings to layout view, handling extreme values using precision notation
 function updateDisplay(val) {
-    let output = val.toString()
+    let output = val.toString();
     if (output.length > thedigitsthatfittothescreen) {
-        output = val.toPrecision(thedigitsthatfittothescreen - 5) 
+        output = val.toPrecision(thedigitsthatfittothescreen - 5); 
     }
-    document.getElementById("result").textContent = output
+    document.getElementById("result").textContent = output;
 }
