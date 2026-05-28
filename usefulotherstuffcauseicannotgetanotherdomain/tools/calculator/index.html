@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculator - matix the math club</title>
-    <!-- Your Google Font is back in action -->
     <link rel="preconnect" href="https://googleapis.com">
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
@@ -15,34 +14,41 @@
     <h1>&gt; Calculator</h1>
     
     <div class="calculator">
+        <!-- Display screen -->
         <div class="displaytext">
             <p id="result">0</p>
         </div>
 
+        <!-- Button Grid Layout -->
         <div class="buttons">
+            <!-- Row 0: Clear Operations -->
+            <button class="number" onclick="clearScreen()">C</button>
+            <button class="number" onclick="clearScreen()">AC</button>
+            <button class="number" style="visibility: hidden;"></button> <!-- Empty spacer -->
+            <button class="number" style="visibility: hidden;"></button> <!-- Empty spacer -->
             <!-- Row 1 -->
-            <button class="number">7</button>
-            <button class="number">8</button>
-            <button class="number">9</button>
-            <button class="division">&divide;</button>
+            <button class="number" onclick="appendNumber('7')">7</button>
+            <button class="number" onclick="appendNumber('8')">8</button>
+            <button class="number" onclick="appendNumber('9')">9</button>
+            <button class="multiplication" onclick="setOperator('*')">&times;</button>
 
             <!-- Row 2 -->
-            <button class="number">4</button>
-            <button class="number">5</button>
-            <button class="number">6</button>
-            <button class="multiplication">&times;</button>
+            <button class="number" onclick="appendNumber('4')">4</button>
+            <button class="number" onclick="appendNumber('5')">5</button>
+            <button class="number" onclick="appendNumber('6')">6</button>
+            <button class="subtraction" onclick="setOperator('-')">-</button>
 
             <!-- Row 3 -->
-            <button class="number">1</button>
-            <button class="number">2</button>
-            <button class="number">3</button>
-            <button class="subtraction">-</button>
+            <button class="number" onclick="appendNumber('1')">1</button>
+            <button class="number" onclick="appendNumber('2')">2</button>
+            <button class="number" onclick="appendNumber('3')">3</button>
+            <button class="addition" onclick="setOperator('+')">+</button>
 
-            <!-- Row 4 -->
-            <button class="number">0</button>
-            <button class="number">.</button>
-            <button class="equals">=</button>
-            <button class="addition">+</button>
+            <!-- Row 4: Customized exactly to your setup -->
+            <button class="number" onclick="appendNumber('.')">.</button>
+            <button class="number" onclick="appendNumber('0')">0</button>
+            <button class="equals" onclick="calculate()">=</button>
+            <button class="addition" onclick="setOperator('+')">+</button>
         </div>
     </div>
 </body>
