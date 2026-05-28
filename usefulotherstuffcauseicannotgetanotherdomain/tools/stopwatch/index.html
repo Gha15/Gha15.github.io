@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Useless Stopwatch</title>
+    <title>Stopwatch - matix the math club</title>
     <style>
     body {
             background-color: #01022b;
@@ -192,6 +192,11 @@
             let msStr = String(milliseconds).padStart(3, '0');
 
             document.getElementById('display').innerText = `${minStr}:${secStr}`;
+        }
+        if (isRunning) {
+            document.title = `stopwatch:[${document.getElementById('display').innerText}] - matix the math club`;
+        } else {
+            document.title = "stopwatch - matix the math club";
         }
     </script>
 </body>
