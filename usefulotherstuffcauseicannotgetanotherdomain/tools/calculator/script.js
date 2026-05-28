@@ -22,7 +22,7 @@ function appendNumber(num) {
 function setOperator(op) {
     num1 = parseFloat(document.getElementById("result").textContent)
     operator = op
-    document.getElementById("result").textContent = "0"
+     //keeps the display the same when you click an operator, instead of clearing it for the second number input, which is more user-friendly and allows for chaining operations
 }
 
 // Resets all calculations back to zero
@@ -34,21 +34,29 @@ function clearScreen() {
     textcontent = ""
     document.getElementById("result").textContent = "0"
 }
-
+//removelastdigit(): Function to remove the last digit from the display
+function removelastdigit() {
+    let currentDisplay = document.getElementById("result").textContent
+    if (currentDisplay.length > 1) {
+        document.getElementById("result").textContent = currentDisplay.slice(0, -1)
+    } else {
+        document.getElementById("result").textContent = "0"
+    }
+}
 // Math logic functions
 function additionofthetwonumbers() {
     result = num1 + num2
-    document.getElementById("result").textContent = result
+    document.getElementById("result").textContent = textcontent + result
 }
 
 function subtractionofthetwonumbers() {
     result = num1 - num2
-    document.getElementById("result").textContent = result
+    document.getElementById("result").textContent = textcontent + result
 }
 
 function multiplicationofthetwonumbers() {
     result = num1 * num2
-    document.getElementById("result").textContent = result
+    document.getElementById("result").textContent = textcontent + result
 }
 
 function divisionofthetwonumbers() {
@@ -56,12 +64,12 @@ function divisionofthetwonumbers() {
         document.getElementById("result").textContent = "Error: Division by zero"
     } else {
         result = num1 / num2
-        document.getElementById("result").textContent = result
+        document.getElementById("result").textContent = textcontent + result
     }
 }
 function findpercentofthetwonumberstogether() {
     result = (num1 / 100) * num2
-    document.getElementById("result").textContent = result
+    document.getElementById("result").textContent = textcontent + result
 }
 
 
