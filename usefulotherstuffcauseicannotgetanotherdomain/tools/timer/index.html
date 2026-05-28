@@ -180,18 +180,21 @@
     }
 
     document.getElementById('addMinBtn').addEventListener('click', () => {
+      isRunning = false;
       timeLeft += 60000;
       pickedTime = timeLeft;
       updateDisplay();
     });
 
     document.getElementById('addSecBtn').addEventListener('click', () => {
+      isRunning = false;
       timeLeft += 10000;
       pickedTime = timeLeft;
       updateDisplay();
     });
 
     document.getElementById('addOneSecBtn').addEventListener('click', () => {
+      isRunning = false;
       timeLeft += 1000;
       pickedTime = timeLeft;
       updateDisplay();
