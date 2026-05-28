@@ -46,17 +46,17 @@ function removelastdigit() {
 // Math logic functions
 function additionofthetwonumbers() {
     result = num1 + num2
-    document.getElementById("result").textContent = textcontent + result
+    document.getElementById("result").textContent = textcontent + operator + result
 }
 
 function subtractionofthetwonumbers() {
     result = num1 - num2
-    document.getElementById("result").textContent = textcontent + result
+    document.getElementById("result").textContent = textcontent + operator + result
 }
 
 function multiplicationofthetwonumbers() {
     result = num1 * num2
-    document.getElementById("result").textContent = textcontent + result
+    document.getElementById("result").textContent = textcontent + operator + result
 }
 
 function divisionofthetwonumbers() {
@@ -64,12 +64,12 @@ function divisionofthetwonumbers() {
         document.getElementById("result").textContent = "Error: Division by zero"
     } else {
         result = num1 / num2
-        document.getElementById("result").textContent = textcontent + result
+        document.getElementById("result").textContent = textcontent + operator + result
     }
 }
 function findpercentofthetwonumberstogether() {
     result = (num1 / 100) * num2
-    document.getElementById("result").textContent = textcontent + result
+    document.getElementById("result").textContent = textcontent + operator + result
 }
 
 
