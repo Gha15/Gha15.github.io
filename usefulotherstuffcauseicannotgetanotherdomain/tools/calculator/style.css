@@ -14,6 +14,7 @@ body {
     font-size: 2.5rem;
     margin-bottom: 20px;
     letter-spacing: 1px;
+    font-family: vibur, cursive;
     }
 
     .calculator {
@@ -29,6 +30,7 @@ body {
       margin-bottom: 20px;
       font-size: 24px;
       text-align: right;
+      font-family: vibur, cursive;
     }
     .buttons {
       display: grid;

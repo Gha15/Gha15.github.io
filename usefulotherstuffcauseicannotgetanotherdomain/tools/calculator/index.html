@@ -21,11 +21,6 @@
 
         <!-- Button Grid Layout -->
         <div class="buttons">
-            <!-- Row 0: Clear Operations -->
-            <button class="number" onclick="clearScreen()">C</button>
-            <button class="number" onclick="clearScreen()">AC</button>
-            <button class="number" style="visibility: hidden;"></button> <!-- Empty spacer -->
-            <button class="number" style="visibility: hidden;"></button> <!-- Empty spacer -->
             <!-- Row 1 -->
             <button class="number" onclick="appendNumber('7')">7</button>
             <button class="number" onclick="appendNumber('8')">8</button>
@@ -47,8 +42,10 @@
             <!-- Row 4: Customized exactly to your setup -->
             <button class="number" onclick="appendNumber('.')">.</button>
             <button class="number" onclick="appendNumber('0')">0</button>
+            <button class="number" onclick="setOperator('/')">/</button> 
+            <button class="number" onclick="clearScreen()">AC</button>
             <button class="equals" onclick="calculate()">=</button>
-            <button class="addition" onclick="setOperator('+')">+</button>
+    
         </div>
     </div>
 </body>
