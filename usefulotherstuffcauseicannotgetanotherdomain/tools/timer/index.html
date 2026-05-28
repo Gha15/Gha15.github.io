@@ -100,7 +100,7 @@
       <span>&minus;</span>
       <span>&times;</span>
     </div>
-    <div class="time-00-00-format" id="display">00:00:000</div>
+    <div class="time-00-00-format" id="display">00:00</div>
     <div class="math-signs-at-the-right">
       <span>&divide;</span>
       <span>&pi;</span>
@@ -140,7 +140,7 @@
       let secStr = String(seconds).padStart(2, '0');
       let msStr = String(milliseconds).padStart(3, '0');
 
-      let formattedTime = `${minStr}:${secStr}:${msStr}`;
+      let formattedTime = `${minStr}:${secStr}`;
       document.getElementById('display').innerText = formattedTime;
 
       if (isRunning) {
