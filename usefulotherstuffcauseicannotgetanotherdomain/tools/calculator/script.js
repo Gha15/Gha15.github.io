@@ -1,46 +1,24 @@
 let textcontent = ""; 
-let thedigitsthatfittothescreen = 10;
-let flashInterval = null; 
+let thedigitsthatfittothescreen = 27;
 let clearOnNextInput = false; 
+let isErrorState = false; // Tracks if the 27-digit hard limit was hit
 
-// Displays a flashing warning message when layout bounds are reached
-function triggerErrorFlash() {
-    if (flashInterval) return; 
-
+// Locks the screen immediately without flashes or delays
+function triggerStaticError() {
     let display = document.getElementById("result");
-    let isVisible = true;
-    let flashCount = 0;
-    let originalText = display.textContent; 
-
-    flashInterval = setInterval(() => {
-        if (isVisible) {
-            display.textContent = "Error: Too many numbers";
-            display.style.color = "red"; 
-        } else {
-            display.textContent = ""; 
-        }
-        
-        isVisible = !isVisible;
-        flashCount++;
-
-        if (flashCount >= 6) {
-            clearInterval(flashInterval);
-            flashInterval = null;
-            display.textContent = originalText; 
-            display.style.color = ""; 
-        }
-    }, 250); 
+    display.textContent = "Error: Too many numbers";
+    display.style.color = "red"; 
+    isErrorState = true;
 }
 
-// Safely resets error states or previous results before typing
+// Resets static errors, generic errors, or previous calculation states
 function checkAndResetState() {
     let displayElement = document.getElementById("result");
     
-    if (flashInterval) {
-        clearInterval(flashInterval);
-        flashInterval = null;
+    if (isErrorState) {
         displayElement.style.color = "";
         displayElement.textContent = "0";
+        isErrorState = false;
     }
 
     if (clearOnNextInput || displayElement.textContent === "Error") {
@@ -61,7 +39,7 @@ function appendNumber(num) {
     }
 
     if (currentDisplay.length >= thedigitsthatfittothescreen) {
-        triggerErrorFlash();
+        triggerStaticError();
         return; 
     }
 
@@ -76,7 +54,7 @@ function appendDecimal() {
     let currentDisplay = displayElement.textContent;
 
     if (currentDisplay.length >= thedigitsthatfittothescreen) {
-        triggerErrorFlash();
+        triggerStaticError();
         return;
     }
 
@@ -102,7 +80,7 @@ function setOperator(op) {
     let currentDisplay = displayElement.textContent;
     
     if (currentDisplay.length >= thedigitsthatfittothescreen) {
-        triggerErrorFlash();
+        triggerStaticError();
         return;
     }
 
@@ -120,7 +98,7 @@ function openParenthesis() {
     let currentDisplay = displayElement.textContent;
     
     if (currentDisplay.length >= thedigitsthatfittothescreen) {
-        triggerErrorFlash();
+        triggerStaticError();
         return;
     }
 
@@ -138,7 +116,7 @@ function startSquareRoot() {
     let currentDisplay = displayElement.textContent;
     
     if (currentDisplay.length >= thedigitsthatfittothescreen) {
-        triggerErrorFlash();
+        triggerStaticError();
         return;
     }
 
@@ -156,7 +134,7 @@ function startCubeRoot() {
     let currentDisplay = displayElement.textContent;
     
     if (currentDisplay.length >= thedigitsthatfittothescreen) {
-        triggerErrorFlash();
+        triggerStaticError();
         return;
     }
 
@@ -174,7 +152,7 @@ function closeParenthesis() {
     let currentDisplay = displayElement.textContent;
     
     if (currentDisplay.length >= thedigitsthatfittothescreen) {
-        triggerErrorFlash();
+        triggerStaticError();
         return;
     }
     displayElement.textContent = currentDisplay + ")";
@@ -182,19 +160,16 @@ function closeParenthesis() {
 
 // Complete system reset button
 function clearScreen() {
-    if (flashInterval) {
-        clearInterval(flashInterval);
-        flashInterval = null;
-        document.getElementById("result").style.color = "";
-    }
+    document.getElementById("result").style.color = "";
     textcontent = "";
     clearOnNextInput = false;
+    isErrorState = false;
     document.getElementById("result").textContent = "0";
 }
 
 // Backspace function
 function removelastdigit() {
-    if (flashInterval || document.getElementById("result").textContent === "Error") {
+    if (isErrorState || document.getElementById("result").textContent === "Error") {
         clearScreen();
         return;
     }
@@ -215,14 +190,13 @@ function removelastdigit() {
 
 // Primary mathematical evaluation router
 function calculate() {
-    if (flashInterval) return;
+    if (isErrorState) return;
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
 
     try {
         let jsExpression = currentDisplay;
 
-        // Auto-close missing parentheses at the end of the string
         let openBrackets = (jsExpression.match(/\(/g) || []).length;
         let closeBrackets = (jsExpression.match(/\)/g) || []).length;
         while (openBrackets > closeBrackets) {
@@ -230,11 +204,9 @@ function calculate() {
             closeBrackets++;
         }
 
-        // Standardize roots to valid JS functions globally
         jsExpression = jsExpression.replace(/√\(/g, "Math.sqrt(");
         jsExpression = jsExpression.replace(/³√\(/g, "Math.cbrt(");
 
-        // Evaluate the token string mathematically
         let result = new Function(`return ${jsExpression}`)();
         
         if (isNaN(result) || result === Infinity || result === -Infinity) {
