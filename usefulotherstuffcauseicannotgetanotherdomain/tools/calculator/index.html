@@ -23,38 +23,34 @@
             <button class="number" onclick="clearScreen()">AC</button>
             <button class="number" onclick="removelastdigit()">DEL</button>
             <button class="number" onclick="setOperator('%')">%</button>
-            <button class="division" onclick="setOperator('/')">&divide;</button>
-
-            <!-- Row 2 -->
+            <button class="number" onclick="startSquareRoot()">&radic;</button>
             <button class="number" onclick="appendNumber('7')">7</button>
             <button class="number" onclick="appendNumber('8')">8</button>
             <button class="number" onclick="appendNumber('9')">9</button>
+            <button class="number" onclick="closeParenthesis()">)</button>
+            <!-- Row 2 -->
+            <button class="addition" onclick="setOperator('+')">+</button>
+            <button class="subtraction" onclick="setOperator('-')">-</button>
             <button class="multiplication" onclick="setOperator('*')">&times;</button>
-
-            <!-- Row 3 -->
+            <button class="division" onclick="setOperator('/')">&divide;</button>            
             <button class="number" onclick="appendNumber('4')">4</button>
             <button class="number" onclick="appendNumber('5')">5</button>
             <button class="number" onclick="appendNumber('6')">6</button>
-            <button class="subtraction" onclick="setOperator('-')">-</button>
-
-            <!-- Row 4 -->
-            <button class="number" onclick="appendNumber('1')">1</button>
-            <button class="number" onclick="appendNumber('2')">2</button>
-            <button class="number" onclick="appendNumber('3')">3</button> 
-            <button class="addition" onclick="setOperator('+')">+</button>
-            
-            <!-- Row 5 -->
+            <button class="number" onclick="openParenthesis()">(</button>
+         
+            <!-- Row 3 -->
+            <button class="number" onclick="startSquareRoot()">&radic;</button>          
+            <button class="number" onclick="startCubeRoot()">&#x221B;</button>
             <button class="number" onclick="appendNumber('0')">0</button>
             <button class="number" onclick="appendDecimal()">.</button>
-            <button class="number" onclick="startCubeRoot()">∛</button>
-            <button class="number" onclick="startSquareRoot()">&radic;</button>
-            <!-- Row 6 --->
+            <button class="number" onclick="appendNumber('1')">1</button>
+            <button class="number" onclick="appendNumber('2')">2</button>
+            <button class="number" onclick="appendNumber('3')">3</button>
             <div class="spacer"></div>
-            <button class="number" onclick="closeParenthesis()">)</button>
-            <div class="spacer"></div>
-            <div class="spacer"></div>
-            <!-- Row 7 --->
+            
+            <!------------------Row 4------------------>
             <button class="equals" onclick="calculate()">=</button>
+
         </div>
     </div>
 </body>
