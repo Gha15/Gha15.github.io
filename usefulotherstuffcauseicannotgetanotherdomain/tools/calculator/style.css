@@ -11,7 +11,13 @@ body {
     margin: 0;
     zoom: 80%;
 }
-
+h1 {
+    font-size: 3.5rem;
+    margin-bottom: 30px;
+}
+.vertical-spacer {
+    height: 20px;
+}
 /* Calculator Container */
 .calculator {
     background: #111111;
@@ -62,7 +68,7 @@ body {
 
 /* Equals Button Specifics */
 .equals {
-    grid-column: span 4;
+    grid-column: span 8;
     border-color: #ff3b3b;
 }
 

@@ -58,7 +58,8 @@ function appendDecimal() {
         return;
     }
 
-    let parts = currentDisplay.split(/[\s+\-*/()√³]/);
+    // Includes ^ so decimals work inside exponents
+    let parts = currentDisplay.split(/[\s+\-*/()√³^]/);
     let activeSegment = parts[parts.length - 1];
 
     if (activeSegment.includes(".")) {
@@ -88,6 +89,25 @@ function setOperator(op) {
         displayElement.textContent = currentDisplay.slice(0, -3) + " " + op + " ";
     } else {
         displayElement.textContent = currentDisplay + " " + op + " ";
+    }
+}
+
+// FIXED FUNCTION: Appends the visible '^' operator symbol to the layout view
+function findresultwithpowerof() {
+    checkAndResetState();
+    
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+    
+    if (currentDisplay.length >= thedigitsthatfittothescreen) {
+        triggerStaticError();
+        return;
+    }
+
+    if (currentDisplay.endsWith(" ")) {
+        displayElement.textContent = currentDisplay.slice(0, -3) + " ^ ";
+    } else {
+        displayElement.textContent = currentDisplay + " ^ ";
     }
 }
 
@@ -206,6 +226,9 @@ function calculate() {
 
         jsExpression = jsExpression.replace(/√\(/g, "Math.sqrt(");
         jsExpression = jsExpression.replace(/³√\(/g, "Math.cbrt(");
+        
+        // Swaps the screen's visual '^' with JavaScript's mathematical '**' logic
+        jsExpression = jsExpression.replace(/\^/g, "**");
 
         let result = new Function(`return ${jsExpression}`)();
         
