@@ -58,7 +58,6 @@ function appendDecimal() {
         return;
     }
 
-    // Includes ^ so decimals work inside exponents
     let parts = currentDisplay.split(/[\s+\-*/()√³^]/);
     let activeSegment = parts[parts.length - 1];
 
@@ -73,7 +72,67 @@ function appendDecimal() {
     }
 }
 
-// Handles setup for standard calculations (+, -, *, /, %)
+// REAL BASIC CALCULATOR PERCENTAGE ENGINE
+// Acts as an immediate calculation trigger based on standard hardware logic
+function appendPercentage() {
+    checkAndResetState();
+
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+
+    // Reject if empty or reset state
+    if (currentDisplay === "0" || currentDisplay === "") {
+        return;
+    }
+
+    try {
+        // Pattern matches: [Number 1] [Operator] [Number 2] (e.g., "100 + 10" or "50 * 5")
+        // Accommodates spaces around operators based on setOperator format
+        let pattern = /^([\d.]+)\s*([\+\-\*\/])\s*([\d.]+)$/;
+        let match = currentDisplay.match(pattern);
+
+        let finalResult;
+
+        if (match) {
+            let num1 = parseFloat(match[1]);
+            let operator = match[2];
+            let num2 = parseFloat(match[3]);
+
+            // Real calculator logic depends heavily on the operator type:
+            if (operator === "+" || operator === "-") {
+                // Add/Subtract percentage: 100 + 10% becomes 100 + (100 * 0.10)
+                let percentAmount = num1 * (num2 / 100);
+                finalResult = operator === "+" ? num1 + percentAmount : num1 - percentAmount;
+            } else if (operator === "*") {
+                // Multiply percentage: 50 * 10% becomes 50 * 0.10
+                finalResult = num1 * (num2 / 100);
+            } else if (operator === "/") {
+                // Divide percentage: 50 / 10% becomes 50 / 0.10
+                if (num2 === 0) throw new Error("Divide by zero");
+                finalResult = num1 / (num2 / 100);
+            }
+        } else {
+            // Standalone percentage logic: "45" becomes "0.45"
+            // Ensure the string is purely a single valid float/int before splitting
+            if (!isNaN(currentDisplay)) {
+                finalResult = parseFloat(currentDisplay) / 100;
+            } else {
+                return; // Ignore if expression is complex/unsupported
+            }
+        }
+
+        // Output calculation immediately and flag state to overwrite on next input
+        updateDisplay(finalResult);
+        textcontent = displayElement.textContent;
+        clearOnNextInput = true;
+
+    } catch (e) {
+        displayElement.textContent = "Error";
+        clearOnNextInput = true;
+    }
+}
+
+// Handles setup for standard calculations (+, -, *, /)
 function setOperator(op) {
     checkAndResetState();
     
@@ -92,7 +151,7 @@ function setOperator(op) {
     }
 }
 
-// FIXED FUNCTION: Appends the visible '^' operator symbol to the layout view
+// Appends the visible '^' operator symbol to the layout view
 function findresultwithpowerof() {
     checkAndResetState();
     
@@ -226,8 +285,6 @@ function calculate() {
 
         jsExpression = jsExpression.replace(/√\(/g, "Math.sqrt(");
         jsExpression = jsExpression.replace(/³√\(/g, "Math.cbrt(");
-        
-        // Swaps the screen's visual '^' with JavaScript's mathematical '**' logic
         jsExpression = jsExpression.replace(/\^/g, "**");
 
         let result = new Function(`return ${jsExpression}`)();

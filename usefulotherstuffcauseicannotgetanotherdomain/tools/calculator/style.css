@@ -15,10 +15,10 @@ body {
     transform-origin: top center; 
 }
 
-/* Phones (60%) */
+/* Phones (45%) */
 @media (max-width: 480px) {
     body {
-        transform: scale(0.6);
+        transform: scale(0.45);
     }
 }
 
