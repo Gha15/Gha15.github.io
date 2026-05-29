@@ -23,20 +23,20 @@ body {
 /* Display Screen */
 .displaytext {
     background-color: #0d0d0d;
-    padding: 20px;
+    padding: 15px;
     border: 1px solid #333333;
     border-radius: 8px;
     font-size: 2.9rem;
     text-align: right;
     color: white;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     user-select: none;
 }
 
 /* Button Grid */
 .buttons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(8, 1fr);
     gap: 15px;
 }
 
