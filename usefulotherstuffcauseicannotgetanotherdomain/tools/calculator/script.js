@@ -1,11 +1,7 @@
-let textcontent = "" 
-let num1 = 0
-let num2 = 0
-let operator = ""
-let result = 0
-let thedigitsthatfittothescreen = 15 
-let isOperatorActive = false 
-let flashInterval = null // Tracking variable for our error flash timing loops
+let textcontent = ""; 
+let thedigitsthatfittothescreen = 10;
+let flashInterval = null; 
+let clearOnNextInput = false; 
 
 // Displays a flashing warning message when layout bounds are reached
 function triggerErrorFlash() {
@@ -36,9 +32,26 @@ function triggerErrorFlash() {
     }, 250); 
 }
 
+// Safely resets error states or previous results before typing
+function checkAndResetState() {
+    let displayElement = document.getElementById("result");
+    
+    if (flashInterval) {
+        clearInterval(flashInterval);
+        flashInterval = null;
+        displayElement.style.color = "";
+        displayElement.textContent = "0";
+    }
+
+    if (clearOnNextInput || displayElement.textContent === "Error") {
+        displayElement.textContent = "0";
+        clearOnNextInput = false;
+    }
+}
+
 // Appends numbers 0-9 to the interface screen
 function appendNumber(num) {
-    if (flashInterval) return;
+    checkAndResetState();
 
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
@@ -57,7 +70,7 @@ function appendNumber(num) {
 
 // Appends a decimal point safely
 function appendDecimal() {
-    if (flashInterval) return;
+    checkAndResetState();
 
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
@@ -67,14 +80,14 @@ function appendDecimal() {
         return;
     }
 
-    let parts = currentDisplay.split(" ");
+    let parts = currentDisplay.split(/[\s+\-*/()√³]/);
     let activeSegment = parts[parts.length - 1];
 
     if (activeSegment.includes(".")) {
         return;
     }
 
-    if (currentDisplay === "" || currentDisplay.endsWith(" ")) {
+    if (currentDisplay === "" || currentDisplay.endsWith(" ") || currentDisplay.endsWith("(")) {
         displayElement.textContent = currentDisplay + "0.";
     } else {
         displayElement.textContent = currentDisplay + ".";
@@ -83,75 +96,88 @@ function appendDecimal() {
 
 // Handles setup for standard calculations (+, -, *, /, %)
 function setOperator(op) {
-    if (flashInterval) return; 
+    checkAndResetState();
     
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
     
-    if (currentDisplay.includes("(")) {
-        if (currentDisplay.length >= thedigitsthatfittothescreen) {
-            triggerErrorFlash();
-            return;
-        }
-        displayElement.textContent = currentDisplay + " " + op + " ";
+    if (currentDisplay.length >= thedigitsthatfittothescreen) {
+        triggerErrorFlash();
         return;
     }
 
-    num1 = parseFloat(currentDisplay);
-    operator = op;
-    displayElement.textContent = num1 + " " + operator + " ";
-    isOperatorActive = true;
+    if (currentDisplay.endsWith(" ")) {
+        displayElement.textContent = currentDisplay.slice(0, -3) + " " + op + " ";
+    } else {
+        displayElement.textContent = currentDisplay + " " + op + " ";
+    }
+}
+
+// Opens a standard mathematical parenthesis group
+function openParenthesis() {
+    checkAndResetState();
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+    
+    if (currentDisplay.length >= thedigitsthatfittothescreen) {
+        triggerErrorFlash();
+        return;
+    }
+
+    if (currentDisplay === "0") {
+        displayElement.textContent = "(";
+    } else {
+        displayElement.textContent = currentDisplay + "(";
+    }
 }
 
 // Activates square root processing with brackets
 function startSquareRoot() {
-    if (flashInterval) return;
+    checkAndResetState();
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
-    operator = "√";
     
+    if (currentDisplay.length >= thedigitsthatfittothescreen) {
+        triggerErrorFlash();
+        return;
+    }
+
     if (currentDisplay === "0") {
         displayElement.textContent = "√(";
     } else {
-        if (currentDisplay.length >= thedigitsthatfittothescreen) {
-            triggerErrorFlash();
-            return;
-        }
         displayElement.textContent = currentDisplay + "√(";
     }
 }
 
 // Activates cube root processing with brackets
 function startCubeRoot() {
-    if (flashInterval) return;
+    checkAndResetState();
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
-    operator = "³√";
     
+    if (currentDisplay.length >= thedigitsthatfittothescreen) {
+        triggerErrorFlash();
+        return;
+    }
+
     if (currentDisplay === "0") {
         displayElement.textContent = "³√(";
     } else {
-        if (currentDisplay.length >= thedigitsthatfittothescreen) {
-            triggerErrorFlash();
-            return;
-        }
         displayElement.textContent = currentDisplay + "³√(";
     }
 }
 
 // Closes any active open math parenthesis brackets
 function closeParenthesis() {
-    if (flashInterval) return;
+    checkAndResetState();
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
     
-    if (currentDisplay.includes("(")) {
-        if (currentDisplay.length >= thedigitsthatfittothescreen) {
-            triggerErrorFlash();
-            return;
-        }
-        displayElement.textContent = currentDisplay + ")";
+    if (currentDisplay.length >= thedigitsthatfittothescreen) {
+        triggerErrorFlash();
+        return;
     }
+    displayElement.textContent = currentDisplay + ")";
 }
 
 // Complete system reset button
@@ -161,18 +187,18 @@ function clearScreen() {
         flashInterval = null;
         document.getElementById("result").style.color = "";
     }
-    num1 = 0;
-    num2 = 0;
-    operator = "";
-    result = 0;
     textcontent = "";
-    isOperatorActive = false;
+    clearOnNextInput = false;
     document.getElementById("result").textContent = "0";
 }
 
 // Backspace function
 function removelastdigit() {
-    if (flashInterval) return;
+    if (flashInterval || document.getElementById("result").textContent === "Error") {
+        clearScreen();
+        return;
+    }
+    
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
     
@@ -194,17 +220,33 @@ function calculate() {
     let currentDisplay = displayElement.textContent;
 
     try {
-        // Replace roots with JS functions everywhere
-        let jsExpression = currentDisplay
-            .replace(/√\(([^()]*)\)/g, "Math.sqrt($1)")
-            .replace(/³√\(([^()]*)\)/g, "Math.cbrt($1)");
+        let jsExpression = currentDisplay;
 
-        // Evaluate full expression
-        result = new Function(`return ${jsExpression}`)();
+        // Auto-close missing parentheses at the end of the string
+        let openBrackets = (jsExpression.match(/\(/g) || []).length;
+        let closeBrackets = (jsExpression.match(/\)/g) || []).length;
+        while (openBrackets > closeBrackets) {
+            jsExpression += ")";
+            closeBrackets++;
+        }
+
+        // Standardize roots to valid JS functions globally
+        jsExpression = jsExpression.replace(/√\(/g, "Math.sqrt(");
+        jsExpression = jsExpression.replace(/³√\(/g, "Math.cbrt(");
+
+        // Evaluate the token string mathematically
+        let result = new Function(`return ${jsExpression}`)();
+        
+        if (isNaN(result) || result === Infinity || result === -Infinity) {
+            throw new Error("Invalid Math");
+        }
+
         updateDisplay(result);
         textcontent = displayElement.textContent;
+        clearOnNextInput = true; 
     } catch (e) {
         displayElement.textContent = "Error";
+        clearOnNextInput = true;
     }
 }
 
@@ -212,7 +254,7 @@ function calculate() {
 function updateDisplay(val) {
     let output = val.toString();
     if (output.length > thedigitsthatfittothescreen) {
-        output = val.toPrecision(thedigitsthatfittothescreen - 5); 
+        output = val.toPrecision(thedigitsthatfittothescreen - 4); 
     }
     document.getElementById("result").textContent = output;
 }
