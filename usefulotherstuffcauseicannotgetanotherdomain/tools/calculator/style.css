@@ -9,8 +9,26 @@ body {
     justify-content: center;
     min-height: 100vh;
     margin: 0;
-    zoom: 80%;
+    
+    /* Standard scaling for Laptops and PCs (80%) */
+    transform: scale(0.8);
+    transform-origin: top center; 
 }
+
+/* Phones (60%) */
+@media (max-width: 480px) {
+    body {
+        transform: scale(0.6);
+    }
+}
+
+/* iPads and Tablets (70%) */
+@media (min-width: 481px) and (max-width: 1024px) {
+    body {
+        transform: scale(0.7);
+    }
+}
+
 h1 {
     font-size: 3.5rem;
     margin-bottom: 30px;
