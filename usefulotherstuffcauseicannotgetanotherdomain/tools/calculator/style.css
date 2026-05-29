@@ -9,6 +9,7 @@ body {
     justify-content: center;
     min-height: 100vh;
     margin: 0;
+    zoom: 80%;
 }
 
 /* Calculator Container */
