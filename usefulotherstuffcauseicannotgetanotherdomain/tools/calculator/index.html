@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculator - matix the math club</title>
-    <link href="https://googleapis.com" rel="stylesheet">
+    
+    <!-- Modern Google Fonts delivery CDN links for Vibur font -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
     <script>
-        // Only handles shifting between 4 and 8 column layouts cleanly
         function updateCalculatorLayout() {
             const isLaptopOrPC = window.matchMedia("(min-width: 1025px)").matches;
             const isLandscapeOrientation = window.matchMedia("(orientation: landscape)").matches;

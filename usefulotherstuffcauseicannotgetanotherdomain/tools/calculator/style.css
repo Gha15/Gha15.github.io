@@ -6,26 +6,24 @@
 }
 
 html, body {
-    height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevents vertical and horizontal scrollbars completely */
+    background-color: #01022b;
 }
 
 body {
-    background-color: #01022b;
     color: #ffeb3b;
     font-family: 'Vibur', cursive;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Centers the upscaled calculator vertically */
-    min-height: 100dvh;
-    padding: 15px;
+    justify-content: center; 
+    min-height: 100dvh; /* Fluid viewport adaptation */
+    padding: 20px 12px;
 }
 
 h1 {
-    font-size: clamp(2.5rem, 5.5vh, 3.8rem); /* Proportional title scaling */
+    font-size: clamp(2rem, 5vh, 3.2rem); 
     margin-top: 0;
     margin-bottom: 20px;
     text-align: center;
@@ -33,17 +31,16 @@ h1 {
 }
 
 /* ==========================================================================
-   2. Calculator Wrapper (Targeting 125vh Scale Equivalent Space)
+   2. Calculator Wrapper (Main Fluid Box Container)
    ========================================================================== */
 .calculator {
     background: #111111;
-    padding: clamp(25px, 3.5vh, 42px); /* Goldilocks inner cell padding */
+    padding: clamp(16px, 3vw, 36px); 
     border-radius: 20px;
     border: 1px solid #ffeb3b;
     box-shadow: 0 0 35px rgba(255, 235, 59, 0.22);
     width: 100%;
-    max-width: 860px; /* Swept back from 960px to stay elegantly bound */
-    max-height: 92dvh; /* Protective boundary block */
+    max-width: 820px; /* Dominant profile on desktop viewports */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -54,26 +51,30 @@ h1 {
    ========================================================================== */
 .displaytext {
     background-color: #0d0d0d;
-    padding: clamp(18px, 2.2vh, 28px);
+    padding: clamp(15px, 2vw, 25px);
     border: 1px solid #333333;
     border-radius: 12px;
-    margin-bottom: clamp(20px, 2.5vh, 32px); 
+    margin-bottom: clamp(15px, 2.5vh, 28px); 
     user-select: none;
     display: flex;
     justify-content: flex-end; 
     align-items: center;
-    min-height: clamp(85px, 11vh, 120px); /* Clean, slightly dialed back window height */
-    overflow: hidden;
+    min-height: clamp(75px, 10vh, 110px); 
+    overflow-x: auto; 
+    scrollbar-width: none; 
     flex-shrink: 0;
 }
 
+.displaytext::-webkit-scrollbar {
+    display: none; /* Hides horizontal bars on Chrome, Safari, and Opera */
+}
+
 .displaytext span {
-    font-size: clamp(2.8rem, 7.5vh, 4.4rem); /* Large, easily readable calculation readout */
+    font-size: clamp(2.4rem, 6vh, 4rem); /* Large font scaling readout */
     color: white;
     margin: 0;
     padding: 0;
     white-space: nowrap; 
-    transition: font-size 0.1s ease;
 }
 
 /* ==========================================================================
@@ -81,13 +82,13 @@ h1 {
    ========================================================================== */
 .buttons {
     display: grid;
-    gap: clamp(12px, 2vh, 22px); /* Clean balance spacing */
+    gap: clamp(8px, 1.8vw, 20px); /* Tighter spacing configuration on mobile */
     width: 100%;
     justify-content: center; 
     align-content: center;   
 }
 
-/* Javascript Layout Hook: If data-layout matches 4 columns */
+/* 4 Column Mapping */
 .buttons[data-layout="4-col"] {
     grid-template-columns: repeat(4, 1fr);
 }
@@ -95,7 +96,7 @@ h1 {
     grid-column: span 4;
 }
 
-/* Javascript Layout Hook: If data-layout matches 8 columns */
+/* 8 Column Mapping */
 .buttons[data-layout="8-col"] {
     grid-template-columns: repeat(8, 1fr);
 }
@@ -110,11 +111,11 @@ h1 {
     background: #1a1a1a;
     color: white;
     border: 1px solid #ffeb3b;
-    padding: clamp(15px, 2.2vh, 24px); 
-    min-height: clamp(65px, 8vh, 90px); /* Chunky keys without overflowing screen layout bounds */
+    padding: clamp(12px, 2vh, 22px); 
+    min-height: clamp(55px, 7.5vh, 85px); /* Ensures buttons maintain structure on mobile */
     width: 100%; 
     font-family: 'Vibur', cursive;
-    font-size: clamp(1.5rem, 3.2vh, 2.2rem); /* Clean font scale notch drop */
+    font-size: clamp(1.3rem, 2.5vh, 2rem); /* Dynamic button text scaling */
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -139,16 +140,16 @@ h1 {
 }
 
 /* ==========================================================================
-   6. Micro Layout Fallbacks (Extremely Short Mobile Screens)
+   6. Landscape & Mobile Height Adjustments (Prevents Layout Squishing)
    ========================================================================== */
-@media (max-height: 520px) and (orientation: landscape) {
-    body { padding: 5px; }
-    h1 { margin-bottom: 5px; font-size: 1.8rem; }
-    .displaytext { min-height: 50px; margin-bottom: 10px; padding: 8px 16px; }
-    .calculator { padding: 12px; }
+@media (max-height: 580px) and (orientation: landscape) {
+    body { padding: 8px; }
+    h1 { margin-bottom: 8px; font-size: 1.8rem; }
+    .displaytext { min-height: 55px; margin-bottom: 12px; padding: 10px 20px; }
+    .calculator { padding: 14px; }
     .addition, .subtraction, .multiplication, .division, .number, .equals, .open-parenthesis, .power-of {
-        min-height: 38px;
-        padding: 5px;
-        font-size: 1.1rem;
+        min-height: 44px;
+        padding: 6px;
+        font-size: 1.2rem;
     }
 }
