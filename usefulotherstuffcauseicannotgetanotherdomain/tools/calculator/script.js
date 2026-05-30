@@ -187,11 +187,10 @@ function openParenthesis() {
         displayElement.textContent = currentDisplay + "(";
     }
 }
-
-// Activates square root processing with brackets
-function startSquareRoot() {
+function closeParenthesis() {
     checkAndResetState();
     let displayElement = document.getElementById("result");
+
     let currentDisplay = displayElement.textContent;
     
     if (currentDisplay.length >= thedigitsthatfittothescreen) {
@@ -200,9 +199,9 @@ function startSquareRoot() {
     }
 
     if (currentDisplay === "0") {
-        displayElement.textContent = "√(";
+        displayElement.textContent = ")";
     } else {
-        displayElement.textContent = currentDisplay + "√(";
+        displayElement.textContent = currentDisplay + ")";
     }
 }
 
