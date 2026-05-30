@@ -1,7 +1,7 @@
 let textcontent = ""; 
-let thedigitsthatfittothescreen = 27;
+let thedigitsthatfittothescreen = 41; // Adjust this value based on the actual character limit of the display
 let clearOnNextInput = false; 
-let isErrorState = false; // Tracks if the 27-digit hard limit was hit
+let isErrorState = false; // Tracks if the 41-digit hard limit was hit
 
 // Locks the screen immediately without flashes or delays
 function triggerStaticError() {
