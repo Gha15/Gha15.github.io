@@ -4,22 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculator - matix the math club</title>
-    <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+    <link href="https://googleapis.com" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
+    <script>
+        // Only handles shifting between 4 and 8 column layouts cleanly
+        function updateCalculatorLayout() {
+            const isLaptopOrPC = window.matchMedia("(min-width: 1025px)").matches;
+            const isLandscapeOrientation = window.matchMedia("(orientation: landscape)").matches;
+            const isIpadPortrait = window.matchMedia("(min-width: 768px) and (max-width: 1024px) and (orientation: portrait)").matches;
+            
+            const calculatorGrid = document.querySelector('.buttons');
+            if (!calculatorGrid) return;
+
+            if (isIpadPortrait) {
+                calculatorGrid.setAttribute('data-layout', '4-col');
+            } else if (isLaptopOrPC || isLandscapeOrientation) {
+                calculatorGrid.setAttribute('data-layout', '8-col');
+            } else {
+                calculatorGrid.setAttribute('data-layout', '4-col');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', updateCalculatorLayout);
+        window.addEventListener('resize', updateCalculatorLayout);
+    </script>
 </head>
 <body>
-    <div class="vertical-spacer"></div>
     <h1>&gt; Calculator</h1>
+    
     <div class="calculator">
         <!-- Display screen -->
         <div class="displaytext">
-            <p id="result">0</p>
+            <span id="result">0</span>
         </div>
 
         <!-- Button Grid Layout -->
-        <div class="buttons">
-            <!-- Row 1 -->
+        <div class="buttons" data-layout="4-col">
             <button class="number" onclick="clearScreen()">AC</button>
             <button class="number" onclick="removelastdigit()">DEL</button>
             <button class="number" onclick="appendPercentage()">%</button>
@@ -28,7 +49,7 @@
             <button class="number" onclick="appendNumber('8')">8</button>
             <button class="number" onclick="appendNumber('9')">9</button>
             <button class="number" onclick="closeParenthesis()">)</button>
-            <!-- Row 2 -->
+            
             <button class="addition" onclick="setOperator('+')">+</button>
             <button class="subtraction" onclick="setOperator('-')">-</button>
             <button class="multiplication" onclick="setOperator('*')">&times;</button>
@@ -36,9 +57,8 @@
             <button class="number" onclick="appendNumber('4')">4</button>
             <button class="number" onclick="appendNumber('5')">5</button>
             <button class="number" onclick="appendNumber('6')">6</button>
-            <button class="number" onclick="openParenthesis()">(</button>
+            <button class="open-parenthesis" onclick="openParenthesis()">(</button>
          
-            <!-- Row 3 -->
             <button class="number" onclick="startSquareRoot()">&radic;</button>          
             <button class="number" onclick="startCubeRoot()">&#x221B;</button>
             <button class="number" onclick="appendNumber('0')">0</button>
@@ -46,11 +66,9 @@
             <button class="number" onclick="appendNumber('1')">1</button>
             <button class="number" onclick="appendNumber('2')">2</button>
             <button class="number" onclick="appendNumber('3')">3</button>
-            <button class="number" onclick="findresultwithpowerof()">^</button>
+            <button class="power-of" onclick="findresultwithpowerof()">^</button>
             
-            <!------------------Row 4------------------>
             <button class="equals" onclick="calculate()">=</button>
-
         </div>
     </div>
 </body>

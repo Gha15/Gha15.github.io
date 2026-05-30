@@ -1,4 +1,17 @@
-/* Core Page Layout */
+/* ==========================================================================
+   1. Core Page Layout
+   ========================================================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevents vertical and horizontal scrollbars completely */
+}
+
 body {
     background-color: #01022b;
     color: #ffeb3b;
@@ -6,87 +19,117 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
-    
-    /* Standard scaling for Laptops and PCs (80%) */
-    transform: scale(0.8);
-    transform-origin: top center; 
-}
-
-/* Phones (45%) */
-@media (max-width: 480px) {
-    body {
-        transform: scale(0.45);
-    }
-}
-
-/* iPads and Tablets (70%) */
-@media (min-width: 481px) and (max-width: 1024px) {
-    body {
-        transform: scale(0.7);
-    }
+    justify-content: center; /* Centers the upscaled calculator vertically */
+    min-height: 100dvh;
+    padding: 15px;
 }
 
 h1 {
-    font-size: 3.5rem;
-    margin-bottom: 30px;
+    font-size: clamp(2.5rem, 5.5vh, 3.8rem); /* Proportional title scaling */
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    flex-shrink: 0;
 }
-.vertical-spacer {
-    height: 20px;
-}
-/* Calculator Container */
+
+/* ==========================================================================
+   2. Calculator Wrapper (Targeting 125vh Scale Equivalent Space)
+   ========================================================================== */
 .calculator {
     background: #111111;
-    padding: 30px;
-    border-radius: 12px;
+    padding: clamp(25px, 3.5vh, 42px); /* Goldilocks inner cell padding */
+    border-radius: 20px;
     border: 1px solid #ffeb3b;
-    box-shadow: 0 0 20px rgba(255, 235, 59, 0.15);
+    box-shadow: 0 0 35px rgba(255, 235, 59, 0.22);
+    width: 100%;
+    max-width: 860px; /* Swept back from 960px to stay elegantly bound */
+    max-height: 92dvh; /* Protective boundary block */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-/* Display Screen */
+/* ==========================================================================
+   3. Display Screen
+   ========================================================================== */
 .displaytext {
     background-color: #0d0d0d;
-    padding: 15px;
+    padding: clamp(18px, 2.2vh, 28px);
     border: 1px solid #333333;
-    border-radius: 8px;
-    font-size: 2.9rem;
-    text-align: right;
-    color: white;
-    margin-bottom: 15px;
+    border-radius: 12px;
+    margin-bottom: clamp(20px, 2.5vh, 32px); 
     user-select: none;
+    display: flex;
+    justify-content: flex-end; 
+    align-items: center;
+    min-height: clamp(85px, 11vh, 120px); /* Clean, slightly dialed back window height */
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-/* Button Grid */
+.displaytext span {
+    font-size: clamp(2.8rem, 7.5vh, 4.4rem); /* Large, easily readable calculation readout */
+    color: white;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap; 
+    transition: font-size 0.1s ease;
+}
+
+/* ==========================================================================
+   4. Grid Layout Structure
+   ========================================================================== */
 .buttons {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 15px;
+    gap: clamp(12px, 2vh, 22px); /* Clean balance spacing */
+    width: 100%;
+    justify-content: center; 
+    align-content: center;   
 }
 
-/* Base style for all buttons */
-.addition, .subtraction, .multiplication, .division, .number, .equals {
+/* Javascript Layout Hook: If data-layout matches 4 columns */
+.buttons[data-layout="4-col"] {
+    grid-template-columns: repeat(4, 1fr);
+}
+.buttons[data-layout="4-col"] .equals {
+    grid-column: span 4;
+}
+
+/* Javascript Layout Hook: If data-layout matches 8 columns */
+.buttons[data-layout="8-col"] {
+    grid-template-columns: repeat(8, 1fr);
+}
+.buttons[data-layout="8-col"] .equals {
+    grid-column: span 8;
+}
+
+/* ==========================================================================
+   5. Button Elements Styling
+   ========================================================================== */
+.addition, .subtraction, .multiplication, .division, .number, .equals, .open-parenthesis, .power-of {
     background: #1a1a1a;
     color: white;
     border: 1px solid #ffeb3b;
-    padding: 15px;
+    padding: clamp(15px, 2.2vh, 24px); 
+    min-height: clamp(65px, 8vh, 90px); /* Chunky keys without overflowing screen layout bounds */
+    width: 100%; 
     font-family: 'Vibur', cursive;
-    font-size: 1.5rem;
+    font-size: clamp(1.5rem, 3.2vh, 2.2rem); /* Clean font scale notch drop */
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    text-align: center;
     transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
-/* Hover effect for all buttons */
-.addition:hover, .subtraction:hover, .multiplication:hover, .division:hover, .number:hover, .equals:hover {
+.addition:hover, .subtraction:hover, .multiplication:hover, .division:hover, .number:hover, .equals:hover, .open-parenthesis:hover, .power-of:hover {
     color: #0d0d0d;
     background-color: #ffeb3b;
-    transform: scale(1.05);
+    transform: scale(1.04);
 }
 
-/* Equals Button Specifics */
 .equals {
-    grid-column: span 8;
     border-color: #ff3b3b;
 }
 
@@ -95,13 +138,17 @@ h1 {
     color: white;
 }
 
-/* Side Panels */
-.math-signs-at-the-left, .math-signs-at-the-right {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    color: #ffeb3b;
-    font-size: 1.8rem;
-    opacity: 0.6;
-    user-select: none;
+/* ==========================================================================
+   6. Micro Layout Fallbacks (Extremely Short Mobile Screens)
+   ========================================================================== */
+@media (max-height: 520px) and (orientation: landscape) {
+    body { padding: 5px; }
+    h1 { margin-bottom: 5px; font-size: 1.8rem; }
+    .displaytext { min-height: 50px; margin-bottom: 10px; padding: 8px 16px; }
+    .calculator { padding: 12px; }
+    .addition, .subtraction, .multiplication, .division, .number, .equals, .open-parenthesis, .power-of {
+        min-height: 38px;
+        padding: 5px;
+        font-size: 1.1rem;
+    }
 }
