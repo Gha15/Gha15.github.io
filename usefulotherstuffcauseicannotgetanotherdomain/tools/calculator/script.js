@@ -282,10 +282,17 @@ function calculate() {
             jsExpression += ")";
             closeBrackets++;
         }
-
-        jsExpression = jsExpression.replace(/√\(/g, "Math.sqrt(");
+        // 1. Replace the cube root first
         jsExpression = jsExpression.replace(/³√\(/g, "Math.cbrt(");
+
+        // 2. Then replace the square root
+        jsExpression = jsExpression.replace(/√\(/g, "Math.sqrt(");
+
+        // 3. Replace exponents
         jsExpression = jsExpression.replace(/\^/g, "**");
+
+
+  
 
         let result = new Function(`return ${jsExpression}`)();
         
