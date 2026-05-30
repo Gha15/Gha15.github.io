@@ -1,7 +1,7 @@
 let textcontent = ""; 
-let thedigitsthatfittothescreen = 41; // Adjust this value based on the actual character limit of the display
+let thedigitsthatfittothescreen = 30; // Adjust this value based on the actual character limit of the display
 let clearOnNextInput = false; 
-let isErrorState = false; // Tracks if the 41-digit hard limit was hit
+let isErrorState = false; // Tracks if the 30-digit hard limit was hit
 
 // Locks the screen immediately without flashes or delays
 function triggerStaticError() {
@@ -21,7 +21,7 @@ function checkAndResetState() {
         isErrorState = false;
     }
 
-    if (clearOnNextInput || displayElement.textContent === "Error") {
+    if ( displayElement.textContent === "Error") {
         displayElement.textContent = "0";
         clearOnNextInput = false;
     }
@@ -223,9 +223,8 @@ function startCubeRoot() {
         displayElement.textContent = currentDisplay + "³√(";
     }
 }
-
-// Closes any active open math parenthesis brackets
-function closeParenthesis() {
+function startSquared() {
+    
     checkAndResetState();
     let displayElement = document.getElementById("result");
     let currentDisplay = displayElement.textContent;
@@ -234,7 +233,7 @@ function closeParenthesis() {
         triggerStaticError();
         return;
     }
-    displayElement.textContent = currentDisplay + ")";
+    displayElement.textContent = currentDisplay + "²";
 }
 
 // Complete system reset button
@@ -290,6 +289,8 @@ function calculate() {
 
         // 3. Replace exponents
         jsExpression = jsExpression.replace(/\^/g, "**");
+
+        jsExpression = jsExpression.replace(/\²/g, "**2");
 
 
   
