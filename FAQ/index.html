@@ -3,83 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coming Soon</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            /* Darkened overlay gradient + abstract background image */
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
-                        url('https://unsplash.com') no-repeat center center/cover;
-            color: #fff;
-            text-align: center;
-            overflow: hidden;
-        }
-
-        /* Glassmorphism card effect */
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 50px 40px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 90%;
-            animation: fadeIn 1.5s ease-out;
-        }
-
-        h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            letter-spacing: 3px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            background: linear-gradient(45deg, #ffffff, #a3b1ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p {
-            font-size: 1.2rem;
-            color: #e0e0e0;
-            letter-spacing: 1px;
-        }
-
-        /* Smooth entry animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media(max-width: 480px) {
-            h1 { font-size: 2.5rem; }
-            p { font-size: 1rem; }
-            .card { padding: 40px 20px; }
-        }
-    </style>
+    <title>FAQ - matix the math club</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
 </head>
 <body>
-
-    <div class="card">
-        <h1>Coming Soon</h1>
-        <p>Something beautiful is on the way.</p>
+    <h1>FAQ</h1>
+    <div class="faq-container">
+        <div class="question-buttons" onclick="openwindowforquestion('what is matix the math club?', 'a math club made at school.')">What is matix the math club?</div>
+        <div class="question-buttons" onclick="openwindowforquestion('did we copy other brands like matix shopping or matiks math puzzles?', 'No,  we got the name ourself.')">Did we copy other brands like matix shopping or matiks math puzzles?</div>
+        <div class="question-buttons" onclick="openwindowforquestion('how did we get the name matix', 'We got the name matix from the start name mathers we thought and thought... and exactly the thing we needed: MATIX why? first we like robotics so we made it rime with it and second we like sticks! 😂 ')">How did we get the name matix?</div>
+        <div class="question-buttons" onclick="openwindowforquestion('how can I join', 'Sorry you can not join matix the math club ☹️.')">How can I join matix the math club?</div>
+        <div class="question-buttons" onclick="openwindowforquestion('what does the math club do?', 'matix the math club is a math club made at scool and we just learn stuff and have fun!')">What does the math club do?</div>
     </div>
 
 </body>
