@@ -25,21 +25,20 @@
       overflow: hidden; 
       position: relative; 
       box-sizing: border-box; 
-      /* Targets Laptops and Desktop PCs (Devices with a mouse or trackpad) */
-      @media (pointer: fine) and (hover: hover) {
-      .element {
-      /* Your laptop/PC specific styles here */
-      transform: scale(125)
-      }
-}
+    }
 
-/* Targets Mobile Phones and Tablets (Touchscreen-only devices) */
-@media (pointer: coarse) and (hover: none) {
-  .element {
-    /* Your phone/tablet specific styles here */
-    background-color: lightgreen;
-  }
-}
+    /* Targets Laptops and Desktop PCs (Devices with a mouse or trackpad) */
+    @media (pointer: fine) and (hover: hover) {
+      .element {
+        transform: scale(1.25);
+      }
+    }
+
+    /* Targets Mobile Phones and Tablets (Touchscreen-only devices) */
+    @media (pointer: coarse) and (hover: none) {
+      .element {
+        background-color: lightgreen;
+      }
     }
 
     /* FIXED FOOTER TEXT */ 
