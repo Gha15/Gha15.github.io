@@ -38,6 +38,7 @@ h1 {
     transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
     display: flex;
     justify-content: center; /* Centers the buttons horizontally */
+    gap: 3px;
 }
 
 .button:hover {
