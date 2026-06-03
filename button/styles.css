@@ -17,13 +17,21 @@ body {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 50px; 
+    gap: 40px; 
     margin: 50px 0;
     flex-wrap: wrap;
 }
 
+/* --- VERTICAL ALIGNMENT WRAPPER --- */
+/* Keeps each counter component completely centered under its button assembly */
+.button-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px; /* Spacing between the stand and counter text */
+}
+
 /* --- THE OVAL GREY HOUSING RING (STANDS) --- */
-/* Updated to match the high-contrast pure white/grey glossy rim */
 [class*="-stand"] {
     background: linear-gradient(145deg, #ffffff 0%, #e6e6e6 40%, #b3b3b3 100%);
     border-radius: 50%; 
@@ -31,13 +39,12 @@ body {
     justify-content: center;
     align-items: center;
     box-shadow: 
-        0 15px 25px rgba(0, 0, 0, 0.4), /* Drop shadow on the floor */
-        inset 0 -6px 12px rgba(0, 0, 0, 0.2), /* Darker recess at the bottom rim */
-        inset 0 6px 10px rgba(255, 255, 255, 1); /* Pure white sharp highlight at the top */
+        0 15px 25px rgba(0, 0, 0, 0.4), 
+        inset 0 -6px 12px rgba(0, 0, 0, 0.2), 
+        inset 0 6px 10px rgba(255, 255, 255, 1);
 }
 
 /* --- THE OVAL RED PLUNGER (BUTTONS) --- */
-/* Updated to match the bright candy red cap and dark, sharp 3D sides */
 [class^="button-"] {
     background: radial-gradient(ellipse at 40% 30%, #ff4d4d 0%, #ff1a1a 50%, #cc0000 100%);
     border-radius: 50%;
@@ -46,31 +53,22 @@ body {
     position: relative;
     outline: none;
     border: none;
-    /* Smooth physical transition for depth plunge */
     transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.08s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* --- SIZES AND VISUAL CENTERING --- */
-/* The negative translateY values pull the button UP so it sits 
-   perfectly centered inside the ring, offsetting the heavy bottom shadows! */
+/* --- SIZES, VISUAL CENTERING, AND TRAVEL DISTANCES --- */
 
 /* XS Arcade Button */
 .button-xs-stand { width: 105px; height: 70px; }
 .button-xs {
     width: 72px;
     height: 48px;
-    transform: translateY(-4px); /* Visually centers the 8px shadow */
-    box-shadow: 
-        inset 0 3px 5px rgba(255, 255, 255, 0.3),
-        0 8px 0 #990000, 
-        0 8px 10px rgba(0, 0, 0, 0.4);
+    transform: translateY(-4px);
+    box-shadow: inset 0 3px 5px rgba(255, 255, 255, 0.3), 0 8px 0 #990000, 0 8px 10px rgba(0, 0, 0, 0.4);
 }
 .button-xs:active {
     transform: translateY(2px);
-    box-shadow: 
-        inset 0 3px 5px rgba(255, 255, 255, 0.3),
-        0 2px 0 #990000, 
-        0 2px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 3px 5px rgba(255, 255, 255, 0.3), 0 2px 0 #990000, 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* S Arcade Button */
@@ -78,18 +76,12 @@ body {
 .button-s {
     width: 102px;
     height: 68px;
-    transform: translateY(-6px); /* Visually centers the 12px shadow */
-    box-shadow: 
-        inset 0 4px 6px rgba(255, 255, 255, 0.3),
-        0 12px 0 #990000, 
-        0 12px 14px rgba(0, 0, 0, 0.4);
+    transform: translateY(-6px);
+    box-shadow: inset 0 4px 6px rgba(255, 255, 255, 0.3), 0 12px 0 #990000, 0 12px 14px rgba(0, 0, 0, 0.4);
 }
 .button-s:active {
     transform: translateY(4px);
-    box-shadow: 
-        inset 0 4px 6px rgba(255, 255, 255, 0.3),
-        0 2px 0 #990000, 
-        0 2px 5px rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 4px 6px rgba(255, 255, 255, 0.3), 0 2px 0 #990000, 0 2px 5px rgba(0, 0, 0, 0.4);
 }
 
 /* M Arcade Button */
@@ -97,18 +89,12 @@ body {
 .button-m {
     width: 144px;
     height: 96px;
-    transform: translateY(-9px); /* Visually centers the 18px shadow */
-    box-shadow: 
-        inset 0 5px 8px rgba(255, 255, 255, 0.3),
-        0 18px 0 #990000, 
-        0 18px 18px rgba(0, 0, 0, 0.4);
+    transform: translateY(-9px);
+    box-shadow: inset 0 5px 8px rgba(255, 255, 255, 0.3), 0 18px 0 #990000, 0 18px 18px rgba(0, 0, 0, 0.4);
 }
 .button-m:active {
     transform: translateY(6px);
-    box-shadow: 
-        inset 0 5px 8px rgba(255, 255, 255, 0.3),
-        0 3px 0 #990000, 
-        0 3px 6px rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 5px 8px rgba(255, 255, 255, 0.3), 0 3px 0 #990000, 0 3px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* L Arcade Button */
@@ -116,18 +102,43 @@ body {
 .button-l {
     width: 186px;
     height: 124px;
-    transform: translateY(-12px); /* Visually centers the 24px shadow */
-    box-shadow: 
-        inset 0 6px 10px rgba(255, 255, 255, 0.3),
-        0 24px 0 #990000, 
-        0 24px 22px rgba(0, 0, 0, 0.4);
+    transform: translateY(-12px);
+    box-shadow: inset 0 6px 10px rgba(255, 255, 255, 0.3), 0 24px 0 #990000, 0 24px 22px rgba(0, 0, 0, 0.4);
 }
 .button-l:active {
     transform: translateY(8px); 
+    box-shadow: inset 0 6px 10px rgba(255, 255, 255, 0.3), 0 4px 0 #990000, 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* XL Arcade Button (Exactly 2x Diameter of M) */
+.button-xl-stand { width: 420px; height: 280px; }
+.button-xl {
+    width: 288px;
+    height: 192px;
+    transform: translateY(-18px); /* Proportional height balance setup */
     box-shadow: 
-        inset 0 6px 10px rgba(255, 255, 255, 0.3),
-        0 4px 0 #990000, 
-        0 4px 8px rgba(0, 0, 0, 0.4);
+        inset 0 10px 16px rgba(255, 255, 255, 0.35),
+        0 36px 0 #990000, /* Scaled heavy solid 3D extrusion wall */
+        0 36px 30px rgba(0, 0, 0, 0.4);
+}
+.button-xl:active {
+    transform: translateY(12px); /* Deep compression travel path */
+    box-shadow: 
+        inset 0 10px 16px rgba(255, 255, 255, 0.35),
+        0 6px 0 #990000, 
+        0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* --- RADAR CLICK COUNTER STYLING --- */
+.click-counter {
+    font-size: 13px;
+    color: #888888;
+    background-color: #111111;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #222222;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    font-weight: bold;
 }
 
 /* --- BOTTOM TEXT --- */

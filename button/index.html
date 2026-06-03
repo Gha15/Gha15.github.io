@@ -3,45 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buttons - matix the math club</title>
+    <title>Buttons - Matix the Math Club</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="styles.css">
-    <script src="script.js"></script>
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
-    <audio id="click-sound" src="click.mp3"></audio>
 </head>
 <body>
 
     <h1>Buttons</h1>
-    <h3>Here are some buttons that you can click on!</h3>
-    <p>Have fun!</p>
-
-    <!-- The container aligns and spaces your arcade buttons evenly -->
     <div class="container">
-        
-        <div class="button-xs-stand">
-            <div class="button-xs"></div>
-        </div> 
-
-        <div class="button-s-stand">
-            <div class="button-s"></div>
-        </div>
-            
-        <div class="button-m-stand">
-            <div class="button-m"></div>
-        </div> 
-
-        <div class="button-l-stand">
-            <div class="button-l"></div>
-        </div>
-        
+        <div class="button-wrapper"><div class="button-xs-stand"><div class="button-xs"></div></div><div class="click-counter" id="counter-xs">Loading...</div></div>
+        <div class="button-wrapper"><div class="button-s-stand"><div class="button-s"></div></div><div class="click-counter" id="counter-s">Loading...</div></div>
+        <div class="button-wrapper"><div class="button-m-stand"><div class="button-m"></div></div><div class="click-counter" id="counter-m">Loading...</div></div>
+        <div class="button-wrapper"><div class="button-l-stand"><div class="button-l"></div></div><div class="click-counter" id="counter-l">Loading...</div></div>
+        <div class="button-wrapper"><div class="button-xl-stand"><div class="button-xl"></div></div><div class="click-counter" id="counter-xl">Loading...</div></div>
     </div>
-    
-    <div class="bottom">
-        <div class="bottom-text">
-            <p>XS button coming soon!</p>
-        </div>
-    </div>
+
+    <audio id="click-sound" src="click.mp3"></audio>
+    <script src="script.js"></script>
 </body>
 </html>
