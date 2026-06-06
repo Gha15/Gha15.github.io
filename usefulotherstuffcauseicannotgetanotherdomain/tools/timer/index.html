@@ -128,7 +128,6 @@
     let pickedTime = 0;
     let isRunning = false;
     let timerInterval = null;
-
     function updateDisplay() {
       let totalMs = timeLeft;
       if (totalMs < 0) totalMs = 0;
@@ -211,8 +210,17 @@
     document.getElementById('startBtn').addEventListener('click', startTimer);
     document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
     document.getElementById('stopBtn').addEventListener('click', stopTimer);
+    const endAudio = new Audio('endtimesound.mp3');
+
+  if (timeLeft <= 0 && isRunning) { 
+    // Browser autoplay policy requires a prior user interaction (like a click)
+    endAudio.play().catch(error => {
+        console.log("Audio playback prevented until user interacts with the page:", error);
+    });
+  }
 
     updateDisplay();
+    
   </script>
 </body>
 </html>
