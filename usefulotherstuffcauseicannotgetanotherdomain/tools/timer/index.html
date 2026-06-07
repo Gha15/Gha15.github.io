@@ -129,8 +129,15 @@
     let isRunning = false;
     let timerInterval = null;
     function updateDisplay() {
-      let totalMs = timeLeft;
-      if (totalMs < 0) totalMs = 0;
+      if (timeLeft === 0 && isRunning) { 
+        // Browser autoplay policy requires a prior user interaction (like a click)
+        endAudio.loop()
+        sound.loop = true;
+        endAudio.play().catch((error) => {
+          console.error("Audio playback failed:", error);
+      });
+    }
+
 
       let minutes = Math.floor(totalMs / 60000);
       let seconds = Math.floor((totalMs % 60000) / 1000);
@@ -212,12 +219,7 @@
     document.getElementById('stopBtn').addEventListener('click', stopTimer);
     const endAudio = new Audio('endtimesound.mp3');
 
-  if (timeLeft <= 0 && isRunning) { 
-    // Browser autoplay policy requires a prior user interaction (like a click)
-    endAudio.play().catch(error => {
-        console.log("Audio playback prevented until user interacts with the page:", error);
-    });
-  }
+  
 
     updateDisplay();
     
