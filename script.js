@@ -1,3 +1,6 @@
+  if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+  }
 
   import { initializeApp } from "https://gstatic.com";
   import { getDatabase, ref, runTransaction, onValue } from "https://gstatic.com";
