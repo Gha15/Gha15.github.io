@@ -53,7 +53,7 @@ function pauseTimer() {
 function stopTimer() {
   clearInterval(timerInterval);
   isRunning = false;
-  timeLeft = pickedTime;
+  endAudio.pause();
   updateDisplay();
 }
 
