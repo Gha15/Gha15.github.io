@@ -4,4 +4,7 @@ function opengame(game) {
         //open mathplanegame.html
         window.location.href = "themathplanegame.html";
     }
+    if (game === 'math fight') {
+        window.location.href = "mathfight.html"
+    }
 }

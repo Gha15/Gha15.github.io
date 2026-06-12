@@ -1,0 +1,13 @@
+body {
+    background-color: navy;
+    display: flex;
+    flex-direction: column;
+    align-items: center
+}
+
+h1 { 
+    font-size: 10rem;
+    letter-spacing: 1rem;
+    font-family: 'Vibur', cursive;
+    color: #ffffff
+}
