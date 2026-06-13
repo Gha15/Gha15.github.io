@@ -222,6 +222,23 @@ function startCubeRoot() {
         displayElement.textContent = currentDisplay + "³√(";
     }
 }
+// Activates cube root processing with brackets
+function startSquareRoot() {
+    checkAndResetState();
+    let displayElement = document.getElementById("result");
+    let currentDisplay = displayElement.textContent;
+    
+    if (currentDisplay.length >= thedigitsthatfittothescreen) {
+        triggerStaticError();
+        return;
+    }
+
+    if (currentDisplay === "0") {
+        displayElement.textContent = "√(";
+    } else {
+        displayElement.textContent = currentDisplay + "√(";
+    }
+}
 function startSquared() {
     
     checkAndResetState();
