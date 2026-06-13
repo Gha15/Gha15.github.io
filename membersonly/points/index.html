@@ -90,6 +90,17 @@
         </div>
 
         <div class="member-row">
+            <div class="member-info"><span class="name">Dahlia:</span> <span class="score" id="score-dahlia">0</span></div>
+            <div class="controls">
+                <button class="btn" onclick="addPoints('dahlia', 10)">+10</button>
+                <button class="btn" onclick="addPoints('dahlia', 1)">+1</button>
+                <button class="btn btn-neg" onclick="addPoints('dahlia', -1)">-1</button>
+                <button class="btn btn-neg" onclick="addPoints('dahlia', -10)">-10</button>
+                <button class="btn btn-reset" onclick="resetPerson('dahlia')">Reset</button>
+            </div>
+        </div>
+
+        <div class="member-row">
             <div class="member-info"><span class="name">Marwan:</span> <span class="score" id="score-marwan">0</span></div>
             <div class="controls">
                 <button class="btn" onclick="addPoints('marwan', 10)">+10</button>
@@ -132,7 +143,8 @@
         const validUsers = {
             "ghadi": "iamtheownerofmatix",
             "jad": "ilikebatatameshwiyye",
-            "marwan": "ilikebeingnumberonebutiamnumbertwo"
+            "marwan": "ilikebeingnumberonebutiamnumbertwo",
+            "dahlia": "cheeseflower",
         };
 
         function checkLogin() {
@@ -174,10 +186,11 @@
 
         // REALTIME LISTENER
         db.ref('points').on('value', (snapshot) => {
-            const val = snapshot.val() || { ghadi: 0, marwan: 0, jad: 0 };
+            const val = snapshot.val() || { ghadi: 0, marwan: 0, jad: 0, dahlia: 0};
             document.getElementById('score-ghadi').innerText = val.ghadi || 0;
             document.getElementById('score-marwan').innerText = val.marwan || 0;
             document.getElementById('score-jad').innerText = val.jad || 0;
+            document.getElementById('score-dahlia').innerText = val.dahlia || 0;
         });
 
         // UPDATE LOGIC

@@ -147,7 +147,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const validUsers = { "ghadi": "iamtheownerofmatix", "jad": "ilikebatatameshwiyye", "marwan": "ilikebeingnumberonebutiamnumbertwo" };
+        const validUsers = { "ghadi": "iamtheownerofmatix", "dahlia": "cheeseflower", "jad": "ilikebatatameshwiyye", "marwan": "ilikebeingnumberonebutiamnumbertwo" };
         let currentUser = sessionStorage.getItem("matix_auth_user");
         let activeLessonId = null; 
 
@@ -177,7 +177,7 @@
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('lesson-viewer').style.display = 'none';
             document.getElementById('dashboard-screen').style.display = 'block';
-            document.getElementById('user-display').innerText = `Active User: ${currentUser.toUpperCase()}`;
+            document.getElementById('user-display').innerText = `Active User: ${currentUser.toLowerCase()}`;
 
             if (currentUser === 'ghadi') { document.getElementById('admin-panel').style.display = 'block'; }
 
