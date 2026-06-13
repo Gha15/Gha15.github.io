@@ -2,10 +2,35 @@ body {
     display: flex;
     align-items: center;
     flex-direction: column;
-    background-color: navy;
+    background-color: rgb(4, 4, 40);
     font-family: 'Vibur', cursive;
 }
 
-.h1 {
-    margin-top: 30px;    
+h1{
+    font-sise: 5rem;
+}
+.calendar-button, .current-day {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  /* Dimensions & Core Shape */
+  width: 60px;
+  height: 60px;
+  border-radius: 1px; 
+  
+  /* Styling & Borders */
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid #faef11;
+  font-size: 1.8rem;
+  cursor: pointer;
+  position: relative;
+  .current-day {background-color: #faef11; color: black;}
+  /* Subtle initial glow */
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.container {
+    font-family: 'Vibur', cursive;
 }
