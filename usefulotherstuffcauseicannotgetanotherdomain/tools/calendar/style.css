@@ -1,36 +1,133 @@
+/* Base Layout & Math Club Dark Theme Theme */
 body {
+    background-color: #0b0f19;
+    color: #e2e8f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
+    justify-content: center;
     align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Main Calendar Container Box */
+.calendar-container {
+    background: #111827;
+    width: 90%;
+    max-width: 650px;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid #1f2937;
+}
+
+/* Top Navigation Header Controls */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #1f2937;
+    padding-bottom: 15px;
+}
+
+/* Month & Year Text Display styling */
+.calendar-header h2 {
+    font-family: 'Vibur', cursive, sans-serif;
+    font-size: 2.2rem;
+    margin: 0;
+    color: #38bdf8;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    letter-spacing: 1px;
+}
+
+/* Arrow Navigation Buttons */
+.calendar-header button {
+    background: #1f2937;
+    color: #38bdf8;
+    border: 1px solid #374151;
+    font-size: 1.2rem;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calendar-header button:hover {
+    background: #38bdf8;
+    color: #0b0f19;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+/* Weekdays Grid Configuration (Sun-Sat) */
+.weekdays-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    text-align: center;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+/* Main Grid Layout for Days */
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+/* Individual Day Container Square Box */
+.calendar-day-box {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    min-height: 70px;
+    padding: 6px;
+    display: flex;
     flex-direction: column;
-    background-color: rgb(4, 4, 40);
-    font-family: 'Vibur', cursive;
+    justify-content: space-between;
+    align-items: flex-start;
+    transition: all 0.2s ease;
 }
 
-h1{
-    font-sise: 5rem;
-}
-.calendar-button, .current-day {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  /* Dimensions & Core Shape */
-  width: 60px;
-  height: 60px;
-  border-radius: 1px; 
-  
-  /* Styling & Borders */
-  background: transparent;
-  color: #ffffff;
-  border: 2px solid #faef11;
-  font-size: 1.8rem;
-  cursor: pointer;
-  position: relative;
-  .current-day {background-color: #faef11; color: black;}
-  /* Subtle initial glow */
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+.calendar-day-box:hover {
+    border-color: #38bdf8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.container {
-    font-family: 'Vibur', cursive;
+/* Small Day Digit Number Styling */
+.day-number {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+/* Custom Math Text Layout under the number */
+.day-trivia-text {
+    font-size: 0.65rem;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 2px 4px;
+    border-radius: 4px;
+    width: 90%;
+    text-align: center;
+    line-height: 1.2;
+    word-break: break-word;
+    margin-top: auto;
+}
+
+/* Current Day highlight layout marker matching system clock */
+.current-day {
+    background: rgba(56, 189, 248, 0.15) !important;
+    border: 2px solid #38bdf8 !important;
+}
+
+.current-day .day-number {
+    color: #fff;
+    font-weight: bold;
 }
