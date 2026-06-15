@@ -30,7 +30,6 @@ function resizeCanvas() {
 
 /**
  * Pre-processes natural student math input into safe JavaScript logic strings.
- * This makes it "understand anything" automatically.
  */
 function preprocessExpression(str) {
     let expr = str.toLowerCase();
@@ -38,14 +37,15 @@ function preprocessExpression(str) {
     // 1. Convert spaces out
     expr = expr.replace(/\s+/g, '');
 
-    // 2. Fix implicit multiplication (e.g., 2x -> 2*x)
-    expr = expr.replace(/(\d+)(x)/g, '$1*$2');
-    expr = expr.replace(/(\))(x|\()/g, '$1*$2');
-    expr = expr.replace(/(x|\))(\()/g, '$1*$2');
+    // 2. Fix implicit multiplication (e.g., 2x -> 2*x, 2y -> 2*y, xy -> x*y)
+    expr = expr.replace(/(\d+)([xy])/g, '$1*$2');
+    expr = expr.replace(/([xy])([xy])/g, '$1*$2');
+    expr = expr.replace(/(\))([xy]|\()/g, '$1*$2');
+    expr = expr.replace(/([xy]|\))(\()/g, '$1*$2');
 
     // 3. Convert caret power notation (e.g., x^2 -> Math.pow(x,2))
     while (expr.includes('^')) {
-        expr = expr.replace(/([x\d\.\)]+)\^([x\d\.\)]+)/g, 'Math.pow($1,$2)');
+        expr = expr.replace(/([xy\d\.\)]+)\^([xy\d\.\)]+)/g, 'Math.pow($1,$2)');
     }
 
     // 4. Map standard friendly trig/math functions to native JavaScript Math methods
@@ -64,15 +64,38 @@ function preprocessExpression(str) {
     return expr;
 }
 
-// Standard Safe Evaluation Wrapper Function Block
-function evaluateY(x) {
+/**
+ * Evaluates equations dynamically. Supports standard y= formulas,
+ * as well as assignments/implicit constraints like 'x=10' or 'y=10'.
+ */
+function evaluateEquation(x, y) {
     try {
-        const cleanExpression = preprocessExpression(eqInput.value);
-        const safeEval = new Function('x', `return ${cleanExpression};`);
-        const y = safeEval(x);
-        return isNaN(y) || !isFinite(y) ? null : y;
+        let rawInput = eqInput.value.trim();
+        if (!rawInput) return false;
+
+        // Check if user typed an equality assignment constraint (e.g., x=10 or y=10)
+        if (rawInput.includes('=')) {
+            let parts = rawInput.split('=');
+            let leftSide = preprocessExpression(parts[0]);
+            let rightSide = preprocessExpression(parts[1]);
+
+            // Construct function comparing left side and right side
+            const safeEval = new Function('x', 'y', `return (${leftSide}) - (${rightSide});`);
+            const val = safeEval(x, y);
+            
+            // Threshold for identifying zero crossings across the pixel steps
+            return Math.abs(val) < (1.5 / scale); 
+        } else {
+            // Default legacy mode behavior: treat pure input expression as f(x) equating to y
+            const cleanExpression = preprocessExpression(rawInput);
+            const safeEval = new Function('x', `return ${cleanExpression};`);
+            const calculatedY = safeEval(x);
+            
+            if (isNaN(calculatedY) || !isFinite(calculatedY)) return false;
+            return Math.abs(y - calculatedY) < (1.5 / scale);
+        }
     } catch (e) {
-        return null; // Prevents crashing while typing equations
+        return false; // Prevents crashing while typing equations
     }
 }
 
@@ -106,12 +129,8 @@ function render() {
     for (let x = startGridX - 10; x <= endGridX + 10; x++) {
         ctx.beginPath();
         let topX = x * scale + offsetX;
-        let topY = 0;
-        let botX = x * scale + offsetX;
-        let botY = canvas.height;
-        
-        ctx.moveTo(topX, topY);
-        ctx.lineTo(botX, botY);
+        ctx.moveTo(topX, 0);
+        ctx.lineTo(topX, canvas.height);
         ctx.stroke();
     }
 
@@ -131,37 +150,31 @@ function render() {
     ctx.beginPath(); ctx.moveTo(0, offsetY); ctx.lineTo(canvas.width, offsetY); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(offsetX, 0); ctx.lineTo(offsetX, canvas.height); ctx.stroke();
 
-    // --- 3. Dynamic Function Mapping Transformation Engine ---
-    ctx.strokeStyle = '#58a6ff';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-
-    let firstPoint = true;
+    // --- 3. Dynamic 2D Formula Grid Mapping Transformation Engine ---
+    ctx.fillStyle = '#58a6ff';
     
-    // Loop step iteration spans individual pixel values horizontally
-    for (let pixelX = 0; pixelX < canvas.width; pixelX += 2) {
-        let mathX = (pixelX - offsetX) / scale;
-        let mathY = evaluateY(mathX);
+    // We sample steps along both dimensions to safely capture horizontal, vertical, and implicit lines
+    const step = 2; 
+    for (let pixelX = 0; pixelX < canvas.width; pixelX += step) {
+        for (let pixelY = 0; pixelY < canvas.height; pixelY += step) {
+            
+            // Convert viewport pixel location back to native underlying Math coordinate space
+            let mathX = (pixelX - offsetX) / scale;
+            let mathY = -(pixelY - offsetY) / scale; 
 
-        if (mathY !== null) {
-            // Matix math transformation formula
-            let transformedX = a * mathX + b * mathY;
-            let transformedY = c * mathX + d * mathY;
+            if (evaluateEquation(mathX, mathY)) {
+                // Apply Matrix transformation rules safely
+                let transformedX = a * mathX + b * mathY;
+                let transformedY = c * mathX + d * mathY;
 
-            let screenX = transformedX * scale + offsetX;
-            let screenY = -transformedY * scale + offsetY;
+                let screenX = transformedX * scale + offsetX;
+                let screenY = -transformedY * scale + offsetY;
 
-            if (firstPoint) {
-                ctx.moveTo(screenX, screenY);
-                firstPoint = false;
-            } else {
-                ctx.lineTo(screenX, screenY);
+                // Draw a point on the matrix canvas frame
+                ctx.fillRect(screenX, screenY, 2.5, 2.5);
             }
-        } else {
-            firstPoint = true; 
         }
     }
-    ctx.stroke();
 }
 
 // --- 4. Interactive Navigation Listeners ---
@@ -200,7 +213,7 @@ resetBtn.addEventListener('click', () => {
     scale = 40;
     offsetX = canvas.width / 2;
     offsetY = canvas.height / 2;
-    eqInput.value = ""; // Updated clean initial default string
+    eqInput.value = ""; 
     mA.value = 1; mB.value = 0; mC.value = 0; mD.value = 1;
     render();
 });

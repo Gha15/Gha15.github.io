@@ -8,22 +8,18 @@
 </head>
 <body>
 
-    <!-- Left Control Sidebar -->
     <div id="control-panel">
         <div class="brand-header">
             <h1>Matix <span>Sandbox</span></h1>
             <p>Interactive Grapher & Linear Transformations</p>
         </div>
 
-        <!-- Section 1: Function Input -->
         <div class="input-group">
-            <div class="section-title">Plot Function</div>
-            <label for="eqInput">Expression f(x)</label>
-            <!-- Cleaned up: removed the old ugly Math.sin(x) default -->
-            <input type="text" id="eqInput" value="" placeholder="e.g. 2x, x^2, cos(x)">
+            <div class="section-title">Plot Function or Equation</div>
+            <label for="eqInput">Equation / Expression</label>
+            <input type="text" id="eqInput" value="" placeholder="e.g. x = 10, y = 10, x^2 + y^2 = 4, sin(x)">
         </div>
 
-        <!-- Section 2: Custom 2x2 Matix Engine -->
         <div class="input-group">
             <div class="section-title">Linear Transformation Matix</div>
             <div class="matix-grid">
@@ -38,26 +34,23 @@
             </div>
         </div>
 
-        <!-- Section 3: New Preset Dashboard Quick Actions -->
         <div class="input-group">
             <div class="section-title">Matix Presets</div>
             <div class="preset-container">
-                <button class="btn-preset-action" onclick="applyPreset(0, 1, -1, 0, 'x^2')">Rotate 90° 🔄</button>
-                <button class="btn-preset-action" onclick="applyPreset(1, 1.5, 0, 1, 'sin(x)')">Shear Stretch 📐</button>
-                <button class="btn-preset-action" onclick="applyPreset(1, 0, 0, -1, 'abs(x)')">Flip Vertical 🪞</button>
+                <button class="btn-preset-action" onclick="applyPreset(0, 1, -1, 0, 'x = 10')">Rotate 90° 🔄</button>
+                <button class="btn-preset-action" onclick="applyPreset(1, 1.5, 0, 1, 'y = 10')">Shear Stretch 📐</button>
+                <button class="btn-preset-action" onclick="applyPreset(1, 0, 0, -1, 'sin(x) + cos(y) = 0')">Flip Vertical 🪞</button>
             </div>
         </div>
 
         <button class="btn-reset" id="resetBtn">Reset View & Matix</button>
     </div>
 
-    <!-- Right Interaction Workspace View -->
     <div id="canvas-container">
         <canvas id="graphCanvas"></canvas>
         <div id="instructions">Drag canvas to Pan • Scroll to Zoom</div>
     </div>
 
-    <!-- Externalized App Script Execution -->
     <script src="script.js"></script>
 </body>
 </html>
