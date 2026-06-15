@@ -1,0 +1,182 @@
+:root {
+    --bg-color: #0d1117;
+    --panel-bg: #161b22;
+    --border-color: #30363d;
+    --accent-color: #58a6ff;
+    --text-color: #c9d1d9;
+    --text-dim: #8b949e;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar Control Panel */
+#control-panel {
+    width: 360px;
+    background-color: var(--panel-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 24px;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+.brand-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+.brand-header span {
+    color: var(--accent-color);
+}
+
+.brand-header p {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+.section-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+label {
+    font-size: 0.85rem;
+    color: var(--text-color);
+}
+
+input[type="text"] {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+/* 2x2 Matix Grid Formatter */
+.matix-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    background: rgba(0,0,0,0.2);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+    position: relative;
+}
+
+.matix-bracket {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.matix-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.matix-cell span {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    width: 15px;
+}
+
+.matix-cell input {
+    width: 100%;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    border-radius: 4px;
+    padding: 6px;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.btn-reset {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-reset:hover {
+    border-color: #f85149;
+    color: #f85149;
+    background: rgba(248, 81, 73, 0.05);
+}
+
+/* Canvas Workspace Area */
+#canvas-container {
+    flex-grow: 1;
+    position: relative;
+    background-color: var(--bg-color);
+    cursor: grab;
+}
+
+#canvas-container:active {
+    cursor: grabbing;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#instructions {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    background-color: rgba(22, 27, 34, 0.85);
+    border: 1px solid var(--border-color);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+}

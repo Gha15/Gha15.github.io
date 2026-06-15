@@ -1,0 +1,12 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor configurations
+.vscode/
+.idea/
+
+# Potential build or package folders if you start scaling
+node_modules/
+dist/
+build/
