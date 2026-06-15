@@ -3,7 +3,8 @@ const ctx = canvas.getContext('2d');
 const container = document.getElementById('canvas-container');
 
 // Inputs Configuration Handles
-const eqInput = document.getElementById('eqInput');
+const eqInputX = document.getElementById('eqInputX');
+const eqInputY = document.getElementById('eqInputY');
 const mA = document.getElementById('m-a');
 const mB = document.getElementById('m-b');
 const mC = document.getElementById('m-c');
@@ -68,9 +69,9 @@ function preprocessExpression(str) {
  * Evaluates equations dynamically. Supports standard y= formulas,
  * as well as assignments/implicit constraints like 'x=10' or 'y=10'.
  */
-function evaluateEquation(x, y) {
+function evaluateEquation(inputElement, x, y) {
     try {
-        let rawInput = eqInput.value.trim();
+        let rawInput = inputElement.value.trim();
         if (!rawInput) return false;
 
         // Check if user typed an equality assignment constraint (e.g., x=10 or y=10)
@@ -105,7 +106,15 @@ window.applyPreset = function(a, b, c, d, defaultFormula) {
     mB.value = b;
     mC.value = c;
     mD.value = d;
-    eqInput.value = defaultFormula;
+    
+    // Distribute default preset formula safely across fields
+    if (defaultFormula.startsWith('x')) {
+        eqInputX.value = defaultFormula;
+        eqInputY.value = "";
+    } else {
+        eqInputY.value = defaultFormula;
+        eqInputX.value = "";
+    }
     render();
 }
 
@@ -162,7 +171,8 @@ function render() {
             let mathX = (pixelX - offsetX) / scale;
             let mathY = -(pixelY - offsetY) / scale; 
 
-            if (evaluateEquation(mathX, mathY)) {
+            // Check if coordinates satisfy either Input X or Input Y
+            if (evaluateEquation(eqInputX, mathX, mathY) || evaluateEquation(eqInputY, mathX, mathY)) {
                 // Apply Matrix transformation rules safely
                 let transformedX = a * mathX + b * mathY;
                 let transformedY = c * mathX + d * mathY;
@@ -205,7 +215,7 @@ container.addEventListener('wheel', (e) => {
 }, { passive: false });
 
 // Event triggers syncing inputs dynamically to view frames
-[eqInput, mA, mB, mC, mD].forEach(element => {
+[eqInputX, eqInputY, mA, mB, mC, mD].forEach(element => {
     element.addEventListener('input', render);
 });
 
@@ -213,7 +223,8 @@ resetBtn.addEventListener('click', () => {
     scale = 40;
     offsetX = canvas.width / 2;
     offsetY = canvas.height / 2;
-    eqInput.value = ""; 
+    eqInputX.value = ""; 
+    eqInputY.value = ""; 
     mA.value = 1; mB.value = 0; mC.value = 0; mD.value = 1;
     render();
 });

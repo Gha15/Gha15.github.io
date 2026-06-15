@@ -16,12 +16,15 @@
 
         <div class="input-group">
             <div class="section-title">Plot Function or Equation</div>
-            <label for="eqInput">Equation / Expression</label>
-            <input type="text" id="eqInput" value="" placeholder="e.g. x = 10, y = 10, x^2 + y^2 = 4, sin(x)">
+            <label for="eqInputX">Equation / Expression(x)</label>
+            <input type="text" id="eqInputX" value="" placeholder="e.g. x = 10 x^2 sin(x)">
+            
+            <label for="eqInputY">Equation / Expression(y)</label>
+            <input type="text" id="eqInputY" value="" placeholder="e.g. y = 10 sin(x)">
         </div>
 
         <div class="input-group">
-            <div class="section-title">Linear Transformation Matix</div>
+            <div class="section-title">Linear Transformation Matrix</div>
             <div class="matix-grid">
                 <div class="matix-bracket">
                     <div class="matix-cell"><span>a</span><input type="number" id="m-a" value="1" step="0.1"></div>
@@ -35,7 +38,7 @@
         </div>
 
         <div class="input-group">
-            <div class="section-title">Matix Presets</div>
+            <div class="section-title">Matrix Presets</div>
             <div class="preset-container">
                 <button class="btn-preset-action" onclick="applyPreset(0, 1, -1, 0, 'x = 10')">Rotate 90° 🔄</button>
                 <button class="btn-preset-action" onclick="applyPreset(1, 1.5, 0, 1, 'y = 10')">Shear Stretch 📐</button>
@@ -43,7 +46,7 @@
             </div>
         </div>
 
-        <button class="btn-reset" id="resetBtn">Reset View & Matix</button>
+        <button class="btn-reset" id="resetBtn">Reset View & Matrix</button>
     </div>
 
     <div id="canvas-container">
