@@ -129,6 +129,30 @@ input[type="text"]:focus {
     text-align: center;
 }
 
+/* New Presets Layout CSS Styles */
+.preset-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-preset-action {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-align: left;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-preset-action:hover {
+    background-color: rgba(88, 166, 255, 0.1);
+    border-color: var(--accent-color);
+}
+
 .btn-reset {
     background-color: transparent;
     border: 1px solid var(--border-color);
@@ -139,6 +163,7 @@ input[type="text"]:focus {
     font-size: 0.85rem;
     font-weight: 500;
     transition: all 0.2s;
+    margin-top: auto;
 }
 
 .btn-reset:hover {

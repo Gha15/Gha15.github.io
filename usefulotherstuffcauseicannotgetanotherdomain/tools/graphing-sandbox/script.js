@@ -38,13 +38,12 @@ function preprocessExpression(str) {
     // 1. Convert spaces out
     expr = expr.replace(/\s+/g, '');
 
-    // 2. Fix implicit multiplication (e.g., 2x -> 2*x, (x+1)(x-2) -> (x+1)*(x-2))
+    // 2. Fix implicit multiplication (e.g., 2x -> 2*x)
     expr = expr.replace(/(\d+)(x)/g, '$1*$2');
     expr = expr.replace(/(\))(x|\()/g, '$1*$2');
     expr = expr.replace(/(x|\))(\()/g, '$1*$2');
 
     // 3. Convert caret power notation (e.g., x^2 -> Math.pow(x,2))
-    // Handles base^exponent layout
     while (expr.includes('^')) {
         expr = expr.replace(/([x\d\.\)]+)\^([x\d\.\)]+)/g, 'Math.pow($1,$2)');
     }
@@ -68,17 +67,23 @@ function preprocessExpression(str) {
 // Standard Safe Evaluation Wrapper Function Block
 function evaluateY(x) {
     try {
-        // Pre-process the student's raw input string first
         const cleanExpression = preprocessExpression(eqInput.value);
-        
-        // Safely compile the expression function frame
         const safeEval = new Function('x', `return ${cleanExpression};`);
         const y = safeEval(x);
-        
         return isNaN(y) || !isFinite(y) ? null : y;
     } catch (e) {
-        return null; // Prevents breaking while user is mid-sentence typing
+        return null; // Prevents crashing while typing equations
     }
+}
+
+// Function to handle the clickable macro menu matrix transformations instantly
+window.applyPreset = function(a, b, c, d, defaultFormula) {
+    mA.value = a;
+    mB.value = b;
+    mC.value = c;
+    mD.value = d;
+    eqInput.value = defaultFormula;
+    render();
 }
 
 // Central Graph Engine Plot Engine Render Frame Update
@@ -139,7 +144,7 @@ function render() {
         let mathY = evaluateY(mathX);
 
         if (mathY !== null) {
-            // Matix math transformation matrix calculations
+            // Matix math transformation formula
             let transformedX = a * mathX + b * mathY;
             let transformedY = c * mathX + d * mathY;
 
@@ -195,7 +200,7 @@ resetBtn.addEventListener('click', () => {
     scale = 40;
     offsetX = canvas.width / 2;
     offsetY = canvas.height / 2;
-    eqInput.value = "sin(x)";
+    eqInput.value = ""; // Updated clean initial default string
     mA.value = 1; mB.value = 0; mC.value = 0; mD.value = 1;
     render();
 });
