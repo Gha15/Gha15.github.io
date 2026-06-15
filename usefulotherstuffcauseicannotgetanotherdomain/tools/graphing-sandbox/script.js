@@ -28,14 +28,56 @@ function resizeCanvas() {
     render();
 }
 
+/**
+ * Pre-processes natural student math input into safe JavaScript logic strings.
+ * This makes it "understand anything" automatically.
+ */
+function preprocessExpression(str) {
+    let expr = str.toLowerCase();
+
+    // 1. Convert spaces out
+    expr = expr.replace(/\s+/g, '');
+
+    // 2. Fix implicit multiplication (e.g., 2x -> 2*x, (x+1)(x-2) -> (x+1)*(x-2))
+    expr = expr.replace(/(\d+)(x)/g, '$1*$2');
+    expr = expr.replace(/(\))(x|\()/g, '$1*$2');
+    expr = expr.replace(/(x|\))(\()/g, '$1*$2');
+
+    // 3. Convert caret power notation (e.g., x^2 -> Math.pow(x,2))
+    // Handles base^exponent layout
+    while (expr.includes('^')) {
+        expr = expr.replace(/([x\d\.\)]+)\^([x\d\.\)]+)/g, 'Math.pow($1,$2)');
+    }
+
+    // 4. Map standard friendly trig/math functions to native JavaScript Math methods
+    const mathFunctions = ['sin', 'cos', 'tan', 'abs', 'sqrt', 'log', 'exp', 'pi', 'e'];
+    mathFunctions.forEach(f => {
+        const regex = new RegExp(`\\b${f}\\b`, 'g');
+        if (f === 'pi') {
+            expr = expr.replace(regex, 'Math.PI');
+        } else if (f === 'e') {
+            expr = expr.replace(regex, 'Math.E');
+        } else {
+            expr = expr.replace(regex, `Math.${f}`);
+        }
+    });
+
+    return expr;
+}
+
 // Standard Safe Evaluation Wrapper Function Block
 function evaluateY(x) {
     try {
-        const safeEval = new Function('x', `return ${eqInput.value};`);
+        // Pre-process the student's raw input string first
+        const cleanExpression = preprocessExpression(eqInput.value);
+        
+        // Safely compile the expression function frame
+        const safeEval = new Function('x', `return ${cleanExpression};`);
         const y = safeEval(x);
+        
         return isNaN(y) || !isFinite(y) ? null : y;
     } catch (e) {
-        return null; // Prevents crashing while typing equations
+        return null; // Prevents breaking while user is mid-sentence typing
     }
 }
 
@@ -97,7 +139,7 @@ function render() {
         let mathY = evaluateY(mathX);
 
         if (mathY !== null) {
-            // Matix math transformation formula
+            // Matix math transformation matrix calculations
             let transformedX = a * mathX + b * mathY;
             let transformedY = c * mathX + d * mathY;
 
@@ -153,7 +195,7 @@ resetBtn.addEventListener('click', () => {
     scale = 40;
     offsetX = canvas.width / 2;
     offsetY = canvas.height / 2;
-    eqInput.value = "Math.sin(x)";
+    eqInput.value = "sin(x)";
     mA.value = 1; mB.value = 0; mC.value = 0; mD.value = 1;
     render();
 });
