@@ -1,17 +1,19 @@
 :root {
-    --bg-color: #0d1117;
-    --panel-bg: #161b22;
-    --border-color: #30363d;
-    --accent-color: #58a6ff;
-    --text-color: #c9d1d9;
-    --text-dim: #8b949e;
+    --bg-color: #080b11;         /* Deep space math dark */
+    --panel-bg: #111622;         /* Sleek obsidian slate */
+    --border-color: #242c3d;     /* Crisp layout boundaries */
+    --accent-color: #00f2fe;     /* Electric Matrix Cyan */
+    --accent-neon: #4facfe;      /* Laser Blue gradient */
+    --matrix-gold: #ffb86c;      /* Contrast variable vector color */
+    --text-color: #e2e8f0;       /* High readability text */
+    --text-dim: #707f9c;         /* Subdued math labels */
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
@@ -19,103 +21,142 @@ body {
     color: var(--text-color);
     display: flex;
     height: 100vh;
+    width: 100vw;
     overflow: hidden;
+    position: relative;
 }
 
-/* Sidebar Control Panel */
+/* ==========================================================================
+   Sidebar Control Panel
+   ========================================================================== */
 #control-panel {
     width: 360px;
+    min-width: 360px;
     background-color: var(--panel-bg);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 24px;
     gap: 24px;
-    box-shadow: 4px 0 10px rgba(0,0,0,0.3);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
     z-index: 10;
+    overflow-y: auto;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .brand-header h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.6rem;
+    font-weight: 800;
     color: #fff;
     letter-spacing: -0.5px;
+    text-transform: uppercase;
 }
 
 .brand-header span {
-    color: var(--accent-color);
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-neon));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-style: italic;
 }
 
 .brand-header p {
     font-size: 0.8rem;
     color: var(--text-dim);
-    margin-top: 4px;
+    margin-top: 6px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 .section-title {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--accent-color);
+    margin-bottom: 12px;
+    font-weight: 700;
 }
 
 .input-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 label {
-    font-size: 0.85rem;
-    color: var(--text-color);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 600;
 }
 
-input[type="text"] {
+input[type="text"], input[type="number"] {
     background-color: var(--bg-color);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 8px;
     color: #fff;
     padding: 10px 12px;
     font-size: 0.95rem;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    transition: border-color 0.2s;
+    font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
+    transition: all 0.25s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus, input[type="number"]:focus {
     outline: none;
     border-color: var(--accent-color);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.2), inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* 2x2 Matix Grid Formatter */
+/* ==========================================================================
+   Matrix Grid Bracket Formatting [ ]
+   ========================================================================== */
 .matix-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    background: rgba(0,0,0,0.2);
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px dashed var(--border-color);
+    gap: 16px;
+    background: rgba(8, 11, 17, 0.6);
+    padding: 16px 20px;
+    border-radius: 6px;
     position: relative;
+    border-left: 3px solid var(--matrix-gold);
+    border-right: 3px solid var(--matrix-gold);
+}
+
+.matix-grid::before, .matix-grid::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 3px;
+    background: transparent;
+}
+.matix-grid::before {
+    top: 0;
+    border-left: 10px solid var(--matrix-gold);
+    border-right: 10px solid var(--matrix-gold);
+}
+.matix-grid::after {
+    bottom: 0;
+    border-left: 10px solid var(--matrix-gold);
+    border-right: 10px solid var(--matrix-gold);
 }
 
 .matix-bracket {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
 }
 
 .matix-cell {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .matix-cell span {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    font-family: serif;
+    font-style: italic;
     color: var(--text-dim);
-    width: 15px;
+    width: 12px;
 }
 
 .matix-cell input {
@@ -123,61 +164,179 @@ input[type="text"]:focus {
     background: var(--bg-color);
     border: 1px solid var(--border-color);
     color: #fff;
-    border-radius: 4px;
-    padding: 6px;
-    font-size: 0.9rem;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
     text-align: center;
+    transition: all 0.2s;
 }
 
-/* New Presets Layout CSS Styles */
-.preset-container {
+.matix-cell input:focus {
+    outline: none;
+    border-color: var(--matrix-gold);
+    box-shadow: 0 0 8px rgba(255, 184, 108, 0.25);
+}
+
+/* Determinant Information Banner */
+.det-container {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 2px;
+}
+
+#det-display {
+    color: var(--matrix-gold);
+    font-family: "Fira Code", monospace;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   Dynamic Interactive Custom Points UI Elements
+   ========================================================================== */
+.points-management {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#points-list {
+    max-height: 160px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding-right: 4px;
+}
+
+.point-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(8, 11, 17, 0.4);
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.point-indicator-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.pt-coord-in {
+    width: 100% !important;
+    padding: 6px !important;
+    font-size: 0.85rem !important;
+}
+
+.btn-del-pt {
+    background: transparent;
+    color: #ef4444;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+    transition: color 0.2s;
+}
+
+.btn-del-pt:hover {
+    color: #f87171;
+}
+
+.points-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.points-actions button, #pointModeBtn {
+    flex: 1;
+    background: rgba(36, 44, 61, 0.4);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.points-actions button:hover, #pointModeBtn:hover {
+    border-color: var(--accent-color);
+    background: rgba(0, 242, 254, 0.05);
+}
+
+#pointModeBtn {
+    width: 100%;
+    text-align: center;
+    border-style: dashed;
+}
+
+/* Custom Interactive Math Presets Menu */
+.preset-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .btn-preset-action {
-    background-color: var(--bg-color);
+    background-color: rgba(36, 44, 61, 0.3);
     border: 1px solid var(--border-color);
     color: var(--text-color);
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    text-align: left;
-    transition: background 0.2s, border-color 0.2s;
-}
-
-.btn-preset-action:hover {
-    background-color: rgba(88, 166, 255, 0.1);
-    border-color: var(--accent-color);
-}
-
-.btn-reset {
-    background-color: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 10px 14px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 500;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.btn-preset-action:hover {
+    background: linear-gradient(90deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.05));
+    border-color: var(--accent-color);
+    transform: translateX(2px);
+}
+
+/* Reset Module Utilities */
+.btn-reset {
+    background-color: transparent;
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    color: #f85149;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     transition: all 0.2s;
     margin-top: auto;
+    text-transform: uppercase;
 }
 
 .btn-reset:hover {
     border-color: #f85149;
-    color: #f85149;
-    background: rgba(248, 81, 73, 0.05);
+    background: rgba(248, 81, 73, 0.1);
+    box-shadow: 0 0 15px rgba(248, 81, 73, 0.15);
 }
 
-/* Canvas Workspace Area */
+/* ==========================================================================
+   Canvas View Sandbox Environment
+   ========================================================================== */
 #canvas-container {
     flex-grow: 1;
     position: relative;
     background-color: var(--bg-color);
     cursor: grab;
+    height: 100%;
+    overflow: hidden;
 }
 
 #canvas-container:active {
@@ -190,18 +349,169 @@ canvas {
     left: 0;
     width: 100%;
     height: 100%;
+    display: block;
+}
+
+/* Floating Realtime HTML Elements Over Canvas Context */
+#cursor-coords {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(17, 22, 34, 0.85);
+    border: 1px solid var(--border-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: "Fira Code", monospace;
+    color: var(--accent-color);
+    backdrop-filter: blur(4px);
+    z-index: 5;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 #instructions {
     position: absolute;
-    bottom: 16px;
-    right: 16px;
-    background-color: rgba(22, 27, 34, 0.85);
+    bottom: 20px;
+    right: 20px;
+    background: rgba(17, 22, 34, 0.85);
     border: 1px solid var(--border-color);
-    padding: 10px 14px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    color: var(--text-dim);
+    padding: 14px 18px;
+    border-radius: 8px;
+    max-width: 280px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     pointer-events: none;
-    backdrop-filter: blur(4px);
+    z-index: 5;
+}
+
+#instructions p {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    line-height: 1.5;
+    margin-bottom: 6px;
+}
+
+#instructions p:last-child {
+    margin-bottom: 0;
+}
+
+#instructions strong {
+    color: var(--accent-color);
+}
+
+/* Mobile Layout Controls */
+#sidebar-toggle {
+    display: none;
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 100;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+/* ==========================================================================
+   Welcome / Resource Guide Modal Overlay Layout
+   ========================================================================== */
+#welcome-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(8, 11, 17, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    padding: 32px;
+    border-radius: 12px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.modal-content h2 {
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+.modal-content h2 span {
+    color: var(--accent-color);
+}
+
+.modal-content p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+}
+
+#closeModalBtn {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-neon));
+    border: none;
+    color: #000;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-top: 8px;
+    transition: opacity 0.2s;
+}
+
+#closeModalBtn:hover {
+    opacity: 0.9;
+}
+
+/* ==========================================================================
+   Responsive Adaptation Breakdown Rules (Mobile/Tablet viewport)
+   ========================================================================== */
+@media (max-width: 868px) {
+    body {
+        flex-direction: column;
+    }
+
+    #sidebar-toggle {
+        display: block;
+    }
+
+    #control-panel {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 300px;
+        min-width: 300px;
+        transform: translateX(-100%);
+        padding-top: 70px; /* Leave space for floating action switch toggles */
+    }
+
+    #control-panel.active-mobile {
+        transform: translateX(0);
+    }
+
+    #instructions {
+        bottom: 15px;
+        right: 15px;
+        left: 15px;
+        max-width: none;
+        font-size: 0.75rem;
+        padding: 10px;
+    }
 }
