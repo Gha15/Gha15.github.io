@@ -2,10 +2,10 @@
     --bg-color: #060913;         /* Deep cosmic void background */
     --panel-bg: rgba(11, 17, 32, 0.85); /* Sleek translucent obsidian glass */
     --border-color: #1e293b;     /* High-tech layout boundaries */
-    --accent-color: #00f2fe;     /* Cyber Neon Cyan */
+    --accent-color: #00f2ff;     /* Cyber Neon Cyan */
     --accent-neon: #4facfe;      /* Laser Electric Blue */
     --matrix-gold: #ffb86c;      /* Brilliant amber warning highlight */
-    --text-color: #f1f5f9;       /* Crisp white layout text */
+    --text-color: #ffffff;       /* Crisp white layout text */
     --text-dim: #64748b;         /* Muted technical documentation labeling */
     --glow-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
     --gold-glow: 0 0 15px rgba(255, 184, 108, 0.3);
@@ -135,7 +135,7 @@ body {
     height: 1px;
     background: linear-gradient(90deg, var(--accent-color), transparent);
     margin-top: 12px;
-    opacity: 1;
+    opacity: 0.25;
 }
 
 .section-title {
@@ -358,9 +358,8 @@ input[type="text"]:focus, input[type="number"]:focus {
 }
 .glow-btn-primary:hover {
     border-color: var(--accent-color) !important;
-    box-shadow: var(--glow-shadow);
     background: var(--accent-color) !important;
-    color: #060913 !important;
+    color: #000000 !important;
 }
 
 .glow-btn-secondary:hover {
@@ -371,7 +370,6 @@ input[type="text"]:focus, input[type="number"]:focus {
 .glow-btn-accent {
     background: rgba(255, 184, 108, 0.05);
     border-color: rgba(255, 184, 108, 0.3) !important;
-    color: var(--matrix-gold) !important;
 }
 .glow-btn-accent:hover {
     background: var(--matrix-gold) !important;
@@ -542,7 +540,7 @@ canvas {
     z-index: 100;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     pointer-events: none;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.25s ease;
 }
 
 /* ==========================================================================
@@ -561,7 +559,7 @@ canvas {
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.25s ease;
 }
 
 .modal-content {
