@@ -2,70 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matix Graphing sandbox - Matix the math club</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Graphing Sandbox - Matix The Math Club</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <button id="sidebar-toggle">☰ Menu</button>
+    <button id="sidebar-toggle" aria-label="Toggle Control Menu">
+        <span class="hamburger-box"><span class="hamburger-inner"></span></span>
+        <span class="toggle-text">LAB MENU</span>
+    </button>
 
     <div id="control-panel">
         <div class="brand-header">
-            <h1>Matix <span>Graphing Sandbox</span></h1>
-            <p>Linear Transformation Sandbox</p>
+            <h1>Matix <span>Lab</span></h1>
+            <p class="sub-brand">matixthemathclub.com • Toolkit</p>
+            <div class="glow-separator"></div>
         </div>
 
         <div class="input-group">
-            <div class="section-title">Transformation Matrix</div>
+            <div class="section-title"><span class="icon-tag">⊞</span> Transformation Matrix</div>
             <div class="matrix-grid">
                 <div class="matrix-bracket">
-                    <div class="matrix-cell"><span>x</span><input type="number" id="m-a" value="1" step="0.1"></div>
-                    <div class="matrix-cell"><span>y</span><input type="number" id="m-c" value="0" step="0.1"></div>
+                    <div class="matrix-cell"><span>x</span><input type="number" id="m-a" value="1" step="0.1" aria-label="Matrix Vector A"></div>
+                    <div class="matrix-cell"><span>y</span><input type="number" id="m-c" value="0" step="0.1" aria-label="Matrix Vector C"></div>
                 </div>
                 <div class="matrix-bracket">
-                    <div class="matrix-cell"><span>x</span><input type="number" id="m-b" value="0" step="0.1"></div>
-                    <div class="matrix-cell"><span>y</span><input type="number" id="m-d" value="1" step="0.1"></div>
+                    <div class="matrix-cell"><span>x</span><input type="number" id="m-b" value="0" step="0.1" aria-label="Matrix Vector B"></div>
+                    <div class="matrix-cell"><span>y</span><input type="number" id="m-d" value="1" step="0.1" aria-label="Matrix Vector D"></div>
                 </div>
             </div>
             <div class="det-container">
-                <span>Determinant (ad - bc):</span>
+                <span>Determinant Space Scalar:</span>
                 <span id="det-display">1.00</span>
             </div>
         </div>
 
         <div class="input-group">
-            <div class="section-title">Transformation Mechanics</div>
+            <div class="section-title"><span class="icon-tag">⚡</span> Transformation Mechanics</div>
             <div class="explanation-box">
-                <div id="matrix-explanation">Initializing matrix space vectors...</div>
+                <div id="matrix-explanation">Initializing cyber vector space fields...</div>
             </div>
         </div>
 
         <div class="input-group">
-            <div class="section-title">Function Input Systems</div>
-            <label for="eqInputX">Equation X (e.g., sin(y) or y=x^2)</label>
-            <input type="text" id="eqInputX" placeholder="f(y) or implicit equation">
+            <div class="section-title"><span class="icon-tag">∫</span> Function Input Systems</div>
+            <div class="field-wrapper">
+                <label for="eqInputX">Equation X Mapping (e.g., sin(y) or y=x^2)</label>
+                <input type="text" id="eqInputX" placeholder="f(y) or implicit equation">
+            </div>
             
-            <label for="eqInputY">Equation Y (e.g., cos(x))</label>
-            <input type="text" id="eqInputY" placeholder="f(x) or implicit equation">
+            <div class="field-wrapper">
+                <label for="eqInputY">Equation Y Mapping (e.g., cos(x))</label>
+                <input type="text" id="eqInputY" placeholder="f(x) or implicit equation">
+            </div>
         </div>
 
         <div class="input-group points-management">
-            <div class="section-title">Plotted Vector Nodes</div>
+            <div class="section-title"><span class="icon-tag">⊙</span> Plotted Vector Nodes</div>
+            
             <div id="points-list">
                 </div>
             
             <div class="points-actions">
                 <div class="points-row-buttons">
-                    <button id="addPointRowBtn">+ Add New</button>
-                    <button id="pointModeBtn">Plot Points (0.1)</button>
+                    <button id="addPointRowBtn" class="glow-btn-primary">+ Add Node</button>
+                    <button id="pointModeBtn" class="glow-btn-secondary">Plot Mode (0.1)</button>
                 </div>
-                <button id="connectPointsBtn">Connect Nodes Linker</button>
+                
+                <button id="connectPointsBtn" class="glow-btn-accent">Connect Nodes Linker</button>
                 
                 <div class="color-picker-group">
-                    <label for="lineColorIn">Path Line Color</label>
-                    <input type="color" id="lineColorIn" value="#00f2fe">
+                    <div class="picker-label-block">
+                        <span class="picker-title">Next Link Color</span>
+                        <span class="picker-desc">Custom segment path override</span>
+                    </div>
+                    <div class="picker-input-wrapper">
+                        <input type="color" id="lineColorIn" value="#00f2fe" aria-label="Path Line Segment Color Override">
+                    </div>
                 </div>
             </div>
         </div>
@@ -78,17 +92,23 @@
         <div id="cursor-coords">X: 0.0, Y: 0.0</div>
         
         <div id="instructions">
-            <p>🖐️ <strong>Pan:</strong> Click & drag background grid.</p>
-            <p>🔍 <strong>Zoom:</strong> Scroll your mouse wheel.</p>
-            <p>📍 <strong>Plotting:</strong> Click to snap to 0.1 increments.</p>
+            <div class="instruction-header">🎮 Lab Grid Controls</div>
+            <p>🖐️ <strong>Pan/Drag:</strong> Drag grid background (Swipe on mobile)</p>
+            <p>🔍 <strong>Zoom Scale:</strong> Scroll wheel (Pinch map open/close)</p>
+            <p>📍 <strong>0.1 Plotting:</strong> Tap target regions in Plot Mode</p>
         </div>
     </div>
 
     <div id="welcome-modal">
-        <div class="modal-content">
-            <h2>Welcome to <span>Matrix Lab</span></h2>
-            <p>Explore linear transformations, custom mathematical equation vectors, and interactive node graphs across altered spaces.</p>
-            <button id="closeModalBtn">Enter Sandbox</button>
+        <div class="modal-content animate-modal">
+            <div class="modal-header-block">
+                <h2>Welcome to the <br><span class="brand-highlight">Matix Graphing Sandbox</span></h2>
+            </div>
+            
+            <div class="modal-scroll-text">
+                </div>
+            
+            <button id="closeModalBtn" class="modal-action-trigger">Launch Lab Tool</button>
         </div>
     </div>
 

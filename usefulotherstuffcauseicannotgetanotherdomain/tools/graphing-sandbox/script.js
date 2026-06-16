@@ -1,22 +1,21 @@
 /**
  * ============================================================================
- * MATRIX LAB - LINEAR TRANSFORMATION GRAPHICS ENGINE
+ * MATIX LAB CORE RUNTIME SIMULATION MATRIX
  * ============================================================================
- * Core Sandbox Engineering Script 
- * * Includes:
- * - High-Precision Canvas Matrix Renderer
- * - 0.1 Grid Snapping & Node Spline Connection Subsystems
- * - Custom String Tokenizer and Function Mathematical Parser
- * - Adaptive Realtime Topological Descriptor Engine
- * - Advanced Cross-Platform Mouse & Touch Gesture Controllers
+ * Graphing Sandbox Engine Framework - matixthemathclub.com Tool Suite
+ * * Features:
+ * - Dynamic Link Color Assignment Memory Buffers
+ * - Universal Mouse Grid Vector Traversal & Dual Touch Pincers Scale
+ * - Robust Equation Compiler (Implicit Curves and Explicit Maps)
+ * - Topological Transformation State Matrix Descriptive Generators
  */
 
-// --- SECTION 1: GLOBAL APPLICATION HARDWARE INTERFACE HANDLES ---
+// --- SECTION 1: GLOBAL DEVICE AND COMPONENT LAYER HANDLES ---
 const canvas = document.getElementById('graphCanvas');
 const ctx = canvas.getContext('2d');
 const container = document.getElementById('canvas-container');
 
-// Element Configuration UI Handles
+// Sidebar Value Configurations UI Elements
 const eqInputX = document.getElementById('eqInputX');
 const eqInputY = document.getElementById('eqInputY');
 const mA = document.getElementById('m-a');
@@ -34,82 +33,111 @@ const controlPanel = document.getElementById('control-panel');
 const welcomeModal = document.getElementById('welcome-modal');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
-// Interactive Node Connections Handles
+// Multi-Color Pathway Segment Configuration Nodes
 const connectPointsBtn = document.getElementById('connectPointsBtn');
 const lineColorIn = document.getElementById('lineColorIn');
 const explanationDisplay = document.getElementById('matrix-explanation');
 
-// --- SECTION 2: LABORATORY STATE SPACE CONTROL MANAGEMENT ---
+// --- SECTION 2: GLOBAL WORKSPACE CALCULATOR ENVIRONMENT CORES ---
 let scale = 40; 
 let offsetX = 0; 
 let offsetY = 0;
 let isDragging = false;
 let startX, startY;
 
-// Dynamic Point Vector Configurations (Cleanly initialized)
+// Plotted Vector Node Struct Array Configurations
 let pointsArray = [
     { x: 2.0, y: 2.0, color: '#ff4757' },
     { x: -3.0, y: 1.0, color: '#2ed573' }
 ];
 
-let canvasClickMode = 'pan'; // States: 'pan', 'plot', or 'connect'
+let canvasClickMode = 'pan'; // System operations: 'pan', 'plot', or 'connect'
 let touchStartDist = 0; 
 
-// Structural Interconnection Map Arrays
-let connectedLines = [[0, 1]]; 
+// Track linkages containing individual custom hexadecimal path overrides
+let connectedLines = [
+    { from: 0, to: 1, pathColor: '#00f2fe' }
+]; 
 let selectedPointForConnection = null;
 
-// Compiled Functional Analytical Buffers
+// Mathematical Compiled Token Evaluation Blocks
 let compiledFnX = null;
 let compiledFnY = null;
 let isImplicitX = false;
 let isImplicitY = false;
 
 // --- SECTION 3: SYSTEM NOTIFICATION & TOAST MODAL PIPELINES ---
-
-// Inject the comprehensive mathematical explanation into the welcome modal on startup
 document.addEventListener("DOMContentLoaded", () => {
-    const modalContent = document.querySelector("#welcome-modal .modal-content");
-    if (modalContent) {
-        modalContent.innerHTML = `
-            <h2 style="margin-bottom: 15px; font-size: 1.6rem;">Welcome to <span style="background: linear-gradient(135deg, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-style: italic; font-weight: 800;">Matix Graphing sandbox</span></h2>
-            
-            <div class="modal-scroll-text" style="text-align: left; max-height: 320px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px; font-size: 0.85rem; line-height: 1.6; color: #e2e8f0;">
-                <p style="margin-bottom: 12px; font-weight: 600; color: #00f2fe;">🌌 LINEAR TRANSFORMATIONS & MATRIX SPACES</p>
-                <p style="margin-bottom: 12px;">By manipulating the grid values, you are altering the linear fabric of the Cartesian plane under a 2D transformation matrix $M$:</p>
-                <p style="text-align: center; font-family: monospace; background: #080b11; padding: 6px; border-radius: 4px; margin-bottom: 12px; color: #ffb86c;">M = [ [ a, b ], [ c, d ] ]</p>
-                
-                <p style="margin-bottom: 6px; font-weight: 600; color: #ff4757;">🧭 Basis Vector i-hat (Red Line):</p>
-                <p style="margin-bottom: 12px;">Originally at (1, 0), its transformed destination tracks perfectly to the first column of your matrix matrix: <strong>(a, c)</strong>.</p>
-                
-                <p style="margin-bottom: 6px; font-weight: 600; color: #2ed573;">🧭 Basis Vector j-hat (Green Line):</p>
-                <p style="margin-bottom: 12px;">Originally at (0, 1), its transformed destination tracks perfectly to the second column of your matrix: <strong>(b, d)</strong>.</p>
-                
-                <p style="margin-bottom: 6px; font-weight: 600; color: #ffb86c;">📐 Structural Mechanics to Watch:</p>
-                <ul style="margin-left: 15px; margin-bottom: 12px; list-style-type: square;">
-                    <li style="margin-bottom: 6px;"><strong>Determinant (ad - bc):</strong> Acts as the absolute area scaling factor of the grid space.</li>
-                    <li style="margin-bottom: 6px;"><strong>Spatial Collapse (Det = 0):</strong> The 2D grid flatlines into a 1D vector track. Information is lost, meaning the operation cannot be mathematically inverted.</li>
-                    <li style="margin-bottom: 6px;"><strong>Orientation Flip (Det &lt; 0):</strong> The plane mirrors upside down, converting clockwise node tracking setups into counter-clockwise configurations.</li>
-                </ul>
+    const modalScrollTextContainer = document.querySelector("#welcome-modal .modal-scroll-text");
+    if (modalScrollTextContainer) {
+        modalScrollTextContainer.innerHTML = `
+            <p style="margin-bottom: 14px; font-weight: 700; color: #00f2fe; letter-spacing: 0.5px; text-transform: uppercase;">🌌 Welcome to the Matix Graphic Laboratory</p>
 
-                <p style="margin-bottom: 6px; font-weight: 600; color: #4facfe;">🕹️ Quick Sandbox Controls:</p>
-                <p style="margin-bottom: 4px;">• <strong>Pan/Zoom:</strong> Click + drag background / Scroll mouse wheel.</p>
-                <p style="margin-bottom: 4px;">• <strong>Precision Plotting:</strong> Toggle Plot Mode to map nodes snapping directly to 0.1 increments.</p>
-                <p style="margin-bottom: 4px;">• <strong>Node Connector:</strong> Click Linker, then select 2 node dots sequentially to bridge vector paths.</p>
-            </div>
-            
-            <button id="closeModalBtn" style="background: linear-gradient(135deg, #00f2fe, #4facfe); border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: 700; color: #fff; cursor: pointer; transition: opacity 0.2s;">Enter Sandbox</button>
+            <p style="margin-bottom: 14px; color: #cbd5e1; line-height: 1.6; font-size: 0.85rem;">
+                This interactive sandbox maps the visual behavior of a 2D vector space undergoing 
+                a <strong>Linear Transformation</strong>. Instead of just solving abstract numerical equations on paper, 
+                this environment lets you directly alter the coordinate system grid to see how geometric dimensions deform.
+            </p>
+
+            <p style="text-align: center; font-family: monospace; background: #060913; padding: 10px; border-radius: 6px; margin-bottom: 16px; color: #ffb86c; border: 1px solid #1e293b; font-size: 0.95rem;">
+                M = [ [ a, b ], [ c, d ] ]
+            </p>
+
+            <p style="margin-bottom: 4px; font-weight: 700; color: #ff4757; font-size: 0.85rem;">Compass Tracking the Unit Basis Vectors:</p>
+            <p style="margin-bottom: 14px; color: #cbd5e1; line-height: 1.6; font-size: 0.85rem;">
+                The easiest way to understand any linear transformation is to watch where the standard unit vectors land. 
+                By tracking these two lines, you can predict where <em>any</em> other point on the canvas will move:
+                <br>• <strong style="color: #ff4757;">Vector i-hat (Red Line):</strong> Originally resting at (1, 0), its new coordinates correspond exactly to the <strong>first column</strong> of your matrix: <strong>(a, c)</strong>.
+                <br>• <strong style="color: #2ed573;">Vector j-hat (Green Line):</strong> Originally resting at (0, 1), its new coordinates correspond exactly to the <strong>second column</strong> of your matrix: <strong>(b, d)</strong>.
+            </p>
+
+            <p style="margin-bottom: 4px; font-weight: 700; color: #ffb86c; font-size: 0.85rem;">📐 Crucial Concepts to Observe:</p>
+            <ul style="margin-left: 18px; margin-bottom: 16px; list-style-type: square; line-height: 1.6; color: #cbd5e1; font-size: 0.85rem;">
+                <li style="margin-bottom: 6px;">
+                    <strong>The Determinant (ad - bc):</strong> This scalar value measures the <strong>area scaling factor</strong> of the grid cells. If a square has an area of 1 before transforming, its area becomes equal to the absolute value of the determinant afterward.
+                </li>
+                <li style="margin-bottom: 6px;">
+                    <strong>Dimensional Collapse (Det = 0):</strong> When the determinant hits zero, the 2D plane completely squashes into a stagnant 1D line or a single point. This means information is permanently lost, making the operation mathematically <em>non-invertible</em>.
+                </li>
+                <li style="margin-bottom: 6px;">
+                    <strong>Spatial Inversion (Det &lt; 0):</strong> A negative determinant indicates that the grid has been flipped or mirrored. Left-handed orientations switch places with right-handed ones.
+                </li>
+            </ul>
+
+            <p style="margin-bottom: 8px; font-weight: 700; color: #4facfe; font-size: 0.85rem;">🕹️ Quick Sandbox Navigation Controls:</p>
+            <p style="margin-bottom: 6px; color: #cbd5e1; font-size: 0.85rem;">• <strong>Canvas Navigation:</strong> Click and drag the background grid to pan. Use your mouse scroll wheel (or pinch-to-zoom on your mobile screen) to adjust the scale factor.</p>
+            <p style="margin-bottom: 6px; color: #cbd5e1; font-size: 0.85rem;">• <strong>Plot Mode (0.1):</strong> Click to switch into Plot Mode and drop tracking nodes onto the canvas. Coordinates dynamically snap to precise 0.1 increments.</p>
+            <p style="margin-bottom: 6px; color: #cbd5e1; font-size: 0.85rem;">• <strong>Connect Nodes Linker:</strong> Activate this tool, pick a custom color from the palette window, and select two distinct dots sequentially to stitch vector pathways together.</p>
         `;
+
+        // Mobile Scroll Fix: Prevent background touch events from blocking modal div scrolling
+        modalScrollTextContainer.style.maxHeight = "280px";
+        modalScrollTextContainer.style.overflowY = "auto";
+        modalScrollTextContainer.style.webkitOverflowScrolling = "touch"; // Fluid iOS momentum scrolling
         
-        // Re-bind the click tracking mechanism to dismantle the modal cleanly on click
-        document.getElementById('closeModalBtn').addEventListener('click', () => {
-            if (welcomeModal) {
-                welcomeModal.style.opacity = '0';
-                setTimeout(() => welcomeModal.style.display = 'none', 300);
-            }
+        modalScrollTextContainer.addEventListener('touchmove', (e) => {
+            e.stopPropagation(); // Stops background canvas from handling swipe actions
+        }, { passive: true });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            welcomeModal.style.opacity = '0';
+            setTimeout(() => welcomeModal.style.display = 'none', 300);
         });
     }
 });
+
+sidebarToggle.addEventListener('click', () => {
+    if (controlPanel) {
+        controlPanel.classList.toggle('active-mobile');
+    }
+});
+
+/**
+ * Pushes interactive error warning notifications to the core view layout frame overlay.
+ * @param {string} message - Text notification context string.
+ */
 function showFloatingToast(message) {
     let oldToast = document.getElementById('canvas-toast');
     if (oldToast) oldToast.remove();
@@ -119,7 +147,6 @@ function showFloatingToast(message) {
     toast.textContent = message;
     container.appendChild(toast);
 
-    // Smooth UI opacity fade out routines
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
@@ -128,60 +155,51 @@ function showFloatingToast(message) {
 
 // --- SECTION 4: REALTIME ADVANCED MATRIX MECHANICS DESCRIPTOR ---
 /**
- * Performs topological structural evaluation on the current spatial transformation matrix.
- * Provides deep contextual mathematical analytics directly to the interface layout viewport.
+ * Evaluates the current scalar transformation coordinate matrices to generate topological profiles.
  */
 function updateAdvancedTransformationTextExplanation(a, b, c, d, det) {
-    let analysisText = `Basis vector i-hat \u2192 (${a.toFixed(1)}, ${c.toFixed(1)}) and j-hat \u2192 (${b.toFixed(1)}, ${d.toFixed(1)}). `;
+    let analysisText = `Basis matrix i-hat maps to (${a.toFixed(1)}, ${c.toFixed(1)}) and j-hat maps to (${b.toFixed(1)}, ${d.toFixed(1)}). `;
     
-    // Check for dimensional subspace structural compression criteria
     if (Math.abs(det) < 0.0001) {
-        analysisText += "CRITICAL COLLAPSE DETECTED: This linear transformation matrix results in a spatial determinant of zero. The complete 2D coordinate grid has collapsed into a flat 1D single vector track or a 0D origin node point. Consequently, all tracking metrics within the system area dimension values evaluate strictly to zero. This operation is singular and completely non-invertible, meaning previous structural states cannot be recovered mathematically because multiple independent points are mapped onto identical spatial targets.";
+        analysisText += "CRITICAL COLLAPSE: Your matrix determinant evaluates to zero. Space has completely flattened into a lower-dimensional 1D line tracking zone or 0D origin point. This linear modification is strictly non-invertible; spatial data inside the system collapses, causing overlapping vector equations across boundaries.";
     } else {
-        analysisText += `GEOMETRIC RATIO ANALYSIS: The altered vector plane shifts structural boundaries outwards or inwards, expanding or compressing area matrices uniformly by an absolute scalar factor of ${Math.abs(det).toFixed(2)}. `;
+        analysisText += `GEOMETRIC DILATION RATIO: Area matrices across grid cells expand or contract by a spatial scalar absolute ratio factor of ${Math.abs(det).toFixed(2)}. `;
         
         if (det < 0) {
-            analysisText += "SPACE ORIENTATION INVERTED: The transformation matrix has flipped the global grid alignment context entirely. Clockwise coordinate loops transition into counter-clockwise fields. This behaves similarly to a spatial reflection across custom vector thresholds, mirror-imaging the relative node tracking paths while scaling system boundaries safely.";
+            analysisText += "SPACE INVERTED: The transformation maps your vectors into an inverted configuration. Clockwise coordinates transform into a counter-clockwise orientation field—reversing spatial flow similarly to geometric reflections across coordinate axes.";
         } else {
-            analysisText += "SPACE ORIENTATION STABLE: The structural mapping preserves the standard hand-rule orientation flow across all calculated outputs. Vector systems twist, skew, or expand cleanly without experiencing reflective coordinate inversions.";
+            analysisText += "SPACE STABLE: Normal clockwise/counter-clockwise hand-rule coordinate paths are structurally preserved across all grid coordinates.";
         }
         
-        // Append additional geometric mechanics insights based on special configurations
+        // Match specialized geometrical structures
         if (Math.abs(a * d - b * c - 1) < 0.01 && a === d && b === -c && b !== 0) {
             let degrees = Math.round(Math.atan2(c, a) * (180 / Math.PI));
-            analysisText += ` SPECIAL STATE: This operation behaves as a clean, rigid, non-destructive orthogonal transformation, rotating the space field by approximately ${degrees}° around the coordinate origin.`;
+            analysisText += ` STATE ANALYSIS: Actively processing an orthogonal transformation matrix, generating a rigid rotation of approximately ${degrees}° around the system origin point.`;
         } else if (b === 0 && c !== 0 && a === 1 && d === 1) {
-            analysisText += " SPECIAL STATE: This matrix represents a horizontal shear transformation mapping variation, where points slide parallel to the horizontal axis by a factor proportional to their vertical height.";
+            analysisText += " STATE ANALYSIS: System is handling a pure horizontal shear mapping. Vector levels distort horizontally relative to their height thresholds.";
         } else if (c === 0 && b !== 0 && a === 1 && d === 1) {
-            analysisText += " SPECIAL STATE: This matrix represents a vertical shear transformation mapping variation, dragging coordinate nodes parallel to the vertical axis vector systems.";
+            analysisText += " STATE ANALYSIS: System is handling a pure vertical shear mapping. Structural vectors displace vertically proportional to their current horizontal position.";
         }
     }
-    
     explanationDisplay.textContent = analysisText;
 }
 
-// --- SECTION 5: MATHEMATICAL EXPRESSION PARSER & LEXICAL LEXER ---
+// --- SECTION 5: MATHEMATICAL STRING LEXER & TOKEN ENGINE ---
 /**
- * Tokenizes, processes, and sanitizes input mathematical text strings.
- * Safely standardizes explicit vs implicit algebra formats into clean JavaScript Math runtime logic hooks.
- * @param {string} str - Raw text formula input by user.
- * @returns {string} Prepared runnable JavaScript computational script code.
+ * Filters, conditions, and transforms raw functional strings into executable execution arrays.
  */
 function preprocessExpression(str) {
     let expr = str.toLowerCase().replace(/\s+/g, '');
     
-    // Inject syntax correction multipliers safely for algebraic shorthand (e.g. 2x -> 2*x)
     expr = expr.replace(/(\d+)([xy])/g, '$1*$2');
     expr = expr.replace(/([xy])([xy])/g, '$1*$2');
     expr = expr.replace(/(\))([xy]|\()/g, '$1*$2');
     expr = expr.replace(/([xy]|\))(\()/g, '$1*$2');
     
-    // Process power caret symbol syntax trees via structured text substitution loops
     while (expr.includes('^')) {
         expr = expr.replace(/([xy\d\.\)]+)\^([xy\d\.\)]+)/g, 'Math.pow($1,$2)');
     }
     
-    // Standardize recognized mathematical engine native functional arrays
     const mathematicalFunctionsList = ['sin', 'cos', 'tan', 'abs', 'sqrt', 'log', 'exp', 'pi', 'e'];
     mathematicalFunctionsList.forEach(funcKey => {
         const regexPattern = new RegExp(`\\b${funcKey}\\b`, 'g');
@@ -198,8 +216,7 @@ function preprocessExpression(str) {
 }
 
 /**
- * Compiles user algebraic string equations into high-speed executable execution functions.
- * Handles explicit tracking and absolute root equations safely.
+ * Instantiates fresh operational mathematical curve equations cleanly inside local workspace scopes.
  */
 function compileEquations() {
     compiledFnX = null; 
@@ -208,7 +225,6 @@ function compileEquations() {
     let rawX = eqInputX.value.trim();
     let rawY = eqInputY.value.trim();
     
-    // Compile functional pipelines for Equation system X components
     try {
         if (rawX) {
             if (rawX.includes('=')) {
@@ -222,11 +238,8 @@ function compileEquations() {
                 isImplicitX = false;
             }
         }
-    } catch (err) {
-        compiledFnX = null;
-    }
+    } catch (err) { compiledFnX = null; }
     
-    // Compile functional pipelines for Equation system Y components
     try {
         if (rawY) {
             if (rawY.includes('=')) {
@@ -240,15 +253,12 @@ function compileEquations() {
                 isImplicitY = false;
             }
         }
-    } catch (err) {
-        compiledFnY = null;
-    }
+    } catch (err) { compiledFnY = null; }
 }
 
-// --- SECTION 6: DYNAMIC NODE INTERFACE LAYER & DOM CONTEXT SYNC ---
+// --- SECTION 6: DYNAMIC NODE ROW DOM TREE GENERATION MAPPERS ---
 /**
- * Synchronizes local point position arrays out to matching sidebar DOM control components.
- * Reinjects state configuration elements to maintain a reactive data flow pipeline.
+ * Refreshes configuration field inputs inside the active sidebar layout framework components.
  */
 function syncPointsUI() {
     if (!pointsListContainer) return;
@@ -258,48 +268,45 @@ function syncPointsUI() {
         const pointRowElement = document.createElement('div');
         pointRowElement.className = 'point-row';
         
-        // Round values cleanly to exactly 0.1 decimal steps for UI display synchronization
         let roundedXValue = Math.round(pointItem.x * 10) / 10;
         let roundedYValue = Math.round(pointItem.y * 10) / 10;
         
         pointRowElement.innerHTML = `
-            <span class="point-indicator-dot" style="background:${pointItem.color}"></span>
-            <input type="number" step="0.1" class="pt-coord-in" value="${roundedXValue}" data-idx="${index}" data-coord="x">
-            <input type="number" step="0.1" class="pt-coord-in" value="${roundedYValue}" data-idx="${index}" data-coord="y">
-            <button class="btn-del-pt" data-idx="${index}">\u00D7</button>
+            <span class="point-indicator-dot" style="color:${pointItem.color}; background-color:${pointItem.color}"></span>
+            <input type="number" step="0.1" class="pt-coord-in" value="${roundedXValue}" data-idx="${index}" data-coord="x" aria-label="Node ${index} Coordinate X">
+            <input type="number" step="0.1" class="pt-coord-in" value="${roundedYValue}" data-idx="${index}" data-coord="y" aria-label="Node ${index} Coordinate Y">
+            <button class="btn-del-pt" data-idx="${index}" aria-label="Delete Node ${index}">\u00D7</button>
         `;
         pointsListContainer.appendChild(pointRowElement);
     });
     
-    // Reattach structural change validation monitoring callbacks onto generated input row blocks
+    // Bind change detection loops on runtime numerical entry blocks
     document.querySelectorAll('.pt-coord-in').forEach(coordInputField => {
         coordInputField.addEventListener('input', (event) => {
             const indexKey = parseInt(event.target.dataset.idx);
             const targetCoordAxis = event.target.dataset.coord;
             let rawParsedFloat = parseFloat(event.target.value);
             
-            // Apply high precision decimal stepping limits
             pointsArray[indexKey][targetCoordAxis] = Math.round((rawParsedFloat || 0) * 10) / 10;
             render();
         });
     });
 
-    // Attach deletion tracking loops to clean mutations safely out of local stack arrays
+    // Handle structural deletion updates safely across connected path nodes arrays
     document.querySelectorAll('.btn-del-pt').forEach(deleteRowButton => {
         deleteRowButton.addEventListener('click', () => {
             const targetIndexKey = parseInt(deleteRowButton.dataset.idx);
             pointsArray.splice(targetIndexKey, 1);
             
-            // Perform algorithmic filter sweeps across paths mapping indexes to offset truncation drift
-            connectedLines = connectedLines.filter(lineConnectionMap => {
-                return lineConnectionMap[0] !== targetIndexKey && lineConnectionMap[1] !== targetIndexKey;
-            }).map(lineConnectionMap => {
-                let firstNodeIndex = lineConnectionMap[0] > targetIndexKey ? lineConnectionMap[0] - 1 : lineConnectionMap[0];
-                let secondNodeIndex = lineConnectionMap[1] > targetIndexKey ? lineConnectionMap[1] - 1 : lineConnectionMap[1];
-                return [firstNodeIndex, secondNodeIndex];
+            // Clean out dead linkages and adjust indices to prevent path drift
+            connectedLines = connectedLines.filter(lineSegment => {
+                return lineSegment.from !== targetIndexKey && lineSegment.to !== targetIndexKey;
+            }).map(lineSegment => {
+                let adjustedFrom = lineSegment.from > targetIndexKey ? lineSegment.from - 1 : lineSegment.from;
+                let adjustedTo = lineSegment.to > targetIndexKey ? lineSegment.to - 1 : lineSegment.to;
+                return { from: adjustedFrom, to: adjustedTo, pathColor: lineSegment.pathColor };
             });
 
-            // Adjust edge connection state points
             if (selectedPointForConnection === targetIndexKey) {
                 selectedPointForConnection = null;
             } else if (selectedPointForConnection > targetIndexKey) {
@@ -312,12 +319,11 @@ function syncPointsUI() {
     });
 }
 
-// --- SECTION 7: INTERACTIVE WORKSPACE CONTROL SELECTION CLICK LIFECYCLES ---
+// --- SECTION 7: INTERACTIVE SELECTION MODE OPERATIONAL HANDLERS ---
 addPointRowBtn.addEventListener('click', () => {
     const vectorColorPalettesList = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#eccc68', '#9b59b6'];
     const assignedRandomColor = vectorColorPalettesList[Math.floor(Math.random() * vectorColorPalettesList.length)];
     
-    // Add point cleanly at standard 1.0 step coordinates
     pointsArray.push({ x: 1.0, y: 1.0, color: assignedRandomColor });
     syncPointsUI();
     render();
@@ -329,12 +335,12 @@ pointModeBtn.addEventListener('click', () => {
         canvasClickMode = 'plot';
         pointModeBtn.className = 'active-mode';
         connectPointsBtn.className = '';
-        pointModeBtn.textContent = "Mode: Plotting (0.1) \uD83D\uDCCD";
+        pointModeBtn.textContent = "Mode: Plotting (0.1) 📍";
         connectPointsBtn.textContent = "Connect Nodes Linker";
     } else {
         canvasClickMode = 'pan';
         pointModeBtn.className = '';
-        pointModeBtn.textContent = "Plot Points (0.1)";
+        pointModeBtn.textContent = "Plot Mode (0.1)";
     }
     render();
 });
@@ -342,13 +348,12 @@ pointModeBtn.addEventListener('click', () => {
 connectPointsBtn.addEventListener('click', () => {
     selectedPointForConnection = null;
     
-    // Enforce connection prerequisites via floating toast alerts
     if (pointsArray.length === 0) {
         showFloatingToast("Plot vector nodes on your coordinate map canvas first.");
         return;
     }
     if (pointsArray.length === 1) {
-        showFloatingToast("You only have 1 more point left before you can start connecting!");
+        showFloatingToast("You need at least 2 plotted nodes to establish an interface connection link path.");
         return;
     }
 
@@ -356,8 +361,8 @@ connectPointsBtn.addEventListener('click', () => {
         canvasClickMode = 'connect';
         connectPointsBtn.className = 'active-mode';
         pointModeBtn.className = '';
-        pointModeBtn.textContent = "Plot Points (0.1)";
-        connectPointsBtn.textContent = "Select 2 Nodes... \uD83D\uDD17";
+        pointModeBtn.textContent = "Plot Mode (0.1)";
+        connectPointsBtn.textContent = "Select 2 Nodes... 🔗";
     } else {
         canvasClickMode = 'pan';
         connectPointsBtn.className = '';
@@ -366,28 +371,22 @@ connectPointsBtn.addEventListener('click', () => {
     render();
 });
 
-// --- SECTION 8: PRIMARY GEOMETRIC CANVAS RENDERING ENGINE ENGINE ---
-/**
- * Executes full refresh sweeps across the primary web viewport context layer.
- * Processes backgrounds, baseline vector grids, mathematical linear curves, and mapped node pathways.
- */
+// --- SECTION 8: GRAPHICS CORE CORE DATA FRAME RENDERING PROCESS ---
 function render() {
     if (!ctx || !canvas) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Pull configuration factors directly from user inputs safely
     const aVal = parseFloat(mA.value) || 0;
     const bVal = parseFloat(mB.value) || 0;
     const cVal = parseFloat(mC.value) || 0;
     const dVal = parseFloat(mD.value) || 0;
 
-    // Run structural workspace determinant calculations
     const calculatedDeterminant = (aVal * dVal) - (bVal * cVal);
     detDisplay.textContent = calculatedDeterminant.toFixed(2);
     updateAdvancedTransformationTextExplanation(aVal, bVal, cVal, dVal, calculatedDeterminant);
 
-    // 1. DRAW SUBDUE BACKGROUND MESH GRID LINES
-    ctx.strokeStyle = '#161f30';
+    // 1. RENDER BACKGROUND MATRIX COORD MESH LINES
+    ctx.strokeStyle = 'rgba(208, 208, 208, 0.4)';
     ctx.lineWidth = 1;
 
     const startBoundaryGridX = Math.floor((-offsetX) / scale);
@@ -410,8 +409,8 @@ function render() {
         ctx.stroke();
     }
 
-    // 2. DRAW MAIN CENTRAL STATIC GRAPH SPACE AXIS LINES
-    ctx.strokeStyle = '#475569';
+    // 2. DRAW MAIN ORIGIN AXIS SPLINE BOUNDARIES
+    ctx.strokeStyle = '#334155';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, offsetY);
@@ -423,20 +422,19 @@ function render() {
     ctx.lineTo(offsetX, canvas.height);
     ctx.stroke();
 
-    // 3. DRAW CUSTOM USER INTERCONNECTED VECTOR LINE SPLINE PATHWAYS
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = lineColorIn.value || '#00f2fe';
-    connectedLines.forEach(lineNodeMap => {
-        const sourcePointNode = pointsArray[lineNodeMap[0]];
-        const destinationPointNode = pointsArray[lineNodeMap[1]];
+    // 3. DRAW UNIQUE USER-DEFINED INTER-CONNECTED SCALAR SEPARATED LINES
+    ctx.lineWidth = 2.5;
+    connectedLines.forEach(lineSegment => {
+        const sourcePointNode = pointsArray[lineSegment.from];
+        const destinationPointNode = pointsArray[lineSegment.to];
         
         if (sourcePointNode && destinationPointNode) {
-            // Map spatial coordinates through the linear matrix values transformation layers
             let transformedSourceX = aVal * sourcePointNode.x + bVal * sourcePointNode.y;
             let transformedSourceY = cVal * sourcePointNode.x + dVal * sourcePointNode.y;
             let transformedDestX = aVal * destinationPointNode.x + bVal * destinationPointNode.y;
             let transformedDestY = cVal * destinationPointNode.x + dVal * destinationPointNode.y;
             
+            ctx.strokeStyle = lineSegment.pathColor || '#00f2fe';
             ctx.beginPath();
             ctx.moveTo(transformedSourceX * scale + offsetX, -transformedSourceY * scale + offsetY);
             ctx.lineTo(transformedDestX * scale + offsetX, -transformedDestY * scale + offsetY);
@@ -444,26 +442,26 @@ function render() {
         }
     });
 
-    // 4. DRAW BASIS TRANSFORM VECTOR INDICATORS (i-hat and j-hat arrows)
-    ctx.lineWidth = 3;
+    // 4. GENERATE RED / GREEN TRANSFORMATION HARDWARE UNIT VECTORS
+    ctx.lineWidth = 3.5;
     
-    // Render i-hat transformation vector target line
+    // Render transformed i-hat target vector direction
     ctx.strokeStyle = '#ff4757'; 
     ctx.beginPath();
     ctx.moveTo(offsetX, offsetY);
     ctx.lineTo((aVal * scale) + offsetX, -(cVal * scale) + offsetY);
     ctx.stroke();
 
-    // Render j-hat transformation vector target line
+    // Render transformed j-hat target vector direction
     ctx.strokeStyle = '#2ed573'; 
     ctx.beginPath();
     ctx.moveTo(offsetX, offsetY);
     ctx.lineTo((bVal * scale) + offsetX, -(dVal * scale) + offsetY);
     ctx.stroke();
 
-    // 5. EVALUATE & GRAPH MATHEMATICAL IMPLICIT / EXPLICIT FORMULA PLOTS
+    // 5. EVALUATE COMPILING EQUATION PATTERNS WITHIN CANVAS MAPS
     if (compiledFnX || compiledFnY) {
-        ctx.fillStyle = 'rgba(0, 242, 254, 0.85)';
+        ctx.fillStyle = 'rgba(0, 242, 254, 0.75)';
         const pixelStepResolution = 2; 
         const proximityTolerance = 1.8 / scale;
 
@@ -486,12 +484,9 @@ function render() {
                             (Math.abs(compiledFnY(initialMathX, initialMathY)) < proximityTolerance) : 
                             (Math.abs(initialMathY - compiledFnY(initialMathX)) < proximityTolerance);
                     }
-                } catch (calcError) {
-                    continue; 
-                }
+                } catch (calcError) { continue; }
 
                 if (evaluationMatchX || evaluationMatchY) {
-                    // Apply raw coordinates transformation shifts prior to plotting pixels to viewport
                     let dynamicRenderX = aVal * initialMathX + bVal * initialMathY;
                     let dynamicRenderY = cVal * initialMathX + dVal * initialMathY;
                     
@@ -505,7 +500,7 @@ function render() {
         }
     }
 
-    // 6. RENDER INTERACTIVE PLOTTED NODE ELEMENTS
+    // 6. DRAW VECTOR SPACE PLOTTED NODE INTERACTION BUBBLES
     pointsArray.forEach((pointInstance, idx) => {
         let matrixShiftedX = aVal * pointInstance.x + bVal * pointInstance.y;
         let matrixShiftedY = cVal * pointInstance.x + dVal * pointInstance.y;
@@ -515,44 +510,29 @@ function render() {
 
         ctx.fillStyle = pointInstance.color;
         
-        // Add visual emphasis glow configurations around standard elements or selection nodes
         if (selectedPointForConnection === idx) {
             ctx.shadowBlur = 20;
             ctx.shadowColor = '#ffffff';
         } else {
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 12;
             ctx.shadowColor = pointInstance.color;
         }
         
         ctx.beginPath();
-        ctx.arc(
-            screenCoordinatesX, 
-            screenCoordinatesY, 
-            selectedPointForConnection === idx ? 8 : 6, 
-            0, Math.PI * 2
-        );
+        ctx.arc(screenCoordinatesX, screenCoordinatesY, selectedPointForConnection === idx ? 9 : 6.5, 0, Math.PI * 2);
         ctx.fill();
         
-        // Reset canvas context global drop shadow metrics
         ctx.shadowBlur = 0;
         ctx.strokeStyle = selectedPointForConnection === idx ? '#00f2fe' : '#ffffff';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 2;
         
         ctx.beginPath();
-        ctx.arc(
-            screenCoordinatesX, 
-            screenCoordinatesY, 
-            selectedPointForConnection === idx ? 9 : 7, 
-            0, Math.PI * 2
-        );
+        ctx.arc(screenCoordinatesX, screenCoordinatesY, selectedPointForConnection === idx ? 10 : 7.5, 0, Math.PI * 2);
         ctx.stroke();
     });
 }
 
-// --- SECTION 9: DESKTOP INPUT TRACKING & COORDINATE UTILITIES ---
-/**
- * Computes, transforms, and outputs relative cursor mappings over standard system fields.
- */
+// --- SECTION 9: DESKTOP MOUSE HANDLERS & NAVIGATION PIPES ---
 function updateCoordsReadout(clientX, clientY) {
     const boundingRectangle = canvas.getBoundingClientRect();
     const currentCursorX = clientX - boundingRectangle.left;
@@ -561,16 +541,11 @@ function updateCoordsReadout(clientX, clientY) {
     let rawMathSpaceCoordX = (currentCursorX - offsetX) / scale;
     let rawMathSpaceCoordY = -(currentCursorY - offsetY) / scale;
     
-    // Outputs precision metrics localized directly alongside mouse positions
     cursorCoords.textContent = `X: ${rawMathSpaceCoordX.toFixed(1)}, Y: ${rawMathSpaceCoordY.toFixed(1)}`;
     cursorCoords.style.left = `${currentCursorX + 15}px`;
     cursorCoords.style.top = `${currentCursorY + 15}px`;
 }
 
-/**
- * Sweeps and calculates structural screen distances to detect node selection targets.
- * @returns {number|null} Mapped array index value or null if selection misses bounds thresholds.
- */
 function findClickedPoint(pX, pY) {
     const aFactor = parseFloat(mA.value) || 0;
     const bFactor = parseFloat(mB.value) || 0;
@@ -585,31 +560,22 @@ function findClickedPoint(pX, pY) {
         let screenTargetX = transformedPositionX * scale + offsetX;
         let screenTargetY = -transformedPositionY * scale + offsetY;
         
-        if (Math.hypot(pX - screenTargetX, pY - screenTargetY) < 18) {
+        if (Math.hypot(pX - screenTargetX, pY - screenTargetY) < 20) {
             return pointIndex;
         }
     }
     return null;
 }
 
-/**
- * Handles explicit target calculations for canvas space click actions.
- */
 function handleCanvasClickAction(pX, pY) {
     if (canvasClickMode === 'plot') {
-        // High precision resolution calculation snapping points cleanly to every 0.1 increment request
         let snappedMathCoordinateX = Math.round(((pX - offsetX) / scale) * 10) / 10;
         let snappedMathCoordinateY = Math.round((-(pY - offsetY) / scale) * 10) / 10;
         
-        const randomPaletteList = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502'];
+        const randomPaletteList = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#00f2fe', '#eccc68'];
         let chosenColorSeed = randomPaletteList[Math.floor(Math.random() * randomPaletteList.length)];
         
-        pointsArray.push({ 
-            x: snappedMathCoordinateX, 
-            y: snappedMathCoordinateY, 
-            color: chosenColorSeed 
-        });
-        
+        pointsArray.push({ x: snappedMathCoordinateX, y: snappedMathCoordinateY, color: chosenColorSeed });
         syncPointsUI();
         render();
     } else if (canvasClickMode === 'connect') {
@@ -618,17 +584,21 @@ function handleCanvasClickAction(pX, pY) {
         if (clickedPointTargetIdx !== null) {
             if (selectedPointForConnection === null) {
                 selectedPointForConnection = clickedPointTargetIdx;
-                connectPointsBtn.textContent = "Select Target Node... \uD83D\uDD17";
+                connectPointsBtn.textContent = "Select Target Node... 🔗";
                 render();
             } else {
                 if (selectedPointForConnection !== clickedPointTargetIdx) {
-                    const isAlreadyInterconnected = connectedLines.some(existingLineMap => {
-                        return (existingLineMap[0] === selectedPointForConnection && existingLineMap[1] === clickedPointTargetIdx) ||
-                               (existingLineMap[0] === clickedPointTargetIdx && existingLineMap[1] === selectedPointForConnection);
+                    const isAlreadyInterconnected = connectedLines.some(line => {
+                        return (line.from === selectedPointForConnection && line.to === clickedPointTargetIdx) ||
+                               (line.from === clickedPointTargetIdx && line.to === selectedPointForConnection);
                     });
                     
                     if (!isAlreadyInterconnected) {
-                        connectedLines.push([selectedPointForConnection, clickedPointTargetIdx]);
+                        connectedLines.push({ 
+                            from: selectedPointForConnection, 
+                            to: clickedPointTargetIdx, 
+                            pathColor: lineColorIn.value 
+                        });
                     }
                 }
                 selectedPointForConnection = null;
@@ -638,12 +608,11 @@ function handleCanvasClickAction(pX, pY) {
                 render();
             }
         } else {
-            showFloatingToast("Click cleanly onto any node circle target bounds.");
+            showFloatingToast("Tap directly on an active plotted node connection hub target.");
         }
     }
 }
 
-// Attach listeners for interaction control
 canvas.addEventListener('mousemove', (event) => {
     updateCoordsReadout(event.clientX, event.clientY);
     if (!isDragging || canvasClickMode !== 'pan') return;
@@ -667,32 +636,28 @@ container.addEventListener('mousedown', (event) => {
     }
 });
 
-window.addEventListener('mouseup', () => {
-    isDragging = false;
-});
+window.addEventListener('mouseup', () => { isDragging = false; });
 
 container.addEventListener('wheel', (event) => {
     event.preventDefault();
-    scale = event.deltaY < 0 ? scale * 1.1 : scale / 1.1;
-    
-    // Set safety grid boundaries scaling caps
-    if (scale < 5) scale = 5;
-    if (scale > 400) scale = 400;
-    
+    scale = event.deltaY < 0 ? scale * 1.15 : scale / 1.15;
+    if (scale < 6) scale = 6;
+    if (scale > 350) scale = 350;
     render();
 }, { passive: false });
 
-// --- SECTION 10: COMPREHENSIVE MOBILE GESTURE CAPTURE UTILITIES ---
+// --- SECTION 10: MOBILE MULTI-TOUCH GESTURE ENGINES ---
 container.addEventListener('touchstart', (event) => {
     const spatialRectBound = canvas.getBoundingClientRect();
     
     if (event.touches.length === 1) {
         const primaryTouchPointX = event.touches[0].clientX;
         const primaryTouchPointY = event.touches[0].clientY;
-        
         const relativeCanvasTouchX = primaryTouchPointX - spatialRectBound.left;
         const relativeCanvasTouchY = primaryTouchPointY - spatialRectBound.top;
         
+        updateCoordsReadout(primaryTouchPointX, primaryTouchPointY);
+
         if (canvasClickMode !== 'pan') {
             handleCanvasClickAction(relativeCanvasTouchX, relativeCanvasTouchY);
         } else {
@@ -702,7 +667,6 @@ container.addEventListener('touchstart', (event) => {
         }
     } else if (event.touches.length === 2) {
         isDragging = false;
-        // Calculate hypotenuse span metrics to coordinate mobile pinch zooms
         touchStartDist = Math.hypot(
             event.touches[0].clientX - event.touches[1].clientX,
             event.touches[0].clientY - event.touches[1].clientY
@@ -714,6 +678,7 @@ container.addEventListener('touchmove', (event) => {
     if (event.touches.length === 1 && isDragging && canvasClickMode === 'pan') {
         offsetX = event.touches[0].clientX - startX;
         offsetY = event.touches[0].clientY - startY;
+        updateCoordsReadout(event.touches[0].clientX, event.touches[0].clientY);
         render();
     } else if (event.touches.length === 2) {
         const activeTouchDistanceSpan = Math.hypot(
@@ -722,10 +687,10 @@ container.addEventListener('touchmove', (event) => {
         );
         
         const velocityScalingFactor = activeTouchDistanceSpan / touchStartDist;
-        if (Math.abs(velocityScalingFactor - 1) > 0.01) {
-            scale = velocityScalingFactor > 1 ? scale * 1.04 : scale / 1.04;
-            if (scale < 5) scale = 5;
-            if (scale > 400) scale = 400;
+        if (Math.abs(velocityScalingFactor - 1) > 0.005) {
+            scale = velocityScalingFactor > 1 ? scale * 1.05 : scale / 1.05;
+            if (scale < 6) scale = 6;
+            if (scale > 350) scale = 350;
             
             touchStartDist = activeTouchDistanceSpan;
             render();
@@ -738,7 +703,7 @@ container.addEventListener('touchend', () => {
     touchStartDist = 0;
 });
 
-// --- SECTION 11: INITIALIZATION ENGINE TRIGGER LAYERS ---
+// --- SECTION 11: SYSTEM SYSTEM TRIGGER HANDLERS ---
 [eqInputX, eqInputY].forEach(inputNodeElement => {
     inputNodeElement.addEventListener('input', () => {
         compileEquations();
@@ -747,18 +712,11 @@ container.addEventListener('touchend', () => {
 });
 
 [mA, mB, mC, mD].forEach(matrixInputElement => {
-    matrixInputElement.addEventListener('input', () => {
-        render();
-    });
+    matrixInputElement.addEventListener('input', () => { render(); });
 });
 
-lineColorIn.addEventListener('input', () => {
-    render();
-});
+lineColorIn.addEventListener('input', () => { render(); });
 
-/**
- * Resets the active laboratory workspace parameters state trees back to system default origins.
- */
 resetBtn.addEventListener('click', () => {
     scale = 40;
     offsetX = canvas.width / 2;
@@ -766,25 +724,20 @@ resetBtn.addEventListener('click', () => {
     
     eqInputX.value = "";
     eqInputY.value = "";
-    
-    mA.value = 1;
-    mB.value = 0;
-    mC.value = 0;
-    mD.value = 1;
+    mA.value = 1; mB.value = 0; mC.value = 0; mD.value = 1;
     
     pointsArray = [
         { x: 2.0, y: 2.0, color: '#ff4757' },
         { x: -3.0, y: 1.0, color: '#2ed573' }
     ];
     
-    connectedLines = [[0, 1]];
+    connectedLines = [{ from: 0, to: 1, pathColor: '#00f2fe' }];
     selectedPointForConnection = null;
     canvasClickMode = 'pan';
     
     pointModeBtn.className = '';
     connectPointsBtn.className = '';
-    
-    pointModeBtn.textContent = "Plot Points (0.1)";
+    pointModeBtn.textContent = "Plot Mode (0.1)";
     connectPointsBtn.textContent = "Connect Nodes Linker";
     
     compileEquations();
@@ -792,14 +745,10 @@ resetBtn.addEventListener('click', () => {
     render();
 });
 
-/**
- * Dynamically updates canvas buffer limits based on viewport scaling modifications.
- */
 function resizeCanvas() {
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
     
-    // On system startup executions, center axis origin offsets automatically
     if (offsetX === 0 && offsetY === 0) {
         offsetX = canvas.width / 2;
         offsetY = canvas.height / 2;
@@ -807,7 +756,6 @@ function resizeCanvas() {
     render();
 }
 
-// Global System Boot Loops
 window.addEventListener('resize', resizeCanvas);
 compileEquations();
 syncPointsUI();
