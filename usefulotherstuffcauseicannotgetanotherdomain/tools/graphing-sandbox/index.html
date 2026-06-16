@@ -1,27 +1,97 @@
-<div class="input-group">
-    <div class="section-title">Matrix Vector Breakout</div>
-    <div class="explanation-box">
-        <div id="matrix-explanation">The vector i-hat lands at (1, 0) and j-hat lands at (0, 1). This is the identity transformation.</div>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matix Graphing sandbox - Matix the math club</title>
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
 
-<div class="input-group points-management">
-    <div class="section-title">Dynamic Points & Links</div>
-    
-    <div id="points-list">
+    <button id="sidebar-toggle">☰ Menu</button>
+
+    <div id="control-panel">
+        <div class="brand-header">
+            <h1>Matix <span>Graphing Sandbox</span></h1>
+            <p>Linear Transformation Sandbox</p>
         </div>
-    
-    <div class="points-actions">
-        <div class="points-row-buttons">
-            <button id="addPointRowBtn">+ Add Node</button>
-            <button id="pointModeBtn">Plot Points (0.1)</button>
+
+        <div class="input-group">
+            <div class="section-title">Transformation Matrix</div>
+            <div class="matrix-grid">
+                <div class="matrix-bracket">
+                    <div class="matrix-cell"><span>x</span><input type="number" id="m-a" value="1" step="0.1"></div>
+                    <div class="matrix-cell"><span>y</span><input type="number" id="m-c" value="0" step="0.1"></div>
+                </div>
+                <div class="matrix-bracket">
+                    <div class="matrix-cell"><span>x</span><input type="number" id="m-b" value="0" step="0.1"></div>
+                    <div class="matrix-cell"><span>y</span><input type="number" id="m-d" value="1" step="0.1"></div>
+                </div>
+            </div>
+            <div class="det-container">
+                <span>Determinant (ad - bc):</span>
+                <span id="det-display">1.00</span>
+            </div>
         </div>
+
+        <div class="input-group">
+            <div class="section-title">Transformation Mechanics</div>
+            <div class="explanation-box">
+                <div id="matrix-explanation">Initializing matrix space vectors...</div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <div class="section-title">Function Input Systems</div>
+            <label for="eqInputX">Equation X (e.g., sin(y) or y=x^2)</label>
+            <input type="text" id="eqInputX" placeholder="f(y) or implicit equation">
+            
+            <label for="eqInputY">Equation Y (e.g., cos(x))</label>
+            <input type="text" id="eqInputY" placeholder="f(x) or implicit equation">
+        </div>
+
+        <div class="input-group points-management">
+            <div class="section-title">Plotted Vector Nodes</div>
+            <div id="points-list">
+                </div>
+            
+            <div class="points-actions">
+                <div class="points-row-buttons">
+                    <button id="addPointRowBtn">+ Add New</button>
+                    <button id="pointModeBtn">Plot Points (0.1)</button>
+                </div>
+                <button id="connectPointsBtn">Connect Nodes Linker</button>
+                
+                <div class="color-picker-group">
+                    <label for="lineColorIn">Path Line Color</label>
+                    <input type="color" id="lineColorIn" value="#00f2fe">
+                </div>
+            </div>
+        </div>
+
+        <button id="resetBtn" class="btn-reset">Reset Workspace</button>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="graphCanvas"></canvas>
+        <div id="cursor-coords">X: 0.0, Y: 0.0</div>
         
-        <button id="connectPointsBtn">Connect Nodes Linker</button>
-        
-        <div class="color-picker-group">
-            <label for="lineColorIn">Vector Path Color</label>
-            <input type="color" id="lineColorIn" value="#00f2fe">
+        <div id="instructions">
+            <p>🖐️ <strong>Pan:</strong> Click & drag background grid.</p>
+            <p>🔍 <strong>Zoom:</strong> Scroll your mouse wheel.</p>
+            <p>📍 <strong>Plotting:</strong> Click to snap to 0.1 increments.</p>
         </div>
     </div>
-</div>
+
+    <div id="welcome-modal">
+        <div class="modal-content">
+            <h2>Welcome to <span>Matrix Lab</span></h2>
+            <p>Explore linear transformations, custom mathematical equation vectors, and interactive node graphs across altered spaces.</p>
+            <button id="closeModalBtn">Enter Sandbox</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
