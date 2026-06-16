@@ -1,91 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Graphing Sandbox | Matix The Math Club</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+<div class="input-group">
+    <div class="section-title">Matrix Vector Breakout</div>
+    <div class="explanation-box">
+        <div id="matrix-explanation">The vector i-hat lands at (1, 0) and j-hat lands at (0, 1). This is the identity transformation.</div>
+    </div>
+</div>
 
-    <div id="welcome-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h2>Welcome to Matix Sandbox! 📐⚙️</h2>
-            <p class="modal-subtitle">Interactive Linear Transformations & Matrix Laboratory</p>
-            <div class="modal-steps">
-                <div class="step"><span class="icon">📈</span> <p><strong>Plot Anything:</strong> Enter standard functions or implicit formulas like <code>sin(x) + cos(y) = 0</code>.</p></div>
-                <div class="step"><span class="icon">🔢</span> <p><strong>Transform Space:</strong> Edit values inside the 2x2 matrix brackets to watch vectors, graphs, and coordinates warp instantly.</p></div>
-                <div class="step"><span class="icon">📍</span> <p><strong>Plot Custom Points:</strong> Toggle Point Mode to click/tap directly on the grid and map individual coordinate pairs.</p></div>
-                <div class="step"><span class="icon">📱</span> <p><strong>Mobile Controls:</strong> Drag with one finger to Pan, pinch with two fingers to Zoom.</p></div>
-            </div>
-            <button class="btn-modal-ok" id="closeModalBtn">Let's Math! 👍</button>
+<div class="input-group points-management">
+    <div class="section-title">Dynamic Points & Links</div>
+    
+    <div id="points-list">
+        </div>
+    
+    <div class="points-actions">
+        <div class="points-row-buttons">
+            <button id="addPointRowBtn">+ Add Node</button>
+            <button id="pointModeBtn">Plot Points (0.1)</button>
+        </div>
+        
+        <button id="connectPointsBtn">Connect Nodes Linker</button>
+        
+        <div class="color-picker-group">
+            <label for="lineColorIn">Vector Path Color</label>
+            <input type="color" id="lineColorIn" value="#00f2fe">
         </div>
     </div>
-
-    <button id="sidebar-toggle" class="menu-toggle-btn" aria-label="Toggle Controls">⚙️ Panel</button>
-
-    <div id="control-panel" class="hidden-mobile">
-        <div class="brand-header">
-            <h1>Matix <span>Sandbox</span></h1>
-            <p>Interactive Grapher & Linear Transformations</p>
-        </div>
-
-        <div class="analytics-card">
-            <span class="analytics-label">Matrix Determinant (|M|):</span>
-            <span id="det-display" class="analytics-value">1.0</span>
-        </div>
-
-        <div class="input-group">
-            <div class="section-title">Plot Functions</div>
-            <label for="eqInputX">Expression Group (X)</label>
-            <input type="text" id="eqInputX" value="" placeholder="e.g. x = 5 or sin(x)">
-            
-            <label for="eqInputY">Expression Group (Y)</label>
-            <input type="text" id="eqInputY" value="" placeholder="e.g. y = x^2">
-        </div>
-
-        <div class="input-group">
-            <div class="section-title">Plot Points (x, y)</div>
-            <div class="point-mode-toggle-container">
-                <button id="pointModeBtn" class="btn-toggle-mode">Canvas Click Mode: Panning</button>
-            </div>
-            <div id="points-list" class="custom-points-container">
-                </div>
-            <button id="addPointRowBtn" class="btn-secondary">+ Add Custom Point</button>
-        </div>
-
-        <div class="input-group">
-            <div class="section-title">Transformation Matrix</div>
-            <div class="matix-grid">
-                <div class="matix-bracket">
-                    <div class="matix-cell"><span>a</span><input type="number" id="m-a" value="1" step="0.1"></div>
-                    <div class="matix-cell"><span>c</span><input type="number" id="m-c" value="0" step="0.1"></div>
-                </div>
-                <div class="matix-bracket">
-                    <div class="matix-cell"><span>b</span><input type="number" id="m-b" value="0" step="0.1"></div>
-                    <div class="matix-cell"><span>d</span><input type="number" id="m-d" value="1" step="0.1"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="input-group">
-            <div class="section-title">Matrix Presets</div>
-            <div class="preset-container">
-                <button class="btn-preset-action" onclick="applyPreset(0, 1, -1, 0, 'y = x')">Rotate 90° 🔄</button>
-                <button class="btn-preset-action" onclick="applyPreset(1, 1, 0, 1, 'sin(x) = y')">Shear Space 📐</button>
-                <button class="btn-preset-action" onclick="applyPreset(-1, 0, 0, 1, 'y = x^3')">Reflect Left/Right 🪞</button>
-            </div>
-        </div>
-
-        <button class="btn-reset" id="resetBtn">Reset Laboratory</button>
-    </div>
-
-    <div id="canvas-container">
-        <canvas id="graphCanvas"></canvas>
-        <div id="cursor-coords" class="floating-coords">X: 0.00, Y: 0.00</div>
-        <div id="instructions">Drag to Pan • Scroll/Pinch to Zoom</div>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+</div>

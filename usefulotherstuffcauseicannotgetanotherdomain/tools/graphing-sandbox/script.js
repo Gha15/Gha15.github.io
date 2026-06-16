@@ -20,6 +20,11 @@ const controlPanel = document.getElementById('control-panel');
 const welcomeModal = document.getElementById('welcome-modal');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
+// Newly Added UI Element Connections
+const connectPointsBtn = document.getElementById('connectPointsBtn');
+const lineColorIn = document.getElementById('lineColorIn');
+const explanationDisplay = document.getElementById('matrix-explanation');
+
 // Laboratory Core State Variables
 let scale = 40; 
 let offsetX = 0; 
@@ -29,11 +34,15 @@ let startX, startY;
 
 // Dynamic Point Plotting States
 let pointsArray = [
-    { x: 2, y: 2, color: '#ff4757' },
-    { x: -3, y: 1, color: '#2ed573' }
+    { x: 2.0, y: 2.0, color: '#ff4757' },
+    { x: -3.0, y: 1.0, color: '#2ed573' }
 ];
-let canvasClickMode = 'pan'; // 'pan' or 'plot'
-let touchStartDist = 0; // Mobile pinch management
+let canvasClickMode = 'pan'; // 'pan', 'plot', or 'connect'
+let touchStartDist = 0; 
+
+// Connection Path Vectors Array Mapping (Stores indices pairs: [idx1, idx2])
+let connectedLines = [[0, 1]]; 
+let selectedPointForConnection = null;
 
 // Compiled Function Caches
 let compiledFnX = null, compiledFnY = null;
@@ -42,6 +51,40 @@ let isImplicitX = false, isImplicitY = false;
 // --- Modal & Responsive Side Panels View Controls ---
 closeModalBtn.addEventListener('click', () => welcomeModal.style.display = 'none');
 sidebarToggle.addEventListener('click', () => controlPanel.classList.toggle('active-mobile'));
+
+// --- Floating Toast Notification Alert Banner ---
+function showFloatingToast(message) {
+    let oldToast = document.getElementById('canvas-toast');
+    if (oldToast) oldToast.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'canvas-toast';
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
+}
+
+// --- Live Transformation Matrix Interpretation Writer ---
+function updateMatrixExplanation(a, b, c, d, det) {
+    let analysis = `The vector $\\hat{i}$ lands at $(${a}, ${c})$ and $\\hat{j}$ lands at $(${b}, ${d})$. `;
+    
+    if (det === 0) {
+        analysis += "The matrix squashes all space down onto a single linear line or single coordinate point, compressing the area scaling factor to absolute zero.";
+    } else {
+        analysis += `This matrix scales all geometric space area grid sizes by a factor of $${Math.abs(det).toFixed(2)}$. `;
+        if (det < 0) {
+            analysis += "Because the determinant value is negative, spatial orientation has flipped (inverted reflection).";
+        } else {
+            analysis += "Spatial orientation remains normal.";
+        }
+    }
+    
+    explanationDisplay.innerHTML = analysis;
+}
 
 // --- Math Parser Pipeline Helpers ---
 function preprocessExpression(str) {
@@ -100,26 +143,39 @@ function syncPointsUI() {
         row.className = 'point-row';
         row.innerHTML = `
             <span class="point-indicator-dot" style="background:${pt.color}"></span>
-            <input type="number" step="0.5" class="pt-coord-in" value="${pt.x}" data-idx="${idx}" data-coord="x">
-            <input type="number" step="0.5" class="pt-coord-in" value="${pt.y}" data-idx="${idx}" data-coord="y">
+            <input type="number" step="0.1" class="pt-coord-in" value="${pt.x.toFixed(1)}" data-idx="${idx}" data-coord="x">
+            <input type="number" step="0.1" class="pt-coord-in" value="${pt.y.toFixed(1)}" data-idx="${idx}" data-coord="y">
             <button class="btn-del-pt" data-idx="${idx}">×</button>
         `;
         pointsListContainer.appendChild(row);
     });
     
-    // Bind change array hooks
     document.querySelectorAll('.pt-coord-in').forEach(input => {
         input.addEventListener('input', (e) => {
             const idx = parseInt(e.target.dataset.idx);
             const coord = e.target.dataset.coord;
-            pointsArray[idx][coord] = parseFloat(e.target.value) || 0;
+            // Round manual user variations to nearest 0.1 bounds
+            pointsArray[idx][coord] = Math.round((parseFloat(e.target.value) || 0) * 10) / 10;
             render();
         });
     });
+
     document.querySelectorAll('.btn-del-pt').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const idx = parseInt(e.target.dataset.idx);
+            const idx = parseInt(btn.dataset.idx);
             pointsArray.splice(idx, 1);
+            
+            // Re-index point lines vectors array links mapping
+            connectedLines = connectedLines.filter(line => line[0] !== idx && line[1] !== idx)
+                .map(line => {
+                    let p1 = line[0] > idx ? line[0] - 1 : line[0];
+                    let p2 = line[1] > idx ? line[1] - 1 : line[1];
+                    return [p1, p2];
+                });
+
+            if (selectedPointForConnection === idx) selectedPointForConnection = null;
+            else if (selectedPointForConnection > idx) selectedPointForConnection--;
+
             syncPointsUI();
             render();
         });
@@ -129,20 +185,45 @@ function syncPointsUI() {
 addPointRowBtn.addEventListener('click', () => {
     const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#eccc68'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    pointsArray.push({ x: 1, y: 1, color: randomColor });
+    pointsArray.push({ x: 1.0, y: 1.0, color: randomColor });
     syncPointsUI();
     render();
 });
 
 pointModeBtn.addEventListener('click', () => {
-    if (canvasClickMode === 'pan') {
+    selectedPointForConnection = null;
+    if (canvasClickMode !== 'plot') {
         canvasClickMode = 'plot';
-        pointModeBtn.textContent = "Canvas Click Mode: Plotting Points 📍";
-        pointModeBtn.style.borderColor = "var(--matrix-gold)";
+        pointModeBtn.className = 'active-mode';
+        connectPointsBtn.className = '';
+        pointModeBtn.textContent = "Mode: Plotting Points (0.1) 📍";
     } else {
         canvasClickMode = 'pan';
-        pointModeBtn.textContent = "Canvas Click Mode: Panning 🖐️";
-        pointModeBtn.style.borderColor = "var(--border-color)";
+        pointModeBtn.className = '';
+        pointModeBtn.textContent = "Plot Points (0.1)";
+    }
+});
+
+connectPointsBtn.addEventListener('click', () => {
+    selectedPointForConnection = null;
+    if (pointsArray.length === 0) {
+        showFloatingToast("Add points to your grid map before building vectors!");
+        return;
+    }
+    if (pointsArray.length === 1) {
+        showFloatingToast("You only have 1 point! Add 1 more to connect.");
+        return;
+    }
+
+    if (canvasClickMode !== 'connect') {
+        canvasClickMode = 'connect';
+        connectPointsBtn.className = 'active-mode';
+        pointModeBtn.className = '';
+        connectPointsBtn.textContent = "Select 2 Nodes... 🔗";
+    } else {
+        canvasClickMode = 'pan';
+        connectPointsBtn.className = '';
+        connectPointsBtn.textContent = "Connect Nodes Linker";
     }
 });
 
@@ -155,9 +236,9 @@ function render() {
     const c = parseFloat(mC.value) || 0;
     const d = parseFloat(mD.value) || 0;
 
-    // Calculate Determinant ad - bc
     const determinant = (a * d) - (b * c);
     detDisplay.textContent = determinant.toFixed(2);
+    updateMatrixExplanation(a, b, c, d, determinant);
 
     // 1. Dynamic Mesh Background Grid Elements Array Mapping
     ctx.strokeStyle = '#161f30';
@@ -181,29 +262,42 @@ function render() {
         ctx.stroke();
     }
 
-    // 2. Linear Transformation Basis Vectors (i hat, j hat Tracking Layout)
-    // Draw transformed Basis i-hat (Originally 1,0)
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#ff4757'; // Red vector
-    ctx.beginPath();
-    ctx.moveTo(offsetX, offsetY);
-    ctx.lineTo((a * scale) + offsetX, -(c * scale) + offsetY);
-    ctx.stroke();
-
-    // Draw transformed Basis j-hat (Originally 0,1)
-    ctx.strokeStyle = '#2ed573'; // Green vector
-    ctx.beginPath();
-    ctx.moveTo(offsetX, offsetY);
-    ctx.lineTo((b * scale) + offsetX, -(d * scale) + offsetY);
-    ctx.stroke();
-
-    // 3. Central Fixed Axes
+    // 2. Central Fixed Axes
     ctx.strokeStyle = '#475569';
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(0, offsetY); ctx.lineTo(canvas.width, offsetY); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(offsetX, 0); ctx.lineTo(offsetX, canvas.height); ctx.stroke();
 
-    // 4. Transform Equation System Curves Matrix Render
+    // 3. Render Node Vector Link Path Connections
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = lineColorIn.value || '#00f2fe';
+    connectedLines.forEach(line => {
+        const pt1 = pointsArray[line[0]];
+        const pt2 = pointsArray[line[1]];
+        if(pt1 && pt2) {
+            let tx1 = a * pt1.x + b * pt1.y;
+            let ty1 = c * pt1.x + d * pt1.y;
+            let tx2 = a * pt2.x + b * pt2.y;
+            let ty2 = c * pt2.x + d * pt2.y;
+
+            ctx.beginPath();
+            ctx.moveTo(tx1 * scale + offsetX, -ty1 * scale + offsetY);
+            ctx.lineTo(tx2 * scale + offsetX, -ty2 * scale + offsetY);
+            ctx.stroke();
+        }
+    });
+
+    // 4. Linear Transformation Basis Vectors (i hat, j hat)
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#ff4757'; 
+    ctx.beginPath(); ctx.moveTo(offsetX, offsetY);
+    ctx.lineTo((a * scale) + offsetX, -(c * scale) + offsetY); ctx.stroke();
+
+    ctx.strokeStyle = '#2ed573'; 
+    ctx.beginPath(); ctx.moveTo(offsetX, offsetY);
+    ctx.lineTo((b * scale) + offsetX, -(d * scale) + offsetY); ctx.stroke();
+
+    // 5. Transform Equation System Curves Matrix Render
     if (compiledFnX || compiledFnY) {
         ctx.fillStyle = 'rgba(0, 242, 254, 0.85)';
         const step = 2; 
@@ -233,28 +327,30 @@ function render() {
         }
     }
 
-    // 5. Render Points Target Vector Blocks Matrix Array
-    pointsArray.forEach(pt => {
-        // Forward matrix math transform rules layout
+    // 6. Render Points Target Vector Blocks Matrix Array
+    pointsArray.forEach((pt, idx) => {
         let tx = a * pt.x + b * pt.y;
         let ty = c * pt.x + d * pt.y;
-
         let screenX = tx * scale + offsetX;
         let screenY = -ty * scale + offsetY;
 
-        // Render point outer glowing aura circle ring
         ctx.fillStyle = pt.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = pt.color;
+        // Highlight a nodes structure element selected inside target loops
+        if (selectedPointForConnection === idx) {
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ffffff';
+        } else {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = pt.color;
+        }
         ctx.beginPath();
-        ctx.arc(screenX, screenY, 6, 0, Math.PI * 2);
+        ctx.arc(screenX, screenY, selectedPointForConnection === idx ? 8 : 6, 0, Math.PI * 2);
         ctx.fill();
         
-        // Reset Shadow elements for optimized map loops
         ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#ffffff';
+        ctx.strokeStyle = selectedPointForConnection === idx ? '#00f2fe' : '#ffffff';
         ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(screenX, screenY, 7, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(screenX, screenY, selectedPointForConnection === idx ? 9 : 7, 0, Math.PI * 2); ctx.stroke();
     });
 }
 
@@ -265,15 +361,79 @@ function updateCoordsReadout(clientX, clientY) {
     const pY = clientY - rect.top;
     let mX = (pX - offsetX) / scale;
     let mY = -(pY - offsetY) / scale;
-    cursorCoords.textContent = `X: ${mX.toFixed(2)}, Y: ${mY.toFixed(2)}`;
+    cursorCoords.textContent = `X: ${mX.toFixed(1)}, Y: ${mY.toFixed(1)}`;
     cursorCoords.style.left = `${pX + 15}px`;
     cursorCoords.style.top = `${pY + 15}px`;
+}
+
+// Check if user clicked close to an existing plotted coordinate point node
+function findClickedPoint(pX, pY) {
+    const a = parseFloat(mA.value) || 0;
+    const b = parseFloat(mB.value) || 0;
+    const c = parseFloat(mC.value) || 0;
+    const d = parseFloat(mD.value) || 0;
+
+    for (let i = 0; i < pointsArray.length; i++) {
+        let pt = pointsArray[i];
+        let tx = a * pt.x + b * pt.y;
+        let ty = c * pt.x + d * pt.y;
+        let sX = tx * scale + offsetX;
+        let sY = -ty * scale + offsetY;
+        
+        if (Math.hypot(pX - sX, pY - sY) < 18) {
+            return i;
+        }
+    }
+    return null;
+}
+
+function handleCanvasClickAction(pX, pY) {
+    if (canvasClickMode === 'plot') {
+        // Enforce snapping to steps of 0.1 instead of 0.5 integers
+        let exactX = Math.round(((pX - offsetX) / scale) * 10) / 10;
+        let exactY = Math.round((-(pY - offsetY) / scale) * 10) / 10;
+        const targetColors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502'];
+        pointsArray.push({ x: exactX, y: exactY, color: targetColors[Math.floor(Math.random() * targetColors.length)] });
+        
+        if (pointsArray.length === 2 && canvasClickMode === 'connect') {
+            connectPointsBtn.textContent = "Connect Nodes Linker";
+        }
+        syncPointsUI();
+        render();
+    } else if (canvasClickMode === 'connect') {
+        const clickedIdx = findClickedPoint(pX, pY);
+        if (clickedIdx !== null) {
+            if (selectedPointForConnection === null) {
+                selectedPointForConnection = clickedIdx;
+                connectPointsBtn.textContent = "Select Match Node... 🔗";
+                render();
+            } else {
+                if (selectedPointForConnection !== clickedIdx) {
+                    // Prevent pushing clone configurations to matrix
+                    const alreadyConnected = connectedLines.some(line => 
+                        (line[0] === selectedPointForConnection && line[1] === clickedIdx) ||
+                        (line[0] === clickedIdx && line[1] === selectedPointForConnection)
+                    );
+                    if (!alreadyConnected) {
+                        connectedLines.push([selectedPointForConnection, clickedIdx]);
+                    }
+                }
+                selectedPointForConnection = null;
+                canvasClickMode = 'pan';
+                connectPointsBtn.className = '';
+                connectPointsBtn.textContent = "Connect Nodes Linker";
+                render();
+            }
+        } else {
+            showFloatingToast("Click directly onto a point node circle to connect it!");
+        }
+    }
 }
 
 // --- Universal Input Mouse & Desktop Handlers Navigation ---
 canvas.addEventListener('mousemove', (e) => {
     updateCoordsReadout(e.clientX, e.clientY);
-    if (!isDragging || canvasClickMode === 'plot') return;
+    if (!isDragging || canvasClickMode !== 'pan') return;
     offsetX = e.clientX - startX;
     offsetY = e.clientY - startY;
     render();
@@ -284,13 +444,8 @@ container.addEventListener('mousedown', (e) => {
     const pX = e.clientX - rect.left;
     const pY = e.clientY - rect.top;
 
-    if (canvasClickMode === 'plot') {
-        let exactX = Math.round(((pX - offsetX) / scale) * 2) / 2;
-        let exactY = Math.round((-(pY - offsetY) / scale) * 2) / 2;
-        const targetColors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502'];
-        pointsArray.push({ x: exactX, y: exactY, color: targetColors[Math.floor(Math.random() * targetColors.length)] });
-        syncPointsUI();
-        render();
+    if (canvasClickMode !== 'pan') {
+        handleCanvasClickAction(pX, pY);
     } else {
         isDragging = true;
         startX = e.clientX - offsetX;
@@ -315,12 +470,8 @@ container.addEventListener('touchstart', (e) => {
         const pX = clientX - rect.left;
         const pY = clientY - rect.top;
 
-        if (canvasClickMode === 'plot') {
-            let exactX = Math.round(((pX - offsetX) / scale) * 2) / 2;
-            let exactY = Math.round((-(pY - offsetY) / scale) * 2) / 2;
-            pointsArray.push({ x: exactX, y: exactY, color: '#00f2fe' });
-            syncPointsUI();
-            render();
+        if (canvasClickMode !== 'pan') {
+            handleCanvasClickAction(pX, pY);
         } else {
             isDragging = true;
             startX = clientX - offsetX;
@@ -350,13 +501,6 @@ container.addEventListener('touchmove', (e) => {
 
 container.addEventListener('touchend', () => { isDragging = false; touchStartDist = 0; });
 
-// --- Interface Form Element Sync Updates Loops ---
-window.applyPreset = function(a, b, c, d, formula) {
-    mA.value = a; mB.value = b; mC.value = c; mD.value = d;
-    eqInputY.value = formula; eqInputX.value = "";
-    compileEquations(); render();
-};
-
 [eqInputX, eqInputY].forEach(el => el.addEventListener('input', () => { compileEquations(); render(); }));
 [mA, mB, mC, mD].forEach(el => el.addEventListener('input', render));
 
@@ -364,7 +508,14 @@ resetBtn.addEventListener('click', () => {
     scale = 40; offsetX = canvas.width / 2; offsetY = canvas.height / 2;
     eqInputX.value = ""; eqInputY.value = "";
     mA.value = 1; mB.value = 0; mC.value = 0; mD.value = 1;
-    pointsArray = [{ x: 2, y: 2, color: '#ff4757' }, { x: -3, y: 1, color: '#2ed573' }];
+    pointsArray = [{ x: 2.0, y: 2.0, color: '#ff4757' }, { x: -3.0, y: 1.0, color: '#2ed573' }];
+    connectedLines = [[0, 1]];
+    selectedPointForConnection = null;
+    canvasClickMode = 'pan';
+    pointModeBtn.className = '';
+    connectPointsBtn.className = '';
+    pointModeBtn.textContent = "Plot Points (0.1)";
+    connectPointsBtn.textContent = "Connect Nodes Linker";
     compileEquations(); syncPointsUI(); render();
 });
 

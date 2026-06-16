@@ -26,9 +26,7 @@ body {
     position: relative;
 }
 
-/* ==========================================================================
-   Sidebar Control Panel
-   ========================================================================== */
+/* Sidebar Control Panel */
 #control-panel {
     width: 360px;
     min-width: 360px;
@@ -106,9 +104,7 @@ input[type="text"]:focus, input[type="number"]:focus {
     box-shadow: 0 0 10px rgba(0, 242, 254, 0.2), inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* ==========================================================================
-   Matrix Grid Bracket Formatting [ ]
-   ========================================================================== */
+/* Matrix Bracket Formatting */
 .matix-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -178,7 +174,6 @@ input[type="text"]:focus, input[type="number"]:focus {
     box-shadow: 0 0 8px rgba(255, 184, 108, 0.25);
 }
 
-/* Determinant Information Banner */
 .det-container {
     font-size: 0.85rem;
     color: var(--text-dim);
@@ -194,9 +189,21 @@ input[type="text"]:focus, input[type="number"]:focus {
     font-weight: 700;
 }
 
-/* ==========================================================================
-   Dynamic Interactive Custom Points UI Elements
-   ========================================================================== */
+/* Expanded Realtime Matrix Analysis Breakdown Display */
+.explanation-box {
+    background: rgba(36, 44, 61, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+#matrix-explanation {
+    font-size: 0.82rem;
+    color: var(--text-color);
+    line-height: 1.5;
+}
+
+/* Points List Management & Geometric Node Combinations Layout */
 .points-management {
     display: flex;
     flex-direction: column;
@@ -204,7 +211,7 @@ input[type="text"]:focus, input[type="number"]:focus {
 }
 
 #points-list {
-    max-height: 160px;
+    max-height: 140px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -243,19 +250,20 @@ input[type="text"]:focus, input[type="number"]:focus {
     cursor: pointer;
     line-height: 1;
     padding: 0 4px;
-    transition: color 0.2s;
-}
-
-.btn-del-pt:hover {
-    color: #f87171;
 }
 
 .points-actions {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.points-actions button, #pointModeBtn {
+.points-row-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.points-actions button {
     flex: 1;
     background: rgba(36, 44, 61, 0.4);
     border: 1px solid var(--border-color);
@@ -268,44 +276,38 @@ input[type="text"]:focus, input[type="number"]:focus {
     transition: all 0.2s;
 }
 
-.points-actions button:hover, #pointModeBtn:hover {
+.points-actions button:hover {
     border-color: var(--accent-color);
     background: rgba(0, 242, 254, 0.05);
 }
 
-#pointModeBtn {
-    width: 100%;
-    text-align: center;
-    border-style: dashed;
+/* Custom High Contrast State Toggles */
+button.active-mode {
+    border-color: var(--matrix-gold) !important;
+    background: rgba(255, 184, 108, 0.1) !important;
+    color: var(--matrix-gold) !important;
+    box-shadow: 0 0 10px rgba(255, 184, 108, 0.15);
 }
 
-/* Custom Interactive Math Presets Menu */
-.preset-container {
+.color-picker-group {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.btn-preset-action {
-    background-color: rgba(36, 44, 61, 0.3);
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(8, 11, 17, 0.3);
+    padding: 8px 12px;
+    border-radius: 6px;
     border: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 10px 14px;
-    border-radius: 8px;
+}
+
+#lineColorIn {
+    background: transparent;
+    border: none;
+    width: 40px;
+    height: 24px;
     cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-align: left;
-    transition: all 0.2s ease;
 }
 
-.btn-preset-action:hover {
-    background: linear-gradient(90deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.05));
-    border-color: var(--accent-color);
-    transform: translateX(2px);
-}
-
-/* Reset Module Utilities */
+/* Reset Utilities */
 .btn-reset {
     background-color: transparent;
     border: 1px solid rgba(248, 81, 73, 0.3);
@@ -324,19 +326,15 @@ input[type="text"]:focus, input[type="number"]:focus {
 .btn-reset:hover {
     border-color: #f85149;
     background: rgba(248, 81, 73, 0.1);
-    box-shadow: 0 0 15px rgba(248, 81, 73, 0.15);
 }
 
-/* ==========================================================================
-   Canvas View Sandbox Environment
-   ========================================================================== */
+/* Canvas View Sandbox Environment */
 #canvas-container {
     flex-grow: 1;
     position: relative;
     background-color: var(--bg-color);
     cursor: grab;
     height: 100%;
-    overflow: hidden;
 }
 
 #canvas-container:active {
@@ -345,14 +343,12 @@ input[type="text"]:focus, input[type="number"]:focus {
 
 canvas {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     display: block;
 }
 
-/* Floating Realtime HTML Elements Over Canvas Context */
+/* Floating Realtime Canvas Elements */
 #cursor-coords {
     position: absolute;
     pointer-events: none;
@@ -365,20 +361,17 @@ canvas {
     color: var(--accent-color);
     backdrop-filter: blur(4px);
     z-index: 5;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 #instructions {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
+    bottom: 20px; right: 20px;
     background: rgba(17, 22, 34, 0.85);
     border: 1px solid var(--border-color);
     padding: 14px 18px;
     border-radius: 8px;
     max-width: 280px;
     backdrop-filter: blur(6px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     pointer-events: none;
     z-index: 5;
 }
@@ -387,23 +380,33 @@ canvas {
     font-size: 0.8rem;
     color: var(--text-color);
     line-height: 1.5;
-    margin-bottom: 6px;
 }
 
-#instructions p:last-child {
-    margin-bottom: 0;
+/* Floating Notification Toast UI Element */
+#canvas-toast {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(248, 81, 73, 0.95);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 100;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
-#instructions strong {
-    color: var(--accent-color);
-}
-
-/* Mobile Layout Controls */
+/* Mobile Layout Responsive Action Toggles */
 #sidebar-toggle {
     display: none;
     position: absolute;
-    top: 15px;
-    left: 15px;
+    top: 15px; left: 15px;
     z-index: 100;
     background: var(--panel-bg);
     border: 1px solid var(--border-color);
@@ -412,19 +415,12 @@ canvas {
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
-/* ==========================================================================
-   Welcome / Resource Guide Modal Overlay Layout
-   ========================================================================== */
 #welcome-modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     background: rgba(8, 11, 17, 0.8);
     backdrop-filter: blur(8px);
     display: flex;
@@ -441,77 +437,29 @@ canvas {
     border-radius: 12px;
     max-width: 480px;
     width: 100%;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
-.modal-content h2 {
-    font-size: 1.5rem;
-    color: #fff;
-}
-
-.modal-content h2 span {
-    color: var(--accent-color);
-}
-
-.modal-content p {
-    font-size: 0.9rem;
-    color: var(--text-dim);
-    line-height: 1.6;
-}
-
 #closeModalBtn {
     background: linear-gradient(135deg, var(--accent-color), var(--accent-neon));
-    border: none;
-    color: #000;
-    padding: 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 0.9rem;
-    margin-top: 8px;
-    transition: opacity 0.2s;
+    border: none; color: #000;
+    padding: 12px; border-radius: 6px;
+    cursor: pointer; font-weight: 700;
 }
 
-#closeModalBtn:hover {
-    opacity: 0.9;
-}
-
-/* ==========================================================================
-   Responsive Adaptation Breakdown Rules (Mobile/Tablet viewport)
-   ========================================================================== */
+/* Responsive Adaptation Breakdown Rules */
 @media (max-width: 868px) {
-    body {
-        flex-direction: column;
-    }
-
-    #sidebar-toggle {
-        display: block;
-    }
-
+    body { flex-direction: column; }
+    #sidebar-toggle { display: block; }
     #control-panel {
         position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 300px;
-        min-width: 300px;
+        top: 0; left: 0;
+        height: 100%; width: 320px; min-width: 320px;
         transform: translateX(-100%);
-        padding-top: 70px; /* Leave space for floating action switch toggles */
+        padding-top: 75px;
     }
-
-    #control-panel.active-mobile {
-        transform: translateX(0);
-    }
-
-    #instructions {
-        bottom: 15px;
-        right: 15px;
-        left: 15px;
-        max-width: none;
-        font-size: 0.75rem;
-        padding: 10px;
-    }
+    #control-panel.active-mobile { transform: translateX(0); }
+    #instructions { bottom: 15px; right: 15px; left: 15px; max-width: none; }
 }
