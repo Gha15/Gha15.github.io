@@ -3,18 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>multiplayer math fight - matix the math club</title>
+    <title>Math Fight — MATIX</title>
     <link rel="stylesheet" href="mathfight.css">
-    <link rel="icon" href="../assets/logo.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <script src="mathfightjs" defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Vibur:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>> coming soon</h1>
+
+  <!-- ═══ JOIN SCREEN ═══ -->
+  <div id="join-screen">
+    <div class="join-panel">
+      <h1>Math Fight</h1>
+      <p>Keep running. Challenge others. Last heart wins.</p>
+      <form id="join-form">
+        <input id="join-name" maxlength="16" placeholder="Pick a username" required autocomplete="off">
+        <button type="submit">PLAY</button>
+      </form>
+    </div>
+    <div class="rules-panel">
+      <h2>Rules</h2>
+      <ul>
+        <li>Move with <strong>WASD</strong> / <strong>Arrow Keys</strong> / joystick on mobile</li>
+        <li>When it's your turn → <strong>click a player</strong> to challenge them</li>
+        <li>They get a multiplication question and <strong>12 seconds</strong> to answer</li>
+        <li>They answer correctly → <strong>you</strong> lose a life ❤️</li>
+        <li>They answer wrong or time out → <strong>they</strong> lose a life ❤️</li>
+        <li>Everyone starts with <strong>3 lives ❤️❤️❤️</strong></li>
+        <li>Last player standing <strong>wins!</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══ GAME SCREEN ═══ -->
+  <div id="game-screen" class="hidden">
+    <div id="notif" class="notif"></div>
+    <div id="player-list" class="player-list"></div>
+    <canvas id="canvas"></canvas>
+
+    <!-- Challenge overlay (shown to the challenged player) -->
+    <div id="challenge-overlay" class="overlay hidden">
+      <div class="overlay-box">
+        <div id="challenge-from"></div>
+        <div id="challenge-q" class="big-q"></div>
+        <form id="answer-form">
+          <input id="answer-input" type="number" placeholder="?" required autocomplete="off">
+          <button type="submit">Answer</button>
+        </form>
+        <div class="timer-track"><div id="timer-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Result flash -->
+    <div id="result-flash" class="result-flash hidden"></div>
+
+    <!-- Chat -->
+    <button id="chat-toggle" class="chat-btn" title="Chat">💬</button>
+    <div id="chat-panel" class="chat-panel hidden">
+      <div id="chat-msgs"></div>
+      <form id="chat-form">
+        <input id="chat-input" maxlength="120" placeholder="Message…" autocomplete="off">
+        <button type="submit">→</button>
+      </form>
+    </div>
+
+    <!-- Mobile joystick -->
+    <div id="joystick-zone" class="joystick-zone">
+      <div id="joystick-base" class="joystick-base">
+        <div id="joystick-stick" class="joystick-stick"></div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <script src="/theme-loader.js"></script>
+  <script src="mathfight.js"></script>
 </body>
 </html>
