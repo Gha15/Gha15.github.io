@@ -12,8 +12,13 @@
 
   <!-- ═══ JOIN SCREEN ═══ -->
   <div id="join-screen">
+    <div class="particles" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
     <div class="join-panel">
-      <h1>Math Fight</h1>
+      <div class="title-glow" aria-hidden="true"></div>
+      <h1><span class="title-math">MATH</span><br><span class="title-fight">FIGHT</span></h1>
       <p>Keep running. Challenge others. Last heart wins.</p>
       <form id="join-form">
         <input id="join-name" maxlength="16" placeholder="Pick a username" required autocomplete="off">
@@ -37,6 +42,7 @@
   <!-- ═══ GAME SCREEN ═══ -->
   <div id="game-screen" class="hidden">
     <div id="notif" class="notif"></div>
+    <div class="scan-line" aria-hidden="true"></div>
     <div id="player-list" class="player-list"></div>
     <canvas id="canvas"></canvas>
 
