@@ -102,6 +102,21 @@ label {
     color: var(--text-sub);
 }
 
+.small-note {
+    margin-top: -4px;
+    color: #cbd5e1;
+    font-size: 0.92rem;
+}
+
+select {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(2, 6, 23, 0.62);
+    color: var(--text-main);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
 input,
 textarea,
 button {
@@ -169,12 +184,33 @@ button:hover {
     padding: 10px;
 }
 
-.meme-card img {
-    width: 100%;
-    border-radius: 10px;
-    max-height: 320px;
-    object-fit: cover;
-    display: block;
+.type-tag {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(251, 146, 60, 0.18);
+    color: #fdba74;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.meme-title {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+}
+
+.meme-content,
+.meme-qna-line {
+    margin: 0 0 8px;
+    color: #e2e8f0;
+    line-height: 1.45;
+}
+
+.meme-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
 }
 
 .meme-meta {
@@ -208,11 +244,57 @@ button:hover {
     border-color: rgba(251, 113, 133, 0.9);
 }
 
+.meme-thread {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.thread-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--text-sub);
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.thread-list {
+    display: grid;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.thread-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.thread-form input {
+    margin: 0;
+}
+
+.thread-empty {
+    padding: 10px;
+    font-size: 0.88rem;
+}
+
 .chat-item {
     border-radius: 10px;
     padding: 9px 10px;
     background: rgba(2, 6, 23, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.thread-item {
+    background: rgba(2, 6, 23, 0.72);
+}
+
+.hidden {
+    display: none;
 }
 
 .chat-user {
@@ -255,6 +337,11 @@ button:hover {
     .meme-feed,
     .chat-list {
         max-height: 50vh;
+    }
+
+    .thread-form,
+    #chat-form {
+        grid-template-columns: 1fr;
     }
 }
 

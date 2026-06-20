@@ -12,21 +12,43 @@
   <header class="topbar">
     <a class="back-link" href="/">Back</a>
     <h1>MATIX Meme Lab</h1>
-    <p>Post memes, chat live, and spread love.</p>
+    <p>Pick a username, post title/content memes or Q&A memes, and chat globally or inside each meme.</p>
   </header>
 
   <main class="layout">
+    <section class="panel username-panel">
+      <h2>Pick Username</h2>
+      <p class="small-note">This name is used for posting memes and chatting.</p>
+      <form id="username-form" autocomplete="off">
+        <label for="username-input">Username</label>
+        <input id="username-input" maxlength="20" placeholder="your_name" required>
+        <button type="submit">Save Username</button>
+      </form>
+      <p class="form-hint" id="username-hint"></p>
+    </section>
+
     <section class="panel meme-submit-panel">
       <h2>Add A Meme Here</h2>
       <form id="meme-form" autocomplete="off">
-        <label for="meme-caption">Caption</label>
-        <input id="meme-caption" maxlength="120" placeholder="Describe the meme vibe" required>
+        <label for="meme-type">Meme Type</label>
+        <select id="meme-type">
+          <option value="standard">Title + Content</option>
+          <option value="qna">Title + Q and A</option>
+        </select>
 
-        <label for="meme-image">Image URL</label>
-        <input id="meme-image" type="url" placeholder="https://..." required>
+        <label for="meme-title">Title</label>
+        <input id="meme-title" maxlength="120" placeholder="Meme title" required>
 
-        <label for="meme-note">Optional note</label>
-        <textarea id="meme-note" maxlength="220" rows="3" placeholder="Why this is hilarious"></textarea>
+        <label for="meme-content">Content</label>
+        <textarea id="meme-content" maxlength="500" rows="4" placeholder="Write the meme content" required></textarea>
+
+        <div id="meme-qna-fields" class="qna-fields hidden">
+          <label for="meme-question">Question</label>
+          <input id="meme-question" maxlength="180" placeholder="Q">
+
+          <label for="meme-answer">Answer</label>
+          <textarea id="meme-answer" maxlength="300" rows="3" placeholder="A"></textarea>
+        </div>
 
         <button type="submit">Post Meme</button>
         <p class="form-hint" id="meme-form-hint"></p>
@@ -43,7 +65,7 @@
 
     <section class="panel chat-panel">
       <div class="panel-head">
-        <h2>Meme Chat</h2>
+        <h2>Global Meme Chat</h2>
         <span id="chat-status">Live</span>
       </div>
       <div id="chat-list" class="chat-list"></div>

@@ -12,12 +12,18 @@ if (!firebase.apps.length) {
 
 const db = firebase.database();
 
-const activeUser = getActiveUser();
+let activeUser = getActiveUser();
 
+const usernameForm = document.getElementById("username-form");
+const usernameInput = document.getElementById("username-input");
+const usernameHint = document.getElementById("username-hint");
 const memeForm = document.getElementById("meme-form");
-const memeCaptionInput = document.getElementById("meme-caption");
-const memeImageInput = document.getElementById("meme-image");
-const memeNoteInput = document.getElementById("meme-note");
+const memeTypeInput = document.getElementById("meme-type");
+const memeTitleInput = document.getElementById("meme-title");
+const memeContentInput = document.getElementById("meme-content");
+const memeQnaFields = document.getElementById("meme-qna-fields");
+const memeQuestionInput = document.getElementById("meme-question");
+const memeAnswerInput = document.getElementById("meme-answer");
 const memeFeed = document.getElementById("meme-feed");
 const memeCount = document.getElementById("meme-count");
 const memeFormHint = document.getElementById("meme-form-hint");
@@ -31,6 +37,7 @@ const chatRef = db.ref("funny_chat");
 
 let currentMemes = [];
 let currentChatMessages = [];
+let threadListeners = {};
 
 function getActiveUser() {
 	const savedUser = sessionStorage.getItem("matix_auth_user");
@@ -49,6 +56,31 @@ function getActiveUser() {
 	return finalName;
 }
 
+function saveUsername(name) {
+	const cleaned = name.trim().toLowerCase().replace(/\s+/g, "_").slice(0, 20);
+	if (!cleaned) {
+		return false;
+	}
+	activeUser = cleaned;
+	localStorage.setItem("matix_meme_guest", cleaned);
+	usernameInput.value = cleaned;
+	usernameHint.textContent = "Saved as @" + cleaned;
+	usernameHint.style.color = "#86efac";
+	return true;
+}
+
+function requireUsername() {
+	if (activeUser) {
+		usernameInput.value = activeUser;
+		return true;
+	}
+	const chosen = prompt("Pick a username before posting:");
+	if (!chosen) {
+		return false;
+	}
+	return saveUsername(chosen);
+}
+
 function showHint(message, isError) {
 	memeFormHint.textContent = message;
 	memeFormHint.style.color = isError ? "#fecaca" : "#86efac";
@@ -56,6 +88,28 @@ function showHint(message, isError) {
 
 function isSafeImageUrl(url) {
 	return /^https?:\/\//i.test(url);
+}
+
+function escapeText(value) {
+	return String(value || "").trim();
+}
+
+function setTypeVisibility() {
+	const isQna = memeTypeInput.value === "qna";
+	memeQnaFields.classList.toggle("hidden", !isQna);
+	if (isQna) {
+		memeContentInput.placeholder = "Short intro or summary";
+	} else {
+		memeContentInput.placeholder = "Write the meme content";
+	}
+}
+
+function threadRef(memeId) {
+	return db.ref("funny_memes/" + memeId + "/thread");
+}
+
+function globalChatCountLabel(count) {
+	return count + " message" + (count === 1 ? "" : "s");
 }
 
 function renderMemes() {
@@ -73,23 +127,36 @@ function renderMemes() {
 	currentMemes.forEach((meme) => {
 		const card = document.createElement("article");
 		card.className = "meme-card";
+		card.dataset.memeId = meme.id;
 
-		const img = document.createElement("img");
-		img.src = meme.imageUrl;
-		img.alt = meme.caption;
-		img.loading = "lazy";
-		card.appendChild(img);
+		const typeTag = document.createElement("div");
+		typeTag.className = "type-tag";
+		typeTag.textContent = meme.type === "qna" ? "Q and A" : "Title + Content";
+		card.appendChild(typeTag);
 
-		const caption = document.createElement("p");
-		caption.className = "meme-caption";
-		caption.textContent = meme.caption;
-		card.appendChild(caption);
+		const title = document.createElement("h3");
+		title.className = "meme-title";
+		title.textContent = meme.title;
+		card.appendChild(title);
 
-		if (meme.note) {
-			const note = document.createElement("p");
-			note.className = "meme-note";
-			note.textContent = meme.note;
-			card.appendChild(note);
+		const content = document.createElement("p");
+		content.className = "meme-content";
+		content.textContent = meme.content;
+		card.appendChild(content);
+
+		if (meme.type === "qna") {
+			if (meme.question) {
+				const question = document.createElement("p");
+				question.className = "meme-qna-line";
+				question.innerHTML = "<strong>Q:</strong> " + escapeText(meme.question);
+				card.appendChild(question);
+			}
+			if (meme.answer) {
+				const answer = document.createElement("p");
+				answer.className = "meme-qna-line";
+				answer.innerHTML = "<strong>A:</strong> " + escapeText(meme.answer);
+				card.appendChild(answer);
+			}
 		}
 
 		const meta = document.createElement("div");
@@ -105,6 +172,9 @@ function renderMemes() {
 
 		card.appendChild(meta);
 
+		const actions = document.createElement("div");
+		actions.className = "meme-actions";
+
 		const loves = meme.loves || 0;
 		const lovedByMap = meme.lovedBy || {};
 		const isLoved = Boolean(lovedByMap[activeUser]);
@@ -113,12 +183,66 @@ function renderMemes() {
 		loveButton.className = "love-button" + (isLoved ? " active" : "");
 		loveButton.textContent = "Love " + (isLoved ? "(added)" : "") + "  -  " + loves;
 		loveButton.addEventListener("click", () => toggleLove(meme.id, isLoved, loves));
-		card.appendChild(loveButton);
+		actions.appendChild(loveButton);
+
+		card.appendChild(actions);
+
+		const threadWrap = document.createElement("section");
+		threadWrap.className = "meme-thread";
+		threadWrap.innerHTML = '<div class="thread-head"><strong>Thread</strong><span>Live</span></div><div class="thread-list" id="thread-list-' + meme.id + '"></div><form class="thread-form" data-meme-id="' + meme.id + '"><input maxlength="220" placeholder="Reply in this meme thread" required><button type="submit">Send</button></form>';
+		card.appendChild(threadWrap);
+
+		attachThreadListener(meme.id);
 
 		memeFeed.appendChild(card);
 	});
 
 	memeCount.textContent = currentMemes.length + " meme" + (currentMemes.length === 1 ? "" : "s");
+}
+
+function renderThread(memeId, threadMessages) {
+	const threadList = document.getElementById("thread-list-" + memeId);
+	if (!threadList) {
+		return;
+	}
+
+	threadList.innerHTML = "";
+	if (!threadMessages.length) {
+		const empty = document.createElement("div");
+		empty.className = "empty thread-empty";
+		empty.textContent = "No replies yet. Start the thread.";
+		threadList.appendChild(empty);
+		return;
+	}
+
+	threadMessages.forEach((msg) => {
+		const item = document.createElement("div");
+		item.className = "chat-item thread-item";
+		const user = document.createElement("span");
+		user.className = "chat-user";
+		user.textContent = "@" + msg.user + ":";
+		item.appendChild(user);
+		const text = document.createElement("span");
+		text.textContent = msg.text;
+		item.appendChild(text);
+		threadList.appendChild(item);
+	});
+
+	threadList.scrollTop = threadList.scrollHeight;
+}
+
+function attachThreadListener(memeId) {
+	if (threadListeners[memeId]) {
+		return;
+	}
+
+	threadListeners[memeId] = true;
+	threadRef(memeId).orderByChild("createdAt").limitToLast(60).on("value", (snapshot) => {
+		const raw = snapshot.val() || {};
+		const messages = Object.keys(raw).map((id) => ({ id, ...raw[id] }));
+		messages.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+		renderThread(memeId, messages);
+	});
 }
 
 function renderChat() {
@@ -149,6 +273,7 @@ function renderChat() {
 	});
 
 	chatList.scrollTop = chatList.scrollHeight;
+	document.getElementById("chat-status").textContent = globalChatCountLabel(currentChatMessages.length);
 }
 
 function formatTime(timestamp) {
@@ -191,24 +316,33 @@ function listenForChat() {
 
 memeForm.addEventListener("submit", (event) => {
 	event.preventDefault();
-	const caption = memeCaptionInput.value.trim();
-	const imageUrl = memeImageInput.value.trim();
-	const note = memeNoteInput.value.trim();
-
-	if (!caption || !imageUrl) {
-		showHint("Caption and image URL are required.", true);
+	if (!requireUsername()) {
+		showHint("Pick a username first.", true);
 		return;
 	}
 
-	if (!isSafeImageUrl(imageUrl)) {
-		showHint("Use a valid http/https image URL.", true);
+	const type = memeTypeInput.value;
+	const title = memeTitleInput.value.trim();
+	const content = memeContentInput.value.trim();
+	const question = memeQuestionInput.value.trim();
+	const answer = memeAnswerInput.value.trim();
+
+	if (!title || !content) {
+		showHint("Title and content are required.", true);
+		return;
+	}
+
+	if (type === "qna" && (!question || !answer)) {
+		showHint("Q and A need both question and answer.", true);
 		return;
 	}
 
 	const payload = {
-		caption,
-		imageUrl,
-		note,
+		type,
+		title,
+		content,
+		question: type === "qna" ? question : "",
+		answer: type === "qna" ? answer : "",
 		postedBy: activeUser,
 		loves: 0,
 		createdAt: Date.now()
@@ -224,8 +358,49 @@ memeForm.addEventListener("submit", (event) => {
 		});
 });
 
+usernameForm.addEventListener("submit", (event) => {
+	event.preventDefault();
+	const ok = saveUsername(usernameInput.value);
+	if (!ok) {
+		usernameHint.textContent = "Enter a valid username.";
+		usernameHint.style.color = "#fecaca";
+	}
+});
+
+memeTypeInput.addEventListener("change", setTypeVisibility);
+
+document.addEventListener("submit", (event) => {
+	const form = event.target;
+	if (!form.classList || !form.classList.contains("thread-form")) {
+		return;
+	}
+
+	event.preventDefault();
+	if (!requireUsername()) {
+		return;
+	}
+
+	const memeId = form.dataset.memeId;
+	const input = form.querySelector("input");
+	const text = input.value.trim();
+	if (!text) {
+		return;
+	}
+
+	threadRef(memeId).push({
+		user: activeUser,
+		text,
+		createdAt: Date.now()
+	}).then(() => {
+		input.value = "";
+	});
+});
+
 chatForm.addEventListener("submit", (event) => {
 	event.preventDefault();
+	if (!requireUsername()) {
+		return;
+	}
 	const text = chatInput.value.trim();
 
 	if (!text) {
@@ -241,5 +416,9 @@ chatForm.addEventListener("submit", (event) => {
 	});
 });
 
+setTypeVisibility();
 listenForMemes();
 listenForChat();
+usernameInput.value = activeUser;
+usernameHint.textContent = "Current username: @" + activeUser;
+usernameHint.style.color = "#86efac";
