@@ -41,6 +41,35 @@
         .btn-neg { color: #ef4444; border-color: #450a0a; }
         .btn-reset { color: #f59e0b; border-color: #451a03; }
         
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-nav {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 20px;
+            border: 1px solid #334155;
+            background: #020617;
+            color: #818cf8;
+            cursor: pointer;
+            font-size: 1.6rem;
+            font-family: 'Vibur', cursive;
+            transition: 0.2s;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .btn-nav:hover {
+            background: #1e293b;
+            border-color: #818cf8;
+            color: #10b981;
+        }
+        
         #login-screen { text-align: center; border: 1px solid #334155; padding: 30px; background: #0f172a; width: 320px; }
         input { 
             background: #020617; border: 1px solid #334155; color: white; 
@@ -120,6 +149,11 @@
                 <button class="btn btn-neg" onclick="addPoints('jad', -10)">-10</button>
                 <button class="btn btn-reset" onclick="resetPerson('jad')">Reset</button>
             </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="how-to-get/index.html" class="btn-nav">📈 How_to_Get_Points</a>
+            <a href="use-points/index.html" class="btn-nav">🎁 Use_Your_Points</a>
         </div>
 
         <button class="btn" style="margin-top:40px; width:100%; opacity:0.4; border:none;" onclick="logout()">Terminate_Session</button>
