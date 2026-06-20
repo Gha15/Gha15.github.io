@@ -11,7 +11,7 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const ROOM     = 'mathfight/room';
+const ROOM_ROOT = 'mathfight/rooms';
 const SPEED    = 3.2;
 const WORLD_W  = 2000;
 const WORLD_H  = 1200;
@@ -27,6 +27,10 @@ let players = {}, gameState = {}, keys = {};
 let joyDx = 0, joyDy = 0, joyActive = false;
 let camX = 0, camY = 0;
 let timerInterval = null;
+let deviceMode = 'pc';
+const stickmanCache = {};
+let roomId = '';
+let ROOM = '';
 
 // ── Canvas ────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
@@ -56,26 +60,96 @@ const chatInput        = $('chat-input');
 const joystickZone     = $('joystick-zone');
 const joystickBase     = $('joystick-base');
 const joystickStick    = $('joystick-stick');
+const roomIdInput      = $('room-id');
+const createRoomBtn    = $('create-room-btn');
+const roomLinkEl       = $('room-link');
+const joinColorInput   = $('join-color');
+
+setupRoomUi();
+
+function roomRef(path) {
+    return db.ref(`${ROOM}/${path}`);
+}
+
+function normalizeRoomId(value) {
+    return (value || '').replace(/\D/g, '').slice(0, 6);
+}
+
+function randomRoomId() {
+    return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function roomLinkFor(id) {
+    return `${location.origin}/room?id=${id}`;
+}
+
+function updateRoomLink(id) {
+    if (!id) {
+        roomLinkEl.textContent = '';
+        roomLinkEl.removeAttribute('href');
+        return;
+    }
+
+    roomLinkEl.href = roomLinkFor(id);
+    roomLinkEl.textContent = `/room?id=${id}`;
+}
+
+function setupRoomUi() {
+    const queryRoom = normalizeRoomId(new URLSearchParams(location.search).get('id'));
+    const initial = queryRoom || randomRoomId();
+    roomIdInput.value = initial;
+    updateRoomLink(initial);
+
+    roomIdInput.addEventListener('input', () => {
+        roomIdInput.value = normalizeRoomId(roomIdInput.value);
+        updateRoomLink(roomIdInput.value);
+    });
+
+    createRoomBtn.addEventListener('click', () => {
+        const newId = randomRoomId();
+        roomIdInput.value = newId;
+        updateRoomLink(newId);
+    });
+}
 
 // ── Join ──────────────────────────────────────────────────
 $('join-form').addEventListener('submit', e => {
     e.preventDefault();
     const raw = $('join-name').value.trim();
     if (!raw) return;
+
+    roomId = normalizeRoomId(roomIdInput.value);
+    if (roomId.length !== 6) {
+        alert('Room ID must be 6 digits.');
+        return;
+    }
+
+    ROOM = `${ROOM_ROOT}/${roomId}`;
+
+    const roomQuery = `?id=${roomId}`;
+    if (location.pathname === '/room' || location.pathname === '/room/') {
+        history.replaceState({}, '', roomQuery);
+    } else {
+        history.replaceState({}, '', `/room${roomQuery}`);
+    }
+
+    const selectedDevice = document.querySelector('input[name="device"]:checked');
+    deviceMode = selectedDevice ? selectedDevice.value : 'pc';
     me = raw.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 16) || 'player';
-    myColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+    myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
     startGame();
 });
 
 function startGame() {
     joinScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
+    document.body.classList.add('game-active');
 
-    const myRef = db.ref(`${ROOM}/players/${me}`);
+    const myRef = roomRef(`players/${me}`);
     myRef.set({ x: Math.round(myX), y: Math.round(myY), lives: 3, alive: true, color: myColor });
     myRef.onDisconnect().remove();
 
-    db.ref(`${ROOM}/game`).once('value').then(s => {
+    roomRef('game').once('value').then(s => {
         if (!s.val()) writeGame({ turn: null, turnPhase: null });
     });
 
@@ -83,7 +157,7 @@ function startGame() {
     listenGame();
     listenChat();
     setupKeys();
-    setupJoystick();
+    setupJoystick(deviceMode);
     setupChat();
     canvas.addEventListener('click', onCanvasClick);
     requestAnimationFrame(loop);
@@ -92,7 +166,7 @@ function startGame() {
 
 // ── Firebase listeners ────────────────────────────────────
 function listenPlayers() {
-    db.ref(`${ROOM}/players`).on('value', s => {
+    roomRef('players').on('value', s => {
         players = s.val() || {};
         renderHud();
         tryStartTurn();
@@ -101,7 +175,7 @@ function listenPlayers() {
 }
 
 function listenGame() {
-    db.ref(`${ROOM}/game`).on('value', s => {
+    roomRef('game').on('value', s => {
         gameState = s.val() || {};
         handleState();
         renderHud();
@@ -109,7 +183,7 @@ function listenGame() {
 }
 
 function listenChat() {
-    db.ref(`${ROOM}/chat`).orderByChild('t').limitToLast(80).on('value', s => {
+    roomRef('chat').orderByChild('t').limitToLast(80).on('value', s => {
         const raw = s.val() || {};
         chatMsgs.innerHTML = '';
         Object.values(raw).sort((a, b) => a.t - b.t).forEach(msg => {
@@ -127,7 +201,7 @@ function listenChat() {
 }
 
 function pushPos() {
-    if (me) db.ref(`${ROOM}/players/${me}`).update({ x: Math.round(myX), y: Math.round(myY) });
+    if (me) roomRef(`players/${me}`).update({ x: Math.round(myX), y: Math.round(myY) });
 }
 
 // ── Game state machine ────────────────────────────────────
@@ -194,7 +268,7 @@ function advanceTurn(alive) {
 }
 
 function writeGame(data) {
-    db.ref(`${ROOM}/game`).update(data);
+    roomRef('game').update(data);
 }
 
 // ── Canvas click — pick a target ──────────────────────────
@@ -267,7 +341,7 @@ function resolveAnswer(userAns) {
         ? `⏰ Time's up! ${me.toUpperCase()} loses a life!`
         : `❌ Wrong! ${me.toUpperCase()} loses a life!`;
 
-    const ref = db.ref(`${ROOM}/players/${lostLife}`);
+    const ref = roomRef(`players/${lostLife}`);
     ref.once('value').then(s => {
         const p = s.val() || {};
         const newLives = Math.max(0, (p.lives || 1) - 1);
@@ -343,8 +417,12 @@ function updateMovement() {
 }
 
 // ── Joystick ──────────────────────────────────────────────
-function setupJoystick() {
-    if (!('ontouchstart' in window)) return;
+function setupJoystick(mode) {
+    if (mode !== 'mobile') {
+        joystickZone.style.display = 'none';
+        return;
+    }
+
     joystickZone.style.display = 'block';
     let ox = 0, oy = 0;
     const MAX = 34;
@@ -379,7 +457,7 @@ function setupChat() {
         e.preventDefault();
         const text = chatInput.value.trim();
         if (!text || !me) return;
-        db.ref(`${ROOM}/chat`).push({ user: me, text, t: Date.now() });
+        roomRef('chat').push({ user: me, text, t: Date.now() });
         chatInput.value = '';
     });
 }
@@ -437,14 +515,28 @@ function drawPlayers() {
             ctx.setLineDash([]);
         }
 
-        // Player circle
-        ctx.beginPath();
-        ctx.arc(sx, sy, P_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = p.color || '#818cf8';
-        ctx.fill();
-        ctx.strokeStyle = name === me ? '#ffffff' : 'rgba(255,255,255,0.38)';
-        ctx.lineWidth   = name === me ? 3 : 1.5;
-        ctx.stroke();
+        // Player stickman SVG
+        const bodyColor = p.color || '#818cf8';
+        const stickman = getStickmanImage(bodyColor);
+
+        if (name === me) {
+            ctx.beginPath();
+            ctx.arc(sx, sy, P_RADIUS + 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        if (stickman && stickman.complete) {
+            const size = 56;
+            ctx.drawImage(stickman, sx - size / 2, sy - size / 2, size, size);
+        } else {
+            // Fallback if image is still loading
+            ctx.beginPath();
+            ctx.arc(sx, sy, P_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = bodyColor;
+            ctx.fill();
+        }
 
         ctx.restore();
 
@@ -466,3 +558,23 @@ function drawPlayers() {
 // ── Helpers ───────────────────────────────────────────────
 function getAlive() { return Object.keys(players).filter(p => players[p] && players[p].alive); }
 function imFirst(alive) { return alive.slice().sort()[0] === me; }
+
+function getStickmanImage(color) {
+        if (stickmanCache[color]) return stickmanCache[color];
+
+        const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+    <g stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <circle cx="32" cy="13" r="7" fill="${color}" />
+        <line x1="32" y1="20" x2="32" y2="38" />
+        <line x1="20" y1="28" x2="44" y2="28" />
+        <line x1="32" y1="38" x2="22" y2="54" />
+        <line x1="32" y1="38" x2="42" y2="54" />
+    </g>
+</svg>`;
+
+        const img = new Image();
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.trim());
+        stickmanCache[color] = img;
+        return img;
+}

@@ -5,6 +5,12 @@ body {
     background: #020712;
     font-family: 'Vibur', cursive;
     color: #f8fafc;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 100vh;
+}
+
+body.game-active {
     overflow: hidden;
     height: 100vh;
 }
@@ -113,7 +119,8 @@ body {
     min-height: 100vh;
     gap: 22px;
     padding: 24px;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
     background:
         radial-gradient(ellipse at 15% 15%, #1e3a8a88 0%, transparent 42%),
         radial-gradient(ellipse at 85% 70%, #7c3aed66 0%, transparent 36%),
@@ -214,6 +221,99 @@ body {
     box-shadow: 0 0 0 3px rgba(129,140,248,0.22);
 }
 .join-panel input::placeholder { color: rgba(255,255,255,0.28); }
+
+.device-picker {
+    margin-bottom: 14px;
+    border: 1px solid rgba(129,140,248,0.28);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: rgba(2, 6, 23, 0.55);
+}
+
+.device-picker p {
+    margin-bottom: 8px;
+    color: #93c5fd;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+}
+
+.device-picker label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 14px;
+    color: #e2e8f0;
+    font-size: 1.05rem;
+}
+
+.device-picker input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #818cf8;
+}
+
+.room-picker,
+.color-picker {
+    margin-bottom: 14px;
+    border: 1px solid rgba(129,140,248,0.28);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: rgba(2, 6, 23, 0.55);
+}
+
+.room-picker p,
+.color-picker p {
+    margin-bottom: 8px;
+    color: #93c5fd;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+}
+
+.room-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+}
+
+.room-row #room-id {
+    margin-bottom: 0;
+    font-size: 1.25rem;
+    padding: 10px;
+}
+
+.btn-secondary {
+    border: 1px solid rgba(129,140,248,0.35);
+    background: rgba(30, 41, 59, 0.9);
+    color: #c7d2fe;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+.room-link {
+    display: inline-block;
+    margin-top: 8px;
+    color: #60a5fa;
+    text-decoration: none;
+    font-size: 1rem;
+    word-break: break-all;
+}
+
+.room-link:hover {
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+.color-picker input[type="color"] {
+    width: 100%;
+    height: 42px;
+    border: 1px solid rgba(129,140,248,0.35);
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+    padding: 2px;
+}
 
 /* PLAY button */
 .join-panel button {

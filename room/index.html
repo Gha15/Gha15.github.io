@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Fight - matix the math club</title>
-    <link rel="stylesheet" href="mathfight.css">
+    <title>Math Fight - Room</title>
+    <link rel="stylesheet" href="/games/mathfight.css">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- ═══ JOIN SCREEN ═══ -->
   <div id="join-screen">
     <div class="particles" aria-hidden="true">
       <span></span><span></span><span></span><span></span><span></span>
@@ -46,24 +45,22 @@
       <h2>Rules</h2>
       <ul>
         <li>Move with <strong>WASD</strong> / <strong>Arrow Keys</strong> / joystick on mobile</li>
-        <li>When it's your turn → <strong>click a player</strong> to challenge them</li>
+        <li>When it's your turn -> <strong>click a player</strong> to challenge them</li>
         <li>They get a multiplication question and <strong>12 seconds</strong> to answer</li>
-        <li>They answer correctly → <strong>you</strong> lose a life ❤️</li>
-        <li>They answer wrong or time out → <strong>they</strong> lose a life ❤️</li>
+        <li>They answer correctly -> <strong>you</strong> lose a life ❤️</li>
+        <li>They answer wrong or time out -> <strong>they</strong> lose a life ❤️</li>
         <li>Everyone starts with <strong>3 lives ❤️❤️❤️</strong></li>
         <li>Last player standing <strong>wins!</strong></li>
       </ul>
     </div>
   </div>
 
-  <!-- ═══ GAME SCREEN ═══ -->
   <div id="game-screen" class="hidden">
     <div id="notif" class="notif"></div>
     <div class="scan-line" aria-hidden="true"></div>
     <div id="player-list" class="player-list"></div>
     <canvas id="canvas"></canvas>
 
-    <!-- Challenge overlay (shown to the challenged player) -->
     <div id="challenge-overlay" class="overlay hidden">
       <div class="overlay-box">
         <div id="challenge-from"></div>
@@ -76,20 +73,17 @@
       </div>
     </div>
 
-    <!-- Result flash -->
     <div id="result-flash" class="result-flash hidden"></div>
 
-    <!-- Chat -->
     <button id="chat-toggle" class="chat-btn" title="Chat">💬</button>
     <div id="chat-panel" class="chat-panel hidden">
       <div id="chat-msgs"></div>
       <form id="chat-form">
-        <input id="chat-input" maxlength="120" placeholder="Message…" autocomplete="off">
-        <button type="submit">→</button>
+        <input id="chat-input" maxlength="120" placeholder="Message..." autocomplete="off">
+        <button type="submit">-></button>
       </form>
     </div>
 
-    <!-- Mobile joystick -->
     <div id="joystick-zone" class="joystick-zone">
       <div id="joystick-base" class="joystick-base">
         <div id="joystick-stick" class="joystick-stick"></div>
@@ -100,6 +94,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <script src="/theme-loader.js"></script>
-  <script src="mathfight.js"></script>
+  <script src="/games/mathfight.js"></script>
 </body>
 </html>
