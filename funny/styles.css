@@ -1,4 +1,260 @@
+:root {
+    --bg-deep: #07111f;
+    --bg-mid: #0e2237;
+    --panel: rgba(255, 255, 255, 0.08);
+    --panel-border: rgba(255, 255, 255, 0.16);
+    --text-main: #f8fafc;
+    --text-sub: #bfdbfe;
+    --accent: #fb923c;
+    --accent-strong: #f97316;
+    --love: #fb7185;
+    --ok: #34d399;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
-    background-color: #080336
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    color: var(--text-main);
+    background:
+        radial-gradient(circle at 20% 10%, #1d4ed8 0%, transparent 35%),
+        radial-gradient(circle at 85% 30%, #ea580c 0%, transparent 28%),
+        linear-gradient(160deg, var(--bg-deep), var(--bg-mid));
+    position: relative;
+    overflow-x: hidden;
+}
+
+.bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.topbar,
+.layout {
+    position: relative;
+    z-index: 1;
+}
+
+.topbar {
+    padding: 28px 16px 14px;
+    text-align: center;
+    animation: rise 0.6s ease;
+}
+
+.topbar h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    letter-spacing: 1px;
+    text-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.topbar p {
+    margin: 8px auto 0;
+    color: var(--text-sub);
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 14px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.layout {
+    width: min(1200px, 94vw);
+    margin: 0 auto 28px;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 16px;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    padding: 16px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+    animation: rise 0.7s ease;
+}
+
+.panel h2 {
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    margin: 10px 0 6px;
+    font-weight: 700;
+    color: var(--text-sub);
+}
+
+input,
+textarea,
+button {
+    font: inherit;
+}
+
+input,
+textarea {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(2, 6, 23, 0.62);
+    color: var(--text-main);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 86px;
+}
+
+button {
+    margin-top: 12px;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    color: #fff;
+    font-weight: 700;
+    padding: 10px 14px;
+    cursor: pointer;
+}
+
+button:hover {
+    filter: brightness(1.08);
+}
+
+.form-hint {
+    min-height: 18px;
+    margin: 8px 0 0;
+    color: var(--ok);
+    font-size: 0.9rem;
+}
+
+.panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.meme-feed,
+.chat-list {
+    max-height: 64vh;
+    overflow-y: auto;
+    display: grid;
+    gap: 10px;
+    padding-right: 4px;
+}
+
+.meme-card {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(15, 23, 42, 0.82);
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.meme-card img {
+    width: 100%;
+    border-radius: 10px;
+    max-height: 320px;
+    object-fit: cover;
+    display: block;
+}
+
+.meme-meta {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-sub);
+    font-size: 0.86rem;
+}
+
+.meme-caption {
+    margin: 10px 0 6px;
+    font-weight: 700;
+}
+
+.meme-note {
+    margin: 0;
+    color: #dbeafe;
+}
+
+.love-button {
+    margin-top: 10px;
+    background: rgba(251, 113, 133, 0.2);
+    border: 1px solid rgba(251, 113, 133, 0.5);
+    color: #ffe4e6;
+    width: 100%;
+}
+
+.love-button.active {
+    background: rgba(251, 113, 133, 0.4);
+    border-color: rgba(251, 113, 133, 0.9);
+}
+
+.chat-item {
+    border-radius: 10px;
+    padding: 9px 10px;
+    background: rgba(2, 6, 23, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.chat-user {
+    color: #fcd34d;
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+#chat-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.empty {
+    text-align: center;
+    color: var(--text-sub);
+    padding: 14px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 1020px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .meme-feed,
+    .chat-list {
+        max-height: 50vh;
+    }
 }
 

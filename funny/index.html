@@ -3,18 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Relative path connecting to the script.js in the same directory -->
-    <script src="script.js"></script>
     <title>Jokes / memes - matix the math club</title>
-    <!-- Relative path connecting to the styles.css in the same directory -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Icon connecting -->
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 <body>
-    <h1>coming soon(i could not even make this cool cause i am rushed)</h1>
+  <div class="bg-grid"></div>
+  <header class="topbar">
+    <a class="back-link" href="/">Back</a>
+    <h1>MATIX Meme Lab</h1>
+    <p>Post memes, chat live, and spread love.</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel meme-submit-panel">
+      <h2>Add A Meme Here</h2>
+      <form id="meme-form" autocomplete="off">
+        <label for="meme-caption">Caption</label>
+        <input id="meme-caption" maxlength="120" placeholder="Describe the meme vibe" required>
+
+        <label for="meme-image">Image URL</label>
+        <input id="meme-image" type="url" placeholder="https://..." required>
+
+        <label for="meme-note">Optional note</label>
+        <textarea id="meme-note" maxlength="220" rows="3" placeholder="Why this is hilarious"></textarea>
+
+        <button type="submit">Post Meme</button>
+        <p class="form-hint" id="meme-form-hint"></p>
+      </form>
+    </section>
+
+    <section class="panel meme-feed-panel">
+      <div class="panel-head">
+        <h2>Meme Feed</h2>
+        <span id="meme-count">0 memes</span>
+      </div>
+      <div id="meme-feed" class="meme-feed"></div>
+    </section>
+
+    <section class="panel chat-panel">
+      <div class="panel-head">
+        <h2>Meme Chat</h2>
+        <span id="chat-status">Live</span>
+      </div>
+      <div id="chat-list" class="chat-list"></div>
+      <form id="chat-form" autocomplete="off">
+        <input id="chat-input" maxlength="220" placeholder="Drop a message..." required>
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <script src="/theme-loader.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
