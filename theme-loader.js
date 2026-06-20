@@ -2,9 +2,11 @@
 // This script loads and applies custom user themes across all pages
 
 (function() {
-    // Check localStorage first for cached theme
+    // Check localStorage first for cached theme (only if user has changed color)
+    const hasChangedColor = localStorage.getItem('haschangedcolor');
     const cachedTheme = localStorage.getItem('matix_theme_hue');
-    if (cachedTheme) {
+    
+    if (cachedTheme && hasChangedColor === 'true') {
         document.documentElement.style.filter = `hue-rotate(${cachedTheme}deg)`;
     }
     
@@ -36,8 +38,9 @@
                 document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
                 // Also save to localStorage for consistency
                 localStorage.setItem('matix_theme_hue', profile.customTheme);
-            } else if (!cachedTheme) {
-                // Reset to default if no theme and no cache
+                localStorage.setItem('haschangedcolor', 'true');
+            } else if (!cachedTheme || hasChangedColor !== 'true') {
+                // Reset to default if no theme and no valid cache
                 document.documentElement.style.filter = '';
             }
         });

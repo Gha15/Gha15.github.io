@@ -362,18 +362,28 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
             
-            // Check if the signed-in user is 'ghadi'
+            // Check if the signed-in user is 'ghadi' or an admin
             const activeUser = sessionStorage.getItem("matix_auth_user");
-            if (activeUser === 'ghadi') {
-                // Select all control elements and display them
-                const allControls = document.querySelectorAll('.controls');
-                allControls.forEach(controlBlock => {
-                    controlBlock.style.display = 'flex';
-                });
+            
+            // Check admin status
+            db.ref('profiles/' + activeUser).once('value').then((snapshot) => {
+                const profile = snapshot.val() || {};
+                const isAdmin = profile.isAdmin || activeUser === 'ghadi';
                 
-                // Enable notifications for admin
-                loadNotifications();
-            }
+                if (isAdmin) {
+                    // Select all control elements and display them
+                    const allControls = document.querySelectorAll('.controls');
+                    allControls.forEach(controlBlock => {
+                        controlBlock.style.display = 'flex';
+                    });
+                }
+                
+                // Only Ghadi sees notifications and can approve
+                if (activeUser === 'ghadi') {
+                    loadNotifications();
+                    loadPointRequests();
+                }
+            });
             
             // Load user's custom theme if they have one
             db.ref('profiles/' + activeUser).once('value').then((snapshot) => {
@@ -387,7 +397,9 @@
             
             // Load cached theme from localStorage
             const cachedTheme = localStorage.getItem('matix_theme_hue');
-            if (cachedTheme) {
+            const hasChangedColor = localStorage.getItem('haschangedcolor');
+            
+            if (cachedTheme && hasChangedColor === 'true') {
                 document.documentElement.style.filter = `hue-rotate(${cachedTheme}deg)`;
                 document.getElementById('theme-slider').value = cachedTheme;
                 document.getElementById('theme-value').innerText = cachedTheme + '°';
@@ -446,15 +458,49 @@
 
         // UPDATE LOGIC
         function addPoints(name, amount) {
-            db.ref('points/' + name).transaction((current) => {
-                let newValue = (current || 0) + amount;
-                return newValue < 0 ? 0 : newValue;
-            });
+            const activeUser = sessionStorage.getItem("matix_auth_user");
+            
+            // If user is Ghadi, apply points directly
+            if (activeUser === 'ghadi') {
+                db.ref('points/' + name).transaction((current) => {
+                    let newValue = (current || 0) + amount;
+                    return newValue < 0 ? 0 : newValue;
+                });
+            } else {
+                // If user is admin (not Ghadi), create a request
+                db.ref('point_requests').push({
+                    requestedBy: activeUser,
+                    targetUser: name,
+                    amount: amount,
+                    status: 'pending',
+                    timestamp: Date.now()
+                }).then(() => {
+                    alert(`REQUEST_SENT: Point change request for ${name} sent to admin for approval`);
+                });
+            }
         }
 
         function resetPerson(name) {
-            if(confirm("SYSTEM_ACTION: Reset " + name.toUpperCase() + "'s points?")) {
-                db.ref('points/' + name).set(0);
+            const activeUser = sessionStorage.getItem("matix_auth_user");
+            
+            if (activeUser === 'ghadi') {
+                // Ghadi can reset directly
+                if(confirm("SYSTEM_ACTION: Reset " + name.toUpperCase() + "'s points?")) {
+                    db.ref('points/' + name).set(0);
+                }
+            } else {
+                // Admins need to request reset
+                if(confirm("REQUEST: Request to reset " + name.toUpperCase() + "'s points?")) {
+                    db.ref('point_requests').push({
+                        requestedBy: activeUser,
+                        targetUser: name,
+                        amount: 'reset',
+                        status: 'pending',
+                        timestamp: Date.now()
+                    }).then(() => {
+                        alert(`REQUEST_SENT: Point reset request for ${name} sent to admin for approval`);
+                    });
+                }
             }
         }
         
@@ -469,8 +515,18 @@
                 return;
             }
             
-            if (confirm(`ADD ${pointsToAdd} points to ${name.toUpperCase()}?`)) {
-                addPoints(name, pointsToAdd);
+            const activeUser = sessionStorage.getItem("matix_auth_user");
+            
+            if (activeUser === 'ghadi') {
+                // Ghadi can add directly
+                if (confirm(`ADD ${pointsToAdd} points to ${name.toUpperCase()}?`)) {
+                    addPoints(name, pointsToAdd);
+                }
+            } else {
+                // Admins need to request approval
+                if (confirm(`REQUEST to ADD ${pointsToAdd} points to ${name.toUpperCase()}?`)) {
+                    addPoints(name, pointsToAdd);
+                }
             }
         }
         
@@ -485,8 +541,18 @@
                 return;
             }
             
-            if (confirm(`REMOVE ${pointsToRemove} points from ${name.toUpperCase()}?`)) {
-                addPoints(name, -pointsToRemove);
+            const activeUser = sessionStorage.getItem("matix_auth_user");
+            
+            if (activeUser === 'ghadi') {
+                // Ghadi can remove directly
+                if (confirm(`REMOVE ${pointsToRemove} points from ${name.toUpperCase()}?`)) {
+                    addPoints(name, -pointsToRemove);
+                }
+            } else {
+                // Admins need to request approval
+                if (confirm(`REQUEST to REMOVE ${pointsToRemove} points from ${name.toUpperCase()}?`)) {
+                    addPoints(name, -pointsToRemove);
+                }
             }
         }
         
@@ -525,6 +591,43 @@
             });
         }
         
+        // POINT REQUEST NOTIFICATIONS FOR GHADI
+        function loadPointRequests() {
+            const notifArea = document.getElementById('notifications-area');
+            
+            db.ref('point_requests').orderByChild('status').equalTo('pending').on('value', (snapshot) => {
+                const pointRequests = snapshot.val();
+                if (!pointRequests) return;
+                
+                notifArea.style.display = 'block';
+                
+                Object.keys(pointRequests).forEach(requestId => {
+                    const req = pointRequests[requestId];
+                    const notifDiv = document.createElement('div');
+                    notifDiv.className = 'notification-item';
+                    
+                    let message;
+                    if (req.amount === 'reset') {
+                        message = `<strong>${req.requestedBy.toUpperCase()}</strong> wants to <strong>RESET</strong> points for user <strong>${req.targetUser.toUpperCase()}</strong>`;
+                    } else {
+                        const action = req.amount > 0 ? 'add' : 'remove';
+                        const absAmount = Math.abs(req.amount);
+                        message = `<strong>${req.requestedBy.toUpperCase()}</strong> wants to ${action} <strong>${absAmount} points</strong> for user <strong>${req.targetUser.toUpperCase()}</strong>`;
+                    }
+                    
+                    notifDiv.innerHTML = `
+                        <div class="notif-header">📊 Point Change Request</div>
+                        <div class="notif-details">${message}</div>
+                        <div class="notif-actions">
+                            <button class="btn-approve" onclick="approvePointRequest('${requestId}', '${req.targetUser}', '${req.amount}')">Approve</button>
+                            <button class="btn-deny" onclick="denyPointRequest('${requestId}')">Deny</button>
+                        </div>
+                    `;
+                    notifArea.appendChild(notifDiv);
+                });
+            });
+        }
+        
         function approveRequest(requestId, user, cost) {
             if (!confirm(`CONFIRM: Approve ${cost} points deduction for ${user}?`)) {
                 return;
@@ -552,6 +655,62 @@
             }
             
             db.ref('requests/' + requestId).update({
+                status: 'denied',
+                deniedBy: 'ghadi',
+                deniedAt: Date.now()
+            }).then(() => {
+                alert('REQUEST_DENIED');
+            });
+        }
+        
+        // APPROVE POINT REQUEST
+        function approvePointRequest(requestId, targetUser, amount) {
+            // Handle reset case
+            if (amount === 'reset') {
+                if (!confirm(`CONFIRM: Reset ${targetUser}'s points to 0?`)) {
+                    return;
+                }
+                
+                db.ref('points/' + targetUser).set(0).then(() => {
+                    db.ref('point_requests/' + requestId).update({
+                        status: 'approved',
+                        approvedBy: 'ghadi',
+                        approvedAt: Date.now()
+                    }).then(() => {
+                        alert(`APPROVED: ${targetUser}'s points have been reset`);
+                    });
+                });
+                return;
+            }
+            
+            // Handle regular point changes
+            if (!confirm(`CONFIRM: ${amount > 0 ? 'Add' : 'Remove'} ${Math.abs(amount)} points for ${targetUser}?`)) {
+                return;
+            }
+            
+            // Apply the point change
+            db.ref('points/' + targetUser).transaction((current) => {
+                let newValue = (current || 0) + amount;
+                return newValue < 0 ? 0 : newValue;
+            }).then(() => {
+                // Update request status
+                db.ref('point_requests/' + requestId).update({
+                    status: 'approved',
+                    approvedBy: 'ghadi',
+                    approvedAt: Date.now()
+                }).then(() => {
+                    alert(`APPROVED: Points updated for ${targetUser}`);
+                });
+            });
+        }
+        
+        // DENY POINT REQUEST
+        function denyPointRequest(requestId) {
+            if (!confirm('CONFIRM: Deny this point change request?')) {
+                return;
+            }
+            
+            db.ref('point_requests/' + requestId).update({
                 status: 'denied',
                 deniedBy: 'ghadi',
                 deniedAt: Date.now()
@@ -599,14 +758,16 @@
                 valueDisplay.innerText = hueValue + '°';
                 document.documentElement.style.filter = `hue-rotate(${hueValue}deg)`;
                 
-                // Save to localStorage
+                // Save to localStorage and set flag
                 localStorage.setItem('matix_theme_hue', hueValue);
+                localStorage.setItem('haschangedcolor', 'true');
             });
         }
         
         function resetTheme() {
             document.documentElement.style.filter = '';
             localStorage.removeItem('matix_theme_hue');
+            localStorage.removeItem('haschangedcolor');
             document.getElementById('theme-slider').value = 0;
             document.getElementById('theme-value').innerText = '0°';
         }

@@ -251,12 +251,14 @@
             if (profile.customTheme) {
                 document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
                 localStorage.setItem('matix_theme_hue', profile.customTheme);
+                localStorage.setItem('haschangedcolor', 'true');
             }
         });
         
         // Also check localStorage for cached theme
+        const hasChangedColor = localStorage.getItem('haschangedcolor');
         const cachedTheme = localStorage.getItem('matix_theme_hue');
-        if (cachedTheme) {
+        if (cachedTheme && hasChangedColor === 'true') {
             document.documentElement.style.filter = `hue-rotate(${cachedTheme}deg)`;
         }
         
@@ -290,8 +292,9 @@
                             const hueValue = parseInt(hueRotate) || 0;
                             db.ref('profiles/' + currentUser + '/customTheme').set(hueValue);
                             document.documentElement.style.filter = `hue-rotate(${hueValue}deg)`;
-                            // Also save to localStorage
+                            // Also save to localStorage with flag
                             localStorage.setItem('matix_theme_hue', hueValue);
+                            localStorage.setItem('haschangedcolor', 'true');
                         }
                     }
                     
