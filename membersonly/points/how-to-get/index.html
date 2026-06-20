@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATIX | How to Get Points</title>
+    <title>How to Get Points - matix the math club</title>
     <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
     <style>
         body {
@@ -128,46 +128,58 @@
         </div>
         
         <div class="section">
-            <div class="section-title">Gaming_Achievements</div>
-            
-            <div class="point-item">
-                <div class="point-title">Math Fight Victories</div>
-                <div class="point-desc">Win matches in Math Fight and prove your calculation speed against others.</div>
-                <div class="point-value">→ Earn: +10 points per win</div>
-            </div>
-            
-            <div class="point-item">
-                <div class="point-title">Math Plane Game Levels</div>
-                <div class="point-desc">Complete levels in The Math Plane Game. Higher difficulties earn more points!</div>
-                <div class="point-value">→ Earn: Easy +5 | Medium +10 | Hard +20 points</div>
-            </div>
         </div>
         
         <div class="section">
-            <div class="section-title">Special_Contributions</div>
+            <div class="section-title">Special Contributions</div>
+
             
             <div class="point-item">
-                <div class="point-title">Help Community</div>
-                <div class="point-desc">Answer questions in the FAQ section or help other members with their math problems.</div>
-                <div class="point-value">→ Earn: +5 points per helpful contribution</div>
+                <div class="point-title">Do lessons (exclusive for 5 week admin/admin)</div>
+                <div class="point-desc">Create a lesson(with a description title and content has to be good for me to add it)</div>
+                <div class="point-value">→ Earn: 20 points</div>
             </div>
-            
+
             <div class="point-item">
-                <div class="point-title">Special Events</div>
-                <div class="point-desc">Participate in special MATIX events, challenges, and competitions announced periodically.</div>
-                <div class="point-value">→ Earn: Variable (up to +100 points)</div>
+                <div class="point-title">Learn a new thing</div>
+                <div class="point-desc">Learn a new thing in the lessons area</div>
+                <div class="point-value">→ Earn: 5 points</div>
             </div>
         </div>
         
-        <a href="../index.html" class="btn">← Back_to_Points_Ledger</a>
+        <a href="../index.html" class="btn">← Back to Points Ledger</a>
     </div>
     
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
     <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
+            authDomain: "matix-1d538.firebaseapp.com",
+            databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
+            projectId: "matix-1d538",
+            storageBucket: "matix-1d538.firebasestorage.app"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
         // Check if user is authenticated
-        if (!sessionStorage.getItem("matix_auth_user")) {
+        const currentUser = sessionStorage.getItem("matix_auth_user");
+        if (!currentUser) {
             alert("ACCESS_DENIED: Please sign in to view this page");
             window.location.href = "../index.html";
         }
+        
+        // Listen to user's profile for custom theme
+        db.ref('profiles/' + currentUser).on('value', (snapshot) => {
+            const profile = snapshot.val() || {};
+            if (profile.customTheme) {
+                document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
+            }
+        });
     </script>
 </body>
 </html>

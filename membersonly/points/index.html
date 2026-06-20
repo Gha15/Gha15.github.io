@@ -14,6 +14,68 @@
         .logo-area { margin-bottom: 10px; }
         .logo-area svg { width: 200px; height: auto; }
         .logo-area svg g { fill: #818cf8 !important; }
+        
+        .notifications-area {
+            display: none;
+            width: 95%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+        
+        .notification-item {
+            background: #1e293b;
+            border: 1px solid #f59e0b;
+            border-left: 3px solid #f59e0b;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .notif-header {
+            color: #f59e0b;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .notif-details {
+            color: #94a3b8;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .notif-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-approve {
+            padding: 6px 18px;
+            background: #10b981;
+            color: #020617;
+            border: 1px solid #059669;
+            cursor: pointer;
+            font-family: 'Vibur', cursive;
+            font-size: 1.4rem;
+            transition: 0.2s;
+        }
+        
+        .btn-approve:hover {
+            background: #059669;
+        }
+        
+        .btn-deny {
+            padding: 6px 18px;
+            background: #ef4444;
+            color: #020617;
+            border: 1px solid #dc2626;
+            cursor: pointer;
+            font-family: 'Vibur', cursive;
+            font-size: 1.4rem;
+            transition: 0.2s;
+        }
+        
+        .btn-deny:hover {
+            background: #dc2626;
+        }
 
         .ledger-box {
             border: 1px solid #334155; background: #0f172a; padding: 30px;
@@ -26,7 +88,9 @@
         }
         .member-row { padding: 15px 0; border-bottom: 1px solid #1e293b; }
         .member-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .name { color: #94a3b8; font-size: 2.2rem; }
+        .name { color: #94a3b8; font-size: 2.2rem; display: flex; align-items: center; gap: 10px; }
+        .badge-icon { width: 24px; height: 24px; }
+        .admin-tag { color: #f59e0b; font-size: 1.4rem; }
         .score { color: #10b981; font-size: 2.5rem; }
         
         /* Buttons are hidden by default via CSS */
@@ -96,6 +160,10 @@
         </svg>
     </div>
 
+    <div class="notifications-area" id="notifications-area">
+        <!-- Notifications will be dynamically added here -->
+    </div>
+
     <div id="login-screen">
         <div class="ledger-header">System_Auth</div>
         <input type="text" id="username" placeholder="USERNAME">
@@ -108,46 +176,82 @@
         <div class="ledger-header">Sync_Points_Ledger</div>
         
         <div class="member-row">
-            <div class="member-info"><span class="name">Ghadi:</span> <span class="score" id="score-ghadi">0</span></div>
+            <div class="member-info">
+                <span class="name">
+                    <span id="badge-ghadi"></span>
+                    <span>Ghadi:</span>
+                    <span class="admin-tag" id="admin-ghadi"></span>
+                </span>
+                <span class="score" id="score-ghadi">0</span>
+            </div>
             <div class="controls">
                 <button class="btn" onclick="addPoints('ghadi', 10)">+10</button>
                 <button class="btn" onclick="addPoints('ghadi', 1)">+1</button>
                 <button class="btn btn-neg" onclick="addPoints('ghadi', -1)">-1</button>
                 <button class="btn btn-neg" onclick="addPoints('ghadi', -10)">-10</button>
                 <button class="btn btn-reset" onclick="resetPerson('ghadi')">Reset</button>
+                <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('ghadi')">Give Admin</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('ghadi')">Remove Admin</button>
             </div>
         </div>
 
         <div class="member-row">
-            <div class="member-info"><span class="name">Dahlia:</span> <span class="score" id="score-dahlia">0</span></div>
+            <div class="member-info">
+                <span class="name">
+                    <span id="badge-dahlia"></span>
+                    <span>Dahlia:</span>
+                    <span class="admin-tag" id="admin-dahlia"></span>
+                </span>
+                <span class="score" id="score-dahlia">0</span>
+            </div>
             <div class="controls">
                 <button class="btn" onclick="addPoints('dahlia', 10)">+10</button>
                 <button class="btn" onclick="addPoints('dahlia', 1)">+1</button>
                 <button class="btn btn-neg" onclick="addPoints('dahlia', -1)">-1</button>
                 <button class="btn btn-neg" onclick="addPoints('dahlia', -10)">-10</button>
                 <button class="btn btn-reset" onclick="resetPerson('dahlia')">Reset</button>
+                <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('dahlia')">Give Admin</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('dahlia')">Remove Admin</button>
             </div>
         </div>
 
         <div class="member-row">
-            <div class="member-info"><span class="name">Marwan:</span> <span class="score" id="score-marwan">0</span></div>
+            <div class="member-info">
+                <span class="name">
+                    <span id="badge-marwan"></span>
+                    <span>Marwan:</span>
+                    <span class="admin-tag" id="admin-marwan"></span>
+                </span>
+                <span class="score" id="score-marwan">0</span>
+            </div>
             <div class="controls">
                 <button class="btn" onclick="addPoints('marwan', 10)">+10</button>
                 <button class="btn" onclick="addPoints('marwan', 1)">+1</button>
                 <button class="btn btn-neg" onclick="addPoints('marwan', -1)">-1</button>
                 <button class="btn btn-neg" onclick="addPoints('marwan', -10)">-10</button>
                 <button class="btn btn-reset" onclick="resetPerson('marwan')">Reset</button>
+                <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('marwan')">Give Admin</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('marwan')">Remove Admin</button>
             </div>
         </div>
 
         <div class="member-row">
-            <div class="member-info"><span class="name">Jad:</span> <span class="score" id="score-jad">0</span></div>
+            <div class="member-info">
+                <span class="name">
+                    <span id="badge-jad"></span>
+                    <span>Jad:</span>
+                    <span class="admin-tag" id="admin-jad"></span>
+                </span>
+                <span class="score" id="score-jad">0</span>
+            </div>
             <div class="controls">
                 <button class="btn" onclick="addPoints('jad', 10)">+10</button>
                 <button class="btn" onclick="addPoints('jad', 1)">+1</button>
                 <button class="btn btn-neg" onclick="addPoints('jad', -1)">-1</button>
                 <button class="btn btn-neg" onclick="addPoints('jad', -10)">-10</button>
                 <button class="btn btn-reset" onclick="resetPerson('jad')">Reset</button>
+                <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('jad')">Give Admin</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('jad')">Remove Admin</button>
             </div>
         </div>
 
@@ -207,7 +311,18 @@
                 allControls.forEach(controlBlock => {
                     controlBlock.style.display = 'flex';
                 });
+                
+                // Enable notifications for admin
+                loadNotifications();
             }
+            
+            // Load user's custom theme if they have one
+            db.ref('profiles/' + activeUser).once('value').then((snapshot) => {
+                const profile = snapshot.val() || {};
+                if (profile.customTheme) {
+                    document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
+                }
+            });
         }
 
         function logout() {
@@ -226,6 +341,36 @@
             document.getElementById('score-jad').innerText = val.jad || 0;
             document.getElementById('score-dahlia').innerText = val.dahlia || 0;
         });
+        
+        // Listen for user profiles (badges and admin status)
+        db.ref('profiles').on('value', (snapshot) => {
+            const profiles = snapshot.val() || {};
+            
+            ['ghadi', 'dahlia', 'marwan', 'jad'].forEach(user => {
+                const profile = profiles[user] || {};
+                
+                // Update badge
+                const badgeEl = document.getElementById('badge-' + user);
+                if (profile.hasBadge) {
+                    badgeEl.innerHTML = '<img src=\"/favicon.svg\" class=\"badge-icon\" title=\"Badge Unlocked\">';
+                } else {
+                    badgeEl.innerHTML = '';
+                }
+                
+                // Update admin tag
+                const adminEl = document.getElementById('admin-' + user);
+                if (profile.isAdmin) {
+                    adminEl.innerText = '(admin)';
+                } else {
+                    adminEl.innerText = '';
+                }
+                
+                // Apply custom theme
+                if (profile.customTheme) {
+                    applyUserTheme(user, profile.customTheme);
+                }
+            });
+        });
 
         // UPDATE LOGIC
         function addPoints(name, amount) {
@@ -238,6 +383,105 @@
         function resetPerson(name) {
             if(confirm("SYSTEM_ACTION: Reset " + name.toUpperCase() + "'s points?")) {
                 db.ref('points/' + name).set(0);
+            }
+        }
+        
+        // NOTIFICATION SYSTEM FOR GHADI
+        function loadNotifications() {
+            const notifArea = document.getElementById('notifications-area');
+            
+            // Listen for pending requests
+            db.ref('requests').orderByChild('status').equalTo('pending').on('value', (snapshot) => {
+                notifArea.innerHTML = '';
+                
+                const requests = snapshot.val();
+                if (!requests) {
+                    notifArea.style.display = 'none';
+                    return;
+                }
+                
+                notifArea.style.display = 'block';
+                
+                Object.keys(requests).forEach(requestId => {
+                    const req = requests[requestId];
+                    const notifDiv = document.createElement('div');
+                    notifDiv.className = 'notification-item';
+                    notifDiv.innerHTML = `
+                        <div class="notif-header">🔔 New Redemption Request</div>
+                        <div class="notif-details">
+                            <strong>${req.user.toUpperCase()}</strong> wants to redeem <strong>${req.cost} points</strong> for <strong>${req.reward}</strong>
+                        </div>
+                        <div class="notif-actions">
+                            <button class="btn-approve" onclick="approveRequest('${requestId}', '${req.user}', ${req.cost})">Approve</button>
+                            <button class="btn-deny" onclick="denyRequest('${requestId}')">Deny</button>
+                        </div>
+                    `;
+                    notifArea.appendChild(notifDiv);
+                });
+            });
+        }
+        
+        function approveRequest(requestId, user, cost) {
+            if (!confirm(`CONFIRM: Approve ${cost} points deduction for ${user}?`)) {
+                return;
+            }
+            
+            // Deduct points from user
+            db.ref('points/' + user).transaction((current) => {
+                let newValue = (current || 0) - cost;
+                return newValue < 0 ? 0 : newValue;
+            }).then(() => {
+                // Update request status
+                db.ref('requests/' + requestId).update({
+                    status: 'approved',
+                    approvedBy: 'ghadi',
+                    approvedAt: Date.now()
+                }).then(() => {
+                    alert(`APPROVED: ${cost} points deducted from ${user}`);
+                });
+            });
+        }
+        
+        function denyRequest(requestId) {
+            if (!confirm('CONFIRM: Deny this request?')) {
+                return;
+            }
+            
+            db.ref('requests/' + requestId).update({
+                status: 'denied',
+                deniedBy: 'ghadi',
+                deniedAt: Date.now()
+            }).then(() => {
+                alert('REQUEST_DENIED');
+            });
+        }
+        
+        // ADMIN PRIVILEGE FUNCTIONS (TESTING)
+        function giveAdmin(user) {
+            if (!confirm(`Give admin privileges to ${user.toUpperCase()}?`)) {
+                return;
+            }
+            
+            db.ref('profiles/' + user + '/isAdmin').set(true).then(() => {
+                alert(`ADMIN_GRANTED: ${user} now has admin privileges`);
+            });
+        }
+        
+        function removeAdmin(user) {
+            if (!confirm(`Remove admin privileges from ${user.toUpperCase()}?`)) {
+                return;
+            }
+            
+            db.ref('profiles/' + user + '/isAdmin').set(false).then(() => {
+                alert(`ADMIN_REMOVED: ${user} no longer has admin privileges`);
+            });
+        }
+        
+        // Apply custom theme for logged-in user
+        function applyUserTheme(user, theme) {
+            const currentUser = sessionStorage.getItem("matix_auth_user");
+            if (currentUser === user && theme) {
+                document.documentElement.style.filter = `hue-rotate(${theme}deg)`;
             }
         }
     </script>

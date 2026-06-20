@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATIX | Use Points</title>
+    <title>Use Points - matix the math club</title>
     <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
     <style>
         body {
@@ -119,86 +119,215 @@
             color: #94a3b8;
             font-size: 1.5rem;
         }
+        
+        .btn-redeem {
+            padding: 8px 20px;
+            border: 1px solid #334155;
+            background: #10b981;
+            color: #020617;
+            cursor: pointer;
+            font-size: 1.5rem;
+            font-family: 'Vibur', cursive;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn-redeem:hover {
+            background: #059669;
+        }
+        
+        .btn-redeem:disabled {
+            background: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        
+        .btn-request {
+            padding: 8px 20px;
+            border: 1px solid #334155;
+            background: #f59e0b;
+            color: #020617;
+            cursor: pointer;
+            font-size: 1.5rem;
+            font-family: 'Vibur', cursive;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn-request:hover {
+            background: #d97706;
+        }
+        
+        .user-points-display {
+            background: #020617;
+            border: 1px solid #818cf8;
+            padding: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2rem;
+            color: #10b981;
+        }
+        
+        .reward-actions {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">Use_Your_Points</div>
+        <div class="header">Use Your Points</div>
+        
+        <div class="user-points-display">
+            Your Balance: <span id="user-points">0</span> points
+        </div>
         
         <div class="section">
-            <div class="section-title">Digital_Rewards</div>
+            <div class="section-title">Digital Rewards</div>
             
-            <div class="reward-item">
+            <div class="reward-item" data-reward="badge" data-cost="50">
                 <div class="reward-title">Custom Avatar Badge</div>
-                <div class="reward-desc">Unlock a special badge that displays next to your name in the members area. Choose from exclusive designs!</div>
+                <div class="reward-desc">Unlock a special badge that displays next to your name in the members points area. Choose from exclusive designs!</div>
                 <div class="reward-cost">→ Cost: 50 points</div>
+                <div class="reward-actions">
+                    <button class="btn-redeem" onclick="redeemDigital('badge', 50, 'Custom Avatar Badge')">Redeem Now</button>
+                </div>
             </div>
             
-            <div class="reward-item">
-                <div class="reward-title">Secret Content Access</div>
-                <div class="reward-desc">Unlock exclusive access to the secret items section with bonus lessons and hidden mathematical treasures.</div>
+            <div class="reward-item" data-reward="admin" data-cost="100">
+                <div class="reward-title">Admin Privileges</div>
+                <div class="reward-desc">Become the admin for 5 weeks(add lessons, manage points(points should be allowed by me))</div>
                 <div class="reward-cost">→ Cost: 100 points</div>
+                <div class="reward-actions">
+                    <button class="btn-request" onclick="requestManual('admin', 100, 'Admin Privileges')">Request Approval</button>
+                </div>
             </div>
             
-            <div class="reward-item">
+            <div class="reward-item" data-reward="theme" data-cost="75">
                 <div class="reward-title">Custom Theme Colors</div>
                 <div class="reward-desc">Personalize your MATIX experience with custom color themes for your dashboard and pages.</div>
                 <div class="reward-cost">→ Cost: 75 points</div>
+                <div class="reward-actions">
+                    <button class="btn-redeem" onclick="redeemDigital('theme', 75, 'Custom Theme Colors')">Redeem Now</button>
+                </div>
             </div>
         </div>
         
-        <div class="section">
-            <div class="section-title">Physical_Rewards</div>
-            
-            <div class="reward-item">
-                <span class="coming-soon">COMING_SOON</span>
-                <div class="reward-title">MATIX Merchandise</div>
-                <div class="reward-desc">Redeem points for exclusive MATIX branded items from our merch store - t-shirts, stickers, notebooks, and more!</div>
-                <div class="reward-cost">→ Cost: Starting at 200 points</div>
-            </div>
-            
-            <div class="reward-item">
-                <span class="coming-soon">COMING_SOON</span>
-                <div class="reward-title">Gift Cards</div>
-                <div class="reward-desc">Convert your hard-earned points into real-world value with gift cards for popular online stores.</div>
-                <div class="reward-cost">→ Cost: 500 points = $5 gift card</div>
-            </div>
-        </div>
         
-        <div class="section">
-            <div class="section-title">Special_Perks</div>
-            
-            <div class="reward-item">
-                <div class="reward-title">Early Access Pass</div>
-                <div class="reward-desc">Get early access to new features, games, and lessons before they're released to the public.</div>
-                <div class="reward-cost">→ Cost: 150 points</div>
-            </div>
-            
-            <div class="reward-item">
-                <div class="reward-title">Skip Tutorial Pass</div>
-                <div class="reward-desc">Already mastered a topic? Use this pass to skip tutorial sections and go straight to advanced content.</div>
-                <div class="reward-cost">→ Cost: 30 points</div>
-            </div>
-            
-            <div class="reward-item">
-                <div class="reward-title">Challenge Friend</div>
-                <div class="reward-desc">Challenge another member to a custom Math Fight match with your choice of difficulty and question types.</div>
-                <div class="reward-cost">→ Cost: 20 points</div>
-            </div>
-        </div>
-        
-        <div class="note">
-            <strong>NOTE:</strong> To redeem rewards, contact the MATIX administrator with your request and current point balance. Redemption is subject to availability and approval. Points are non-transferable between users.
-        </div>
-        
-        <a href="../index.html" class="btn">← Back_to_Points_Ledger</a>
+        <a href="../index.html" class="btn">← Back to Points Ledger</a>
     </div>
     
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
     <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
+            authDomain: "matix-1d538.firebaseapp.com",
+            databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
+            projectId: "matix-1d538",
+            storageBucket: "matix-1d538.firebasestorage.app"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
         // Check if user is authenticated
-        if (!sessionStorage.getItem("matix_auth_user")) {
+        const currentUser = sessionStorage.getItem("matix_auth_user");
+        if (!currentUser) {
             alert("ACCESS_DENIED: Please sign in to view this page");
             window.location.href = "../index.html";
+        }
+        
+        // Listen to user's points in realtime
+        db.ref('points/' + currentUser).on('value', (snapshot) => {
+            const points = snapshot.val() || 0;
+            document.getElementById('user-points').innerText = points;
+        });
+        
+        // Listen to user's profile for custom theme
+        db.ref('profiles/' + currentUser).on('value', (snapshot) => {
+            const profile = snapshot.val() || {};
+            if (profile.customTheme) {
+                document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
+            }
+        });
+        
+        // Redeem digital rewards (automated)
+        function redeemDigital(rewardId, cost, rewardName) {
+            db.ref('points/' + currentUser).once('value').then((snapshot) => {
+                const currentPoints = snapshot.val() || 0;
+                
+                if (currentPoints < cost) {
+                    alert(`INSUFFICIENT_FUNDS: You need ${cost} points but only have ${currentPoints}`);
+                    return;
+                }
+                
+                if (!confirm(`CONFIRM_REDEMPTION: Spend ${cost} points for ${rewardName}?`)) {
+                    return;
+                }
+                
+                // Deduct points
+                db.ref('points/' + currentUser).transaction((current) => {
+                    let newValue = (current || 0) - cost;
+                    return newValue < 0 ? 0 : newValue;
+                }).then(() => {
+                    // Apply the reward based on type
+                    if (rewardId === 'badge') {
+                        // Give user the badge (favicon)
+                        db.ref('profiles/' + currentUser + '/hasBadge').set(true);
+                    } else if (rewardId === 'theme') {
+                        // Prompt for custom theme color
+                        const hueRotate = prompt('Enter hue rotation degree (0-360):', '180');
+                        if (hueRotate !== null) {
+                            db.ref('profiles/' + currentUser + '/customTheme').set(parseInt(hueRotate) || 0);
+                            document.documentElement.style.filter = `hue-rotate(${hueRotate}deg)`;
+                        }
+                    }
+                    
+                    // Record the redemption
+                    db.ref('redemptions').push({
+                        user: currentUser,
+                        reward: rewardName,
+                        rewardId: rewardId,
+                        cost: cost,
+                        type: 'digital',
+                        status: 'completed',
+                        timestamp: Date.now()
+                    });
+                    
+                    alert(`SUCCESS: ${rewardName} has been unlocked!`);
+                });
+            });
+        }
+        
+        // Request manual rewards (needs approval)
+        function requestManual(rewardId, cost, rewardName) {
+            db.ref('points/' + currentUser).once('value').then((snapshot) => {
+                const currentPoints = snapshot.val() || 0;
+                
+                if (currentPoints < cost) {
+                    alert(`INSUFFICIENT_FUNDS: You need ${cost} points but only have ${currentPoints}`);
+                    return;
+                }
+                
+                if (!confirm(`REQUEST_APPROVAL: Request ${rewardName} for ${cost} points? (Pending admin approval)`)) {
+                    return;
+                }
+                
+                // Create request
+                db.ref('requests').push({
+                    user: currentUser,
+                    reward: rewardName,
+                    rewardId: rewardId,
+                    cost: cost,
+                    type: 'manual',
+                    status: 'pending',
+                    timestamp: Date.now()
+                }).then(() => {
+                    alert('REQUEST_SENT: Your request has been sent to the admin for approval.');
+                });
+            });
         }
     </script>
 </body>
