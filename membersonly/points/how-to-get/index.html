@@ -178,8 +178,15 @@
             const profile = snapshot.val() || {};
             if (profile.customTheme) {
                 document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
+                localStorage.setItem('matix_theme_hue', profile.customTheme);
             }
         });
+        
+        // Also check localStorage for cached theme
+        const cachedTheme = localStorage.getItem('matix_theme_hue');
+        if (cachedTheme) {
+            document.documentElement.style.filter = `hue-rotate(${cachedTheme}deg)`;
+        }
     </script>
 </body>
 </html>

@@ -76,6 +76,50 @@
         .btn-deny:hover {
             background: #dc2626;
         }
+        
+        .theme-customizer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+        
+        .theme-customizer-title {
+            color: #818cf8;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+        
+        .theme-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .theme-value {
+            color: #10b981;
+            font-size: 1.6rem;
+            text-align: center;
+        }
+        
+        .btn-reset-theme {
+            padding: 8px 15px;
+            background: #ef4444;
+            color: #f8fafc;
+            border: 1px solid #dc2626;
+            cursor: pointer;
+            font-family: 'Vibur', cursive;
+            font-size: 1.2rem;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .btn-reset-theme:hover {
+            background: #dc2626;
+        }
 
         .ledger-box {
             border: 1px solid #334155; background: #0f172a; padding: 30px;
@@ -160,6 +204,13 @@
         </svg>
     </div>
 
+    <div class="theme-customizer">
+        <div class="theme-customizer-title">🎨 Theme_Customizer</div>
+        <input type="range" min="0" max="360" value="0" class="theme-slider" id="theme-slider">
+        <div class="theme-value" id="theme-value">0°</div>
+        <button class="btn-reset-theme" onclick="resetTheme()">Reset</button>
+    </div>
+
     <div class="notifications-area" id="notifications-area">
         <!-- Notifications will be dynamically added here -->
     </div>
@@ -190,6 +241,8 @@
                 <button class="btn btn-neg" onclick="addPoints('ghadi', -1)">-1</button>
                 <button class="btn btn-neg" onclick="addPoints('ghadi', -10)">-10</button>
                 <button class="btn btn-reset" onclick="resetPerson('ghadi')">Reset</button>
+                <button class="btn" style="background: #10b981; color: #020617;" onclick="addCustomPoints('ghadi')">+Custom</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeCustomPoints('ghadi')">-Custom</button>
                 <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('ghadi')">Give Admin</button>
                 <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('ghadi')">Remove Admin</button>
             </div>
@@ -210,6 +263,8 @@
                 <button class="btn btn-neg" onclick="addPoints('dahlia', -1)">-1</button>
                 <button class="btn btn-neg" onclick="addPoints('dahlia', -10)">-10</button>
                 <button class="btn btn-reset" onclick="resetPerson('dahlia')">Reset</button>
+                <button class="btn" style="background: #10b981; color: #020617;" onclick="addCustomPoints('dahlia')">+Custom</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeCustomPoints('dahlia')">-Custom</button>
                 <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('dahlia')">Give Admin</button>
                 <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('dahlia')">Remove Admin</button>
             </div>
@@ -230,6 +285,8 @@
                 <button class="btn btn-neg" onclick="addPoints('marwan', -1)">-1</button>
                 <button class="btn btn-neg" onclick="addPoints('marwan', -10)">-10</button>
                 <button class="btn btn-reset" onclick="resetPerson('marwan')">Reset</button>
+                <button class="btn" style="background: #10b981; color: #020617;" onclick="addCustomPoints('marwan')">+Custom</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeCustomPoints('marwan')">-Custom</button>
                 <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('marwan')">Give Admin</button>
                 <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('marwan')">Remove Admin</button>
             </div>
@@ -250,6 +307,8 @@
                 <button class="btn btn-neg" onclick="addPoints('jad', -1)">-1</button>
                 <button class="btn btn-neg" onclick="addPoints('jad', -10)">-10</button>
                 <button class="btn btn-reset" onclick="resetPerson('jad')">Reset</button>
+                <button class="btn" style="background: #10b981; color: #020617;" onclick="addCustomPoints('jad')">+Custom</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeCustomPoints('jad')">-Custom</button>
                 <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('jad')">Give Admin</button>
                 <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('jad')">Remove Admin</button>
             </div>
@@ -321,8 +380,21 @@
                 const profile = snapshot.val() || {};
                 if (profile.customTheme) {
                     document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
+                    document.getElementById('theme-slider').value = profile.customTheme;
+                    document.getElementById('theme-value').innerText = profile.customTheme + '°';
                 }
             });
+            
+            // Load cached theme from localStorage
+            const cachedTheme = localStorage.getItem('matix_theme_hue');
+            if (cachedTheme) {
+                document.documentElement.style.filter = `hue-rotate(${cachedTheme}deg)`;
+                document.getElementById('theme-slider').value = cachedTheme;
+                document.getElementById('theme-value').innerText = cachedTheme + '°';
+            }
+            
+            // Setup theme slider
+            setupThemeSlider();
         }
 
         function logout() {
@@ -383,6 +455,38 @@
         function resetPerson(name) {
             if(confirm("SYSTEM_ACTION: Reset " + name.toUpperCase() + "'s points?")) {
                 db.ref('points/' + name).set(0);
+            }
+        }
+        
+        // ADD CUSTOM POINTS
+        function addCustomPoints(name) {
+            const amount = prompt(`Enter points to ADD for ${name.toUpperCase()}:`, '50');
+            if (amount === null) return; // User cancelled
+            
+            const pointsToAdd = parseInt(amount);
+            if (isNaN(pointsToAdd) || pointsToAdd <= 0) {
+                alert('ERROR: Please enter a valid positive number');
+                return;
+            }
+            
+            if (confirm(`ADD ${pointsToAdd} points to ${name.toUpperCase()}?`)) {
+                addPoints(name, pointsToAdd);
+            }
+        }
+        
+        // REMOVE CUSTOM POINTS
+        function removeCustomPoints(name) {
+            const amount = prompt(`Enter points to REMOVE from ${name.toUpperCase()}:`, '50');
+            if (amount === null) return; // User cancelled
+            
+            const pointsToRemove = parseInt(amount);
+            if (isNaN(pointsToRemove) || pointsToRemove <= 0) {
+                alert('ERROR: Please enter a valid positive number');
+                return;
+            }
+            
+            if (confirm(`REMOVE ${pointsToRemove} points from ${name.toUpperCase()}?`)) {
+                addPoints(name, -pointsToRemove);
             }
         }
         
@@ -483,6 +587,28 @@
             if (currentUser === user && theme) {
                 document.documentElement.style.filter = `hue-rotate(${theme}deg)`;
             }
+        }
+        
+        // Theme customizer functions
+        function setupThemeSlider() {
+            const slider = document.getElementById('theme-slider');
+            const valueDisplay = document.getElementById('theme-value');
+            
+            slider.addEventListener('input', function() {
+                const hueValue = this.value;
+                valueDisplay.innerText = hueValue + '°';
+                document.documentElement.style.filter = `hue-rotate(${hueValue}deg)`;
+                
+                // Save to localStorage
+                localStorage.setItem('matix_theme_hue', hueValue);
+            });
+        }
+        
+        function resetTheme() {
+            document.documentElement.style.filter = '';
+            localStorage.removeItem('matix_theme_hue');
+            document.getElementById('theme-slider').value = 0;
+            document.getElementById('theme-value').innerText = '0°';
         }
     </script>
 </body>

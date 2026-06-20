@@ -250,8 +250,15 @@
             const profile = snapshot.val() || {};
             if (profile.customTheme) {
                 document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
+                localStorage.setItem('matix_theme_hue', profile.customTheme);
             }
         });
+        
+        // Also check localStorage for cached theme
+        const cachedTheme = localStorage.getItem('matix_theme_hue');
+        if (cachedTheme) {
+            document.documentElement.style.filter = `hue-rotate(${cachedTheme}deg)`;
+        }
         
         // Redeem digital rewards (automated)
         function redeemDigital(rewardId, cost, rewardName) {
@@ -280,8 +287,11 @@
                         // Prompt for custom theme color
                         const hueRotate = prompt('Enter hue rotation degree (0-360):', '180');
                         if (hueRotate !== null) {
-                            db.ref('profiles/' + currentUser + '/customTheme').set(parseInt(hueRotate) || 0);
-                            document.documentElement.style.filter = `hue-rotate(${hueRotate}deg)`;
+                            const hueValue = parseInt(hueRotate) || 0;
+                            db.ref('profiles/' + currentUser + '/customTheme').set(hueValue);
+                            document.documentElement.style.filter = `hue-rotate(${hueValue}deg)`;
+                            // Also save to localStorage
+                            localStorage.setItem('matix_theme_hue', hueValue);
                         }
                     }
                     
