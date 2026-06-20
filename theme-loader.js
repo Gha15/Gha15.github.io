@@ -2,13 +2,21 @@
 // This script loads and applies custom user themes across all pages
 
 (function() {
-    // Check localStorage first for cached theme (only if user has changed color)
-    const hasChangedColor = localStorage.getItem('haschangedcolor');
-    const cachedTheme = localStorage.getItem('matix_theme_hue');
-    
-    if (cachedTheme && hasChangedColor === 'true') {
-        document.documentElement.style.filter = `hue-rotate(${cachedTheme}deg)`;
+    function applyCachedTheme() {
+        const cachedTheme = localStorage.getItem('matix_theme_hue');
+        const hasChangedColor = localStorage.getItem('haschangedcolor');
+
+        if (cachedTheme && hasChangedColor === 'true') {
+            document.documentElement.style.filter = `hue-rotate(${cachedTheme}deg)`;
+            return true;
+        }
+
+        document.documentElement.style.filter = '';
+        return false;
     }
+
+    // Check localStorage first for cached theme (only if user has changed color)
+    applyCachedTheme();
     
     // Firebase config
     const firebaseConfig = {
@@ -33,15 +41,21 @@
         // Listen to user's profile for custom theme (redeemed rewards)
         db.ref('profiles/' + currentUser).on('value', (snapshot) => {
             const profile = snapshot.val() || {};
-            // Firebase theme (from redemption) overrides localStorage if present
-            if (profile.customTheme) {
+            const cachedTheme = localStorage.getItem('matix_theme_hue');
+            const hasChangedColor = localStorage.getItem('haschangedcolor');
+
+            // Local theme wins if the user actively changed it; profile fills in otherwise.
+            if (cachedTheme && hasChangedColor === 'true') {
+                applyCachedTheme();
+            } else if (profile.customTheme) {
                 document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
                 // Also save to localStorage for consistency
                 localStorage.setItem('matix_theme_hue', profile.customTheme);
                 localStorage.setItem('haschangedcolor', 'true');
-            } else if (!cachedTheme || hasChangedColor !== 'true') {
-                // Reset to default if no theme and no valid cache
-                document.documentElement.style.filter = '';
+            } else {
+                localStorage.removeItem('matix_theme_hue');
+                localStorage.removeItem('haschangedcolor');
+                applyCachedTheme();
             }
         });
     }

@@ -121,6 +121,14 @@
             background: #dc2626;
         }
 
+        .theme-save-status {
+            margin-top: 8px;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            text-align: center;
+            min-height: 1.2em;
+        }
+
         .ledger-box {
             border: 1px solid #334155; background: #0f172a; padding: 30px;
             box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 95%; max-width: 600px;
@@ -209,6 +217,7 @@
         <input type="range" min="0" max="360" value="0" class="theme-slider" id="theme-slider">
         <div class="theme-value" id="theme-value">0°</div>
         <button class="btn-reset-theme" onclick="resetTheme()">Reset</button>
+        <div class="theme-save-status" id="theme-save-status"></div>
     </div>
 
     <div class="notifications-area" id="notifications-area">
@@ -370,13 +379,11 @@
                 const profile = snapshot.val() || {};
                 const isAdmin = profile.isAdmin || activeUser === 'ghadi';
                 
-                if (isAdmin) {
-                    // Select all control elements and display them
-                    const allControls = document.querySelectorAll('.controls');
-                    allControls.forEach(controlBlock => {
-                        controlBlock.style.display = 'flex';
-                    });
-                }
+                // Select all control elements and display them for admins
+                const allControls = document.querySelectorAll('.controls');
+                allControls.forEach(controlBlock => {
+                    controlBlock.style.display = isAdmin ? 'flex' : 'none';
+                });
                 
                 // Only Ghadi sees notifications and can approve
                 if (activeUser === 'ghadi') {
@@ -429,6 +436,14 @@
         // Listen for user profiles (badges and admin status)
         db.ref('profiles').on('value', (snapshot) => {
             const profiles = snapshot.val() || {};
+            const activeUser = sessionStorage.getItem("matix_auth_user");
+            const activeProfile = activeUser ? (profiles[activeUser] || {}) : {};
+            const activeIsAdmin = activeUser === 'ghadi' || activeProfile.isAdmin;
+
+            const allControls = document.querySelectorAll('.controls');
+            allControls.forEach(controlBlock => {
+                controlBlock.style.display = activeIsAdmin ? 'flex' : 'none';
+            });
             
             ['ghadi', 'dahlia', 'marwan', 'jad'].forEach(user => {
                 const profile = profiles[user] || {};
@@ -459,9 +474,10 @@
         // UPDATE LOGIC
         function addPoints(name, amount) {
             const activeUser = sessionStorage.getItem("matix_auth_user");
+            const isGhadi = activeUser === 'ghadi';
             
             // If user is Ghadi, apply points directly
-            if (activeUser === 'ghadi') {
+            if (isGhadi) {
                 db.ref('points/' + name).transaction((current) => {
                     let newValue = (current || 0) + amount;
                     return newValue < 0 ? 0 : newValue;
@@ -475,7 +491,7 @@
                     status: 'pending',
                     timestamp: Date.now()
                 }).then(() => {
-                    alert(`REQUEST_SENT: Point change request for ${name} sent to admin for approval`);
+                    alert(`REQUEST_SENT: ${activeUser.toUpperCase()} asked to ${amount > 0 ? 'add' : 'remove'} ${Math.abs(amount)} points for ${name.toUpperCase()}`);
                 });
             }
         }
@@ -747,11 +763,25 @@
                 document.documentElement.style.filter = `hue-rotate(${theme}deg)`;
             }
         }
+
+        function setThemeStatus(message, isError = false) {
+            const statusEl = document.getElementById('theme-save-status');
+            if (!statusEl) return;
+
+            statusEl.innerText = message;
+            statusEl.style.color = isError ? '#fca5a5' : '#34d399';
+
+            clearTimeout(window._themeStatusTimer);
+            window._themeStatusTimer = setTimeout(() => {
+                statusEl.innerText = '';
+            }, 2200);
+        }
         
         // Theme customizer functions
         function setupThemeSlider() {
             const slider = document.getElementById('theme-slider');
             const valueDisplay = document.getElementById('theme-value');
+            const activeUser = sessionStorage.getItem("matix_auth_user");
             
             slider.addEventListener('input', function() {
                 const hueValue = this.value;
@@ -761,6 +791,13 @@
                 // Save to localStorage and set flag
                 localStorage.setItem('matix_theme_hue', hueValue);
                 localStorage.setItem('haschangedcolor', 'true');
+
+                // Save to Firebase so the theme follows the user across devices
+                if (activeUser) {
+                    db.ref('profiles/' + activeUser + '/customTheme').set(parseInt(hueValue));
+                }
+
+                setThemeStatus(`Saved ${hueValue}° for @${activeUser || 'guest'}`);
             });
         }
         
@@ -770,6 +807,13 @@
             localStorage.removeItem('haschangedcolor');
             document.getElementById('theme-slider').value = 0;
             document.getElementById('theme-value').innerText = '0°';
+
+            const activeUser = sessionStorage.getItem("matix_auth_user");
+            if (activeUser) {
+                db.ref('profiles/' + activeUser + '/customTheme').remove();
+            }
+
+            setThemeStatus('Theme reset to default.');
         }
     </script>
 </body>
