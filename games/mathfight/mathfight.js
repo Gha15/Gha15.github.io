@@ -104,7 +104,7 @@ function randomRoomId() {
 }
 
 function roomLinkFor(id) {
-    return `${location.origin}/room?id=${id}`;
+    return `${location.origin}/games/mathfight/room?id=${id}`;
 }
 
 function updateRoomLink(id) {
@@ -115,7 +115,7 @@ function updateRoomLink(id) {
     }
 
     roomLinkEl.href = roomLinkFor(id);
-    roomLinkEl.textContent = `/room?id=${id}`;
+    roomLinkEl.textContent = `/games/mathfight/room?id=${id}`;
 }
 
 function setupJoinModes() {
@@ -196,10 +196,10 @@ $('join-form').addEventListener('submit', e => {
     ROOM = `${ROOM_ROOT}/${roomId}`;
 
     const roomQuery = joinMode === 'public' ? '' : `?id=${roomId}`;
-    if (location.pathname === '/room' || location.pathname === '/room/') {
-        history.replaceState({}, '', roomQuery || '/room');
+    if (location.pathname === '/games/mathfight/room' || location.pathname === '/games/mathfight/room/') {
+        history.replaceState({}, '', roomQuery || '/games/mathfight/room');
     } else {
-        history.replaceState({}, '', joinMode === 'public' ? '/games/mathfight/' : `/room${roomQuery}`);
+        history.replaceState({}, '', joinMode === 'public' ? '/games/mathfight/' : `/games/mathfight/room${roomQuery}`);
     }
 
     const selectedDevice = document.querySelector('input[name="device"]:checked');
