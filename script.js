@@ -14,13 +14,25 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Keep the latest value so we can render it whenever the counter element appears in the DOM
+// Keep the latest values so we can render them whenever the counter elements appear in the DOM
 let latestViews = 0;
+let latestLessons = 0;
+let latestPlayers = 0;
 
-function renderViewCounter() {
+function renderCounters() {
   const viewCounterElement = document.getElementById('view-counter');
   if (viewCounterElement) {
     viewCounterElement.innerText = latestViews;
+  }
+
+  const lessonCounterElement = document.getElementById('lesson-counter');
+  if (lessonCounterElement) {
+    lessonCounterElement.innerText = latestLessons;
+  }
+
+  const playerCounterElement = document.getElementById('player-counter');
+  if (playerCounterElement) {
+    playerCounterElement.innerText = latestPlayers;
   }
 }
 
@@ -42,10 +54,20 @@ function trackView() {
     console.log("[v0] Welcome back! Browser cache prevented duplicate view count.");
   }
 
-  // Live listener: store the value and render it if the counter is already on the page
+  // Live listeners: store each value and render it if the counter is already on the page
   database.ref('views').on('value', (snapshot) => {
     latestViews = snapshot.val() || 0;
-    renderViewCounter();
+    renderCounters();
+  });
+
+  database.ref('lessons').on('value', (snapshot) => {
+    latestLessons = snapshot.val() || 0;
+    renderCounters();
+  });
+
+  database.ref('currentPlayers').on('value', (snapshot) => {
+    latestPlayers = snapshot.val() || 0;
+    renderCounters();
   });
 }
 
@@ -80,7 +102,7 @@ onScroll(0.2, () => {
       <p>current players on math fight multiplayer 🎮: <span id="player-counter">0</span></p>`;
     document.body.appendChild(statsElement);
 
-    // Render the most recent value now that the counter element exists
-    renderViewCounter();
+    // Render the most recent values now that the counter elements exist
+    renderCounters();
   }
 });
