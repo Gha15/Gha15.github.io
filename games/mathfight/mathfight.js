@@ -118,97 +118,176 @@ function updateRoomLink(id) {
     roomLinkEl.textContent = `/games/mathfight/room?id=${id}`;
 }
 
-function setupJoinModes() {
+// ── 3-step Join Flow ─────────────────────────────────────
+function setupJoinFlow() {
+    const detailsPanel    = $('details-panel');
+    const modeOptionsEl   = $('mode-options');
+    const roomConfigEl    = $('room-config-panel');
+    const continueBtn     = $('details-continue-btn');
+    const joinPrivateBtn  = $('join-private-btn');
+    const createPrivateBtn = $('create-private-btn');
+    const joinPublicBtn   = $('join-public-btn');
+    const backToDetailsBtn = $('back-to-details-btn');
+    const backToModesBtn  = $('back-to-modes-btn');
+
+    function showStep(step) {
+        detailsPanel.classList.add('hidden');
+        modeOptionsEl.classList.add('hidden');
+        roomConfigEl.classList.add('hidden');
+        if (step === 'details')      detailsPanel.classList.remove('hidden');
+        else if (step === 'modes')   modeOptionsEl.classList.remove('hidden');
+        else if (step === 'config')  roomConfigEl.classList.remove('hidden');
+    }
+
+    // If URL has ?id=xxx, pre-fill and skip straight to room config
+    const queryId = normalizeRoomId(new URLSearchParams(location.search).get('id'));
+    if (queryId && queryId !== 'room') {
+        joinMode = 'join-private';
+        roomIdInput.value = queryId;
+        $('room-config-title').textContent = 'Join Private Room';
+        $('max-players-section').classList.add('hidden');
+        updateRoomLink(queryId);
+        showStep('config');
+    }
+
+    // Step 1 → Step 2
+    continueBtn.addEventListener('click', () => {
+        const name = $('join-name').value.trim();
+        if (!name) { shake($('join-name')); return; }
+        joinErrorEl.classList.add('hidden');
+        showStep('modes');
+    });
+
+    // Step 2: back to Step 1
+    backToDetailsBtn.addEventListener('click', () => showStep('details'));
+
+    // Step 2: Join Private
     joinPrivateBtn.addEventListener('click', () => {
         joinMode = 'join-private';
-        joinPanelTitle.textContent = 'Join Private Room';
-        roomPicker.classList.remove('hidden');
-        const queryRoom = normalizeRoomId(new URLSearchParams(location.search).get('id'));
-        roomIdInput.value = queryRoom || '';
-        roomIdInput.required = true;
-        updateRoomLink(roomIdInput.value);
-        showJoinPanel();
+        $('room-config-title').textContent = 'Join Private Room';
+        $('max-players-section').classList.add('hidden');
+        $('room-id-section').classList.remove('hidden');
+        roomIdInput.value = '';
+        updateRoomLink('');
+        joinErrorEl.classList.add('hidden');
+        showStep('config');
     });
 
+    // Step 2: Create Private
     createPrivateBtn.addEventListener('click', () => {
         joinMode = 'create-private';
-        joinPanelTitle.textContent = 'Create Private Room';
-        roomPicker.classList.remove('hidden');
+        $('room-config-title').textContent = 'Create Private Room';
+        $('max-players-section').classList.remove('hidden');
+        $('room-id-section').classList.remove('hidden');
         const newId = randomRoomId();
         roomIdInput.value = newId;
-        roomIdInput.required = true;
         updateRoomLink(newId);
-        showJoinPanel();
+        joinErrorEl.classList.add('hidden');
+        showStep('config');
     });
 
-    joinPublicBtn.addEventListener('click', () => {
+    // Step 2: Public Server → join immediately
+    joinPublicBtn.addEventListener('click', async () => {
+        const name = $('join-name').value.trim();
+        if (!name) { showStep('details'); shake($('join-name')); return; }
         joinMode = 'public';
-        joinPanelTitle.textContent = 'Play on Public Server';
-        roomPicker.classList.add('hidden');
-        roomIdInput.required = false;
-        showJoinPanel();
+        roomId = PUBLIC_ROOM;
+        ROOM = `${ROOM_ROOT}/${roomId}`;
+        if (await isNameTaken(name)) {
+            showJoinError('That username is already in the public server. Try another!');
+            showStep('details'); shake($('join-name')); return;
+        }
+        me = name;
+        myKey = getPlayerKey();
+        myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
+        deviceMode = (document.querySelector('input[name="device"]:checked') || {}).value || 'pc';
+        history.replaceState({}, '', '/games/mathfight/');
+        startGame();
     });
 
-    backBtn.addEventListener('click', () => {
-        hideJoinPanel();
-    });
+    // Step 3: back to Step 2
+    backToModesBtn.addEventListener('click', () => showStep('modes'));
 
+    // Room ID input live update
     roomIdInput.addEventListener('input', () => {
         roomIdInput.value = normalizeRoomId(roomIdInput.value);
         updateRoomLink(roomIdInput.value);
     });
 
-    createRoomBtn.addEventListener('click', () => {
+    // Randomize button
+    randomizeRoomBtn.addEventListener('click', () => {
         const newId = randomRoomId();
         roomIdInput.value = newId;
         updateRoomLink(newId);
     });
-}
 
-function showJoinPanel() {
-    document.querySelector('.join-options').classList.add('hidden');
-    document.querySelector('.title-panel').classList.add('hidden');
-    joinPanel.classList.remove('hidden');
-}
+    // Step 3: form submit → join
+    $('join-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const name = $('join-name').value.trim();
+        if (!name) { showStep('details'); shake($('join-name')); return; }
 
-function hideJoinPanel() {
-    joinPanel.classList.add('hidden');
-    document.querySelector('.join-options').classList.remove('hidden');
-    document.querySelector('.title-panel').classList.remove('hidden');
-}
-
-// ── Join ──────────────────────────────────────────────────
-$('join-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const raw = $('join-name').value.trim();
-    if (!raw) return;
-
-    if (joinMode === 'public') {
-        roomId = PUBLIC_ROOM;
-    } else {
         roomId = normalizeRoomId(roomIdInput.value);
         if (!roomId || roomId === 'room') {
-            alert('Please enter a valid room ID.');
-            return;
+            showJoinError('Please enter a valid room ID.');
+            shake(roomIdInput); return;
         }
-    }
+        ROOM = `${ROOM_ROOT}/${roomId}`;
 
-    ROOM = `${ROOM_ROOT}/${roomId}`;
+        // Capacity check for join
+        if (joinMode === 'join-private') {
+            const [playersSnap, cfgSnap] = await Promise.all([
+                db.ref(`${ROOM}/players`).once('value'),
+                db.ref(`${ROOM}/config`).once('value')
+            ]);
+            const cfg = cfgSnap.val() || {};
+            const count = Object.keys(playersSnap.val() || {}).length;
+            if (cfg.maxPlayers && count >= cfg.maxPlayers) {
+                showJoinError(`Room is full (${count}/${cfg.maxPlayers}).`); return;
+            }
+        }
 
-    const roomQuery = joinMode === 'public' ? '' : `?id=${roomId}`;
-    if (location.pathname === '/games/mathfight/room' || location.pathname === '/games/mathfight/room/') {
-        history.replaceState({}, '', roomQuery || '/games/mathfight/room');
-    } else {
-        history.replaceState({}, '', joinMode === 'public' ? '/games/mathfight/' : `/games/mathfight/room${roomQuery}`);
-    }
+        // Username uniqueness check
+        if (await isNameTaken(name)) {
+            showJoinError('That username is taken in this room. Try another!');
+            showStep('details'); shake($('join-name')); return;
+        }
 
-    const selectedDevice = document.querySelector('input[name="device"]:checked');
-    deviceMode = selectedDevice ? selectedDevice.value : 'pc';
-    me = raw;
-    myKey = getPlayerKey();
-    myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
-    startGame();
-});
+        // Store config for create
+        if (joinMode === 'create-private') {
+            const mp = parseInt($('max-players').value) || 8;
+            maxPlayers = mp;
+            await db.ref(`${ROOM}/config`).set({ maxPlayers: mp, createdAt: Date.now() });
+        }
+
+        me = name;
+        myKey = getPlayerKey();
+        myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
+        deviceMode = (document.querySelector('input[name="device"]:checked') || {}).value || 'pc';
+        history.replaceState({}, '', `/games/mathfight/room?id=${roomId}`);
+        startGame();
+    });
+}
+
+function showJoinError(msg) {
+    joinErrorEl.textContent = msg;
+    joinErrorEl.classList.remove('hidden');
+    setTimeout(() => joinErrorEl.classList.add('hidden'), 4500);
+}
+
+function shake(el) {
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = 'inputShake 0.38s ease';
+    el.addEventListener('animationend', () => { el.style.animation = ''; }, { once: true });
+}
+
+async function isNameTaken(name) {
+    if (!ROOM) return false;
+    const snap = await db.ref(`${ROOM}/players`).once('value');
+    const all = snap.val() || {};
+    return Object.values(all).some(p => p && p.name && p.name.toLowerCase() === name.toLowerCase());
+}
 
 function startGame() {
     joinScreen.classList.add('hidden');
