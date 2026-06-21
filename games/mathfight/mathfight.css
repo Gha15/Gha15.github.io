@@ -229,11 +229,17 @@ body.game-active {
     border-color: #818cf8;
     box-shadow: 0 0 0 3px rgba(129,140,248,0.22);
 }
-#room-id::placeholder { color: rgba(255,255,255,0.28); }
-    color: #94a3b8;
-    font-size: 1.05rem;
-    margin: 6px 0 20px;
+
+#room-id {
+  color: #94a3b8;
+  font-size: 1.05rem;
+  margin: 6px 0 20px;
 }
+
+#room-id::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
 
 /* Field group */
 .mf-field {
@@ -328,6 +334,20 @@ body.game-active {
     text-align: center;
     padding: 6px 0;
     animation: slideDown 0.3s ease;
+}
+
+.continue-btn {
+    background: rgba(15,23,42,0.8);
+    color: #a5b4fc;
+    border: 1px solid rgba(129,140,248,0.4);
+    padding: 14px 28px;
+    font-family: 'Vibur', cursive;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.22s ease;
 }
 
 /* Updated join-option-btn to support icon+text layout */
