@@ -56,9 +56,7 @@ function onScroll(threshold, callback) {
   });
 }
 
-onScroll(0.2, () => {
-  document.querySelector('.container').style.transform = 'translateY(-100vh)';
-});
+
 
 let statsShown = false;
 let currentViews = firebase.database().ref('views');
