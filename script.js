@@ -25,16 +25,30 @@ export function trackView() {
 }
 
 function listenToStats() {
+  // 1. Listen to Views
   onValue(ref(database, 'views'), (snapshot) => {
     const el = document.getElementById('view-counter');
     if (el) el.innerText = snapshot.val() || 0;
   });
 
+  // 2. FIXED: Count items inside the lessons object node
   onValue(ref(database, 'lessons'), (snapshot) => {
     const el = document.getElementById('lessons-counter');
-    if (el) el.innerText = snapshot.val() || 12;
+    if (el) {
+      const data = snapshot.val();
+      if (data && typeof data === 'object') {
+        // Count how many keys (individual lessons) exist inside the node
+        el.innerText = Object.keys(data).length;
+      } else if (typeof data === 'number') {
+        // Fallback fallback case if it's stored as a simple integer
+        el.innerText = data;
+      } else {
+        el.innerText = 0;
+      }
+    }
   });
 
+  // 3. Listen to Active Players
   onValue(ref(database, 'currentPlayers'), (snapshot) => {
     const el = document.getElementById('current-players-counter');
     if (el) el.innerText = snapshot.val() || 0;
