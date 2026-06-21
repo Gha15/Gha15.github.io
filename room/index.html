@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Fight - Room</title>
-    <link rel="stylesheet" href="/games/mathfight.css">
+    <link rel="stylesheet" href="/games/mathfight/mathfight.css">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
 </head>
@@ -15,43 +15,70 @@
       <span></span><span></span><span></span><span></span><span></span>
       <span></span><span></span><span></span><span></span><span></span>
     </div>
-    <div class="join-panel">
+
+    <div class="rules-panel">
+      <h2>Rules</h2>
+      <ul>
+        <li>Move with <strong>WASD</strong> / <strong>Arrow Keys</strong> / joystick on mobile</li>
+        <li>When it's your turn → <strong>click a player</strong> to challenge them</li>
+        <li>They get a multiplication question and <strong>12 seconds</strong> to answer</li>
+        <li>They answer correctly → <strong>you</strong> lose a life ❤️</li>
+        <li>They answer wrong or time out → <strong>they</strong> lose a life ❤️</li>
+        <li>Everyone starts with <strong>3 lives ❤️❤️❤️</strong></li>
+        <li>When you run out of lives, you can <strong>revive</strong> and rejoin!</li>
+        <li>Last player standing <strong>wins!</strong></li>
+      </ul>
+    </div>
+
+    <div class="title-panel">
       <div class="title-glow" aria-hidden="true"></div>
       <h1><span class="title-math">MATH</span><br><span class="title-fight">FIGHT</span></h1>
-      <p>Keep running. Challenge others. Last heart wins.</p>
+      <p>Keep running. Challenge others. Last player standing wins!</p>
+    </div>
+
+    <div class="join-options">
+      <button class="join-option-btn" id="join-private-btn">
+        <span class="option-icon">🔒</span>
+        <span class="option-title">Join Private Room</span>
+      </button>
+      <button class="join-option-btn" id="create-private-btn">
+        <span class="option-icon">➕</span>
+        <span class="option-title">Create Private Room</span>
+      </button>
+      <button class="join-option-btn" id="join-public-btn">
+        <span class="option-icon">🌐</span>
+        <span class="option-title">Play on Public Server</span>
+      </button>
+    </div>
+
+    <div class="join-panel hidden" id="join-panel">
+      <button class="back-btn" id="back-btn">← Back</button>
+      <h3 id="join-panel-title">Join Room</h3>
       <form id="join-form">
         <input id="join-name" maxlength="16" placeholder="Pick a username" required autocomplete="off">
+        
         <div class="device-picker">
           <p>Pick Your Device</p>
           <label><input type="radio" name="device" value="pc" checked> PC</label>
           <label><input type="radio" name="device" value="mobile"> Mobile</label>
         </div>
-        <div class="room-picker">
+
+        <div class="room-picker" id="room-picker">
           <p>Room ID</p>
           <div class="room-row">
-            <input id="room-id" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="123456" required autocomplete="off">
-            <button type="button" id="create-room-btn" class="btn-secondary">Create</button>
+            <input id="room-id" placeholder="myroom123" autocomplete="off">
+            <button type="button" id="create-room-btn" class="btn-secondary">Random</button>
           </div>
           <a id="room-link" class="room-link" href="#" target="_blank" rel="noopener"></a>
         </div>
+
         <div class="color-picker">
           <p>Pick Your Color</p>
           <input type="color" id="join-color" value="#818cf8" aria-label="Pick your color">
         </div>
+
         <button type="submit">PLAY</button>
       </form>
-    </div>
-    <div class="rules-panel">
-      <h2>Rules</h2>
-      <ul>
-        <li>Move with <strong>WASD</strong> / <strong>Arrow Keys</strong> / joystick on mobile</li>
-        <li>When it's your turn -> <strong>click a player</strong> to challenge them</li>
-        <li>They get a multiplication question and <strong>12 seconds</strong> to answer</li>
-        <li>They answer correctly -> <strong>you</strong> lose a life ❤️</li>
-        <li>They answer wrong or time out -> <strong>they</strong> lose a life ❤️</li>
-        <li>Everyone starts with <strong>3 lives ❤️❤️❤️</strong></li>
-        <li>Last player standing <strong>wins!</strong></li>
-      </ul>
     </div>
   </div>
 
@@ -94,6 +121,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <script src="/theme-loader.js"></script>
-  <script src="/games/mathfight.js"></script>
+  <script src="/games/mathfight/mathfight.js"></script>
 </body>
 </html>

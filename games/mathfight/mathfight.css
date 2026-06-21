@@ -149,7 +149,7 @@ body.game-active {
 .particles span:nth-child(10) { left: 48%; width: 22px; height: 22px; background: #a78bfa; animation-duration: 15s; animation-delay: 0.5s;  filter: blur(3px); }
 
 /* Panels */
-.join-panel, .rules-panel {
+.join-panel, .rules-panel, .title-panel, .join-options {
     position: relative;
     background: rgba(15,23,42,0.72);
     border: 1px solid rgba(129,140,248,0.32);
@@ -162,8 +162,79 @@ body.game-active {
     animation: slideDown 0.6s ease;
 }
 
+/* Title Panel */
+.title-panel {
+    text-align: center;
+    padding: 24px 30px;
+}
+
+/* Join Options (3 buttons) */
+.join-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 24px 30px;
+}
+
+.join-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border: 1px solid rgba(129,140,248,0.32);
+    border-radius: 14px;
+    background: rgba(2,6,23,0.65);
+    color: #f8fafc;
+    font-family: 'Vibur', cursive;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: left;
+}
+
+.join-option-btn:hover {
+    background: rgba(129,140,248,0.18);
+    border-color: #818cf8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(129,140,248,0.3);
+}
+
+.option-icon {
+    font-size: 1.8rem;
+}
+
+.option-title {
+    letter-spacing: 1px;
+}
+
 /* Title */
-.join-panel { text-align: center; }
+.join-panel, .title-panel { text-align: center; }
+
+.back-btn {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 8px 14px;
+    border: 1px solid rgba(129,140,248,0.35);
+    background: rgba(30,41,59,0.8);
+    color: #c7d2fe;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    font-family: 'Vibur', cursive;
+    transition: background 0.2s;
+}
+
+.back-btn:hover {
+    background: rgba(129,140,248,0.25);
+}
+
+#join-panel-title {
+    color: #a5b4fc;
+    font-size: 1.6rem;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+}
 
 .title-glow {
     position: absolute;
@@ -279,6 +350,42 @@ body.game-active {
     margin-bottom: 0;
     font-size: 1.25rem;
     padding: 10px;
+}
+
+#room-picker.hidden {
+    display: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.revive-btn {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: 2px solid #6ee7b7;
+    border-radius: 14px;
+    color: #fff;
+    font-family: 'Vibur', cursive;
+    font-size: 1.4rem;
+    cursor: pointer;
+    animation: revivePulse 1.5s ease infinite;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5);
+    z-index: 200;
+}
+
+.revive-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateX(-50%) scale(1.05);
+}
+
+@keyframes revivePulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5); }
+    50% { box-shadow: 0 6px 30px rgba(16, 185, 129, 0.8); }
 }
 
 .btn-secondary {

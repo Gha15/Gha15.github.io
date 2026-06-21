@@ -12,11 +12,13 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const ROOM_ROOT = 'mathfight/rooms';
+const PUBLIC_ROOM = 'public-server';
 const SPEED    = 3.2;
 const WORLD_W  = 2000;
 const WORLD_H  = 1200;
 const P_RADIUS = 22;
 const ANS_TIME = 12000;
+const IDLE_RESET_MS = 5 * 60 * 1000; // 5 minutes
 const COLORS   = ['#f87171','#fb923c','#facc15','#4ade80','#38bdf8','#818cf8','#f472b6','#2dd4bf'];
 
 // ── State ──────────────────────────────────────────────────
@@ -31,6 +33,8 @@ let deviceMode = 'pc';
 const stickmanCache = {};
 let roomId = '';
 let ROOM = '';
+let joinMode = ''; // 'join-private' | 'create-private' | 'public'
+let activityCheckInterval = null;
 
 // ── Canvas ────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
@@ -64,19 +68,29 @@ const roomIdInput      = $('room-id');
 const createRoomBtn    = $('create-room-btn');
 const roomLinkEl       = $('room-link');
 const joinColorInput   = $('join-color');
+const joinPrivateBtn   = $('join-private-btn');
+const createPrivateBtn = $('create-private-btn');
+const joinPublicBtn    = $('join-public-btn');
+const joinPanel        = $('join-panel');
+const backBtn          = $('back-btn');
+const joinPanelTitle   = $('join-panel-title');
+const roomPicker       = $('room-picker');
 
-setupRoomUi();
+setupJoinModes();
 
 function roomRef(path) {
     return db.ref(`${ROOM}/${path}`);
 }
 
 function normalizeRoomId(value) {
-    return (value || '').replace(/\D/g, '').slice(0, 6);
+    return (value || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 32) || 'room';
 }
 
 function randomRoomId() {
-    return String(Math.floor(100000 + Math.random() * 900000));
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let id = '';
+    for (let i = 0; i < 8; i++) id += chars[Math.floor(Math.random() * chars.length)];
+    return id;
 }
 
 function roomLinkFor(id) {
@@ -94,11 +108,40 @@ function updateRoomLink(id) {
     roomLinkEl.textContent = `/room?id=${id}`;
 }
 
-function setupRoomUi() {
-    const queryRoom = normalizeRoomId(new URLSearchParams(location.search).get('id'));
-    const initial = queryRoom || randomRoomId();
-    roomIdInput.value = initial;
-    updateRoomLink(initial);
+function setupJoinModes() {
+    joinPrivateBtn.addEventListener('click', () => {
+        joinMode = 'join-private';
+        joinPanelTitle.textContent = 'Join Private Room';
+        roomPicker.classList.remove('hidden');
+        const queryRoom = normalizeRoomId(new URLSearchParams(location.search).get('id'));
+        roomIdInput.value = queryRoom || '';
+        roomIdInput.required = true;
+        updateRoomLink(roomIdInput.value);
+        showJoinPanel();
+    });
+
+    createPrivateBtn.addEventListener('click', () => {
+        joinMode = 'create-private';
+        joinPanelTitle.textContent = 'Create Private Room';
+        roomPicker.classList.remove('hidden');
+        const newId = randomRoomId();
+        roomIdInput.value = newId;
+        roomIdInput.required = true;
+        updateRoomLink(newId);
+        showJoinPanel();
+    });
+
+    joinPublicBtn.addEventListener('click', () => {
+        joinMode = 'public';
+        joinPanelTitle.textContent = 'Play on Public Server';
+        roomPicker.classList.add('hidden');
+        roomIdInput.required = false;
+        showJoinPanel();
+    });
+
+    backBtn.addEventListener('click', () => {
+        hideJoinPanel();
+    });
 
     roomIdInput.addEventListener('input', () => {
         roomIdInput.value = normalizeRoomId(roomIdInput.value);
@@ -112,25 +155,41 @@ function setupRoomUi() {
     });
 }
 
+function showJoinPanel() {
+    document.querySelector('.join-options').classList.add('hidden');
+    document.querySelector('.title-panel').classList.add('hidden');
+    joinPanel.classList.remove('hidden');
+}
+
+function hideJoinPanel() {
+    joinPanel.classList.add('hidden');
+    document.querySelector('.join-options').classList.remove('hidden');
+    document.querySelector('.title-panel').classList.remove('hidden');
+}
+
 // ── Join ──────────────────────────────────────────────────
 $('join-form').addEventListener('submit', e => {
     e.preventDefault();
     const raw = $('join-name').value.trim();
     if (!raw) return;
 
-    roomId = normalizeRoomId(roomIdInput.value);
-    if (roomId.length !== 6) {
-        alert('Room ID must be 6 digits.');
-        return;
+    if (joinMode === 'public') {
+        roomId = PUBLIC_ROOM;
+    } else {
+        roomId = normalizeRoomId(roomIdInput.value);
+        if (!roomId || roomId === 'room') {
+            alert('Please enter a valid room ID.');
+            return;
+        }
     }
 
     ROOM = `${ROOM_ROOT}/${roomId}`;
 
-    const roomQuery = `?id=${roomId}`;
+    const roomQuery = joinMode === 'public' ? '' : `?id=${roomId}`;
     if (location.pathname === '/room' || location.pathname === '/room/') {
-        history.replaceState({}, '', roomQuery);
+        history.replaceState({}, '', roomQuery || '/room');
     } else {
-        history.replaceState({}, '', `/room${roomQuery}`);
+        history.replaceState({}, '', joinMode === 'public' ? '/games/mathfight/' : `/room${roomQuery}`);
     }
 
     const selectedDevice = document.querySelector('input[name="device"]:checked');
@@ -162,6 +221,7 @@ function startGame() {
     canvas.addEventListener('click', onCanvasClick);
     requestAnimationFrame(loop);
     setInterval(pushPos, 90);
+    startActivityMonitoring();
 }
 
 // ── Firebase listeners ────────────────────────────────────
@@ -201,7 +261,13 @@ function listenChat() {
 }
 
 function pushPos() {
-    if (me) roomRef(`players/${me}`).update({ x: Math.round(myX), y: Math.round(myY) });
+    if (me) {
+        roomRef(`players/${me}`).update({ 
+            x: Math.round(myX), 
+            y: Math.round(myY),
+            lastActivity: Date.now()
+        });
+    }
 }
 
 // ── Game state machine ────────────────────────────────────
@@ -378,6 +444,13 @@ function renderHud() {
         div.appendChild(hts);
         playerListEl.appendChild(div);
     });
+
+    // Show revive button if dead
+    if (players[me] && !players[me].alive) {
+        showReviveButton();
+    } else {
+        hideReviveButton();
+    }
 }
 
 function setNotif(msg, color) {
@@ -450,6 +523,58 @@ function setupJoystick(mode) {
     joystickBase.addEventListener('touchcancel', end);
 }
 
+// ── Activity monitoring & auto-reset ──────────────────────
+function startActivityMonitoring() {
+    activityCheckInterval = setInterval(checkRoomActivity, 30000); // Check every 30s
+}
+
+function checkRoomActivity() {
+    roomRef('players').once('value').then(s => {
+        const allPlayers = s.val() || {};
+        const now = Date.now();
+        let hasActivePlayer = false;
+
+        for (const p of Object.values(allPlayers)) {
+            if (p && p.lastActivity && (now - p.lastActivity) < IDLE_RESET_MS) {
+                hasActivePlayer = true;
+                break;
+            }
+        }
+
+        if (!hasActivePlayer && Object.keys(allPlayers).length > 0) {
+            // Reset room
+            roomRef('players').remove();
+            roomRef('game').remove();
+            roomRef('chat').remove();
+        }
+    });
+}
+
+// ── Revive mechanics ──────────────────────────────────────
+function revivePlayer() {
+    if (!me || !players[me]) return;
+    const myRef = roomRef(`players/${me}`);
+    myRef.update({ lives: 3, alive: true });
+    flash('💫 You revived with 3 lives!', '#10b981');
+}
+
+function showReviveButton() {
+    if (!players[me] || players[me].alive) return;
+    const btn = document.createElement('button');
+    btn.id = 'revive-btn';
+    btn.textContent = '💫 Revive';
+    btn.className = 'revive-btn';
+    btn.addEventListener('click', revivePlayer);
+    if (!document.getElementById('revive-btn')) {
+        notifEl.parentElement.appendChild(btn);
+    }
+}
+
+function hideReviveButton() {
+    const btn = document.getElementById('revive-btn');
+    if (btn) btn.remove();
+}
+
 // ── Chat ──────────────────────────────────────────────────
 function setupChat() {
     chatToggle.addEventListener('click', () => chatPanel.classList.toggle('hidden'));
@@ -498,6 +623,10 @@ function drawPlayers() {
 
     for (const [name, p] of Object.entries(players)) {
         if (!p) continue;
+        
+        // Skip rendering completely dead players (not alive AND no position update recently)
+        if (!p.alive && (!p.lastActivity || Date.now() - p.lastActivity > 10000)) continue;
+
         const sx = (name === me ? myX : p.x) - camX;
         const sy = (name === me ? myY : p.y) - camY;
 

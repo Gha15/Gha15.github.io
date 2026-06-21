@@ -16,32 +16,8 @@
       <span></span><span></span><span></span><span></span><span></span>
       <span></span><span></span><span></span><span></span><span></span>
     </div>
-    <div class="join-panel">
-      <div class="title-glow" aria-hidden="true"></div>
-      <h1><span class="title-math">MATH</span><br><span class="title-fight">FIGHT</span></h1>
-      <p>Keep running. Challenge others. Last heart wins.</p>
-      <form id="join-form">
-        <input id="join-name" maxlength="16" placeholder="Pick a username" required autocomplete="off">
-        <div class="device-picker">
-          <p>Pick Your Device</p>
-          <label><input type="radio" name="device" value="pc" checked> PC</label>
-          <label><input type="radio" name="device" value="mobile"> Mobile</label>
-        </div>
-        <div class="room-picker">
-          <p>Room ID</p>
-          <div class="room-row">
-            <input id="room-id" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="123456" required autocomplete="off">
-            <button type="button" id="create-room-btn" class="btn-secondary">Create</button>
-          </div>
-          <a id="room-link" class="room-link" href="#" target="_blank" rel="noopener"></a>
-        </div>
-        <div class="color-picker">
-          <p>Pick Your Color</p>
-          <input type="color" id="join-color" value="#818cf8" aria-label="Pick your color">
-        </div>
-        <button type="submit">PLAY</button>
-      </form>
-    </div>
+
+    <!-- RULES FIRST -->
     <div class="rules-panel">
       <h2>Rules</h2>
       <ul>
@@ -51,8 +27,63 @@
         <li>They answer correctly → <strong>you</strong> lose a life ❤️</li>
         <li>They answer wrong or time out → <strong>they</strong> lose a life ❤️</li>
         <li>Everyone starts with <strong>3 lives ❤️❤️❤️</strong></li>
+        <li>When you run out of lives, you can <strong>revive</strong> and rejoin!</li>
         <li>Last player standing <strong>wins!</strong></li>
       </ul>
+    </div>
+
+    <!-- TITLE -->
+    <div class="title-panel">
+      <div class="title-glow" aria-hidden="true"></div>
+      <h1><span class="title-math">MATH</span><br><span class="title-fight">FIGHT</span></h1>
+      <p>Keep running. Challenge others. Last heart wins.</p>
+    </div>
+
+    <!-- 3 JOIN OPTIONS -->
+    <div class="join-options">
+      <button class="join-option-btn" id="join-private-btn">
+        <span class="option-icon">🔒</span>
+        <span class="option-title">Join Private Room</span>
+      </button>
+      <button class="join-option-btn" id="create-private-btn">
+        <span class="option-icon">➕</span>
+        <span class="option-title">Create Private Room</span>
+      </button>
+      <button class="join-option-btn" id="join-public-btn">
+        <span class="option-icon">🌐</span>
+        <span class="option-title">Play on Public Server</span>
+      </button>
+    </div>
+
+    <!-- JOIN FORM (HIDDEN INITIALLY) -->
+    <div class="join-panel hidden" id="join-panel">
+      <button class="back-btn" id="back-btn">← Back</button>
+      <h3 id="join-panel-title">Join Room</h3>
+      <form id="join-form">
+        <input id="join-name" maxlength="16" placeholder="Pick a username" required autocomplete="off">
+        
+        <div class="device-picker">
+          <p>Pick Your Device</p>
+          <label><input type="radio" name="device" value="pc" checked> PC</label>
+          <label><input type="radio" name="device" value="mobile"> Mobile</label>
+        </div>
+
+        <div class="room-picker" id="room-picker">
+          <p>Room ID</p>
+          <div class="room-row">
+            <input id="room-id" placeholder="myroom123" autocomplete="off">
+            <button type="button" id="create-room-btn" class="btn-secondary">Random</button>
+          </div>
+          <a id="room-link" class="room-link" href="#" target="_blank" rel="noopener"></a>
+        </div>
+
+        <div class="color-picker">
+          <p>Pick Your Color</p>
+          <input type="color" id="join-color" value="#818cf8" aria-label="Pick your color">
+        </div>
+
+        <button type="submit">PLAY</button>
+      </form>
     </div>
   </div>
 
