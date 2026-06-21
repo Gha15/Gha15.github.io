@@ -130,6 +130,14 @@ function updateRoomLink(id) {
   roomLinkEl.textContent = `/games/mathfight/room?id=${id}`;
 }
 
+// Helper to determine selected or automatic device mode
+function getSelectedDeviceMode() {
+  const checkedRadio = document.querySelector('input[name="device"]:checked');
+  if (checkedRadio) return checkedRadio.value;
+  // Auto-detect mobile devices if no option is manually configured
+  return ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'mobile' : 'pc';
+}
+
 // ── 3-step Join Flow ─────────────────────────────────────
 function setupJoinFlow() {
   const detailsPanel = $('details-panel');
@@ -155,7 +163,6 @@ function setupJoinFlow() {
     }
   }
 
-  // If URL has ?id=xxx, pre-fill and skip straight to room config
   const queryId = normalizeRoomId(new URLSearchParams(location.search).get('id'));
   if (queryId && queryId !== 'room') {
     joinMode = 'join-private';
@@ -166,7 +173,6 @@ function setupJoinFlow() {
     showStep('config');
   }
 
-  // Step 1 → Step 2
   continueBtn.addEventListener('click', () => {
     const name = $('join-name').value.trim();
     if (!name) {
@@ -177,10 +183,8 @@ function setupJoinFlow() {
     showStep('modes');
   });
 
-  // Step 2: back to Step 1
   backToDetailsBtn.addEventListener('click', () => showStep('details'));
 
-  // Step 2: Join Private
   joinPrivateBtn.addEventListener('click', () => {
     joinMode = 'join-private';
     $('room-config-title').textContent = 'Join Private Room';
@@ -192,7 +196,6 @@ function setupJoinFlow() {
     showStep('config');
   });
 
-  // Step 2: Create Private
   createPrivateBtn.addEventListener('click', () => {
     joinMode = 'create-private';
     $('room-config-title').textContent = 'Create Private Room';
@@ -205,7 +208,6 @@ function setupJoinFlow() {
     showStep('config');
   });
 
-  // Step 2: Public Server → join immediately
   joinPublicBtn.addEventListener('click', async () => {
     const name = $('join-name').value.trim();
     if (!name) {
@@ -225,28 +227,24 @@ function setupJoinFlow() {
     me = name;
     myKey = getPlayerKey();
     myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
-    deviceMode = (document.querySelector('input[name="device"]:checked') || {}).value || 'pc';
+    deviceMode = getSelectedDeviceMode();
     history.replaceState({}, '', '/games/mathfight/');
     startGame();
   });
 
-  // Step 3: back to Step 2
   backToModesBtn.addEventListener('click', () => showStep('modes'));
 
-  // Room ID input live update
   roomIdInput.addEventListener('input', () => {
     roomIdInput.value = normalizeRoomId(roomIdInput.value);
     updateRoomLink(roomIdInput.value);
   });
 
-  // Randomize button
   randomizeRoomBtn.addEventListener('click', () => {
     const newId = randomRoomId();
     roomIdInput.value = newId;
     updateRoomLink(newId);
   });
 
-  // Step 3: form submit → join
   $('join-form').addEventListener('submit', async e => {
     e.preventDefault();
     const name = $('join-name').value.trim();
@@ -264,7 +262,6 @@ function setupJoinFlow() {
     }
     ROOM = `${ROOM_ROOT}/${roomId}`;
 
-    // Capacity check for join
     if (joinMode === 'join-private') {
       const [playersSnap, cfgSnap] = await Promise.all([
         db.ref(`${ROOM}/players`).once('value'),
@@ -278,7 +275,6 @@ function setupJoinFlow() {
       }
     }
 
-    // Username uniqueness check
     if (await isNameTaken(name)) {
       showJoinError('That username is taken in this room. Try another!');
       showStep('details');
@@ -286,7 +282,6 @@ function setupJoinFlow() {
       return;
     }
 
-    // Store config for create
     if (joinMode === 'create-private') {
       const mp = parseInt($('max-players').value) || 8;
       maxPlayers = mp;
@@ -296,8 +291,7 @@ function setupJoinFlow() {
     me = name;
     myKey = getPlayerKey();
     myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
-    deviceMode = (document.querySelector('input[name="device"]:checked') || {}).value || 'pc';
-    // FIX: Changed single quotes to backticks for template literal interpolation
+    deviceMode = getSelectedDeviceMode();
     history.replaceState({}, '', `/games/mathfight/room?id=${roomId}`);
     startGame();
   });
@@ -619,7 +613,6 @@ function renderHud() {
     playerListEl.appendChild(div);
   });
 
-  // Show revive button if dead
   if (players[myKey] && !players[myKey].alive) {
     showReviveButton();
   } else {
@@ -692,7 +685,7 @@ function updateMovement() {
   myY = Math.max(P_RADIUS, Math.min(WORLD_H - P_RADIUS, myY + dy * speed));
 }
 
-// ── Joystick (Multi-touch Optimized) ──────────────────────
+// ── Joystick (Multi-touch Optimized Global Listeners) ──────
 function setupJoystick(mode) {
   if (mode !== 'mobile') {
     joystickZone.style.display = 'none';
@@ -721,8 +714,9 @@ function setupJoystick(mode) {
     }
   }, { passive: false });
 
-  joystickBase.addEventListener('touchmove', e => {
-    e.preventDefault();
+  // Move touchmove and touchend to window for flawless multi-finger tracking sliding off bounds
+  window.addEventListener('touchmove', e => {
+    if (!joyActive) return;
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
       if (touch.identifier === joyTouchId) {
@@ -744,7 +738,7 @@ function setupJoystick(mode) {
     joyDy = ny / MAX;
   }
 
-  const end = (e) => {
+  const handleJoystickEnd = (e) => {
     for (let i = 0; i < e.changedTouches.length; i++) {
       if (e.changedTouches[i].identifier === joyTouchId) {
         joyTouchId = null;
@@ -756,8 +750,8 @@ function setupJoystick(mode) {
     }
   };
 
-  joystickBase.addEventListener('touchend', end);
-  joystickBase.addEventListener('touchcancel', end);
+  window.addEventListener('touchend', handleJoystickEnd);
+  window.addEventListener('touchcancel', handleJoystickEnd);
 }
 
 function setupBoostControls(mode) {
@@ -768,6 +762,7 @@ function setupBoostControls(mode) {
 
     boostBtn.addEventListener('touchstart', e => {
       e.preventDefault();
+      e.stopPropagation();
       if (boostTouchId === null && e.changedTouches.length > 0) {
         boostTouchId = e.changedTouches[0].identifier;
         boostHeld = true;
@@ -783,8 +778,8 @@ function setupBoostControls(mode) {
       }
     };
 
-    boostBtn.addEventListener('touchend', releaseMobileBoost);
-    boostBtn.addEventListener('touchcancel', releaseMobileBoost);
+    window.addEventListener('touchend', releaseMobileBoost);
+    window.addEventListener('touchcancel', releaseMobileBoost);
     return;
   }
 
@@ -807,7 +802,7 @@ function setupBoostControls(mode) {
 
 // ── Activity monitoring & auto-reset ──────────────────────
 function startActivityMonitoring() {
-  activityCheckInterval = setInterval(checkRoomActivity, 30000); // Check every 30s
+  activityCheckInterval = setInterval(checkRoomActivity, 30000);
 }
 
 function checkRoomActivity() {
@@ -824,7 +819,6 @@ function checkRoomActivity() {
     }
 
     if (!hasActivePlayer && Object.keys(allPlayers).length > 0) {
-      // Reset room
       roomRef('players').remove();
       roomRef('game').remove();
       roomRef('chat').remove();
@@ -922,7 +916,6 @@ function drawPlayers() {
       continue;
     }
 
-    // Skip completely dead players after brief fade
     if (!p.alive && (!p.lastActivity || Date.now() - p.lastActivity > 10000)) {
       continue;
     }
@@ -935,7 +928,6 @@ function drawPlayers() {
       ctx.globalAlpha = 0.25;
     }
 
-    // Dashed ring on pickable targets
     if (canPick && name !== myKey && p.alive) {
       ctx.beginPath();
       ctx.arc(sx, sy, P_RADIUS + 12, 0, Math.PI * 2);
@@ -946,7 +938,6 @@ function drawPlayers() {
       ctx.setLineDash([]);
     }
 
-    // Player stickman SVG
     const bodyColor = p.color || '#818cf8';
     const stickman = getStickmanImage(bodyColor);
 
@@ -962,7 +953,6 @@ function drawPlayers() {
       const size = 56;
       ctx.drawImage(stickman, sx - size / 2, sy - size / 2, size, size);
     } else {
-      // Fallback if image is still loading
       ctx.beginPath();
       ctx.arc(sx, sy, P_RADIUS, 0, Math.PI * 2);
       ctx.fillStyle = bodyColor;
@@ -971,14 +961,12 @@ function drawPlayers() {
 
     ctx.restore();
 
-    // Hearts above
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.font = '11px serif';
     const hearts = p.alive ? '❤️'.repeat(Math.max(0, p.lives || 0)) : '💀';
     ctx.fillText(hearts, sx, sy - P_RADIUS - 20);
 
-    // Name (show display name, not key)
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold 13px "Trebuchet MS", sans-serif';
     ctx.fillText(p.name || name, sx, sy - P_RADIUS - 6);
