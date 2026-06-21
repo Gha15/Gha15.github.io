@@ -1,11 +1,8 @@
-import { initializeApp } from "https://gstatic.com";
-import { getDatabase, ref, update, increment, onValue } from "https://gstatic.com";
-
 // Your Firebase Configuration Object
 const firebaseConfig = {
   apiKey: "AIzaSyAVE_B0QDpRrHEPfUOuVx2pwkPG65pkHEo",
-  authDomain: "://firebaseapp.com",
-  databaseURL: "https://firebaseio.com",
+  authDomain: "matix-the-math-club-views.firebaseapp.com",
+  databaseURL: "https://matix-the-math-club-views-default-rtdb.firebaseio.com",
   projectId: "matix-the-math-club-views",
   storageBucket: "matix-the-math-club-views.firebasestorage.app",
   messagingSenderId: "392827461909",
@@ -13,41 +10,49 @@ const firebaseConfig = {
   measurementId: "G-9J2VZ3T6YG"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+// Initialize Firebase (compat SDK loaded via <script> tags in index.html exposes the global `firebase`)
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
-export function trackView() {
-  // Check browser cache
+// Keep the latest value so we can render it whenever the counter element appears in the DOM
+let latestViews = 0;
+
+function renderViewCounter() {
+  const viewCounterElement = document.getElementById('view-counter');
+  if (viewCounterElement) {
+    viewCounterElement.innerText = latestViews;
+  }
+}
+
+function trackView() {
+  // Check browser cache so a single browser only counts once
   const hasViewed = localStorage.getItem('has_viewed_matix');
 
   if (!hasViewed) {
-    // Fire-and-forget server increment
-    update(ref(database), {
-      views: increment(1)
-    }).then(() => {
-      localStorage.setItem('has_viewed_matix', 'true');
-      console.log("Unique view recorded!");
-    }).catch((error) => {
-      console.error("Error updating view count: ", error);
-    });
+    // Atomic server-side increment
+    database.ref('views').set(firebase.database.ServerValue.increment(1))
+      .then(() => {
+        localStorage.setItem('has_viewed_matix', 'true');
+        console.log("[v0] Unique view recorded!");
+      })
+      .catch((error) => {
+        console.error("[v0] Error updating view count: ", error);
+      });
   } else {
-    console.log("Welcome back! Browser cache prevented duplicate view count.");
+    console.log("[v0] Welcome back! Browser cache prevented duplicate view count.");
   }
 
-  // Live listener to find your counter on the DOM
-  onValue(ref(database, 'views'), (snapshot) => {
-    const viewCounterElement = document.getElementById('view-counter');
-    if (viewCounterElement) {
-      viewCounterElement.innerText = snapshot.val() || 0;
-    }
+  // Live listener: store the value and render it if the counter is already on the page
+  database.ref('views').on('value', (snapshot) => {
+    latestViews = snapshot.val() || 0;
+    renderViewCounter();
   });
 }
 
-// Auto-run the function on page load
+// Auto-run on page load
 trackView();
 
-//<!--waits for scroll of 20 vh to make all the stuff disappear to the top animatedley to show stats-->
+// Waits for a scroll of 20vh to reveal the stats panel
 function onScroll(threshold, callback) {
   window.addEventListener('scroll', () => {
     if (window.scrollY > window.innerHeight * threshold) {
@@ -56,17 +61,16 @@ function onScroll(threshold, callback) {
   });
 }
 
-
-
 let statsShown = false;
-let currentViews = firebase.database().ref('views');
-/* shows  text:
+/* shows text:
 stats 📊:
 views 👀: [views]
 lessons 📚: [lessons]
 current players on math fight multiplayer 🎮: [currentPlayers]*/
 onScroll(0.2, () => {
   if (!statsShown) {
+    statsShown = true;
+
     const statsElement = document.createElement('div');
     statsElement.className = 'stats';
     statsElement.innerHTML = `
@@ -76,14 +80,7 @@ onScroll(0.2, () => {
       <p>current players on math fight multiplayer 🎮: <span id="player-counter">0</span></p>`;
     document.body.appendChild(statsElement);
 
-    // Listen for real-time updates to views
-    currentViews.on('value', (snapshot) => {
-      const viewCounterElement = document.getElementById('view-counter');
-      if (viewCounterElement) {
-        viewCounterElement.innerText = snapshot.val() || 0;
-      }
-    });
-
-    statsShown = true;
+    // Render the most recent value now that the counter element exists
+    renderViewCounter();
   }
 });
