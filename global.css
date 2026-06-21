@@ -215,3 +215,10 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
     20%,60% { transform: translateX(-6px); }
     40%,80% { transform: translateX(6px); }
 }
+
+.very-cool-text {
+    font-size: 1.1rem;
+    color: var(--text-faint);
+    margin-top: 12px;
+    animation: fadeSlideIn 0.8s ease;
+}

@@ -1004,3 +1004,19 @@ function getStickmanImage(color) {
   stickmanCache[color] = img;
   return img;
 }
+
+//gets current total(rooms+ online server) num of players in any and puts it into main page stats section
+function updatePlayerCount() {
+  db.ref(ROOM_ROOT).once('value').then(s => {
+    const rooms = s.val() || {};
+    let count = 0;
+    Object.values(rooms).forEach(r => {
+      if (r.players) {
+        count += Object.keys(r.players).length;
+      }
+    });
+    document.getElementById('player-count').textContent = count;
+  });
+}
+updatePlayerCount();
+setInterval(updatePlayerCount, 60000);

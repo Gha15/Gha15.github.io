@@ -46,3 +46,46 @@ export function trackView() {
 
 // Auto-run the function on page load
 trackView();
+
+//<!--waits for scroll of 20 vh to make all the stuff disappear to the top animatedley to show stats-->
+function onScroll(threshold, callback) {
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > window.innerHeight * threshold) {
+      callback();
+    }
+  });
+}
+
+onScroll(0.2, () => {
+  document.querySelector('.container').style.transform = 'translateY(-100vh)';
+});
+
+let statsShown = false;
+let currentViews = firebase.database().ref('views');
+/* shows  text:
+stats 📊:
+views 👀: [views]
+lessons 📚: [lessons]
+current players on math fight multiplayer 🎮: [currentPlayers]*/
+onScroll(0.2, () => {
+  if (!statsShown) {
+    const statsElement = document.createElement('div');
+    statsElement.className = 'stats';
+    statsElement.innerHTML = `
+      <h2>stats 📊:</h2>
+      <p>views 👀: <span id="view-counter">0</span></p>
+      <p>lessons 📚: <span id="lesson-counter">0</span></p>
+      <p>current players on math fight multiplayer 🎮: <span id="player-counter">0</span></p>`;
+    document.body.appendChild(statsElement);
+
+    // Listen for real-time updates to views
+    currentViews.on('value', (snapshot) => {
+      const viewCounterElement = document.getElementById('view-counter');
+      if (viewCounterElement) {
+        viewCounterElement.innerText = snapshot.val() || 0;
+      }
+    });
+
+    statsShown = true;
+  }
+});

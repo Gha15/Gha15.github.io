@@ -152,6 +152,18 @@
         let currentUser = sessionStorage.getItem("matix_auth_user");
         let activeLessonId = null; 
 
+        //gets current num of lessons and puts it into main page stats section
+        db.ref('lessons').once('value').then((snapshot) => {
+            const lessons = snapshot.val() || {};
+            const lessonCount = Object.keys(lessons).length;
+            const statsDiv = document.getElementById('stats-section');
+            if (statsDiv) {
+                const lessonStat = document.createElement('div');
+                lessonStat.innerText = `Total Lessons Available: ${lessonCount}`;
+                statsDiv.appendChild(lessonStat);
+            }
+        });
+
         if (currentUser) { loadDashboard(); }
 
         function loginMember() {
