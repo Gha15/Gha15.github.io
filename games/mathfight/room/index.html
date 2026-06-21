@@ -8,6 +8,31 @@
     <link rel="stylesheet" href="../mathfight.css">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+
+    <style>
+        /* Container that anchors to the bottom right and stacks items vertically */
+        .action-controls-stack {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;   /* Stacks children vertically */
+            align-items: flex-end;    /* Aligns everything to the right edge */
+            gap: 12px;                /* Clean spacing between elements */
+            z-index: 100;             /* Ensures UI sits safely above the canvas game layer */
+            pointer-events: none;     /* Allows clicking through empty spaces of the container */
+        }
+
+        /* Re-enable pointer events for the actual interactive UI elements */
+        .action-controls-stack > * {
+            pointer-events: auto;
+        }
+
+        /* Standard hidden utility class safeguard */
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -124,13 +149,20 @@
 
     <div id="result-flash" class="result-flash hidden"></div>
 
-    <button id="chat-toggle" class="chat-btn" title="Chat">💬</button>
-    <div id="chat-panel" class="chat-panel hidden">
-      <div id="chat-msgs"></div>
-      <form id="chat-form">
-        <input id="chat-input" maxlength="120" placeholder="Message..." autocomplete="off">
-        <button type="submit">-></button>
-      </form>
+    <div class="action-controls-stack">
+      
+      <div id="chat-panel" class="chat-panel hidden">
+        <div id="chat-msgs"></div>
+        <form id="chat-form">
+          <input id="chat-input" maxlength="120" placeholder="Message..." autocomplete="off">
+          <button type="submit">→</button>
+        </form>
+      </div>
+
+      <button id="chat-toggle" class="chat-btn" title="Chat">💬</button>
+
+      <button id="boost-btn" class="boost-btn hidden" type="button">⚡ Boost</button>
+
     </div>
 
     <div id="joystick-zone" class="joystick-zone">
