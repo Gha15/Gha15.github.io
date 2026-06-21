@@ -8,17 +8,40 @@
     <link rel="stylesheet" href="mathfight.css">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+
+    <style>
+        /* Container that anchors to the bottom right and stacks items vertically */
+        .action-controls-stack {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;   /* Stacks children vertically */
+            align-items: flex-end;    /* Aligns everything to the right edge */
+            gap: 12px;                /* Clean spacing between elements */
+            z-index: 100;             /* Ensures UI sits safely above the canvas game layer */
+            pointer-events: none;     /* Allows clicking through empty spaces of the container */
+        }
+
+        /* Re-enable pointer events for the actual interactive UI elements */
+        .action-controls-stack > * {
+            pointer-events: auto;
+        }
+
+        /* Standard hidden utility class safeguard */
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- ═══ JOIN SCREEN ═══ -->
   <div id="join-screen">
     <div class="particles" aria-hidden="true">
       <span></span><span></span><span></span><span></span><span></span>
       <span></span><span></span><span></span><span></span><span></span>
     </div>
 
-    <!-- Rules always at top -->
     <div class="rules-panel">
       <h2>Rules</h2>
       <ul>
@@ -34,7 +57,6 @@
       </ul>
     </div>
 
-    <!-- STEP 1: Details (shown first) -->
     <div class="mf-panel" id="details-panel">
       <div class="title-glow" aria-hidden="true"></div>
       <h1><span class="title-math">MATH</span><br><span class="title-fight">FIGHT</span></h1>
@@ -60,7 +82,6 @@
       <button id="details-continue-btn" type="button" class="continue-btn">Continue →</button>
     </div>
 
-    <!-- STEP 2: Choose Mode (hidden initially) -->
     <div class="mf-panel hidden" id="mode-options">
       <h3 class="mode-title">How do you want to play?</h3>
       <div class="mode-list">
@@ -89,7 +110,6 @@
       <button class="back-link" id="back-to-details-btn">← Change Details</button>
     </div>
 
-    <!-- STEP 3: Room Config (hidden initially) -->
     <div class="mf-panel hidden" id="room-config-panel">
       <button class="back-btn" id="back-to-modes-btn">← Back</button>
       <h3 id="room-config-title">Join Room</h3>
@@ -112,14 +132,12 @@
     </div>
   </div>
 
-  <!-- ═══ GAME SCREEN ═══ -->
   <div id="game-screen" class="hidden">
     <div id="notif" class="notif"></div>
     <div class="scan-line" aria-hidden="true"></div>
     <div id="player-list" class="player-list"></div>
     <canvas id="canvas"></canvas>
 
-    <!-- Challenge overlay (shown to the challenged player) -->
     <div id="challenge-overlay" class="overlay hidden">
       <div class="overlay-box">
         <div id="challenge-from"></div>
@@ -132,27 +150,29 @@
       </div>
     </div>
 
-    <!-- Result flash -->
     <div id="result-flash" class="result-flash hidden"></div>
 
-    <!-- Chat -->
-    <button id="chat-toggle" class="chat-btn" title="Chat">💬</button>
-    <div id="chat-panel" class="chat-panel hidden">
-      <div id="chat-msgs"></div>
-      <form id="chat-form">
-        <input id="chat-input" maxlength="120" placeholder="Message…" autocomplete="off">
-        <button type="submit">→</button>
-      </form>
+    <div class="action-controls-stack">
+      
+      <div id="chat-panel" class="chat-panel hidden">
+        <div id="chat-msgs"></div>
+        <form id="chat-form">
+          <input id="chat-input" maxlength="120" placeholder="Message…" autocomplete="off">
+          <button type="submit">→</button>
+        </form>
+      </div>
+
+      <button id="chat-toggle" class="chat-btn" title="Chat">💬</button>
+
+      <button id="boost-btn" class="boost-btn hidden" type="button">⚡ Boost</button>
+
     </div>
 
-    <!-- Mobile joystick -->
     <div id="joystick-zone" class="joystick-zone">
       <div id="joystick-base" class="joystick-base">
         <div id="joystick-stick" class="joystick-stick"></div>
       </div>
     </div>
-
-    <button id="boost-btn" class="boost-btn hidden" type="button">⚡ Boost</button>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
