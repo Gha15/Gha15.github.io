@@ -2,7 +2,6 @@ body {
     font-family: 'Vibur', cursive;
     margin: 0;
     padding: 0;
-    background-color: #09193d;
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -21,21 +20,24 @@ body {
 }
 
 .game-pick-button {
-    background: #1a1a1a;
-    color: white;
-    border: 1px solid #ffeb3b;
-    padding: 10px 25px;
+    background: rgba(15,23,42,0.8);
+    color: #a5b4fc;
+    border: 1px solid rgba(129,140,248,0.4);
+    padding: 14px 28px;
     font-family: 'Vibur', cursive;
     font-size: 1.5rem;
     cursor: pointer;
+    border-radius: 12px;
     text-decoration: none;
     display: inline-block;
-    transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    transition: all 0.22s ease;
 }
 .game-pick-button:hover {
-    background-color: #ffeb3b;
-    color: #1a1a1a;
-    transform: scale(1.05);
+    background: rgba(129,140,248,0.18);
+    border-color: #818cf8;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(129,140,248,0.3);
 }
 
 .h1 {

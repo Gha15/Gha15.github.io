@@ -149,7 +149,7 @@ body.game-active {
 .particles span:nth-child(10) { left: 48%; width: 22px; height: 22px; background: #a78bfa; animation-duration: 15s; animation-delay: 0.5s;  filter: blur(3px); }
 
 /* Panels */
-.join-panel, .rules-panel, .title-panel, .join-options {
+.join-panel, .rules-panel, .title-panel, .join-options, .mf-panel {
     position: relative;
     background: rgba(15,23,42,0.72);
     border: 1px solid rgba(129,140,248,0.32);
@@ -160,6 +160,129 @@ body.game-active {
     backdrop-filter: blur(18px);
     box-shadow: 0 8px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
     animation: slideDown 0.6s ease;
+}
+
+/* Step 1: Details panel */
+.mf-panel {
+    text-align: center;
+}
+.mf-subtitle {
+    color: #94a3b8;
+    font-size: 1.05rem;
+    margin: 6px 0 20px;
+}
+
+/* Field group */
+.mf-field {
+    text-align: left;
+    margin-bottom: 16px;
+}
+.mf-field label {
+    display: block;
+    color: #93c5fd;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+.mf-field input {
+    font-size: 1.28rem;
+    padding: 12px 16px;
+    text-align: left;
+    border-radius: 12px;
+    border: 1px solid rgba(129,140,248,0.38);
+    background: rgba(2,6,23,0.82);
+    color: #f8fafc;
+    width: 100%;
+    font-family: 'Vibur', cursive;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    outline: none;
+}
+.mf-field input:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(129,140,248,0.22);
+}
+.mf-field input::placeholder { color: rgba(255,255,255,0.28); }
+
+/* Details row: device + color side by side */
+.details-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.details-row .device-picker,
+.details-row .color-picker {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Mode options panel */
+.mode-title {
+    color: #a5b4fc;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+    text-align: center;
+}
+.mode-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+/* Back link */
+.back-link {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-family: 'Vibur', cursive;
+    font-size: 1.05rem;
+    cursor: pointer;
+    padding: 6px 0;
+    transition: color 0.2s;
+    display: block;
+    text-align: center;
+    width: 100%;
+    margin-top: 4px;
+}
+.back-link:hover { color: #94a3b8; }
+
+/* Field labels inside room config */
+.field-label {
+    color: #93c5fd;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+.field-note {
+    color: #64748b;
+    font-size: 0.88rem;
+    margin-left: 4px;
+}
+.field-error {
+    color: #f87171;
+    font-size: 1rem;
+    text-align: center;
+    padding: 6px 0;
+    animation: slideDown 0.3s ease;
+}
+
+/* Updated join-option-btn to support icon+text layout */
+.join-option-btn .option-text {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    gap: 2px;
+}
+.join-option-btn .option-text strong {
+    font-size: 1.2rem;
+    color: #f8fafc;
+}
+.join-option-btn .option-text span {
+    font-size: 0.92rem;
+    color: #94a3b8;
+    font-family: 'Segoe UI', sans-serif;
+    letter-spacing: 0.2px;
 }
 
 /* Title Panel */
@@ -286,6 +409,12 @@ body.game-active {
     margin-bottom: 14px;
     outline: none;
     transition: border-color 0.25s, box-shadow 0.25s;
+}
+#join-name,
+#room-id {
+    text-align: left;
+    padding-left: 16px;
+    letter-spacing: 0.5px;
 }
 .join-panel input:focus {
     border-color: #818cf8;
@@ -750,4 +879,66 @@ body.game-active {
     transform: translate(-50%, -50%);
     pointer-events: none;
     box-shadow: 0 0 14px rgba(129,140,248,0.7);
+}
+
+#boost-btn {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    z-index: 60;
+    min-width: 128px;
+    padding: 14px 18px;
+    border: 1px solid rgba(251,146,60,0.65);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(249,115,22,0.96), rgba(239,68,68,0.9));
+    color: #fff7ed;
+    font-family: 'Vibur', cursive;
+    font-size: 1.35rem;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    box-shadow: 0 14px 32px rgba(249,115,22,0.36), inset 0 1px 0 rgba(255,255,255,0.18);
+    text-shadow: 0 0 10px rgba(255,255,255,0.2);
+    touch-action: none;
+    transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+}
+
+#boost-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    filter: brightness(1.08);
+}
+
+#boost-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+body.game-active #boost-btn.hidden {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    .join-panel, .rules-panel, .title-panel, .join-options {
+        padding: 26px 22px;
+        max-width: min(430px, calc(100vw - 28px));
+    }
+
+    .join-option-btn {
+        font-size: 1.2rem;
+        padding: 14px 16px;
+    }
+
+    .join-panel input {
+        font-size: 1.22rem;
+    }
+
+    .joystick-zone {
+        bottom: 22px;
+        left: 22px;
+    }
+
+    #boost-btn {
+        right: 22px;
+        bottom: 22px;
+        min-width: 108px;
+        font-size: 1.12rem;
+    }
 }

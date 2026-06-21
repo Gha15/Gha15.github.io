@@ -8,26 +8,29 @@
   <link rel="preconnect" href="https://googleapis.com">
   <link rel="preconnect" href="https://gstatic.com" crossorigin>
   <link href="https://googleapis.com/css2?family=Pinyon+Script&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  
+  <link rel="stylesheet" href="/global.css">
   <style>
     * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-    body { margin: 0; padding: 20px; background-color: #0b132b; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .form-container { background: #ffffff; padding: 30px; border-radius: 16px; width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); }
-    h2 { margin-top: 0; margin-bottom: 10px; color: #1c2541; font-family: 'Pinyon Script', cursive; font-size: 52px; font-weight: 400; text-align: center; }
-    .input-group { margin-bottom: 20px; }
-    label { display: block; font-weight: 600; margin-bottom: 8px; color: #1c2541; font-size: 14px; }
-    input[type="text"], input[type="email"], textarea, select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
-    input[type="text"]:focus, input[type="email"]:focus, textarea:focus, select:focus { outline: none; border-color: #4a90e2; }
+    body { margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .form-container { background: rgba(15,23,42,0.82); padding: 32px; border-radius: 20px; width: 100%; max-width: 460px; box-shadow: 0 8px 40px rgba(0,0,0,0.6); border: 1px solid rgba(129,140,248,0.32); backdrop-filter: blur(16px); }
+    h2 { margin-top: 0; margin-bottom: 14px; color: #a5b4fc; font-family: 'Pinyon Script', cursive; font-size: 52px; font-weight: 400; text-align: center; }
+    .input-group { margin-bottom: 18px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; color: #94a3b8; font-size: 13px; letter-spacing: 0.5px; }
+    input[type="text"], input[type="email"], textarea, select { background: rgba(2,6,23,0.7); border: 1px solid rgba(129,140,248,0.3); border-radius: 10px; color: #f8fafc; font-size: 14px; padding: 11px 14px; width: 100%; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
+    input[type="text"]:focus, input[type="email"]:focus, textarea:focus, select:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,0.18); }
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
+    select option { background: #0f172a; }
     textarea { height: 110px; resize: vertical; }
     #otherSubjectContainer { display: none; margin-top: 10px; }
-    button { background-color: #28a745; color: white; padding: 14px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: 600; transition: background-color 0.2s; width: 100%; }
-    button:hover { background-color: #218838; }
-    button:disabled { background-color: #a0aec0; cursor: not-allowed; }
-    .custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 19, 43, 0.7); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 999; }
-    .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 350px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    .modal-title { font-weight: 700; font-size: 18px; margin-bottom: 10px; }
-    .modal-text { font-size: 14px; color: #4a5568; margin-bottom: 20px; }
-    .modal-btn { background: #1c2541; color: white; padding: 10px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; }
+    button { background: linear-gradient(135deg, #4338ca, #818cf8); color: white; padding: 13px; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-size: 15px; font-family: 'Vibur', cursive; font-weight: 600; letter-spacing: 1px; transition: filter 0.2s, transform 0.2s; }
+    button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    button:disabled { background: #334155; cursor: not-allowed; transform: none; }
+    .custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2,7,18,0.75); backdrop-filter: blur(6px); justify-content: center; align-items: center; z-index: 999; }
+    .modal-content { background: rgba(15,23,42,0.95); border: 1px solid rgba(129,140,248,0.35); padding: 28px; border-radius: 16px; max-width: 360px; width: 100%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.5); color: #f8fafc; }
+    .modal-title { font-weight: 700; font-size: 18px; margin-bottom: 10px; color: #a5b4fc; }
+    .modal-text { font-size: 14px; color: #94a3b8; margin-bottom: 20px; }
+    .modal-btn { background: rgba(129,140,248,0.2); color: #a5b4fc; padding: 10px 22px; font-size: 14px; border: 1px solid rgba(129,140,248,0.4); border-radius: 8px; cursor: pointer; }
+    .modal-btn:hover { background: rgba(129,140,248,0.35); }
     @media (max-width: 480px) { body { padding: 15px; } .form-container { padding: 20px; } }
   </style>
 </head>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Fight - Room</title>
+    <link rel="stylesheet" href="/global.css">
     <link rel="stylesheet" href="/games/mathfight/mathfight.css">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
@@ -19,65 +20,86 @@
     <div class="rules-panel">
       <h2>Rules</h2>
       <ul>
-        <li>Move with <strong>WASD</strong> / <strong>Arrow Keys</strong> / joystick on mobile</li>
+        <li>Move with <strong>WASD / Arrow Keys</strong> — mobile: joystick</li>
+        <li>Hold <strong>Shift</strong> (PC) or tap <strong>⚡ Boost</strong> (mobile) while moving to sprint</li>
         <li>When it's your turn → <strong>click a player</strong> to challenge them</li>
-        <li>They get a multiplication question and <strong>12 seconds</strong> to answer</li>
-        <li>They answer correctly → <strong>you</strong> lose a life ❤️</li>
-        <li>They answer wrong or time out → <strong>they</strong> lose a life ❤️</li>
+        <li>They get a multiplication question with <strong>12 seconds</strong> to answer</li>
+        <li>They answer correctly → <strong>you</strong> lose a ❤️</li>
+        <li>They answer wrong / timeout → <strong>they</strong> lose a ❤️</li>
         <li>Everyone starts with <strong>3 lives ❤️❤️❤️</strong></li>
-        <li>When you run out of lives, you can <strong>revive</strong> and rejoin!</li>
-        <li>Last player standing <strong>wins!</strong></li>
+        <li>Out of lives? Hit <strong>Revive</strong> to rejoin with 3 lives</li>
+        <li>Last one standing <strong>wins 🏆</strong></li>
       </ul>
     </div>
 
-    <div class="title-panel">
+    <div class="mf-panel" id="details-panel">
       <div class="title-glow" aria-hidden="true"></div>
       <h1><span class="title-math">MATH</span><br><span class="title-fight">FIGHT</span></h1>
-      <p>Keep running. Challenge others. Last player standing wins!</p>
-    </div>
-
-    <div class="join-options">
-      <button class="join-option-btn" id="join-private-btn">
-        <span class="option-icon">🔒</span>
-        <span class="option-title">Join Private Room</span>
-      </button>
-      <button class="join-option-btn" id="create-private-btn">
-        <span class="option-icon">➕</span>
-        <span class="option-title">Create Private Room</span>
-      </button>
-      <button class="join-option-btn" id="join-public-btn">
-        <span class="option-icon">🌐</span>
-        <span class="option-title">Play on Public Server</span>
-      </button>
-    </div>
-
-    <div class="join-panel hidden" id="join-panel">
-      <button class="back-btn" id="back-btn">← Back</button>
-      <h3 id="join-panel-title">Join Room</h3>
-      <form id="join-form">
-        <input id="join-name" maxlength="16" placeholder="Pick a username" required autocomplete="off">
-        
+      <p class="mf-subtitle">Enter your details before battle</p>
+      <div class="mf-field">
+        <label for="join-name">Username</label>
+        <input id="join-name" placeholder="Any name — spaces OK!" autocomplete="nickname" spellcheck="false" autocapitalize="off">
+      </div>
+      <div class="details-row">
         <div class="device-picker">
-          <p>Pick Your Device</p>
-          <label><input type="radio" name="device" value="pc" checked> PC</label>
-          <label><input type="radio" name="device" value="mobile"> Mobile</label>
+          <p>Device</p>
+          <label><input type="radio" name="device" value="pc" checked> 💻 PC</label>
+          <label><input type="radio" name="device" value="mobile"> 📱 Mobile</label>
         </div>
+        <div class="color-picker">
+          <p>Your Color</p>
+          <input type="color" id="join-color" value="#818cf8" aria-label="Pick your color">
+        </div>
+      </div>
+      <button id="details-continue-btn" type="button">Continue →</button>
+    </div>
 
-        <div class="room-picker" id="room-picker">
-          <p>Room ID</p>
+    <div class="mf-panel hidden" id="mode-options">
+      <h3 class="mode-title">How do you want to play?</h3>
+      <div class="mode-list">
+        <button class="join-option-btn" id="join-private-btn">
+          <span class="option-icon">🔒</span>
+          <div class="option-text">
+            <strong>Join Private Room</strong>
+            <span>Enter a room ID to join friends</span>
+          </div>
+        </button>
+        <button class="join-option-btn" id="create-private-btn">
+          <span class="option-icon">➕</span>
+          <div class="option-text">
+            <strong>Create Private Room</strong>
+            <span>Set a room ID &amp; max players</span>
+          </div>
+        </button>
+        <button class="join-option-btn" id="join-public-btn">
+          <span class="option-icon">🌐</span>
+          <div class="option-text">
+            <strong>Play on Public Server</strong>
+            <span>Jump in immediately!</span>
+          </div>
+        </button>
+      </div>
+      <button class="back-link" id="back-to-details-btn">← Change Details</button>
+    </div>
+
+    <div class="mf-panel hidden" id="room-config-panel">
+      <button class="back-btn" id="back-to-modes-btn">← Back</button>
+      <h3 id="room-config-title">Join Room</h3>
+      <form id="join-form">
+        <div id="room-id-section">
+          <p class="field-label">Room ID</p>
           <div class="room-row">
             <input id="room-id" placeholder="myroom123" autocomplete="off">
-            <button type="button" id="create-room-btn" class="btn-secondary">Random</button>
+            <button type="button" id="randomize-room-btn" class="btn-secondary">Random</button>
           </div>
           <a id="room-link" class="room-link" href="#" target="_blank" rel="noopener"></a>
         </div>
-
-        <div class="color-picker">
-          <p>Pick Your Color</p>
-          <input type="color" id="join-color" value="#818cf8" aria-label="Pick your color">
+        <div id="max-players-section" class="hidden">
+          <p class="field-label">Max Players <span class="field-note">(2–20)</span></p>
+          <input id="max-players" type="number" min="2" max="20" value="8" autocomplete="off">
         </div>
-
-        <button type="submit">PLAY</button>
+        <p class="field-error hidden" id="join-error"></p>
+        <button type="submit" id="play-btn">PLAY</button>
       </form>
     </div>
   </div>

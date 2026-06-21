@@ -4,33 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>matix the math club - about us</title>
+    <link rel="stylesheet" href="/global.css">
     <style>
-        body {
-            margin: 0;
-            padding: 5vh 5vw; 
-            font-family: sans-serif;
-            background-color: #0b1d3a; 
-            box-sizing: border-box;
-        }
+        body { padding: 5vh 5vw; box-sizing: border-box; }
         .veryverycooltext {
-            background-color: white;
-            text-shadow: 2px 2px 0px #f0f0f0;
-            
-            /* Vertical Scroll Settings */
-            max-height: 80vh;         /* Caps vertical height */
-            overflow-y: auto;         /* Allows vertical scrolling */
-            overflow-x: hidden;        /* Strict block on horizontal scrolling */
-            word-break: break-word;   /* Forces long words to wrap instead of pushing sideways */
-            
-            padding: 20px;            
-            box-sizing: border-box;   
-            border-radius: 8px;       
-            
-            transition: transform 0.3s ease, background-color 0.3s ease;
+            background: rgba(15,23,42,0.75);
+            color: #f8fafc;
+            border: 1px solid rgba(129,140,248,0.32);
+            max-height: 80vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            word-break: break-word;
+            padding: 24px;
+            box-sizing: border-box;
+            border-radius: 16px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
         }
+        .veryverycooltext h1 { color: #a5b4fc; margin-bottom: 12px; }
+        .veryverycooltext p  { color: #cbd5e1; line-height: 1.7; }
         .veryverycooltext:hover {
-            background-color: #808080;
-            transform: scale(1.05);   /* Kept very small so it doesn't push off the screen edge */
+            border-color: #818cf8;
+            transform: scale(1.01);
         }
     </style>
 </head>

@@ -19,14 +19,17 @@ const WORLD_H  = 1200;
 const P_RADIUS = 22;
 const ANS_TIME = 12000;
 const IDLE_RESET_MS = 5 * 60 * 1000; // 5 minutes
+const BOOST_MULT = 1.9;
 const COLORS   = ['#f87171','#fb923c','#facc15','#4ade80','#38bdf8','#818cf8','#f472b6','#2dd4bf'];
 
 // ── State ──────────────────────────────────────────────────
 let me = null, myColor = null;
+let myKey = null;
 let myX = 300 + Math.random() * 500;
 let myY = 200 + Math.random() * 400;
 let players = {}, gameState = {}, keys = {};
 let joyDx = 0, joyDy = 0, joyActive = false;
+let boostHeld = false;
 let camX = 0, camY = 0;
 let timerInterval = null;
 let deviceMode = 'pc';
@@ -64,19 +67,26 @@ const chatInput        = $('chat-input');
 const joystickZone     = $('joystick-zone');
 const joystickBase     = $('joystick-base');
 const joystickStick    = $('joystick-stick');
-const roomIdInput      = $('room-id');
-const createRoomBtn    = $('create-room-btn');
-const roomLinkEl       = $('room-link');
-const joinColorInput   = $('join-color');
-const joinPrivateBtn   = $('join-private-btn');
-const createPrivateBtn = $('create-private-btn');
-const joinPublicBtn    = $('join-public-btn');
-const joinPanel        = $('join-panel');
-const backBtn          = $('back-btn');
-const joinPanelTitle   = $('join-panel-title');
-const roomPicker       = $('room-picker');
+const boostBtn           = $('boost-btn');
+const roomIdInput        = $('room-id');
+const randomizeRoomBtn   = $('randomize-room-btn');
+const roomLinkEl         = $('room-link');
+const joinColorInput     = $('join-color');
+const roomConfigPanel    = $('room-config-panel');
+const roomConfigTitle    = $('room-config-title');
+const maxPlayersSection  = $('max-players-section');
+const joinErrorEl        = $('join-error');
+let maxPlayers = 20;
 
-setupJoinModes();
+setupJoinFlow();
+
+function getPlayerKey() {
+    const stored = localStorage.getItem('mathfightPlayerKey');
+    if (stored) return stored;
+    const fresh = (crypto.randomUUID ? crypto.randomUUID() : `p_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`).replace(/[^a-zA-Z0-9_-]/g, '');
+    localStorage.setItem('mathfightPlayerKey', fresh);
+    return fresh;
+}
 
 function roomRef(path) {
     return db.ref(`${ROOM}/${path}`);
@@ -194,7 +204,8 @@ $('join-form').addEventListener('submit', e => {
 
     const selectedDevice = document.querySelector('input[name="device"]:checked');
     deviceMode = selectedDevice ? selectedDevice.value : 'pc';
-    me = raw.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 16) || 'player';
+    me = raw;
+    myKey = getPlayerKey();
     myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
     startGame();
 });
@@ -204,8 +215,8 @@ function startGame() {
     gameScreen.classList.remove('hidden');
     document.body.classList.add('game-active');
 
-    const myRef = roomRef(`players/${me}`);
-    myRef.set({ x: Math.round(myX), y: Math.round(myY), lives: 3, alive: true, color: myColor });
+    const myRef = roomRef(`players/${myKey}`);
+    myRef.set({ x: Math.round(myX), y: Math.round(myY), lives: 3, alive: true, color: myColor, name: me, lastActivity: Date.now() });
     myRef.onDisconnect().remove();
 
     roomRef('game').once('value').then(s => {
@@ -217,6 +228,7 @@ function startGame() {
     listenChat();
     setupKeys();
     setupJoystick(deviceMode);
+    setupBoostControls(deviceMode);
     setupChat();
     canvas.addEventListener('click', onCanvasClick);
     requestAnimationFrame(loop);
@@ -261,8 +273,8 @@ function listenChat() {
 }
 
 function pushPos() {
-    if (me) {
-        roomRef(`players/${me}`).update({ 
+    if (myKey) {
+        roomRef(`players/${myKey}`).update({ 
             x: Math.round(myX), 
             y: Math.round(myY),
             lastActivity: Date.now()
@@ -280,31 +292,31 @@ function tryStartTurn() {
 }
 
 function handleState() {
-    if (!me) return;
+    if (!myKey) return;
     const { turnPhase, turn, challenger, challenged } = gameState;
     const alive = getAlive();
 
     if (turnPhase === 'picking') {
         challengeOverlay.classList.add('hidden');
         stopTimer();
-        if (turn === me)    setNotif('🎯 Your turn! Click a player to challenge.', '#818cf8');
-        else if (turn)      setNotif(`${turn.toUpperCase()}'s turn to pick…`, '#64748b');
+        if (turn === myKey)    setNotif('🎯 Your turn! Click a player to challenge.', '#818cf8');
+        else if (turn)      setNotif(`${playerLabel(turn)}'s turn to pick…`, '#64748b');
     }
 
-    if (turnPhase === 'challenged' && challenged === me) {
-        setNotif(`${challenger.toUpperCase()} is choosing your question!`, '#f59e0b');
+    if (turnPhase === 'challenged' && challenged === myKey) {
+        setNotif(`${playerLabel(challenger)} is choosing your question!`, '#f59e0b');
         challengeOverlay.classList.add('hidden');
     }
 
     if (turnPhase === 'answering') {
-        if (challenged === me) {
-            setNotif(`${challenger.toUpperCase()} challenges you — answer fast!`, '#fb923c');
+        if (challenged === myKey) {
+            setNotif(`${playerLabel(challenger)} challenges you — answer fast!`, '#fb923c');
             openChallenge();
-        } else if (challenger === me) {
-            setNotif(`Waiting for ${challenged.toUpperCase()} to answer…`, '#38bdf8');
+        } else if (challenger === myKey) {
+            setNotif(`Waiting for ${playerLabel(challenged)} to answer…`, '#38bdf8');
             challengeOverlay.classList.add('hidden');
         } else {
-            setNotif(`${challenger.toUpperCase()} ⚔️ ${challenged.toUpperCase()}`, '#64748b');
+            setNotif(`${playerLabel(challenger)} ⚔️ ${playerLabel(challenged)}`, '#64748b');
             challengeOverlay.classList.add('hidden');
         }
     }
@@ -312,7 +324,7 @@ function handleState() {
     if (turnPhase === 'result') {
         challengeOverlay.classList.add('hidden');
         stopTimer();
-        if (gameState.resultMsg) flash(gameState.resultMsg, gameState.lostLife === me ? '#ef4444' : '#10b981');
+        if (gameState.resultMsg) flash(gameState.resultMsg, gameState.lostLife === myKey ? '#ef4444' : '#10b981');
         if (imFirst(alive)) setTimeout(() => advanceTurn(alive), 2800);
     }
 }
@@ -339,11 +351,11 @@ function writeGame(data) {
 
 // ── Canvas click — pick a target ──────────────────────────
 function onCanvasClick(e) {
-    if (gameState.turn !== me || gameState.turnPhase !== 'picking') return;
+    if (gameState.turn !== myKey || gameState.turnPhase !== 'picking') return;
     const r = canvas.getBoundingClientRect();
     const cx = e.clientX - r.left, cy = e.clientY - r.top;
     for (const [name, p] of Object.entries(players)) {
-        if (name === me || !p || !p.alive) continue;
+        if (name === myKey || !p || !p.alive) continue;
         if (Math.hypot(cx - (p.x - camX), cy - (p.y - camY)) <= P_RADIUS + 10) {
             sendChallenge(name);
             return;
@@ -353,7 +365,7 @@ function onCanvasClick(e) {
 
 function sendChallenge(target) {
     const q = mkQuestion();
-    writeGame({ turnPhase: 'challenged', challenger: me, challenged: target, question: q.text, correctAnswer: q.answer });
+    writeGame({ turnPhase: 'challenged', challenger: myKey, challenged: target, question: q.text, correctAnswer: q.answer });
     setTimeout(() => writeGame({ turnPhase: 'answering' }), 1200);
 }
 
@@ -367,7 +379,7 @@ function mkQuestion() {
 function openChallenge() {
     if (!challengeOverlay.classList.contains('hidden')) return;
     challengeOverlay.classList.remove('hidden');
-    challengeFrom.textContent = `${gameState.challenger.toUpperCase()} challenges you!`;
+    challengeFrom.textContent = `${playerLabel(gameState.challenger)} challenges you!`;
     challengeQ.textContent = gameState.question;
     answerInput.value = '';
     answerInput.focus();
@@ -397,31 +409,33 @@ answerForm.addEventListener('submit', e => {
 });
 
 function resolveAnswer(userAns) {
-    if (gameState.challenged !== me) return;
+    if (gameState.challenged !== myKey) return;
     challengeOverlay.classList.add('hidden');
     const correct = userAns !== null && userAns === parseInt(gameState.correctAnswer);
-    const lostLife = correct ? gameState.challenger : me;
+    const loserKey = correct ? gameState.challenger : myKey;
+    const challengerName = playerLabel(gameState.challenger);
+    const challengedName = playerLabel(myKey);
     const resultMsg = correct
-        ? `✅ ${me.toUpperCase()} got it right! ${gameState.challenger.toUpperCase()} loses a life!`
+        ? `✅ ${challengedName} got it right! ${challengerName} loses a life!`
         : userAns === null
-        ? `⏰ Time's up! ${me.toUpperCase()} loses a life!`
-        : `❌ Wrong! ${me.toUpperCase()} loses a life!`;
+        ? `⏰ Time's up! ${challengedName} loses a life!`
+        : `❌ Wrong! ${challengedName} loses a life!`;
 
-    const ref = roomRef(`players/${lostLife}`);
+    const ref = roomRef(`players/${loserKey}`);
     ref.once('value').then(s => {
         const p = s.val() || {};
         const newLives = Math.max(0, (p.lives || 1) - 1);
         ref.update({ lives: newLives, alive: newLives > 0 });
     });
 
-    writeGame({ turnPhase: 'result', resultMsg, lostLife });
+    writeGame({ turnPhase: 'result', resultMsg, lostLife: loserKey });
 }
 
 // ── Win check ─────────────────────────────────────────────
 function checkWin() {
     const alive = getAlive();
     const total = Object.keys(players).length;
-    if (total > 1 && alive.length === 1) flash(`🏆 ${alive[0].toUpperCase()} WINS!`, '#fcd34d');
+    if (total > 1 && alive.length === 1) flash(`🏆 ${playerLabel(alive[0]).toUpperCase()} WINS!`, '#fcd34d');
 }
 
 // ── HUD ───────────────────────────────────────────────────
@@ -437,7 +451,7 @@ function renderHud() {
             : '💀';
         const nm = document.createElement('span');
         nm.style.color = p.color || '#f8fafc';
-        nm.textContent = name;
+        nm.textContent = p.name || name;
         const hts = document.createElement('span');
         hts.textContent = hearts;
         div.appendChild(nm);
@@ -446,11 +460,17 @@ function renderHud() {
     });
 
     // Show revive button if dead
-    if (players[me] && !players[me].alive) {
+    if (players[myKey] && !players[myKey].alive) {
         showReviveButton();
     } else {
         hideReviveButton();
     }
+}
+
+function playerLabel(id) {
+    if (!id) return 'Someone';
+    const p = players[id];
+    return (p && p.name) ? p.name : id;
 }
 
 function setNotif(msg, color) {
@@ -475,7 +495,7 @@ function setupKeys() {
 function updateMovement() {
     const tag = document.activeElement ? document.activeElement.tagName : '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if (players[me] && !players[me].alive) return;
+    if (players[myKey] && !players[myKey].alive) return;
 
     let dx = 0, dy = 0;
     if (keys['a'] || keys['arrowleft'])  dx -= 1;
@@ -484,19 +504,24 @@ function updateMovement() {
     if (keys['s'] || keys['arrowdown'])  dy += 1;
     if (joyActive) { dx = joyDx; dy = joyDy; }
 
+    const boost = boostHeld || keys['shift'];
+    const speed = SPEED * (boost ? BOOST_MULT : 1);
+
     if (dx !== 0 && dy !== 0) { dx *= 0.707; dy *= 0.707; }
-    myX = Math.max(P_RADIUS, Math.min(WORLD_W - P_RADIUS, myX + dx * SPEED));
-    myY = Math.max(P_RADIUS, Math.min(WORLD_H - P_RADIUS, myY + dy * SPEED));
+    myX = Math.max(P_RADIUS, Math.min(WORLD_W - P_RADIUS, myX + dx * speed));
+    myY = Math.max(P_RADIUS, Math.min(WORLD_H - P_RADIUS, myY + dy * speed));
 }
 
 // ── Joystick ──────────────────────────────────────────────
 function setupJoystick(mode) {
     if (mode !== 'mobile') {
         joystickZone.style.display = 'none';
+        boostBtn.classList.add('hidden');
         return;
     }
 
     joystickZone.style.display = 'block';
+    boostBtn.classList.remove('hidden');
     let ox = 0, oy = 0;
     const MAX = 34;
     joystickBase.addEventListener('touchstart', e => {
@@ -521,6 +546,34 @@ function setupJoystick(mode) {
     };
     joystickBase.addEventListener('touchend', end);
     joystickBase.addEventListener('touchcancel', end);
+}
+
+function setupBoostControls(mode) {
+    boostHeld = false;
+    const release = () => { boostHeld = false; };
+
+    if (mode === 'mobile') {
+        boostBtn.classList.remove('hidden');
+        boostBtn.addEventListener('pointerdown', e => {
+            e.preventDefault();
+            boostHeld = true;
+        });
+        boostBtn.addEventListener('pointerup', release);
+        boostBtn.addEventListener('pointercancel', release);
+        boostBtn.addEventListener('pointerleave', release);
+        return;
+    }
+
+    boostBtn.classList.add('hidden');
+    addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'mouse' || e.button !== 0) return;
+        const tag = e.target && e.target.tagName ? e.target.tagName : '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+        boostHeld = true;
+    });
+    addEventListener('pointerup', release);
+    addEventListener('pointercancel', release);
+    addEventListener('blur', release);
 }
 
 // ── Activity monitoring & auto-reset ──────────────────────
@@ -552,14 +605,14 @@ function checkRoomActivity() {
 
 // ── Revive mechanics ──────────────────────────────────────
 function revivePlayer() {
-    if (!me || !players[me]) return;
-    const myRef = roomRef(`players/${me}`);
+    if (!myKey || !players[myKey]) return;
+    const myRef = roomRef(`players/${myKey}`);
     myRef.update({ lives: 3, alive: true });
     flash('💫 You revived with 3 lives!', '#10b981');
 }
 
 function showReviveButton() {
-    if (!players[me] || players[me].alive) return;
+    if (!players[myKey] || players[myKey].alive) return;
     const btn = document.createElement('button');
     btn.id = 'revive-btn';
     btn.textContent = '💫 Revive';
@@ -581,7 +634,7 @@ function setupChat() {
     chatForm.addEventListener('submit', e => {
         e.preventDefault();
         const text = chatInput.value.trim();
-        if (!text || !me) return;
+        if (!text || !myKey) return;
         roomRef('chat').push({ user: me, text, t: Date.now() });
         chatInput.value = '';
     });
@@ -619,22 +672,22 @@ function drawBg() {
 }
 
 function drawPlayers() {
-    const canPick = gameState.turn === me && gameState.turnPhase === 'picking';
+    const canPick = gameState.turn === myKey && gameState.turnPhase === 'picking';
 
     for (const [name, p] of Object.entries(players)) {
         if (!p) continue;
         
-        // Skip rendering completely dead players (not alive AND no position update recently)
+        // Skip completely dead players after brief fade
         if (!p.alive && (!p.lastActivity || Date.now() - p.lastActivity > 10000)) continue;
 
-        const sx = (name === me ? myX : p.x) - camX;
-        const sy = (name === me ? myY : p.y) - camY;
+        const sx = (name === myKey ? myX : p.x) - camX;
+        const sy = (name === myKey ? myY : p.y) - camY;
 
         ctx.save();
         if (!p.alive) ctx.globalAlpha = 0.25;
 
         // Dashed ring on pickable targets
-        if (canPick && name !== me && p.alive) {
+        if (canPick && name !== myKey && p.alive) {
             ctx.beginPath();
             ctx.arc(sx, sy, P_RADIUS + 12, 0, Math.PI * 2);
             ctx.strokeStyle = '#fb923c';
@@ -648,7 +701,7 @@ function drawPlayers() {
         const bodyColor = p.color || '#818cf8';
         const stickman = getStickmanImage(bodyColor);
 
-        if (name === me) {
+        if (name === myKey) {
             ctx.beginPath();
             ctx.arc(sx, sy, P_RADIUS + 7, 0, Math.PI * 2);
             ctx.strokeStyle = '#ffffff';
@@ -676,17 +729,17 @@ function drawPlayers() {
         const hearts = p.alive ? '❤️'.repeat(Math.max(0, p.lives || 0)) : '💀';
         ctx.fillText(hearts, sx, sy - P_RADIUS - 20);
 
-        // Name
+        // Name (show display name, not key)
         ctx.fillStyle = '#f8fafc';
         ctx.font      = 'bold 13px "Trebuchet MS", sans-serif';
-        ctx.fillText(name, sx, sy - P_RADIUS - 6);
+        ctx.fillText(p.name || name, sx, sy - P_RADIUS - 6);
     }
     ctx.textBaseline = 'alphabetic';
 }
 
 // ── Helpers ───────────────────────────────────────────────
 function getAlive() { return Object.keys(players).filter(p => players[p] && players[p].alive); }
-function imFirst(alive) { return alive.slice().sort()[0] === me; }
+function imFirst(alive) { return alive.slice().sort()[0] === myKey; }
 
 function getStickmanImage(color) {
         if (stickmanCache[color]) return stickmanCache[color];
