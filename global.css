@@ -222,3 +222,8 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
     margin-top: 12px;
     animation: fadeSlideIn 0.8s ease;
 }
+
+
+.vertical-spacer {
+    height: 12px;
+}
