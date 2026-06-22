@@ -10,27 +10,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
 
     <style>
-        /* Container that anchors to the bottom right and stacks items vertically */
         .action-controls-stack {
             position: fixed;
             bottom: 20px;
             right: 20px;
             display: flex;
-            flex-direction: column;   /* Stacks children vertically */
-            align-items: flex-end;    /* Aligns everything to the right edge */
-            gap: 12px;                /* Clean spacing between elements */
-            z-index: 100;             /* Ensures UI sits safely above the canvas game layer */
-            pointer-events: none;     /* Allows clicking through empty spaces of the container */
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+            z-index: 100;
+            pointer-events: none;
         }
-
-        /* Re-enable pointer events for the actual interactive UI elements */
-        .action-controls-stack > * {
-            pointer-events: auto;
-        }
-
-        /* Standard hidden utility class safeguard */
-        .hidden {
-            display: none !important;
+        .action-controls-stack > * { pointer-events: auto; }
+        .hidden { display: none !important; }
+        
+        /* Matching your existing input styles */
+        .mf-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: #334155;
+            color: white;
+            border: none;
+            margin-top: 5px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -45,14 +48,11 @@
     <div class="rules-panel">
       <h2>Rules</h2>
       <ul>
-        <li>Move with <strong>WASD / Arrow Keys</strong> — mobile: joystick</li>
-        <li>Hold <strong>Shift</strong> (PC) or tap <strong>⚡ Boost</strong> (mobile) while moving to sprint</li>
-        <li>When it's your turn → <strong>click a player</strong> to challenge them</li>
-        <li>They get a multiplication question with <strong>12 seconds</strong> to answer</li>
-        <li>They answer correctly → <strong>you</strong> lose a ❤️</li>
-        <li>They answer wrong / timeout → <strong>they</strong> lose a ❤️</li>
+        <li>Move with <strong>WASD / Arrow Keys</strong></li>
+        <li>Hold <strong>Shift</strong> to sprint</li>
+        <li>Click a player to challenge them</li>
+        <li>They get a question with <strong>12 seconds</strong> to answer</li>
         <li>Everyone starts with <strong>3 lives ❤️❤️❤️</strong></li>
-        <li>Out of lives? Hit <strong>Revive</strong> to rejoin with 3 lives</li>
         <li>Last one standing <strong>wins 🏆</strong></li>
       </ul>
     </div>
@@ -63,7 +63,7 @@
       <p class="mf-subtitle">Enter your details before battle</p>
       <div class="mf-field">
         <label for="join-name">Username</label>
-        <input id="join-name" placeholder="Any name — spaces OK!" autocomplete="nickname" spellcheck="false" autocapitalize="off">
+        <input id="join-name" placeholder="Any name..." autocomplete="nickname" spellcheck="false">
       </div>
       <div class="details-row">
         <div class="device-picker">
@@ -73,7 +73,7 @@
         </div>
         <div class="color-picker">
           <p>Your Color</p>
-          <input type="color" id="join-color" value="#818cf8" aria-label="Pick your color">
+          <input type="color" id="join-color" value="#818cf8">
         </div>
       </div>
       <button id="details-continue-btn" type="button" class="continue-btn">Continue →</button>
@@ -82,27 +82,10 @@
     <div class="mf-panel hidden" id="mode-options">
       <h3 class="mode-title">How do you want to play?</h3>
       <div class="mode-list">
-        <button class="join-option-btn" id="join-private-btn">
-          <span class="option-icon">🔒</span>
-          <div class="option-text">
-            <strong>Join Private Room</strong>
-            <span>Enter a room ID to join friends</span>
-          </div>
-        </button>
-        <button class="join-option-btn" id="create-private-btn">
-          <span class="option-icon">➕</span>
-          <div class="option-text">
-            <strong>Create Private Room</strong>
-            <span>Set a room ID &amp; max players</span>
-          </div>
-        </button>
-        <button class="join-option-btn" id="join-public-btn">
-          <span class="option-icon">🌐</span>
-          <div class="option-text">
-            <strong>Play on Public Server</strong>
-            <span>Jump in immediately!</span>
-          </div>
-        </button>
+        <button class="join-option-btn" id="join-private-btn">🔒 <strong>Join Private</strong></button>
+        <button class="join-option-btn" id="create-private-btn">➕ <strong>Create Private</strong></button>
+        <button class="join-option-btn" id="join-public-btn">🌐 <strong>Play Public</strong></button>
+        <button class="join-option-btn" id="join-vs-bot-btn">🤖 <strong>Play vs Bot</strong></button>
       </div>
       <button class="back-link" id="back-to-details-btn">← Change Details</button>
     </div>
@@ -117,12 +100,24 @@
             <input id="room-id" placeholder="myroom123" autocomplete="off">
             <button type="button" id="randomize-room-btn" class="btn-secondary">Random</button>
           </div>
-          <a id="room-link" class="room-link" href="#" target="_blank" rel="noopener"></a>
         </div>
+        
         <div id="max-players-section" class="hidden">
-          <p class="field-label">Max Players <span class="field-note">(2–20)</span></p>
-          <input id="max-players" type="number" min="2" max="20" value="8" autocomplete="off">
+          <p class="field-label">Max Players (2–20)</p>
+          <input id="max-players" type="number" min="2" max="20" value="8">
         </div>
+
+        <div class="mf-field">
+          <label for="operation-type">Challenge Type</label>
+          <select id="operation-type" class="mf-select">
+            <option value="addition">Addition (+)</option>
+            <option value="subtraction">Subtraction (-)</option>
+            <option value="multiplication" selected>Multiplication (×)</option>
+            <option value="division">Division (÷)</option>
+            <option value="mixed">Mixed (All)</option>
+          </select>
+        </div>
+
         <p class="field-error hidden" id="join-error"></p>
         <button type="submit" id="play-btn">PLAY</button>
       </form>
@@ -131,7 +126,6 @@
 
   <div id="game-screen" class="hidden">
     <div id="notif" class="notif"></div>
-    <div class="scan-line" aria-hidden="true"></div>
     <div id="player-list" class="player-list"></div>
     <canvas id="canvas"></canvas>
 
@@ -147,28 +141,16 @@
       </div>
     </div>
 
-    <div id="result-flash" class="result-flash hidden"></div>
-
     <div class="action-controls-stack">
-      <div class="vertical-spacer"></div>
       <div id="chat-panel" class="chat-panel hidden">
         <div id="chat-msgs"></div>
         <form id="chat-form">
-          <input id="chat-input" maxlength="120" placeholder="Message..." autocomplete="off">
+          <input id="chat-input" maxlength="120" placeholder="Message...">
           <button type="submit">→</button>
         </form>
       </div>
-
-      <button id="chat-toggle" class="chat-btn" title="Chat">💬</button>
-      <div class="vertical-spacer"></div>
-      <button id="boost-btn" class="boost-btn hidden" type="button">⚡ Boost</button>
-
-    </div>
-
-    <div id="joystick-zone" class="joystick-zone">
-      <div id="joystick-base" class="joystick-base">
-        <div id="joystick-stick" class="joystick-stick"></div>
-      </div>
+      <button id="chat-toggle" class="chat-btn">💬</button>
+      <button id="boost-btn" class="boost-btn hidden">⚡ Boost</button>
     </div>
   </div>
 

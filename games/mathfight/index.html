@@ -10,27 +10,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
 
     <style>
-        /* Container that anchors to the bottom right and stacks items vertically */
         .action-controls-stack {
             position: fixed;
             bottom: 20px;
             right: 20px;
             display: flex;
-            flex-direction: column;   /* Stacks children vertically */
-            align-items: flex-end;    /* Aligns everything to the right edge */
-            gap: 12px;                /* Clean spacing between elements */
-            z-index: 100;             /* Ensures UI sits safely above the canvas game layer */
-            pointer-events: none;     /* Allows clicking through empty spaces of the container */
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+            z-index: 100;
+            pointer-events: none;
         }
-
-        /* Re-enable pointer events for the actual interactive UI elements */
-        .action-controls-stack > * {
-            pointer-events: auto;
-        }
-
-        /* Standard hidden utility class safeguard */
-        .hidden {
-            display: none !important;
+        .action-controls-stack > * { pointer-events: auto; }
+        .hidden { display: none !important; }
+        
+        /* New style for the selector to match your inputs */
+        .mf-select-wrapper { margin-top: 15px; }
+        .mf-select-wrapper label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
+        .mf-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: #1e293b;
+            color: white;
+            border: 1px solid #475569;
+            font-size: 1rem;
         }
     </style>
 </head>
@@ -48,7 +52,7 @@
         <li>Move with <strong>WASD / Arrow Keys</strong> — mobile: joystick</li>
         <li>Hold <strong>Shift</strong> (PC) or tap <strong>⚡ Boost</strong> (mobile) while moving to sprint</li>
         <li>When it's your turn → <strong>click a player</strong> to challenge them</li>
-        <li>They get a multiplication question with <strong>12 seconds</strong> to answer</li>
+        <li>They get a question with <strong>12 seconds</strong> to answer</li>
         <li>They answer correctly → <strong>you</strong> lose a ❤️</li>
         <li>They answer wrong / timeout → <strong>they</strong> lose a ❤️</li>
         <li>Everyone starts with <strong>3 lives ❤️❤️❤️</strong></li>
@@ -87,24 +91,19 @@
       <div class="mode-list">
         <button class="join-option-btn" id="join-private-btn">
           <span class="option-icon">🔒</span>
-          <div class="option-text">
-            <strong>Join Private Room</strong>
-            <span>Enter a room ID to join friends</span>
-          </div>
+          <div class="option-text"><strong>Join Private Room</strong></div>
         </button>
         <button class="join-option-btn" id="create-private-btn">
           <span class="option-icon">➕</span>
-          <div class="option-text">
-            <strong>Create Private Room</strong>
-            <span>Set a room ID &amp; max players</span>
-          </div>
+          <div class="option-text"><strong>Create Private Room</strong></div>
         </button>
         <button class="join-option-btn" id="join-public-btn">
           <span class="option-icon">🌐</span>
-          <div class="option-text">
-            <strong>Play on Public Server</strong>
-            <span>Jump in immediately!</span>
-          </div>
+          <div class="option-text"><strong>Play on Public Server</strong></div>
+        </button>
+        <button class="join-option-btn" id="join-vs-bot-btn">
+          <span class="option-icon">🦸🏼 🆚 🤖</span>
+          <div class="option-text"><strong>Play versus Bot</strong></div>
         </button>
       </div>
       <button class="back-link" id="back-to-details-btn">← Change Details</button>
@@ -120,12 +119,24 @@
             <input id="room-id" placeholder="myroom123" autocomplete="off">
             <button type="button" id="randomize-room-btn" class="btn-secondary">Random</button>
           </div>
-          <a id="room-link" class="room-link" href="#" target="_blank" rel="noopener"></a>
         </div>
+
         <div id="max-players-section" class="hidden">
-          <p class="field-label">Max Players <span class="field-note">(2–20)</span></p>
+          <p class="field-label">Max Players (2–20)</p>
           <input id="max-players" type="number" min="2" max="20" value="8" autocomplete="off">
         </div>
+
+        <div class="mf-select-wrapper">
+          <label for="operation-type">Challenge Type</label>
+          <select id="operation-type" class="mf-select">
+            <option value="addition">Addition (+)</option>
+            <option value="subtraction">Subtraction (-)</option>
+            <option value="multiplication" selected>Multiplication (×)</option>
+            <option value="division">Division (÷)</option>
+            <option value="mixed">Mixed (All)</option>
+          </select>
+        </div>
+
         <p class="field-error hidden" id="join-error"></p>
         <button type="submit" id="play-btn">PLAY</button>
       </form>
@@ -153,7 +164,6 @@
     <div id="result-flash" class="result-flash hidden"></div>
 
     <div class="action-controls-stack">
-      
       <div id="chat-panel" class="chat-panel hidden">
         <div id="chat-msgs"></div>
         <form id="chat-form">
@@ -161,12 +171,8 @@
           <button type="submit">→</button>
         </form>
       </div>
-
       <button id="chat-toggle" class="chat-btn" title="Chat">💬</button>
-      <div class="vertical-spacer"></div>
-
       <button id="boost-btn" class="boost-btn hidden" type="button">⚡ Boost</button>
-
     </div>
 
     <div id="joystick-zone" class="joystick-zone">

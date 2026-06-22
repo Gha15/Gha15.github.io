@@ -31,8 +31,8 @@ let myX = 300 + Math.random() * 500;
 let myY = 200 + Math.random() * 400;
 let players = {}, gameState = {}, keys = {};
 let joyDx = 0, joyDy = 0, joyActive = false;
-let joyTouchId = null; // Tracks the finger controlling the joystick
-let boostTouchId = null; // Tracks the finger pressing the boost button
+let joyTouchId = null; 
+let boostTouchId = null; 
 let boostHeld = false;
 let camX = 0, camY = 0;
 let timerInterval = null;
@@ -40,8 +40,12 @@ let deviceMode = 'pc';
 const stickmanCache = {};
 let roomId = '';
 let ROOM = '';
-let joinMode = ''; // 'join-private' | 'create-private' | 'public'
+let joinMode = ''; 
 let activityCheckInterval = null;
+
+// Bot State
+let botKey = null;
+let botDifficulty = 2;
 
 // ── Canvas ────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
@@ -130,11 +134,9 @@ function updateRoomLink(id) {
   roomLinkEl.textContent = `/games/mathfight/room?id=${id}`;
 }
 
-// Helper to determine selected or automatic device mode
 function getSelectedDeviceMode() {
   const checkedRadio = document.querySelector('input[name="device"]:checked');
   if (checkedRadio) return checkedRadio.value;
-  // Auto-detect mobile devices if no option is manually configured
   return ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'mobile' : 'pc';
 }
 
@@ -147,6 +149,7 @@ function setupJoinFlow() {
   const joinPrivateBtn = $('join-private-btn');
   const createPrivateBtn = $('create-private-btn');
   const joinPublicBtn = $('join-public-btn');
+  const joinVsBotBtn = $('join-vs-bot-btn');
   const backToDetailsBtn = $('back-to-details-btn');
   const backToModesBtn = $('back-to-modes-btn');
 
@@ -206,6 +209,33 @@ function setupJoinFlow() {
     updateRoomLink(newId);
     joinErrorEl.classList.add('hidden');
     showStep('config');
+  });
+
+  // VS BOT MODE IMPLEMENTATION
+  joinVsBotBtn.addEventListener('click', () => {
+    const name = $('join-name').value.trim();
+    if (!name) {
+      showStep('details');
+      shake($('join-name'));
+      return;
+    }
+
+    let diff = prompt("🤖 Select Bot Difficulty:\n1 = Easy (Slower, makes mistakes)\n2 = Medium\n3 = Hard (Fast, rarely misses)", "2");
+    if (diff === null) return; 
+    botDifficulty = parseInt(diff) || 2;
+
+    joinMode = 'bot';
+    roomId = 'bot_room_' + randomRoomId();
+    ROOM = `${ROOM_ROOT}/${roomId}`;
+
+    me = name;
+    myKey = getPlayerKey();
+    myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
+    deviceMode = getSelectedDeviceMode();
+
+    db.ref(`${ROOM}/config`).set({ maxPlayers: 2, operation: 'mixed', createdAt: Date.now() }).then(() => {
+        startGame();
+    });
   });
 
   joinPublicBtn.addEventListener('click', async () => {
@@ -284,8 +314,10 @@ function setupJoinFlow() {
 
     if (joinMode === 'create-private') {
       const mp = parseInt($('max-players').value) || 8;
+      const opSelect = document.getElementById('operation-type');
+      const op = opSelect ? opSelect.value : 'multiplication';
       maxPlayers = mp;
-      await db.ref(`${ROOM}/config`).set({ maxPlayers: mp, createdAt: Date.now() });
+      await db.ref(`${ROOM}/config`).set({ maxPlayers: mp, operation: op, createdAt: Date.now() });
     }
 
     me = name;
@@ -324,9 +356,24 @@ function startGame() {
   gameScreen.classList.remove('hidden');
   document.body.classList.add('game-active');
 
+  roomRef('config/operation').once('value').then(s => {
+    window.currentGameMode = s.val() || 'multiplication';
+  });
+
   const myRef = roomRef(`players/${myKey}`);
   myRef.set({ x: Math.round(myX), y: Math.round(myY), lives: 3, alive: true, color: myColor, name: me, lastActivity: Date.now() });
   myRef.onDisconnect().remove();
+
+  // Inject the Bot if in Bot Mode
+  if (joinMode === 'bot') {
+      botKey = 'bot_' + Math.random().toString(36).substr(2, 5);
+      roomRef(`players/${botKey}`).set({
+          x: WORLD_W / 2 + 100, y: WORLD_H / 2,
+          lives: 3, alive: true, color: '#94a3b8', name: 'MathBot 🤖', lastActivity: Date.now()
+      });
+      roomRef(`players/${botKey}`).onDisconnect().remove();
+      setInterval(updateBotLoop, 1000);
+  }
 
   roomRef('game').once('value').then(s => {
     if (!s.val()) {
@@ -507,9 +554,20 @@ function sendChallenge(target) {
 }
 
 function mkQuestion() {
+  const mode = window.currentGameMode || 'multiplication';
+  const ops = ['addition', 'subtraction', 'multiplication', 'division'];
+  const type = mode === 'mixed' ? ops[Math.floor(Math.random() * ops.length)] : mode;
+
   const a = 2 + Math.floor(Math.random() * 11);
   const b = 2 + Math.floor(Math.random() * 11);
-  return { text: `${a} × ${b} = ?`, answer: a * b };
+
+  switch(type) {
+    case 'addition': return { text: `${a} + ${b} = ?`, answer: a + b };
+    case 'subtraction': return { text: `${a + b} - ${a} = ?`, answer: b };
+    case 'multiplication': return { text: `${a} × ${b} = ?`, answer: a * b };
+    case 'division': return { text: `${a * b} ÷ ${a} = ?`, answer: b };
+    default: return { text: `${a} × ${b} = ?`, answer: a * b };
+  }
 }
 
 // ── Challenge overlay ─────────────────────────────────────
@@ -570,6 +628,77 @@ function resolveAnswer(userAns) {
     : userAns === null
       ? `⏰ Time's up! ${challengedName} loses a life!`
       : `❌ Wrong! ${challengedName} loses a life!`;
+
+  const ref = roomRef(`players/${loserKey}`);
+  ref.once('value').then(s => {
+    const p = s.val() || {};
+    const newLives = Math.max(0, (p.lives || 1) - 1);
+    ref.update({ lives: newLives, alive: newLives > 0 });
+  });
+
+  writeGame({ turnPhase: 'result', resultMsg, lostLife: loserKey });
+}
+
+// ── Bot Logic Engine ──────────────────────────────────────
+function updateBotLoop() {
+  if (joinMode !== 'bot' || !botKey || !players[botKey] || !players[botKey].alive) return;
+
+  // 1. Bot Movement
+  let bx = players[botKey].x + (Math.random() - 0.5) * 200;
+  let by = players[botKey].y + (Math.random() - 0.5) * 200;
+  bx = Math.max(P_RADIUS, Math.min(WORLD_W - P_RADIUS, bx));
+  by = Math.max(P_RADIUS, Math.min(WORLD_H - P_RADIUS, by));
+  roomRef(`players/${botKey}`).update({ x: Math.round(bx), y: Math.round(by), lastActivity: Date.now() });
+
+  // 2. Bot Turn Actions
+  const { turn, turnPhase, challenged, correctAnswer } = gameState;
+
+  // Bot Initiates a Challenge
+  if (turn === botKey && turnPhase === 'picking') {
+       if (players[myKey] && players[myKey].alive && !window.botIsActing) {
+           window.botIsActing = true;
+           setTimeout(() => {
+               const q = mkQuestion();
+               writeGame({
+                   turnPhase: 'challenged',
+                   challenger: botKey,
+                   challenged: myKey,
+                   question: q.text,
+                   correctAnswer: q.answer
+               });
+               setTimeout(() => writeGame({ turnPhase: 'answering' }), 1200);
+               window.botIsActing = false;
+           }, 1500);
+       }
+  }
+
+  // Bot Answers a Challenge
+  if (turnPhase === 'answering' && challenged === botKey && !window.botIsAnswering) {
+       window.botIsAnswering = true;
+       
+       let delay = 6000; let acc = 0.6; // Easy
+       if (botDifficulty === 2) { delay = 4000; acc = 0.8; } // Medium
+       if (botDifficulty === 3) { delay = 2000; acc = 0.95; } // Hard
+       delay += (Math.random() - 0.5) * 2000;
+
+       setTimeout(() => {
+           if (gameState.turnPhase !== 'answering') { window.botIsAnswering = false; return; } 
+           const isCorrect = Math.random() < acc;
+           const botAns = isCorrect ? parseInt(correctAnswer) : parseInt(correctAnswer) + 1;
+           resolveBotAnswer(botAns);
+           window.botIsAnswering = false;
+       }, delay);
+  }
+}
+
+function resolveBotAnswer(botAns) {
+  const correct = botAns === parseInt(gameState.correctAnswer);
+  const loserKey = correct ? gameState.challenger : botKey;
+  const challengerName = playerLabel(gameState.challenger);
+  const challengedName = playerLabel(botKey);
+  const resultMsg = correct
+    ? `✅ ${challengedName} got it right! ${challengerName} loses a life!`
+    : `❌ Wrong! ${challengedName} loses a life!`;
 
   const ref = roomRef(`players/${loserKey}`);
   ref.once('value').then(s => {
@@ -714,7 +843,6 @@ function setupJoystick(mode) {
     }
   }, { passive: false });
 
-  // Move touchmove and touchend to window for flawless multi-finger tracking sliding off bounds
   window.addEventListener('touchmove', e => {
     if (!joyActive) return;
     for (let i = 0; i < e.changedTouches.length; i++) {
@@ -885,7 +1013,6 @@ function drawBg() {
   ctx.fillStyle = '#040d1a';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Grid lines
   ctx.strokeStyle = 'rgba(255,255,255,0.04)';
   ctx.lineWidth = 1;
   const gs = 64;
@@ -902,7 +1029,6 @@ function drawBg() {
     ctx.stroke();
   }
 
-  // World boundary
   ctx.strokeStyle = 'rgba(129,140,248,0.28)';
   ctx.lineWidth = 4;
   ctx.strokeRect(2 - camX, 2 - camY, WORLD_W - 4, WORLD_H - 4);
