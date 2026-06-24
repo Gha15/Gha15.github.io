@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matix problem generator - matix the math club</title>
+    <link rel="stylesheet" href="../../../global.css">
+    <script src="../../../global.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Matix problem generator</h1>
+        <p class="problem-text">This is a simple problem generator for math problems.Click "Generate Problem" button to see a new problem.</p>
+        <button id="generate-problem" class="button" onclick="generaterandomveryhardproblem()">Generate Problem</button>
+        <div id="problem-output" class="problem-text"></div>
+
+        <p id="problem" class="problem-text"></p>
+        
+        <div class="invisible">
+        <input type="text" placeholder="Enter your answer here">
+        <button class="button" onclick="checkanswer()">Submit Answer</button>
+        </div>
+    </div>
+</body>
+</html>

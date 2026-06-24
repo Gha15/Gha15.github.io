@@ -227,3 +227,22 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
 .vertical-spacer {
     height: 12px;
 }
+
+.problem-text {
+    font-size: 1.2rem;
+    color: var(--text);
+    margin-bottom: 18px;
+}
+
+.button {
+    background: linear-gradient(135deg, #4338ca, #6366f1, #818cf8);
+    color: #fff;
+    border-color: rgba(129,140,248,0.5);
+    box-shadow: var(--shadow-btn);
+    overflow: hidden;
+    position: relative;
+}
+
+.invisible {
+    display: none !important;
+}
