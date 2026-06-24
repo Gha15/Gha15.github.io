@@ -124,7 +124,7 @@ function checkanswer(message) {
             correctAnswer = "";
     }
     if (answer === correctAnswer) {
-        alert("Correct!" + "secret: i have a crush on the person who i told to check this and hint for the person: batata meshwiyye(i am not jad btw) and also the answer u answered is: " + correctAnswer);
+        alert("Correct!");
     } else {
         alert("Incorrect.! try again.");
     }
