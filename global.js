@@ -1,3 +1,103 @@
+// Mock database configuration for math questions mapped by date
+const dailyChallenges = {
+    "2026-06-24": { question: "5 × 4 + 12 = ?", answer: 32 },
+    "2026-06-25": { question: "(48 ÷ 6) × 3 = ?", answer: 24 },
+    "2026-06-26": { question: "15% of 200 = ?", answer: 30 }
+};
+
+// State Elements
+let streak = parseInt(localStorage.getItem('math_streak')) || 0;
+let lastCompletedDate = localStorage.getItem('math_last_completed');
+
+// DOM Elements
+const problemDisplay = document.getElementById('problem-display');
+const streakCount = document.getElementById('streak-count');
+const countdownEl = document.getElementById('countdown');
+const userAnswerInput = document.getElementById('user-answer');
+const submitBtn = document.getElementById('submit-btn');
+const feedbackMsg = document.getElementById('feedback-msg');
+
+// Get current date string formatted as YYYY-MM-DD
+function getTodayString() {
+    const today = new Date();
+    const offset = today.getTimezoneOffset();
+    const localDate = new Date(today.getTime() - (offset * 60 * 1000));
+    return localDate.toISOString().split('T')[0];
+}
+
+const todayStr = getTodayString();
+const currentChallenge = dailyChallenges[todayStr] || { question: "10 + 10 = ?", answer: 20 };
+
+// Initialize interface text displays
+function initChallenge() {
+    problemDisplay.textContent = currentChallenge.question;
+    streakCount.textContent = streak;
+
+    // Check completion status instantly
+    if (lastCompletedDate === todayStr) {
+        lockChallenge("Completed! Come back tomorrow. ✨", "success");
+    }
+}
+
+// Logic validation rules
+submitBtn.addEventListener('click', () => {
+    const userAns = parseInt(userAnswerInput.value);
+    
+    if (isNaN(userAns)) {
+        showFeedback("Please enter a valid number.", "error");
+        return;
+    }
+
+    if (userAns === currentChallenge.answer) {
+        handleCorrectAnswer();
+    } else {
+        showFeedback("Incorrect. Try again! ❌", "error");
+    }
+});
+
+function handleCorrectAnswer() {
+    if (lastCompletedDate !== todayStr) {
+        streak++;
+        localStorage.setItem('math_streak', streak);
+        localStorage.setItem('math_last_completed', todayStr);
+        streakCount.textContent = streak;
+    }
+    lockChallenge("Correct! Streak updated. 🎉", "success");
+}
+
+function lockChallenge(msg, type) {
+    showFeedback(msg, type);
+    userAnswerInput.disabled = true;
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.5';
+}
+
+function showFeedback(text, type) {
+    feedbackMsg.textContent = text;
+    feedbackMsg.className = `feedback ${type}`;
+}
+
+// Global dynamic midnight clock counter
+function updateCountdown() {
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+
+    const diff = midnight - now;
+
+    const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+    const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+    const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+
+    countdownEl.textContent = `${hours}:${minutes}:${seconds}`;
+}
+
+// Run tasks
+initChallenge();
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+
 function checkanswer(message) {
     //checks if the answer is correct and displays a message
     const input = document.querySelector('input');
@@ -65,4 +165,3 @@ function showwindowforquestion() {
     `;
     checkifinputisnotpasted();
 }
-

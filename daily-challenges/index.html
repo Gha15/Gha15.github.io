@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Challenge - matix the math club</title>
+    <!-- External Style Sheet Link -->
+    <link rel="stylesheet" href="../global.css">
+</head>
+<body>
+
+    <div class="challenge-card">
+        <div class="header-stats">
+            <span class="streak-badge">🔥 Streak: <span id="streak-count">0</span> days</span>
+            <span class="timer-badge">⏳ Next in: <span id="countdown">--:--:--</span></span>
+        </div>
+        
+        <h2>Daily Challenge 🎯</h2>
+        <p class="sub-text">Solve the puzzle to maintain your streak!</p>
+        
+        <div class="problem-box" id="problem-display">--</div>
+        
+        <div class="input-group">
+            <input type="number" id="user-answer" placeholder="Your answer" autocomplete="off">
+            <button id="submit-btn">Submit</button>
+        </div>
+        
+        <div class="feedback" id="feedback-msg"></div>
+    </div>
+
+    <!-- External Script File Link -->
+    <script src="../global.js"></script>
+</body>
+</html>

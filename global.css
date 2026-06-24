@@ -246,3 +246,129 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
 .invisible {
     display: none !important;
 }
+
+:root {
+    --bg-dark: #0f172a;
+    --card-bg: #1e293b;
+    --accent-neon: #38bdf8;
+    --accent-green: #4ade80;
+    --accent-red: #f87171;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.challenge-card {
+    background-color: var(--card-bg);
+    border: 2px solid #334155;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.header-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.streak-badge {
+    color: var(--accent-green);
+    background: rgba(74, 222, 128, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+}
+
+.timer-badge {
+    color: var(--accent-neon);
+    background: rgba(56, 189, 248, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+}
+
+.sub-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.problem-box {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 2rem 0;
+    letter-spacing: 2px;
+    color: var(--accent-neon);
+}
+
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+input[type="number"] {
+    flex: 1;
+    background: #0f172a;
+    border: 2px solid #334155;
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: #fff;
+    font-size: 1.2rem;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input[type="number"]:focus {
+    border-color: var(--accent-neon);
+}
+
+/* Remove spin arrows from input fields */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+button {
+    background-color: var(--accent-neon);
+    color: #0f172a;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.feedback {
+    min-height: 1.5rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.success { color: var(--accent-green); }
+.error { color: var(--accent-red); }
