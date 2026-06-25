@@ -309,11 +309,13 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
 }
 
 .problem-box {
-    font-size: 2rem;
-    font-weight: 800;
-    margin: 2rem 0;
-    letter-spacing: 2px;
-    color: var(--accent-neon);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    background-color: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--border);
 }
 
 .input-group {
@@ -373,3 +375,14 @@ button:active {
 
 .success { color: var(--accent-green); }
 .error { color: var(--accent-red); }
+
+.difficulty-box { 
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(18, 89, 255, 0.8), rgba(15, 23, 42, 0.6));
+    border: 1px solid var(--border);
+    color: #38bdf8;
+}

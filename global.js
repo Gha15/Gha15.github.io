@@ -1,15 +1,24 @@
-// Mock database configuration for math questions mapped by date
-const dailyChallenges = {
-    "2026-06-24": { question: "5 × 4 + 12 = ?", answer: 32 },
-    "2026-06-25": { question: "(48 ÷ 6) × 3 = ?", answer: 24 },
-    "2026-06-26": { question: "15% of 200 = ?", answer: 30 }
-};
+// gets data from /alldailypuzzles.js and puts them as current daily challenge
+const dailyChallenges = puzzles;
+
+function checkifdailyanswerisnotpasted() {
+    // checks if the user pasted the answer into the input box, if so, it will alert the user and clear the input box
+    const input = document.getElementById('user-answer');
+    if (input) {
+        input.addEventListener('paste', (event) => {
+            event.preventDefault();
+            alert('Pasting is not allowed!');
+            input.value = '';
+        });
+    }
+}
 
 // State Elements
 let streak = parseInt(localStorage.getItem('math_streak')) || 0;
 let lastCompletedDate = localStorage.getItem('math_last_completed');
 
 // DOM Elements
+const difficultyBox = document.getElementById('difficultyBox');
 const problemDisplay = document.getElementById('problem-display');
 const streakCount = document.getElementById('streak-count');
 const countdownEl = document.getElementById('countdown');
@@ -26,12 +35,13 @@ function getTodayString() {
 }
 
 const todayStr = getTodayString();
-const currentChallenge = dailyChallenges[todayStr] || { question: "10 + 10 = ?", answer: 20 };
+const currentChallenge = dailyChallenges[todayStr] || { question: "-- = ?", answer: "--", difficulty: "--" };
 
 // Initialize interface text displays
 function initChallenge() {
-    problemDisplay.textContent = currentChallenge.question;
-    streakCount.textContent = streak;
+    if (difficultyBox) difficultyBox.textContent = currentChallenge.difficulty || "--";
+    if (problemDisplay) problemDisplay.textContent = currentChallenge.question;
+    if (streakCount) streakCount.textContent = streak;
 
     // Check completion status instantly
     if (lastCompletedDate === todayStr) {
@@ -40,45 +50,55 @@ function initChallenge() {
 }
 
 // Logic validation rules
-submitBtn.addEventListener('click', () => {
-    const userAns = parseInt(userAnswerInput.value);
-    
-    if (isNaN(userAns)) {
-        showFeedback("Please enter a valid number.", "error");
-        return;
-    }
+if (submitBtn) {
+    submitBtn.addEventListener('click', () => {
+        const rawValue = userAnswerInput.value.trim();
+        
+        if (rawValue === "") {
+            showFeedback("Please enter an answer.", "error");
+            return;
+        }
 
-    if (userAns === currentChallenge.answer) {
-        handleCorrectAnswer();
-    } else {
-        showFeedback("Incorrect. Try again! ❌", "error");
-    }
-});
+        // Convert to number if the expected answer is a number, otherwise keep as string
+        const userAns = typeof currentChallenge.answer === 'number' ? Number(rawValue) : rawValue;
+
+        if (userAns === currentChallenge.answer) {
+            handleCorrectAnswer();
+        } else {
+            showFeedback("Incorrect. Try again! ❌", "error");
+        }
+    });
+}
 
 function handleCorrectAnswer() {
     if (lastCompletedDate !== todayStr) {
         streak++;
         localStorage.setItem('math_streak', streak);
         localStorage.setItem('math_last_completed', todayStr);
-        streakCount.textContent = streak;
+        if (streakCount) streakCount.textContent = streak;
     }
     lockChallenge("Correct! Streak updated. 🎉", "success");
 }
 
 function lockChallenge(msg, type) {
     showFeedback(msg, type);
-    userAnswerInput.disabled = true;
-    submitBtn.disabled = true;
-    submitBtn.style.opacity = '0.5';
+    if (userAnswerInput) userAnswerInput.disabled = true;
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+    }
 }
 
 function showFeedback(text, type) {
-    feedbackMsg.textContent = text;
-    feedbackMsg.className = `feedback ${type}`;
+    if (feedbackMsg) {
+        feedbackMsg.textContent = text;
+        feedbackMsg.className = `feedback ${type}`;
+    }
 }
 
 // Global dynamic midnight clock counter
 function updateCountdown() {
+    if (!countdownEl) return;
     const now = new Date();
     const midnight = new Date();
     midnight.setHours(24, 0, 0, 0);
@@ -94,15 +114,26 @@ function updateCountdown() {
 
 // Run tasks
 initChallenge();
-setInterval(updateCountdown, 1000);
-updateCountdown();
+if (countdownEl) {
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+}
+checkifdailyanswerisnotpasted();
 
+
+/* ==========================================================================
+   The parts below are preserved for your other pages as requested,
+   but safely wrapped so they don't break the daily challenge page.
+   ========================================================================== */
 
 function checkanswer(message) {
-    //checks if the answer is correct and displays a message
-    const input = document.querySelector('input');
-    const answer = input.value;
-    const problemText = document.getElementById('problem').innerText;
+    const input = document.querySelector('#problem-output input, input');
+    if (!input) return;
+    const answer = input.value.trim();
+    const problemEl = document.getElementById('problem');
+    if (!problemEl) return;
+    const problemText = problemEl.innerText;
+    
     let correctAnswer;
     switch (problemText) {
         case "What is the value of x in the equation 2x + 3 = 7?":
@@ -131,7 +162,6 @@ function checkanswer(message) {
 }
 
 function generaterandomveryhardproblem() {
-    //generates a random very hard problem and displays it on the page
     const problems = [
         "What is the value of x in the equation 2x + 3 = 7?",
         "If f(x) = 2x^2 + 3x - 5, what is f(2)?",
@@ -141,23 +171,26 @@ function generaterandomveryhardproblem() {
     ];
     const randomIndex = Math.floor(Math.random() * problems.length);
     const problemText = problems[randomIndex];
-    document.getElementById('problem').innerText = problemText;
+    
     showwindowforquestion();
+    const problemEl = document.getElementById('problem');
+    if (problemEl) problemEl.innerText = problemText;
 }
 
 function checkifinputisnotpasted() {
-    //checks if the user pasted the answer into the input box, if so, it will alert the user and clear the input box
-    const input = document.querySelector('input');
-    input.addEventListener('paste', (event) => {
-        event.preventDefault();
-        alert('Pasting is not allowed!');
-        input.value = '';
-    });
+    const input = document.querySelector('#problem-output input');
+    if (input) {
+        input.addEventListener('paste', (event) => {
+            event.preventDefault();
+            alert('Pasting is not allowed!');
+            input.value = '';
+        });
+    }
 }
 
 function showwindowforquestion() {
-    //shows the window for the question and input box
     const problemOutput = document.getElementById('problem-output');
+    if (!problemOutput) return;
     problemOutput.innerHTML = `
         <p id="problem" class="problem-text"></p>
         <input type="text" placeholder="Enter your answer here">
