@@ -309,11 +309,10 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
 }
 
 .problem-box {
-    font-size: 0.9rem;
+    font-size: 2rem;
     color: var(--text-muted);
     margin-bottom: 1rem;
     padding: 0.5rem 1rem;
-    border-radius: 12px;
     background-color: rgba(15, 23, 42, 0.8);
     border: 1px solid var(--border);
 }
