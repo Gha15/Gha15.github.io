@@ -64,7 +64,7 @@ body {
 }
 
 /* ── Typography ─────────────────────────────────────────── */
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6 , p{
     font-family: var(--font-head);
     letter-spacing: 1px;
     line-height: 1.2;
@@ -309,11 +309,12 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
 }
 
 .problem-box {
-    font-size: 2rem;
-    color: var(--text-muted);
+    font-size: 1.5rem;
+    color: rgb(255, 255, 255);
     margin-bottom: 1rem;
     padding: 0.5rem 1rem;
-    background-color: rgba(15, 23, 42, 0.8);
+    border-radius: 12px;
+    background-color: rgba(104, 222, 255, 0.419);
     border: 1px solid var(--border);
 }
 

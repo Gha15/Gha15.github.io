@@ -17,28 +17,36 @@
             /* makes page scrollable if possible*/
             overflow-y: auto !important;
             background-color: #042444 !important;
+            width: 100% !important;
+            background: #042444 !important;
         }
     </style>
 </head>
 <body>
-
+    <div class="vertical-spacer"></div>
+    <div class="challenge-card">  
+        <h1>Welcome to the Daily Challenge!</h1>
+        <div class="challenge-card">
+            <h4>Test your math skills with a new challenge every day!</h4>  
+            <p>today's challenge:</p>
+        <div class="challenge-card">
+        <div id="problem-display" class="problem-box">Loading today's challenge...</div>
+        <p>difficulty:</p>
+        <div id="difficultyBox" class="difficulty-box"></div>
+        <div id="input-group" class="input-group">
+            <input type="text" id="answer-input" placeholder="Enter your answer" />
+            <button id="submit-button">Submit</button>
+    </div>
     <div class="challenge-card">
-        <div class="header-stats">
-            <span class="streak-badge">🔥 Streak: <span id="streak-count">0</span> days</span>
-            <span class="timer-badge">⏳ Next in: <span id="countdown">--:--:--</span></span>
+        <div class="timer-box">
+            <div class="countdown">Next challenge in:</div>
+            <div id="countdown" class="countdown">Next challenge in: --:--:--</div>
         </div>
-        
-        <h2>Daily Challenge 🎯</h2>
-        <p class="sub-text">Solve the puzzle to maintain your streak!</p>
-        <div class="difficulty-box" id="difficultyBox">--</div>
-        <div class="problem-box" id="problem-display">--</div>
-        
-        <div class="input-group">
-            <input type="text" id="user-answer" placeholder="Your answer" autocomplete="off">
-            <button id="submit-btn">Submit</button>
-        </div>
-        
-        <div class="feedback" id="feedback-msg"></div>
+    </div>
+    <div class="vertical-spacer"></div>
+    <div class="challenge-card">
+        <streak-count>Streak 🔥:</streak-count>
+        <streak-count id="streak-count">Streak 🔥: 0</streak-count>
     </div>
 
     <script src="../alldailypuzzles.js"></script>
