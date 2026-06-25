@@ -1,5 +1,5 @@
 const puzzles = {
-    //uses format: "YYYY-MM-DD": { question: "Question text", answer: "Answer", difficulty: "   EASY/MEDIUM/HARD" }
+    //uses format: "YYYY-MM-DD": { question: "Question text", answer: "Answer", difficulty: "EASY/MEDIUM/HARD" }
     "2026-06-24": { question: "5 × 4 + 12 = ?", answer: 32, difficulty: "EASY" },
     "2026-06-25": { question: "(48 ÷ 6) × 3 = ?", answer: 24, difficulty: "EASY" },
     "2026-06-26": { question: "15% of 200 = ?", answer: 30, difficulty: "EASY" },
