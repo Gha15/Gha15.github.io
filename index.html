@@ -12,37 +12,20 @@
   <link rel="stylesheet" href="/global.css">
   
   <style> 
-    /* PERFECT SNAP-SCROLL SETUP */
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      height: 100dvh; /* Dynamic viewport height prevents mobile address bar cropping */
-      width: 100vw;
-      background-color: #0f172a;
-      overflow-x: hidden;
-      overflow-y: auto;
-      scroll-snap-type: y mandatory; /* Locks sections in place smoothly */
-      scroll-behavior: smooth;
-      box-sizing: border-box;
-    }
-
-    /* EACH SLIDE FITS THE SCREEN IN ONE GO */
+    /* EACH SLIDE REPRESENTS EXACTLY ONE VISIBLE SECTION IN ORDER */
     .screen-section {
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      scroll-snap-align: start;
-      position: relative;
-      padding: 15px; /* Added internal fallback protection padding */
-      box-sizing: border-box;
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      position: relative !important;
+      padding: 15px !important; 
+      box-sizing: border-box !important;
     }
 
-    /* COMPACTED CONTAINER FOR SLIDE 1 */
     .container {
       display: flex;
       flex-direction: column;
@@ -50,11 +33,10 @@
       justify-content: center;
       width: 100%;
       max-width: 380px; 
-      max-height: 95vh; /* Prevents overflow completely */
+      max-height: 95vh; 
       margin: 0 auto;
     }
 
-    /* THE SECRET WHITE DOT */ 
     .secret-dot { 
       position: fixed; 
       top: 15px; 
@@ -72,15 +54,13 @@
       transform: scale(1.5); 
     }
 
-    /* MAIN LOGO SIZED TO MATCH SCREEN BALANCE */ 
     .main-logo { 
       width: clamp(120px, 18vw, 180px); 
-      max-height: 10vh; /* Scaled cleanly with viewport heights */
+      max-height: 10vh; 
       height: auto; 
       margin-bottom: 5px; 
     }
 
-    /* THE HANDWRITTEN BOX */ 
     .handwritten-box { 
       display: inline-block; 
       padding: 4px 14px; 
@@ -108,11 +88,10 @@
       color: #38bdf8; 
     }
 
-    /* MENU BUTTON MATRIX OPTIMIZED FOR HEIGHT */ 
     .menu-grid { 
       display: flex; 
       flex-direction: column; 
-      gap: clamp(4px, 1vh, 8px); /* Compact dynamically on ultra-short phone screens */
+      gap: clamp(4px, 1vh, 8px); 
       width: 100%; 
     }
 
@@ -154,13 +133,12 @@
       50% { transform: translateY(4px); opacity: 1; }
     }
 
-    /* COOLER, LARGER TERMINAL DASHBOARD */
     .stats-layout {
       width: 90%;
       max-width: 460px;
       padding: 30px 25px;
       border: 2px solid #818cf8;
-      background: radial-gradient(circle at center, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.95),rgba(15, 23, 42, 0.9));
       font-family: 'Courier Prime', monospace;
       box-sizing: border-box;
       border-radius: 16px;

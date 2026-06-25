@@ -29,13 +29,21 @@
     --font-head:     'Vibur', cursive;
     --font-body:     'Segoe UI', system-ui, -apple-system, sans-serif;
     --transition:    0.22s ease;
+
+    /* Merged Challenge variables here safely without overwriting main theme tokens */
+    --card-bg:       #1e293b;
+    --accent-neon:   #38bdf8;
+    --accent-red:    #f87171;
 }
 
 /* ── Reset ──────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ── Base ───────────────────────────────────────────────── */
-html { scroll-behavior: smooth; }
+html { 
+    overflow-y: auto !important; 
+    height: 100% !important;
+}
 
 body {
     background:
@@ -45,7 +53,14 @@ body {
     color: var(--text);
     font-family: var(--font-body);
     min-height: 100vh;
+    width: 100vw !important;
     line-height: 1.65;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important; 
+    display: block !important; 
+    box-sizing: border-box !important;
 }
 
 /* ── Typography ─────────────────────────────────────────── */
@@ -81,7 +96,7 @@ strong { color: var(--accent-bright); }
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgba(129,140,248,0.06) 0%, transparent 55%);
+    background: linear-gradient(135deg, rgba(129,140,248,0.15), rgba(129,140,248,0.05));
     pointer-events: none;
 }
 
@@ -223,7 +238,6 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
     animation: fadeSlideIn 0.8s ease;
 }
 
-
 .vertical-spacer {
     height: 12px;
 }
@@ -247,25 +261,13 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
     display: none !important;
 }
 
-:root {
-    --bg-dark: #0f172a;
-    --card-bg: #1e293b;
-    --accent-neon: #38bdf8;
-    --accent-green: #4ade80;
-    --accent-red: #f87171;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-dark);
-    color: var(--text-main);
+/* ── Page Layouts Safe Center Block ── */
+.challenge-container-view {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    margin: 0;
+    width: 100%;
 }
 
 .challenge-card {
@@ -337,7 +339,6 @@ input[type="number"]:focus {
     border-color: var(--accent-neon);
 }
 
-/* Remove spin arrows from input fields */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
