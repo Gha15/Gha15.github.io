@@ -240,7 +240,7 @@
                 <span class="name">
                     <span id="badge-ghadi"></span>
                     <span>Ghadi:</span>
-                    <span class="admin-tag" id="admin-ghadi">matix owner and admin</span>
+                    <span class="admin-tag" id="admin-ghadi">(matix owner and admin)</span>
                 </span>
                 <span class="score" id="score-ghadi">0</span>
             </div>
@@ -322,6 +322,29 @@
                 <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('yara')">Remove Admin</button>
             </div>
         </div>
+
+        <div class="member-row">
+            <div class="member-info">
+                <span class="name">
+                    <span id="badge-mak"></span>
+                    <span>Mohammad-ali</span>
+                    <span class="admin-tag" id="admin-mak"></span>
+                </span>
+                <span class="score" id="score-mak">0</span>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="addPoints('mak', 10)">+10</button>
+                <button class="btn" onclick="addPoints('mak', 1)">+1</button>
+                <button class="btn btn-neg" onclick="addPoints('mak', -1)">-1</button>
+                <button class="btn btn-neg" onclick="addPoints('mak', -10)">-10</button>
+                <button class="btn btn-reset" onclick="resetPerson('mak')">Reset</button>
+                <button class="btn" style="background: #10b981; color: #020617;" onclick="addCustomPoints('mak')">+Custom</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeCustomPoints('mak')">-Custom</button>
+                <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('mak')">Give Admin</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('mak')">Remove Admin</button>
+            </div>
+        </div>
+        
         <div class="member-row">
             <div class="member-info">
                 <span class="name">
@@ -373,6 +396,7 @@
             "marwan": "ilikebeingnumberonebutiamnumbertwo",
             "dahlia": "cheeseflower",
             "yara": "yara10yoyo20",
+            "mak": "mak2130",
         };
 
         function checkLogin() {
@@ -454,6 +478,7 @@
             document.getElementById('score-jad').innerText = val.jad || 0;
             document.getElementById('score-dahlia').innerText = val.dahlia || 0;
             document.getElementById('score-yara').innerText = val.yara || 0;
+            document.getElementById('score-mak').innerText = val.mak || 0;
         });
         
         // Listen for user profiles (badges and admin status)
@@ -468,7 +493,7 @@
                 controlBlock.style.display = activeIsAdmin ? 'flex' : 'none';
             });
             
-            ['ghadi', 'dahlia', 'marwan', 'yara', 'jad'].forEach(user => {
+            ['ghadi', 'dahlia', 'marwan', 'yara', 'jad', 'mak'].forEach(user => {
                 const profile = profiles[user] || {};
                 
                 // Update badge
