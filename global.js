@@ -198,3 +198,77 @@ function showwindowforquestion() {
     `;
     checkifinputisnotpasted();
 }
+
+
+const qrDisplay = document.getElementById("qr-display");
+const qrInput = document.getElementById("qr-input");
+const generateBtn = document.getElementById("generate-btn");
+const downloadBtn = document.getElementById("download-btn");
+const actionContainer = document.getElementById("action-container");
+
+let qrInstance = null;
+
+function buildQRCode() {
+    const rawContent = qrInput.value.trim();
+
+    if (!rawContent) {
+        alert("Please enter a valid link or text message.");
+        return;
+    }
+
+    qrDisplay.innerHTML = "";
+
+    // Config options utilizing the upgraded library engine
+    const options = {
+        text: rawContent,
+        width: 240,
+        height: 240,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H, // Hardcoded high correction to ensure logo spacing scalability
+        
+        // Brand center overlay injection settings
+        logo: "../../../favicon.svg",
+        logoWidth: 60,
+        logoHeight: 60,
+        logoBgColor: '#ffffff',
+        logoBackgroundTransparent: false
+    };
+
+    // Instantiate and execute canvas compile routine
+    qrInstance = new QRCode(qrDisplay, options);
+    
+    // Reveal download action button once processing finishes
+    actionContainer.classList.remove("hidden");
+}
+
+function downloadQR() {
+    // Locate the underlying graphic component inside our display viewport wrapper
+    const canvasElement = qrDisplay.querySelector("canvas");
+    const imgElement = qrDisplay.querySelector("img");
+    
+    let imageSource = "";
+
+    if (canvasElement) {
+        imageSource = canvasElement.toDataURL("image/png");
+    } else if (imgElement) {
+        imageSource = imgElement.src;
+    } else {
+        alert("Graphic data error. Please regenerate.");
+        return;
+    }
+
+    // Programmatically trigger sandbox link to bypass local cross-origin security
+    const triggerLink = document.createElement("a");
+    triggerLink.href = imageSource;
+    triggerLink.download = "matix-qr-code.png";
+    document.body.appendChild(triggerLink);
+    triggerLink.click();
+    document.body.removeChild(triggerLink);
+}
+
+generateBtn.addEventListener("click", buildQRCode);
+downloadBtn.addEventListener("click", downloadQR);
+
+// Build initially on window activation routines
+window.addEventListener("DOMContentLoaded", buildQRCode);
