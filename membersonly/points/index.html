@@ -304,6 +304,27 @@
         <div class="member-row">
             <div class="member-info">
                 <span class="name">
+                    <span id="badge-yara"></span>
+                    <span>Yara:</span>
+                    <span class="admin-tag" id="admin-yara"></span>
+                </span>
+                <span class="score" id="score-yara">0</span>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="addPoints('yara', 10)">+10</button>
+                <button class="btn" onclick="addPoints('yara', 1)">+1</button>
+                <button class="btn btn-neg" onclick="addPoints('yara', -1)">-1</button>
+                <button class="btn btn-neg" onclick="addPoints('yara', -10)">-10</button>
+                <button class="btn btn-reset" onclick="resetPerson('yara')">Reset</button>
+                <button class="btn" style="background: #10b981; color: #020617;" onclick="addCustomPoints('yara')">+Custom</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeCustomPoints('yara')">-Custom</button>
+                <button class="btn" style="background: #f59e0b; color: #020617;" onclick="giveAdmin('yara')">Give Admin</button>
+                <button class="btn" style="background: #ef4444; color: #020617;" onclick="removeAdmin('yara')">Remove Admin</button>
+            </div>
+        </div>
+        <div class="member-row">
+            <div class="member-info">
+                <span class="name">
                     <span id="badge-jad"></span>
                     <span>Jad:</span>
                     <span class="admin-tag" id="admin-jad"></span>
@@ -351,6 +372,7 @@
             "jad": "ilikebatatameshwiyye",
             "marwan": "ilikebeingnumberonebutiamnumbertwo",
             "dahlia": "cheeseflower",
+            "yara": "yara10yoyo20",
         };
 
         function checkLogin() {
@@ -431,6 +453,7 @@
             document.getElementById('score-marwan').innerText = val.marwan || 0;
             document.getElementById('score-jad').innerText = val.jad || 0;
             document.getElementById('score-dahlia').innerText = val.dahlia || 0;
+            document.getElementById('score-yara').innerText = val.yara || 0;
         });
         
         // Listen for user profiles (badges and admin status)
