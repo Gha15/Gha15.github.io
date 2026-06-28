@@ -50,6 +50,8 @@ body {
         radial-gradient(ellipse at 15% 10%, rgba(30, 58, 138, 0.32) 0%, transparent 50%),
         radial-gradient(ellipse at 88% 82%, rgba(124, 58, 237, 0.20) 0%, transparent 45%),
         var(--bg);
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
     color: var(--text);
     font-family: var(--font-body);
     min-height: 100vh;
@@ -504,4 +506,86 @@ button:hover {
 .hidden {
     display: none;
     opacity: 0;
+}
+
+.ideas-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.ideas-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.ideas-header h4 {
+    font-size: 1.085rem;
+    margin-block-start: 1.17em; 
+    margin-block-end: 1.17em;
+    color: #002f70;
+    margin-top: 8px;
+}
+
+.ideas-adder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.submit-area {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.ideas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.ideas-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.idea-text {
+    background: #f1f5f9;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    color: #1e293b;
+    font-size: 1rem;
+}
+
+.idea-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.delete-button, .like-button, .comment-button {
+    background: #e11d48;
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.comments-section {
+    margin-top: 12px;
+    padding-left: 16px;
+    border-left: 2px solid #e2e8f0;
 }

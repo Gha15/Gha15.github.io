@@ -1,3 +1,151 @@
+console.log("global.js loaded");
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getDatabase, ref, push, set, onValue, serverTimestamp, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAYE_80QqRrHIEFUOvxV2pkPW65pKHeO",
+    authDomain: "matix-the-math-club-views.firebaseapp.com",
+    databaseURL: "https://matix-the-math-club-views-default-rtdb.firebaseio.com",
+    projectId: "matix-the-math-club-views",
+    storageBucket: "matix-the-math-club-views.appspot.com",
+    messagingSenderId: "392827461909",
+    appId: "1:392827461909:web:55ae636927bad79ebb491c",
+    measurementId: "G-932V23T6YQ"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+// --- Core Actions ---
+
+window.addidea = function(ideaText) {
+    const trimmedText = ideaText ? ideaText.trim() : "";
+    if (trimmedText === "") return alert("Please enter an idea first!");
+
+    const ideasRef = ref(database, 'ideas');
+    const newIdeaRef = push(ideasRef);
+
+    set(newIdeaRef, {
+        text: trimmedText,
+        timestamp: serverTimestamp()
+    }).then(() => {
+        const inputBox = document.getElementById('idea-input');
+        if (inputBox) inputBox.value = '';
+    }).catch(err => console.error(err));
+};
+
+window.deleteIdea = function(ideaId) {
+    // checks if there is the adminKey in localStorage, if not, it will alert the user that they are not authorized to delete ideas
+    if (!localStorage.getItem('adminKey')) {
+        alert("You are not authorized to delete ideas!");
+        return;
+    } else /*deletes the idea from the database*/ {
+        const specificIdeaRef = ref(database, `ideas/${ideaId}`);
+        remove(specificIdeaRef).catch(err => console.error(err));
+    }
+};
+
+window.likeIdea = function(ideaId) {
+    //checks if not already liked by checking for the tag haslikedidea-ideaId in localStorage
+    if (localStorage.getItem(`haslikedidea-${ideaId}`)) {
+        alert("You have already liked this idea!");
+        return;
+    }
+    const specificLikeRef = ref(database, `likes/${ideaId}`);
+    const newLikeRef = push(specificLikeRef);
+    set(newLikeRef, true).then(() => {
+        localStorage.setItem(`haslikedidea-${ideaId}`, true);
+    }).catch(err => console.error(err));
+};
+
+window.addComment = function(ideaId) {
+    const inputElement = document.getElementById(`comment-input-${ideaId}`);
+    if (!inputElement || inputElement.value.trim() === "") return;
+
+    const specificCommentRef = ref(database, `comments/${ideaId}`);
+    const newCommentRef = push(specificCommentRef);
+    
+    set(newCommentRef, {
+        text: inputElement.value.trim(),
+        timestamp: serverTimestamp()
+    }).then(() => {
+        inputElement.value = '';
+    }).catch(err => console.error(err));
+};
+
+window.toggleComments = function(ideaId) {
+    const sec = document.getElementById(`comments-sec-${ideaId}`);
+    if (sec) {
+        sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+    }
+};
+
+// --- Real-time Listeners ---
+
+function initListeners() {
+    // 1. Ideas Listener
+    onValue(ref(database, 'ideas'), (snapshot) => {
+        const container = document.getElementById('ideas-container');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        const ideas = snapshot.val();
+        if (!ideas) return;
+
+        Object.keys(ideas).forEach(ideaId => {
+            const idea = ideas[ideaId];
+            const ideaCard = document.createElement('div');
+            ideaCard.className = 'idea';
+            ideaCard.innerHTML = `
+                <p class="idea-text">${idea.text || ''}</p>
+                <div class="idea-actions">
+                    <button class="delete-button" onclick="deleteIdea('${ideaId}')">Delete</button>
+                    <button class="like-button" onclick="likeIdea('${ideaId}')">Like</button>
+                    <span class="like-count" id="likes-${ideaId}">0</span>
+                    <button class="comment-button" onclick="toggleComments('${ideaId}')">Comment</button>
+                    <div class="comments-section" id="comments-sec-${ideaId}" style="display: none;">
+                        <input type="text" id="comment-input-${ideaId}" class="comment-input" placeholder="Add a comment...">
+                        <button class="submit-comment" onclick="addComment('${ideaId}')">Submit</button>
+                        <div class="comments-list" id="comments-${ideaId}"></div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(ideaCard);
+        });
+    });
+
+    // 2. Likes Listener
+    onValue(ref(database, 'likes'), (snapshot) => {
+        const allLikes = snapshot.val() || {};
+        document.querySelectorAll('.like-count').forEach(span => {
+            const id = span.id.replace('likes-', '');
+            const count = allLikes[id] ? Object.keys(allLikes[id]).length : 0;
+            span.textContent = count;
+        });
+    });
+
+    // 3. Comments Listener
+    onValue(ref(database, 'comments'), (snapshot) => {
+        const allComments = snapshot.val() || {};
+        Object.keys(allComments).forEach(ideaId => {
+            const list = document.getElementById(`comments-${ideaId}`);
+            if (list) {
+                list.innerHTML = '';
+                const ideaComments = allComments[ideaId];
+                Object.values(ideaComments).forEach(comment => {
+                    const div = document.createElement('div');
+                    div.className = 'comment-item';
+                    div.textContent = comment.text || comment;
+                    list.appendChild(div);
+                });
+            }
+        });
+    });
+}
+
+initListeners();
+
 // gets data from /alldailypuzzles.js and puts them as current daily challenge
 const dailyChallenges = puzzles;
 
@@ -272,3 +420,4 @@ downloadBtn.addEventListener("click", downloadQR);
 
 // Build initially on window activation routines
 window.addEventListener("DOMContentLoaded", buildQRCode);
+

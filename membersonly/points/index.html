@@ -863,6 +863,21 @@
 
             setThemeStatus('Theme reset to default.');
         }
+        //checks if current user is ghadi or an admin so it can put the adminKey into local storage so it can be used in other pages
+        function checkAdminKey() {
+            const activeUser = sessionStorage.getItem("matix_auth_user");
+            if (activeUser === 'ghadi') {
+                localStorage.setItem('adminKey', 'ghadi');
+            } else {
+                db.ref('profiles/' + activeUser).once('value').then((snapshot) => {
+                    const profile = snapshot.val() || {};
+                    if (profile.isAdmin) {
+                        localStorage.setItem('adminKey', activeUser);
+                    }
+                });
+            }
+        }
+        checkAdminKey();
     </script>
 </body>
 </html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ideas section - matix the math club</title>
+    <link rel="stylesheet" href="../global.css">
+    <link rel="icon" href="../favicon.svg" type="image/x-icon">
+    
+    <script src="../global.js" type="module"></script>
+</head>
+<body>
+    <header class="ideas-header">
+        <h1>Ideas section 💡</h1>
+        <h4> Enter your ideas and I'll add them to the club's website! + those stuff are gonna be stored on this page so community can like and comment on them which will put them on top of the list.</h4>
+    </header>
+    <div class="ideas-adder">
+        <div class="idea-form">
+            <input type="text" id="idea-input" placeholder="Enter your idea here...">
+            <button id="submit-idea" onclick="addidea(document.getElementById('idea-input').value)">Submit</button>
+        </div>
+    </div>
+    <div class="ideas-container" id="ideas-container">
+    </div>
+</body>
+</html>
