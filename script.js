@@ -60,6 +60,11 @@ function listenToStats() {
       }
     }
   });
+
+  onValue(ref(mainDatabase, 'ideacount'), (snapshot) => {
+    const el = document.getElementById('ideas-counter');
+    if (el) el.innerText = snapshot.val() || 0;
+  });
 }
 
 // ── DIRECTIONAL SMOOTH GLIDE ENGINE ───────────────────────

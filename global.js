@@ -82,6 +82,15 @@ window.toggleComments = function(ideaId) {
 };
 
 // --- Real-time Listeners ---
+//stores num of ideas in the database folder called ideacount and updates it in real-time
+function updateIdeaCount() {
+    const ideasRef = ref(database, 'ideas');
+    onValue(ideasRef, (snapshot) => {
+        const count = snapshot.size || 0;
+        const countRef = ref(database, 'ideacount');
+        set(countRef, count).catch(err => console.error(err));
+    });
+}
 
 function initListeners() {
     // 1. Ideas Listener
@@ -421,3 +430,5 @@ downloadBtn.addEventListener("click", downloadQR);
 // Build initially on window activation routines
 window.addEventListener("DOMContentLoaded", buildQRCode);
 
+console.log("the idea count is being updated in real-time");
+updateIdeaCount(); // Start the real-time idea count listener
