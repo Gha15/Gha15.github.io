@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="crispEdges">
+  <style> .cake {fill:#ffcc00} .frost {fill:#ff00ff} .flame {fill:#ff8888} .wick {fill:#ffffff} </style>
+  <!-- Cake Base -->
+  <rect x="3" y="12" width="18" height="8" class="cake"/> <rect x="3" y="11" width="18" height="1" class="wick"/>
+  <!-- Middle Layer with frosting -->
+  <rect x="5" y="8" width="14" height="4" class="cake"/> <rect x="3" y="12" width="18" height="1" class="frost"/> <rect x="3" y="15" width="18" height="1" class="frost"/>
+  <!-- Top Frosting/Layer -->
+  <rect x="7" y="5" width="10" height="3" class="frost"/><rect x="5" y="8" width="14" height="1" class="wick"/>
+  <!-- Candles and flames -->
+  <g class="wick"> <rect x="8" y="2" width="1" height="3"/><rect x="12" y="2" width="1" height="3"/><rect x="16" y="2" width="1" height="3"/></g>
+  <g class="flame"> <rect x="8" y="0" width="1" height="2"/><rect x="12" y="0" width="1" height="2"/><rect x="16" y="0" width="1" height="2"/></g>
+</svg>

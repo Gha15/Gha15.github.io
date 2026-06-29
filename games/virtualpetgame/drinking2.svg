@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="crispEdges">
+  <style> .f {fill:#ffffff} .c {fill:#de2c2c} .e {fill:#ffcc00} .n {fill:#ff99aa} .t {fill:#a0a0a0} .b {fill:#00ffff} .s {fill:#ffffff} </style>
+  <g class="f"> <!-- Body and tail peak -->
+    <rect x="2" y="4" width="2" height="1"/><rect x="3" y="5" width="1" height="7"/>
+    <rect x="4" y="11" width="12" height="7"/>
+    <rect x="5" y="18" width="2" height="3"/><rect x="8" y="18" width="2" height="3"/><rect x="11" y="18" width="2" height="3"/><rect x="14" y="18" width="2" height="3"/>
+  </g>
+  <g class="t"> <rect x="5" y="21" width="2" height="1"/><rect x="8" y="21" width="2" height="1"/><rect x="11" y="21" width="2" height="1"/><rect x="14" y="21" width="2" height="1"/></g>
+  <!-- Head raised slightly from bowl -->
+  <g class="f"> <rect x="12" y="5" width="9" height="6"/><rect x="13" y="3" width="2" height="2"/><rect x="18" y="3" width="2" height="2"/></g>
+  <g class="e"> <rect x="14" y="6" width="1" height="2"/><rect x="18" y="6" width="1" height="2"/><rect x="16" y="12" width="1" height="1"/></g>
+  <g class="n"> <rect x="14" y="4" width="1" height="1"/><rect x="19" y="4" width="1" height="1"/><rect x="16" y="8" width="1" height="1"/></g>
+  <rect x="12" y="11" width="7" height="1" class="c"/> <!-- Collar -->
+  <!-- Bubble effect -->
+  <g class="b"> <rect x="16" y="9" width="1" height="1"/></g>
+  <!-- Bowl remains on the floor -->
+  <rect x="18" y="18" width="8" height="4" class="b"/> <rect x="18" y="18" width="8" height="3" class="s"/> <rect x="19" y="19" width="6" height="2" class="b"/>
+</svg>

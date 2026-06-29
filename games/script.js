@@ -7,4 +7,7 @@ function opengame(game) {
     if (game === 'math fight') {
         window.location.href = "mathfight/"
     }
+    if (game === 'virtualpetgame') {
+        window.location.href = "virtualpetgame/"
+    }
 }

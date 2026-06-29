@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="crispEdges">
+  <style> .w1 {fill:#808080} .f1 {fill:#664422} .b1 {fill:#ffffff} .s1 {fill:#00ffff} </style>
+  <!-- Walls (Isometric Grey) -->
+  <path d="M0 6 L12 0 L24 6 L12 12 Z" class="w1"/> <rect x="0" y="6" width="12" height="12" class="w1"/> <rect x="12" y="6" width="12" height="12" class="w1"/>
+  <!-- Floor (Wood Brown) -->
+  <path d="M0 18 L12 12 L24 18 L12 24 Z" class="f1"/>
+  <!-- Bed -->
+  <rect x="14" y="14" width="8" height="6" class="f1"/> <path d="M14 14 L18 12 L22 14 L18 16 Z" class="f1"/> <rect x="15" y="15" width="6" height="4" class="b1"/>
+  <!-- Window (Isometric) -->
+  <rect x="2" y="2" width="6" height="6" class="s1"/> <path d="M2 2 L5 0 L8 2 L5 4 Z" class="s1"/>
+</svg>
