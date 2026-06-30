@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="crispEdges">
-  <style> .b {fill:#00ffff} .s {fill:#ffffff} </style>
-  <rect x="3" y="11" width="18" height="8" class="b"/> <rect x="3" y="11" width="18" height="6" class="s"/> <rect x="5" y="13" width="14" height="4" class="b"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">
+<path d="M0 0 C84.48 0 168.96 0 256 0 C256 42.24 256 84.48 256 128 C171.52 128 87.04 128 0 128 C0 85.76 0 43.52 0 0 Z " fill="#00FFE9" transform="translate(352,544)"/>
+<path d="M0 0 C10.56 0 21.12 0 32 0 C32 31.68 32 63.36 32 96 C95.36 96 158.72 96 224 96 C224 64.32 224 32.64 224 0 C234.56 0 245.12 0 256 0 C256 42.24 256 84.48 256 128 C171.52 128 87.04 128 0 128 C0 85.76 0 43.52 0 0 Z " fill="#FF0000" transform="translate(352,544)"/>
 </svg>

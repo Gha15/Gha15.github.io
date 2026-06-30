@@ -1,11 +1,173 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="crispEdges">
-  <style> .w1 {fill:#808080} .f1 {fill:#664422} .b1 {fill:#ffffff} .s1 {fill:#00ffff} </style>
-  <!-- Walls (Isometric Grey) -->
-  <path d="M0 6 L12 0 L24 6 L12 12 Z" class="w1"/> <rect x="0" y="6" width="12" height="12" class="w1"/> <rect x="12" y="6" width="12" height="12" class="w1"/>
-  <!-- Floor (Wood Brown) -->
-  <path d="M0 18 L12 12 L24 18 L12 24 Z" class="f1"/>
-  <!-- Bed -->
-  <rect x="14" y="14" width="8" height="6" class="f1"/> <path d="M14 14 L18 12 L22 14 L18 16 Z" class="f1"/> <rect x="15" y="15" width="6" height="4" class="b1"/>
-  <!-- Window (Isometric) -->
-  <rect x="2" y="2" width="6" height="6" class="s1"/> <path d="M2 2 L5 0 L8 2 L5 4 Z" class="s1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%" style="image-rendering: pixelated; shape-rendering: crispEdges;">
+  <defs>
+    <!-- Palettes & Patterns -->
+    <style>.bg-dark { fill: #0a1128; }
+      .bg-mid { fill: #1c2d5a; }
+      .bg-light { fill: #2c4a87; }
+      .wall-shadow { fill: #131f42; }
+      .floor-base { fill: #1e293b; }
+      .floor-lines { fill: #0f172a; }
+      .furniture-dark { fill: #103463; }
+      .furniture-mid { fill: #1b4985; }
+      .furniture-light { fill: #2e6db8; }
+      .furniture-accent { fill: #63a3f2; }
+      .furniture-hi { fill: #9ec9ff; }
+      .mat-dark { fill: #0b4f6c; }
+      .mat-mid { fill: #01baef; }
+      .mat-light { fill: #fbfbff; }
+      .yellow-lamp { fill: #f4d068; }
+      .yellow-glow { fill: rgba(244, 208, 104, 0.15); }
+      .window-glow { fill: #4877c2; }
+      .poster-red { fill: #ff595e; }
+      .poster-green { fill: #8ac926; }</style>
+  </defs>
+  <!-- BACKGROUND WALLS -->
+  <rect class="bg-mid" width="256" height="192"/>
+  <!-- Wall Perspective Grid Lines (Pixel Style) -->
+  <rect class="bg-dark" x="0" y="40" width="256" height="4"/>
+  <rect class="bg-dark" x="0" y="110" width="256" height="4"/>
+  <rect class="bg-light" x="64" y="0" width="4" height="192"/>
+  <rect class="bg-light" x="192" y="0" width="4" height="192"/>
+  <!-- Left Wall Side Shadow -->
+  <rect class="wall-shadow" x="0" y="0" width="24" height="192"/>
+  <!-- Virtual Pet Status HUD -->
+  <rect class="furniture-dark" x="26" y="12" width="62" height="18"/>
+  <rect class="furniture-mid" x="28" y="14" width="58" height="14"/>
+  <rect class="mat-dark" x="32" y="18" width="12" height="3"/>
+  <rect class="poster-green" x="46" y="18" width="22" height="3"/>
+  <rect class="poster-red" x="32" y="22" width="10" height="2"/>
+  <rect class="furniture-accent" x="44" y="22" width="26" height="2"/>
+  <rect class="furniture-hi" x="72" y="18" width="4" height="4"/>
+  <!-- FLOOR -->
+  <rect class="floor-base" x="0" y="192" width="256" height="64"/>
+  <!-- Floor Grid (Pixel Tiles) -->
+  <rect class="floor-lines" x="0" y="192" width="256" height="4"/>
+  <rect class="floor-lines" x="0" y="212" width="256" height="4"/>
+  <rect class="floor-lines" x="0" y="232" width="256" height="4"/>
+  <rect class="floor-lines" x="0" y="252" width="256" height="4"/>
+  <rect class="floor-lines" x="32" y="192" width="4" height="64"/>
+  <rect class="floor-lines" x="80" y="192" width="4" height="64"/>
+  <rect class="floor-lines" x="128" y="192" width="4" height="64"/>
+  <rect class="floor-lines" x="176" y="192" width="4" height="64"/>
+  <rect class="floor-lines" x="224" y="192" width="4" height="64"/>
+  <!-- WINDOW (Night view) -->
+  <rect class="bg-dark" x="96" y="24" width="64" height="56"/>
+  <rect class="window-glow" x="100" y="28" width="24" height="22"/>
+  <rect class="window-glow" x="132" y="28" width="24" height="22"/>
+  <rect class="window-glow" x="100" y="54" width="24" height="22"/>
+  <rect class="window-glow" x="132" y="54" width="24" height="22"/>
+  <!-- Pixel Stars -->
+  <rect class="mat-light" x="112" y="36" width="4" height="4"/>
+  <rect class="mat-light" x="148" y="44" width="4" height="4"/>
+  <rect class="mat-light" x="120" y="62" width="2" height="2"/>
+  <!-- Window Frame Accent -->
+  <rect class="furniture-dark" x="96" y="20" width="64" height="4"/>
+  <rect class="furniture-dark" x="96" y="76" width="64" height="4"/>
+  <!-- POSTERS -->
+  <!-- Left Side: Game Controller Poster -->
+  <rect class="bg-dark" x="36" y="32" width="24" height="32"/>
+  <rect class="mat-light" x="38" y="34" width="20" height="28"/>
+  <rect class="furniture-mid" x="42" y="44" width="12" height="6"/>
+  <rect class="poster-red" x="48" y="46" width="4" height="2"/>
+  <!-- Right Side: Anime/Mecha Poster -->
+  <rect class="bg-dark" x="196" y="32" width="28" height="36"/>
+  <rect class="furniture-light" x="198" y="34" width="24" height="32"/>
+  <rect class="poster-green" x="204" y="40" width="12" height="12"/>
+  <rect class="mat-light" x="208" y="42" width="4" height="4"/>
+  <!-- PIXEL RUG (Center Floor) -->
+  <rect class="mat-dark" x="64" y="208" width="128" height="36"/>
+  <rect class="mat-mid" x="68" y="212" width="120" height="28"/>
+  <rect class="mat-light" x="76" y="216" width="104" height="20"/>
+  <rect class="mat-dark" x="96" y="222" width="64" height="8"/>
+  <!-- Virtual Pet: Robot Pup -->
+  <rect class="furniture-dark" x="112" y="216" width="32" height="18"/>
+  <rect class="furniture-mid" x="114" y="218" width="28" height="14"/>
+  <rect class="furniture-accent" x="118" y="222" width="20" height="6"/>
+  <rect class="mat-light" x="120" y="220" width="4" height="4"/>
+  <rect class="mat-light" x="130" y="220" width="4" height="4"/>
+  <rect class="furniture-dark" x="124" y="226" width="8" height="2"/>
+  <rect class="poster-green" x="122" y="229" width="12" height="2"/>
+  <rect class="furniture-dark" x="110" y="214" width="5" height="6"/>
+  <rect class="furniture-dark" x="141" y="214" width="5" height="6"/>
+  <rect class="furniture-dark" x="118" y="234" width="4" height="6"/>
+  <rect class="furniture-dark" x="128" y="234" width="4" height="6"/>
+  <rect class="furniture-dark" x="138" y="234" width="4" height="6"/>
+  <rect class="mat-mid" x="144" y="224" width="4" height="4"/>
+  <rect class="poster-green" x="146" y="226" width="4" height="2"/>
+  <!-- Food Bowl -->
+  <rect class="bg-dark" x="82" y="230" width="20" height="8"/>
+  <rect class="furniture-light" x="86" y="232" width="12" height="4"/>
+  <rect class="poster-green" x="90" y="231" width="4" height="2"/>
+  <!-- Toy Ball -->
+  <rect class="furniture-accent" x="170" y="228" width="10" height="10"/>
+  <rect class="furniture-hi" x="172" y="230" width="2" height="2"/>
+  <rect class="furniture-hi" x="176" y="234" width="2" height="2"/>
+  <!-- GAMING DESK SETUP (Left Side) -->
+  <!-- Desk Base -->
+  <rect class="furniture-dark" x="16" y="140" width="64" height="6"/>
+  <rect class="furniture-dark" x="20" y="146" width="8" height="50"/>
+  <rect class="furniture-dark" x="68" y="146" width="8" height="50"/>
+  <rect class="furniture-mid" x="18" y="136" width="60" height="4"/>
+  <!-- Computer Monitor -->
+  <rect class="furniture-dark" x="32" y="108" width="32" height="22"/>
+  <rect class="furniture-accent" x="34" y="110" width="28" height="18"/>
+  <!-- Screen Content (Virtual Pet HUD) -->
+  <rect class="furniture-mid" x="38" y="114" width="8" height="8"/>
+  <rect class="mat-light" x="40" y="116" width="2" height="2"/>
+  <rect class="mat-light" x="44" y="116" width="2" height="2"/>
+  <rect class="poster-green" x="41" y="120" width="4" height="1"/>
+  <rect class="poster-green" x="50" y="114" width="10" height="2"/>
+  <rect class="poster-red" x="50" y="118" width="10" height="2"/>
+  <rect class="furniture-hi" x="50" y="122" width="10" height="2"/>
+  <!-- Monitor Stand -->
+  <rect class="furniture-dark" x="44" y="130" width="8" height="6"/>
+  <!-- Keyboard & Mouse -->
+  <rect class="mat-light" x="36" y="134" width="16" height="2"/>
+  <rect class="poster-red" x="58" y="134" width="4" height="2"/>
+  <!-- PC Tower -->
+  <rect class="furniture-dark" x="20" y="152" width="12" height="24"/>
+  <rect class="furniture-accent" x="22" y="156" width="2" height="16"/>
+  <rect class="poster-green" x="28" y="156" width="2" height="2"/>
+  <!-- GAMING CHAIR -->
+  <rect class="furniture-dark" x="40" y="150" width="16" height="32"/>
+  <rect class="mat-dark" x="36" y="156" width="24" height="16"/>
+  <rect class="furniture-mid" x="38" y="158" width="20" height="12"/>
+  <!-- Chair Base Stem -->
+  <rect class="bg-dark" x="46" y="182" width="4" height="14"/>
+  <rect class="bg-dark" x="40" y="196" width="16" height="4"/>
+  <!-- THE BED (Right Side) -->
+  <!-- Bed Frame base -->
+  <rect class="furniture-dark" x="168" y="160" width="76" height="40"/>
+  <rect class="furniture-mid" x="164" y="156" width="8" height="44"/>
+  <!-- Mattress / Blue Blanket -->
+  <rect class="furniture-light" x="172" y="152" width="72" height="14"/>
+  <rect class="furniture-accent" x="184" y="148" width="60" height="16"/>
+  <!-- Pillow -->
+  <rect class="mat-light" x="170" y="146" width="16" height="10"/>
+  <rect class="mat-mid" x="172" y="148" width="12" height="8"/>
+  <!-- NIGHTSTAND & LAMP -->
+  <rect class="furniture-dark" x="136" y="160" width="24" height="36"/>
+  <rect class="furniture-mid" x="138" y="162" width="20" height="14"/>
+  <!-- Drawers -->
+  <rect class="furniture-mid" x="138" y="180" width="20" height="14"/>
+  <rect class="furniture-hi" x="146" y="166" width="4" height="4"/>
+  <rect class="furniture-hi" x="146" y="184" width="4" height="4"/>
+  <!-- Pixel Lamp -->
+  <rect class="furniture-dark" x="146" y="150" width="4" height="10"/>
+  <polygon class="yellow-lamp" points="140,150 156,150 152,140 144,140"/>
+  <!-- Lamp Light Glow FX -->
+  <polygon class="yellow-glow" points="148,140 120,200 180,200"/>
+  <!-- WALL SHELF & COLLECTIBLES (Top Right) -->
+  <rect class="furniture-dark" x="176" y="90" width="56" height="4"/>
+  <!-- Books / Trophies on Shelf -->
+  <rect class="poster-red" x="184" y="78" width="4" height="12"/>
+  <rect class="mat-mid" x="190" y="80" width="4" height="10"/>
+  <rect class="poster-green" x="196" y="82" width="6" height="8"/>
+  <!-- Golden Trophy Cube -->
+  <rect class="yellow-lamp" x="212" y="78" width="10" height="12"/>
+  <rect class="mat-light" x="214" y="80" width="2" height="2"/>
+  <!-- CEILING LIGHT -->
+  <rect class="furniture-dark" x="124" y="0" width="8" height="10"/>
+  <rect class="mat-light" x="120" y="10" width="16" height="6"/>
+  <rect class="yellow-lamp" x="124" y="12" width="8" height="4"/>
 </svg>
