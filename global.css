@@ -7,31 +7,30 @@
 
 /* ── Design Tokens ──────────────────────────────────────── */
 :root {
-    --bg:            #020712;
-    --bg-2:          #0f172a;
-    --bg-card:       rgba(15, 23, 42, 0.76);
-    --accent:        #818cf8;
-    --accent-bright: #a5b4fc;
-    --accent-dim:    rgba(129, 140, 248, 0.18);
-    --accent-2:      #fb923c;
+    --bg:            #030d1e;
+    --bg-2:          #0a1c3a;
+    --bg-card:       rgba(14, 44, 110, 0.80);
+    --accent:        #3b82f6;
+    --accent-bright: #60a5fa;
+    --accent-dim:    rgba(59, 130, 246, 0.18);
+    --accent-2:      #f59e0b;
     --accent-3:      #38bdf8;
     --accent-green:  #4ade80;
     --text:          #f8fafc;
-    --text-muted:    #94a3b8;
-    --text-faint:    #64748b;
-    --border:        rgba(129, 140, 248, 0.28);
-    --border-hover:  rgba(129, 140, 248, 0.55);
+    --text-muted:    #93c5fd;
+    --text-faint:    #6b9fd4;
+    --border:        rgba(96, 165, 250, 0.28);
+    --border-hover:  rgba(96, 165, 250, 0.55);
     --radius-sm:     10px;
     --radius:        16px;
     --radius-lg:     22px;
-    --shadow-card:   0 8px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
-    --shadow-btn:    0 4px 18px rgba(99, 102, 241, 0.35);
+    --shadow-card:   0 12px 48px rgba(0,0,0,0.62), inset 0 1px 0 rgba(255,255,255,0.08);
+    --shadow-btn:    0 4px 18px rgba(59, 130, 246, 0.45);
     --font-head:     'Vibur', cursive;
     --font-body:     'Segoe UI', system-ui, -apple-system, sans-serif;
     --transition:    0.22s ease;
 
-    /* Merged Challenge variables here safely without overwriting main theme tokens */
-    --card-bg:       #1e293b;
+    --card-bg:       rgba(14, 44, 110, 0.82);
     --accent-neon:   #38bdf8;
     --accent-red:    #f87171;
 }
@@ -47,8 +46,9 @@ html {
 
 body {
     background:
-        radial-gradient(ellipse at 15% 10%, rgba(30, 58, 138, 0.32) 0%, transparent 50%),
-        radial-gradient(ellipse at 88% 82%, rgba(124, 58, 237, 0.20) 0%, transparent 45%),
+        radial-gradient(ellipse at 18%  8%, rgba(26,  86, 219, 0.40) 0%, transparent 52%),
+        radial-gradient(ellipse at 85% 85%, rgba(14,  50, 160, 0.32) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 45%, rgba(10,  30,  80, 0.24) 0%, transparent 72%),
         var(--bg);
     overflow-y: auto !important;
     overflow-x: hidden !important;
@@ -76,18 +76,19 @@ h1 { font-size: clamp(1.9rem, 4vw, 2.8rem); }
 h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); }
 h3 { font-size: clamp(1.2rem, 2.5vw, 1.5rem); color: var(--accent-bright); }
 p  { color: var(--text-muted); line-height: 1.7; }
-a  { color: var(--accent-3); text-decoration: none; transition: color var(--transition); }
-a:hover { color: #7dd3fc; text-decoration: underline; }
-strong { color: var(--accent-bright); }
+a  { color: var(--accent-bright); text-decoration: none; transition: color var(--transition); }
+a:hover { color: #93c5fd; text-decoration: underline; }
+strong { color: #f59e0b; }
 
 /* ── Glass Card ─────────────────────────────────────────── */
 .card, .glass-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: rgba(12, 40, 112, 0.75);
+    border: 1px solid rgba(96, 165, 250, 0.22);
+    border-top: 3px solid #f59e0b;
     border-radius: var(--radius-lg);
     padding: 28px 32px;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow-card);
     position: relative;
     overflow: hidden;
@@ -98,7 +99,7 @@ strong { color: var(--accent-bright); }
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgba(129,140,248,0.15), rgba(129,140,248,0.05));
+    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(14,44,110,0.04));
     pointer-events: none;
 }
 
@@ -120,17 +121,17 @@ strong { color: var(--accent-bright); }
     white-space: nowrap;
 }
 .btn-primary {
-    background: linear-gradient(135deg, #4338ca, #6366f1, #818cf8);
+    background: linear-gradient(135deg, #1a56db, #2563eb, #3b82f6);
     color: #fff;
-    border-color: rgba(129,140,248,0.5);
+    border-color: rgba(59,130,246,0.5);
     box-shadow: var(--shadow-btn);
     overflow: hidden;
     position: relative;
 }
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(99,102,241,0.5);
-    filter: brightness(1.1);
+    box-shadow: 0 8px 28px rgba(59,130,246,0.55);
+    filter: brightness(1.12);
     text-decoration: none;
     color: #fff;
 }
@@ -213,8 +214,8 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
 /* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: #0a0f20; }
-::-webkit-scrollbar-thumb { background: rgba(129,140,248,0.35); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(129,140,248,0.60); }
+::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.40); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(96,165,250,0.65); }
 
 /* ── Utilities ──────────────────────────────────────────── */
 .text-accent   { color: var(--accent); }

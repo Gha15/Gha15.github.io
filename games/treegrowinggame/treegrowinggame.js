@@ -62,7 +62,7 @@ function customAlert(message) {
     alertBox.style.zIndex = '1000';
     alertBox.innerHTML = `
         <p>${message}</p>
-        <button class="button" onclick="document.body.removeChild(this.parentElement)">OK</button>
+        <button onclick="document.body.removeChild(this.parentElement)">OK</button>
     `;
     document.body.appendChild(alertBox);
 }
@@ -138,7 +138,7 @@ if (actionID === '000' && actionName === 'tree-view' && !localStorage.getItem('t
         <p>Grow a tree and play minigames to get water buckets(1 bucket = 3 games) to water your tree and grow it! if you lose your tree(do not water it for 24 hours), you will have to play 5 minigames to get a new seed(btw you start the game with a seed but no water buckets)</p>
         <h2>total water buckets left: ${localStorage.getItem('waterBuckets') || 0}</h2>
         <h2>total seeds left: ${localStorage.getItem('seeds') || 0}</h2>
-        <button class="button" onclick="setActionID('001'); setActionName('plant-tree'); location.reload();">Plant Tree</button>
+        <button  onclick="setActionID('001'); setActionName('plant-tree'); location.reload();">Plant Tree</button>
     `;
 }
 
@@ -148,7 +148,7 @@ if (actionID === '000' && actionName === 'tree-view' && localStorage.getItem('tr
         <h2>total water buckets left: ${localStorage.getItem('waterBuckets') || 0}</h2>
         <h2>total seeds left: ${localStorage.getItem('seeds') || 0}</h2>
         <p>your tree is planted! water it to grow it!</p>
-        <button class="button" onclick="setActionID('002'); setActionName('water-tree'); location.reload();">Water Tree</button>
+        <button  onclick="setActionID('002'); setActionName('water-tree'); location.reload();">Water Tree</button>
     `;
 }
 
@@ -156,7 +156,7 @@ if (actionID === '001' && actionName === 'plant-tree'){
     document.body.innerHTML = `
         <h1>plant your tree!</h1>
         <p>you have ${localStorage.getItem('seeds')} seeds left</p>
-        <button class="button" onclick="plantTree()">Plant Tree</button>
+        <button  onclick="plantTree()">Plant Tree</button>
     `;
 }
 
@@ -165,13 +165,13 @@ if (actionID === '002' && actionName === 'water-tree' && localStorage.getItem('t
         document.body.innerHTML = `
             <h1>water your tree!</h1>
             <p>you have ${localStorage.getItem('waterBuckets')} water buckets left</p>
-            <button class="button" onclick="waterTree()">Water Tree</button>
+            <button  onclick="waterTree()">Water Tree</button>
         `;
     } else {
         document.body.innerHTML = `
             <h1>you don't have any water buckets left!</h1>
             <p>play minigames to get water buckets(1 bucket = 3 games)</p>
-            <button class="button" onclick="setActionID('003'); setActionName('get-water-minigames'); location.reload();">Play to get water buckets</button>
+            <button  onclick="setActionID('003'); setActionName('get-water-minigames'); location.reload();">Play to get water buckets</button>
         `;
     }
 }
@@ -180,28 +180,31 @@ if (actionID === '003' && actionName === 'water-tree-minigames' && localStorage.
     document.body.innerHTML = `
         <h1>play minigames to get water buckets!</h1>
         <p>play 3 minigames to get 1 water bucket!</p>
-        <button class="button" onclick="setActionID('003.5'); setActionName('minigames'); location.reload();">Play Minigames in order</button>
+        <button  onclick="setActionID('003.5'); setActionName('minigames'); location.reload();">Play Minigames</button>
     `;
 }
-const randomminnigame = Math.floor(Math.random() * 10);
+let randomminnigame1 = Math.floor(Math.random() * 10);
+let randomminnigame2 = Math.floor(Math.random() * 10);
+if (randomminnigame1 === randomminnigame2) {
+    randomminnigame2 = Math.floor(Math.random() * 10);
+}
 
-if (actionID === '003.5' && actionName === 'minigames' && localStorage.getItem('tree-planted') && localStorage.getItem('tree-watered') == 'false') {
+if (actionID === '003.5' && actionName === 'minigames' && localStorage.getItem('tree-planted')) {
     document.body.innerHTML = `
         <h1>play minigames to get water buckets!</h1>
         <p>play 3 minigames to get 1 water bucket!</p>
-        <style>
-            body {
-                overflow-y: scroll !important;
-            }
-            .minigame-content {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                background-color: #000000;
-            }
-        </style>
+        <h2>minigame 1</h2>
         <div class="minigame-content">
-            <iframe src="/games/minigames/minigame${randomminnigame}.html" width="800" height="600" frameborder="0"></iframe>
+            <iframe src="/games/minigames/minigame${randomminnigame1}.html" width="800" height="600" frameborder="0"></iframe>
         </div>
+        <h2>minigame 2</h2>
+        <div class="minigame-content">
+            <iframe src="/games/minigames/minigame${randomminnigame2}.html" width="800" height="600" frameborder="0"></iframe>
+        </div>
+        <h2>minigame 3</h2>
+        <div class="minigame-content">
+            <iframe src="/games/minigames/minigame${Math.floor(Math.random() * 10)}.html" width="800" height="600" frameborder="0"></iframe>
+        </div>
+        <button onclick="setActionID('000'); setActionName('tree-view'); location.reload();">Back home</button>
         `;
 }

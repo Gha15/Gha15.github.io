@@ -135,9 +135,134 @@ function initTeleportScroll() {
   }, { passive: true });
 }
 
+// ── HAMBURGER MENU (TOP BAR DRAWER) ────────────────────────
+function initMenu() {
+  const menuContainer = document.querySelector('.menu-container');
+  const navMenu = document.querySelector('.nav-menu');
+  if (!menuContainer || !navMenu) return;
+
+  const navLinks = Array.from(navMenu.querySelectorAll('.nav-btn, .secret-dot'));
+
+  function setMenuA11yState(isOpen) {
+    menuContainer.setAttribute('aria-expanded', String(isOpen));
+    navMenu.setAttribute('aria-hidden', String(!isOpen));
+    navLinks.forEach((link) => {
+      link.tabIndex = isOpen ? 0 : -1;
+    });
+  }
+
+  function syncTopBarPosition() {
+    const triggerRect = menuContainer.getBoundingClientRect();
+    const top = Math.max(8, Math.round(triggerRect.top));
+    const left = Math.round(triggerRect.right + 8);
+
+    navMenu.style.top = `${top}px`;
+    navMenu.style.left = `${left}px`;
+    navMenu.style.right = '12px';
+  }
+
+  function openMenu() {
+    syncTopBarPosition();
+    menuContainer.classList.add('active');
+    navMenu.classList.add('active');
+    setMenuA11yState(true);
+  }
+
+  function toggleMenu() {
+    const isOpen = menuContainer.classList.contains('active');
+    if (isOpen) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  }
+
+  function closeMenu() {
+    menuContainer.classList.remove('active');
+    navMenu.classList.remove('active');
+    setMenuA11yState(false);
+  }
+
+  setMenuA11yState(false);
+
+  menuContainer.addEventListener('click', toggleMenu);
+
+  // Keyboard support since the hamburger is a <div role="button">
+  menuContainer.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleMenu();
+    }
+  });
+
+  // Keep the drawer anchored to the menu button if viewport changes.
+  window.addEventListener('resize', () => {
+    if (menuContainer.classList.contains('active')) {
+      syncTopBarPosition();
+    }
+  });
+
+  // Tapping a link closes the drawer before navigating away.
+  navMenu.querySelectorAll('.nav-btn, .secret-dot').forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
+
+  // Clicking outside closes the top bar drawer.
+  document.addEventListener('click', (e) => {
+    if (!menuContainer.classList.contains('active')) return;
+    if (menuContainer.contains(e.target) || navMenu.contains(e.target)) return;
+    closeMenu();
+  });
+
+  // Escape closes it too.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
+}
+
+// ── SCROLL BUTTON: flips between ⬇ and ⬆ depending on the slide ──
+function initScrollButton() {
+  const scrollBtn = document.getElementById('scroll-btn');
+  const arrowEl = document.getElementById('scroll-arrow');
+  const textEl = document.getElementById('scroll-text');
+  const sections = document.querySelectorAll('.screen-section');
+  if (!scrollBtn || !arrowEl || !textEl || !sections.length) return;
+
+  function currentSlideIndex() {
+    const slideHeight = window.innerHeight;
+    return Math.round(window.scrollY / slideHeight);
+  }
+
+  function isOnLastSlide() {
+    return currentSlideIndex() >= sections.length - 1;
+  }
+
+  function updateHint() {
+    if (isOnLastSlide()) {
+      arrowEl.textContent = '⬆';
+      textEl.textContent = 'scroll up for home';
+    } else {
+      arrowEl.textContent = '⬇';
+      textEl.textContent = 'scroll down for live stats';
+    }
+  }
+
+  scrollBtn.addEventListener('click', () => {
+    const slideHeight = window.innerHeight;
+    const targetIndex = isOnLastSlide() ? 0 : Math.min(currentSlideIndex() + 1, sections.length - 1);
+    window.scrollTo({ top: targetIndex * slideHeight, behavior: 'smooth' });
+  });
+
+  window.addEventListener('scroll', updateHint, { passive: true });
+  window.addEventListener('resize', updateHint);
+  updateHint();
+}
+
 // Wrap initialization to run safely after DOM loads
 document.addEventListener('DOMContentLoaded', () => {
   trackView();
   listenToStats();
   initTeleportScroll();
+  // initMenu is handled by nav.js (injected globally)
+  initScrollButton();
 });
