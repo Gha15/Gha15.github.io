@@ -10,4 +10,7 @@ function opengame(game) {
     if (game === 'virtualpetgame') {
         window.location.href = "virtualpetgame/"
     }
+    if (game==='tree growing game') {
+        window.location.href = "treegrowinggame/"
+    }
 }
