@@ -380,7 +380,7 @@
       panes.forEach(function(p){ root.appendChild(p); });
 
       /* lessons */
-      var lessonKeys = Object.keys(lessonsData).filter(function(k){ return lessonsData[k] && lessonsData[k].createdBy === username; });
+      var lessonKeys = Object.keys(lessonsData).filter(function(k){ return lessonsData[k] && normalizeUser(lessonsData[k].createdBy) === username; });
       cachedLessonCount = lessonKeys.length;
       buildStats(lessonKeys.length);
       panes[0].innerHTML='';
@@ -393,7 +393,7 @@
         c.appendChild(ct); c.appendChild(cm); panes[0].appendChild(c);
       });
 
-      var ideaKeys = Object.keys(ideasData).filter(function(k){ return ideasData[k] && ideasData[k].createdBy === username; });
+      var ideaKeys = Object.keys(ideasData).filter(function(k){ return ideasData[k] && normalizeUser(ideasData[k].createdBy) === username; });
       panes[1].innerHTML='';
       if (!ideaKeys.length && !profile.ideasText) {
         panes[1].innerHTML = '<div class="prof-empty">No authored ideas yet.</div>';
@@ -409,7 +409,7 @@
         panes[1].innerHTML += '<div class="prof-card"><div class="prof-card-title">Pinned ideas note</div><div class="prof-card-meta">' + escapeHtml(profile.ideasText) + '</div></div>';
       }
 
-      var memeKeys = Object.keys(memesData).filter(function(k){ return memesData[k] && memesData[k].postedBy === username; });
+      var memeKeys = Object.keys(memesData).filter(function(k){ return memesData[k] && normalizeUser(memesData[k].postedBy) === username; });
       panes[2].innerHTML='';
       if (!memeKeys.length && !profile.memesText) {
         panes[2].innerHTML = '<div class="prof-empty">No authored jokes or memes yet.</div>';

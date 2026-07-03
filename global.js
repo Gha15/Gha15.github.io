@@ -20,8 +20,13 @@ const database = getDatabase(app);
 function getActiveProfileUser() {
     const sessionUser = sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user');
     if (sessionUser) return sessionUser;
-    const joined = localStorage.getItem('mx_join_username');
-    return joined || 'guest';
+    // Check joined users stored by nav.js (key: mx_joined)
+    try {
+        const joined = JSON.parse(localStorage.getItem('mx_joined') || '{}');
+        const keys = Object.keys(joined);
+        if (keys.length) return keys[0]; // return first joined username as fallback
+    } catch(e) {}
+    return 'guest';
 }
 
 // --- Core Actions ---

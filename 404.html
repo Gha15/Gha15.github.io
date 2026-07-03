@@ -12,9 +12,12 @@
     <script>
         (function () {
             var p = window.location.pathname;
-            var m = p.match(/^\/users\/([a-z0-9_]+)\/?$/i);
+            // Match /users/<username> — allow letters, numbers, underscores, hyphens
+            var m = p.match(/^\/users\/([a-z0-9_-]+)\/?$/i);
             if (m) {
+                document.body.style.display = 'none'; // hide 404 content instantly
                 window.location.replace('/users/index.html?u=' + encodeURIComponent(m[1].toLowerCase()));
+                return;
             }
         }());
     </script>

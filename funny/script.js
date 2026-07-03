@@ -62,10 +62,8 @@ function getActiveUser() {
 		return normalizeFunnyUser(cachedGuest);
 	}
 
-	const prompted = prompt("Pick a meme nickname:");
-	const finalName = normalizeFunnyUser(prompted || "guest");
-	localStorage.setItem("matix_meme_guest", finalName);
-	return finalName;
+	// Don't auto-prompt — let user choose to post anonymously or sign in via nav
+	return "guest";
 }
 
 function saveUsername(name) {
