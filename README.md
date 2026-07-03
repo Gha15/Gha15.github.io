@@ -14,7 +14,7 @@ Welcome to the official repository for **[Matix The Math Club](https://matixthem
 ---
 
 ## 🚀 Live Site
-The site is active and deployed at: **[matixthemathclub.com](https://matixthemathclub.com)**
+The site is active and deployed at: **[matixthemathclub.com](https://matixthemathclub.com)** but the site deploy after build does not always work so also check the **[vercel version of site](https://gha15-github-io.vercel.app/)**
 
 ---
 
