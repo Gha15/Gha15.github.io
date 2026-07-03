@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,168 +9,582 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="/nav.js" defer></script>
   <style>
-    .ux-wrap{max-width:860px;margin:0 auto;padding:52px 22px 90px}
-    .ux-title{font-family:"Trebuchet MS",Arial,sans-serif;font-size:1.75rem;font-weight:900;color:#f0f8ff;margin-bottom:6px}
-    .ux-sub{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.88rem;color:#475569;margin-bottom:28px}
-    .ux-search{width:100%;max-width:400px;background:rgba(2,5,18,.92);border:1px solid rgba(96,165,250,.20);border-radius:8px;color:#f8fafc;padding:10px 14px;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.9rem;outline:none;margin-bottom:28px;box-sizing:border-box;display:block;transition:border-color .13s}
-    .ux-search:focus{border-color:rgba(96,165,250,.5)}
-    .ux-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-    .ux-card{background:rgba(12,35,100,.75);border:1px solid rgba(96,165,250,.18);border-top:3px solid #f59e0b;border-radius:12px;padding:20px 18px;text-decoration:none;transition:background .15s,box-shadow .15s;display:flex;flex-direction:column;gap:5px;cursor:pointer}
-    .ux-card:hover{background:rgba(20,50,140,.85);box-shadow:0 8px 28px rgba(0,0,0,.5);text-decoration:none}
-    .ux-avatar{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#1e3a8a,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:#93c5fd;font-family:"Trebuchet MS",Arial,sans-serif;margin-bottom:6px;flex-shrink:0}
-    .ux-uname{font-family:"Trebuchet MS",Arial,sans-serif;font-size:1rem;font-weight:700;color:#f0f8ff}
-    .ux-role{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.71rem;color:#f59e0b}
-    .ux-role.guest{color:#64748b}
-    .ux-loading{text-align:center;padding:44px;font-family:"Trebuchet MS",Arial,sans-serif;color:#475569;font-size:.88rem}
+    .ux-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 52px 22px 90px
+    }
+
+    .ux-title {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: 1.75rem;
+      font-weight: 900;
+      color: #f0f8ff;
+      margin-bottom: 6px
+    }
+
+    .ux-sub {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .88rem;
+      color: #475569;
+      margin-bottom: 28px
+    }
+
+    .ux-search {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(2, 5, 18, .92);
+      border: 1px solid rgba(96, 165, 250, .20);
+      border-radius: 8px;
+      color: #f8fafc;
+      padding: 10px 14px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .9rem;
+      outline: none;
+      margin-bottom: 28px;
+      box-sizing: border-box;
+      display: block;
+      transition: border-color .13s
+    }
+
+    .ux-search:focus {
+      border-color: rgba(96, 165, 250, .5)
+    }
+
+    .ux-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px
+    }
+
+    .ux-card {
+      background: rgba(12, 35, 100, .75);
+      border: 1px solid rgba(96, 165, 250, .18);
+      border-top: 3px solid #f59e0b;
+      border-radius: 12px;
+      padding: 20px 18px;
+      text-decoration: none;
+      transition: background .15s, box-shadow .15s;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer
+    }
+
+    .ux-card:hover {
+      background: rgba(20, 50, 140, .85);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .5);
+      text-decoration: none
+    }
+
+    .ux-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #93c5fd;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      margin-bottom: 6px;
+      flex-shrink: 0
+    }
+
+    .ux-uname {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f0f8ff
+    }
+
+    .ux-role {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .71rem;
+      color: #f59e0b
+    }
+
+    .ux-role.guest {
+      color: #64748b
+    }
+
+    .ux-loading {
+      text-align: center;
+      padding: 44px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      color: #475569;
+      font-size: .88rem
+    }
+
     /* profile */
-    .prof-back{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.82rem;color:#3b82f6;margin-bottom:28px}
-    .prof-back:hover{color:#93c5fd;text-decoration:none}
-    .prof-header{display:flex;align-items:center;gap:22px;margin-bottom:28px;flex-wrap:wrap}
-    .prof-av{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#1e3a8a,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#93c5fd;font-family:"Trebuchet MS",Arial,sans-serif;flex-shrink:0;border:3px solid rgba(96,165,250,.3)}
-    .prof-info{flex:1;min-width:0}
-    .prof-name{font-family:"Trebuchet MS",Arial,sans-serif;font-size:1.65rem;font-weight:900;color:#f0f8ff}
-    .prof-badge{display:inline-block;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.72rem;padding:2px 10px;border-radius:20px;margin-top:5px}
-    .prof-badge.member{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);color:#f59e0b}
-    .prof-badge.user{background:rgba(100,116,139,.10);border:1px solid rgba(100,116,139,.25);color:#64748b}
-    .prof-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-    .prof-btn{height:32px;padding:0 14px;border-radius:7px;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:background .13s;text-decoration:none;display:inline-flex;align-items:center;background:none}
-    .prof-btn.follow{border-color:#10b981;color:#34d399}
-    .prof-btn.follow:hover{background:rgba(16,185,129,.18)}
-    .prof-btn.following{background:rgba(16,185,129,.18);border-color:#10b981;color:#34d399}
-    .prof-btn.msg{border-color:#3b82f6;color:#93c5fd}
-    .prof-btn.msg:hover{background:rgba(59,130,246,.18);text-decoration:none}
-    .prof-btn.edit{border-color:#f59e0b;color:#fbbf24}
-    .prof-btn.edit:hover{background:rgba(245,158,11,.18)}
-    .prof-btn.delete{border-color:#ef4444;color:#f87171}
-    .prof-btn.delete:hover{background:rgba(239,68,68,.18)}
-    .prof-stats{display:flex;gap:26px;margin-bottom:30px;flex-wrap:wrap}
-    .prof-stat{font-family:"Trebuchet MS",Arial,sans-serif}
-    .prof-stat-n{font-size:1.45rem;font-weight:700;color:#f0f8ff;display:block}
-    .prof-stat-l{font-size:.69rem;color:#475569}
-    .prof-bio{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.9rem;color:#93c5fd;line-height:1.6;margin-top:12px;max-width:620px}
-    .prof-panel{background:rgba(12,35,100,.72);border:1px solid rgba(96,165,250,.16);border-top:3px solid #f59e0b;border-radius:12px;padding:18px 18px 16px;margin:0 0 26px}
-    .prof-panel h3{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.95rem;font-weight:700;color:#f0f8ff;margin:0 0 12px}
-    .prof-field{display:block;width:100%;background:rgba(2,5,18,.92);border:1px solid rgba(96,165,250,.18);border-radius:8px;color:#f8fafc;padding:10px 12px;margin-bottom:10px;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.88rem;box-sizing:border-box;outline:none;transition:border-color .13s}
-    .prof-field:focus{border-color:rgba(96,165,250,.5)}
-    .prof-field.ta{min-height:88px;resize:vertical}
-    .prof-help{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.72rem;color:#64748b;margin:-2px 0 10px}
-    .prof-row{display:flex;gap:10px;flex-wrap:wrap}
-    .prof-note{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.75rem;color:#475569;margin-top:10px}
-    .prof-tabs{display:flex;border-bottom:1px solid rgba(96,165,250,.14);margin-bottom:22px;gap:0}
-    .prof-tab{padding:9px 18px;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.84rem;font-weight:600;color:#475569;cursor:pointer;border-bottom:2.5px solid transparent;transition:color .13s,border-bottom-color .13s;user-select:none}
-    .prof-tab.active{color:#f0f8ff;border-bottom-color:#f59e0b}
-    .prof-tab:hover{color:#93c5fd}
-    .prof-tab-pane{display:none}
-    .prof-tab-pane.active{display:block}
-    .prof-card{background:rgba(12,35,100,.75);border:1px solid rgba(96,165,250,.15);border-radius:10px;padding:16px 18px;margin-bottom:11px;transition:background .13s}
-    .prof-card:hover{background:rgba(18,46,130,.8)}
-    .prof-card-title{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.92rem;font-weight:700;color:#bfdbfe;margin-bottom:4px}
-    .prof-card-meta{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.70rem;color:#475569}
-    .prof-empty{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.84rem;color:#475569;padding:28px 0;text-align:center}
+    .prof-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .82rem;
+      color: #3b82f6;
+      margin-bottom: 28px
+    }
+
+    .prof-back:hover {
+      color: #93c5fd;
+      text-decoration: none
+    }
+
+    .prof-header {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      margin-bottom: 28px;
+      flex-wrap: wrap
+    }
+
+    .prof-av {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #93c5fd;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      flex-shrink: 0;
+      border: 3px solid rgba(96, 165, 250, .3)
+    }
+
+    .prof-info {
+      flex: 1;
+      min-width: 0
+    }
+
+    .prof-name {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: 1.65rem;
+      font-weight: 900;
+      color: #f0f8ff
+    }
+
+    .prof-badge {
+      display: inline-block;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .72rem;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-top: 5px
+    }
+
+    .prof-badge.member {
+      background: rgba(245, 158, 11, .12);
+      border: 1px solid rgba(245, 158, 11, .4);
+      color: #f59e0b
+    }
+
+    .prof-badge.user {
+      background: rgba(100, 116, 139, .10);
+      border: 1px solid rgba(100, 116, 139, .25);
+      color: #64748b
+    }
+
+    .prof-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap
+    }
+
+    .prof-btn {
+      height: 32px;
+      padding: 0 14px;
+      border-radius: 7px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid;
+      transition: background .13s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      background: none
+    }
+
+    .prof-btn.follow {
+      border-color: #10b981;
+      color: #34d399
+    }
+
+    .prof-btn.follow:hover {
+      background: rgba(16, 185, 129, .18)
+    }
+
+    .prof-btn.following {
+      background: rgba(16, 185, 129, .18);
+      border-color: #10b981;
+      color: #34d399
+    }
+
+    .prof-btn.msg {
+      border-color: #3b82f6;
+      color: #93c5fd
+    }
+
+    .prof-btn.msg:hover {
+      background: rgba(59, 130, 246, .18);
+      text-decoration: none
+    }
+
+    .prof-btn.edit {
+      border-color: #f59e0b;
+      color: #fbbf24
+    }
+
+    .prof-btn.edit:hover {
+      background: rgba(245, 158, 11, .18)
+    }
+
+    .prof-btn.delete {
+      border-color: #ef4444;
+      color: #f87171
+    }
+
+    .prof-btn.delete:hover {
+      background: rgba(239, 68, 68, .18)
+    }
+
+    .prof-stats {
+      display: flex;
+      gap: 26px;
+      margin-bottom: 30px;
+      flex-wrap: wrap
+    }
+
+    .prof-stat {
+      font-family: "Trebuchet MS", Arial, sans-serif
+    }
+
+    .prof-stat-n {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #f0f8ff;
+      display: block
+    }
+
+    .prof-stat-l {
+      font-size: .69rem;
+      color: #475569
+    }
+
+    .prof-bio {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .9rem;
+      color: #93c5fd;
+      line-height: 1.6;
+      margin-top: 12px;
+      max-width: 620px
+    }
+
+    .prof-panel {
+      background: rgba(12, 35, 100, .72);
+      border: 1px solid rgba(96, 165, 250, .16);
+      border-top: 3px solid #f59e0b;
+      border-radius: 12px;
+      padding: 18px 18px 16px;
+      margin: 0 0 26px
+    }
+
+    .prof-panel h3 {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .95rem;
+      font-weight: 700;
+      color: #f0f8ff;
+      margin: 0 0 12px
+    }
+
+    .prof-field {
+      display: block;
+      width: 100%;
+      background: rgba(2, 5, 18, .92);
+      border: 1px solid rgba(96, 165, 250, .18);
+      border-radius: 8px;
+      color: #f8fafc;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .88rem;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color .13s
+    }
+
+    .prof-field:focus {
+      border-color: rgba(96, 165, 250, .5)
+    }
+
+    .prof-field.ta {
+      min-height: 88px;
+      resize: vertical
+    }
+
+    .prof-help {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .72rem;
+      color: #64748b;
+      margin: -2px 0 10px
+    }
+
+    .prof-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .prof-note {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .75rem;
+      color: #475569;
+      margin-top: 10px
+    }
+
+    .prof-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(96, 165, 250, .14);
+      margin-bottom: 22px;
+      gap: 0
+    }
+
+    .prof-tab {
+      padding: 9px 18px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .84rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      border-bottom: 2.5px solid transparent;
+      transition: color .13s, border-bottom-color .13s;
+      user-select: none
+    }
+
+    .prof-tab.active {
+      color: #f0f8ff;
+      border-bottom-color: #f59e0b
+    }
+
+    .prof-tab:hover {
+      color: #93c5fd
+    }
+
+    .prof-tab-pane {
+      display: none
+    }
+
+    .prof-tab-pane.active {
+      display: block
+    }
+
+    .prof-card {
+      background: rgba(12, 35, 100, .75);
+      border: 1px solid rgba(96, 165, 250, .15);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 11px;
+      transition: background .13s
+    }
+
+    .prof-card:hover {
+      background: rgba(18, 46, 130, .8)
+    }
+
+    .prof-card-title {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .92rem;
+      font-weight: 700;
+      color: #bfdbfe;
+      margin-bottom: 4px
+    }
+
+    .prof-card-meta {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .70rem;
+      color: #475569
+    }
+
+    .prof-empty {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .84rem;
+      color: #475569;
+      padding: 28px 0;
+      text-align: center
+    }
+
+    /* Modern Crop Styles */
+    .crop-container {
+      display: none;
+      margin: 14px 0;
+      background: rgba(2, 5, 18, 0.95);
+      border: 1px dashed rgba(96, 165, 250, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .crop-viewport {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 12px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 50%;
+      border: 2px solid #f59e0b;
+      cursor: move;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.75);
+    }
+
+    .crop-viewport img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .crop-slider {
+      width: 100%;
+      max-width: 200px;
+      margin: 8px auto;
+      display: block;
+    }
+
+    .upload-label-btn {
+      display: inline-block;
+      padding: 8px 14px;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid #3b82f6;
+      border-radius: 6px;
+      color: #93c5fd;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .upload-label-btn:hover {
+      background: rgba(59, 130, 246, 0.4);
+    }
   </style>
 </head>
+
 <body>
   <div class="ux-wrap" id="ux-root">
     <div class="ux-loading">Loading...</div>
   </div>
   <script>
-    var VALID_MEMBERS = ['ghadi','dahlia','yara','jad','marwan','mak'];
+    var VALID_MEMBERS = ['ghadi', 'dahlia', 'yara', 'jad', 'marwan', 'mak'];
     var FB = 'https://matix-1d538-default-rtdb.firebaseio.com';
     var IDEAS_FB = 'https://matix-the-math-club-views-default-rtdb.firebaseio.com';
 
-    function getUser(){ return sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null; }
-    function initials(u){ return u ? u.slice(0,2).toUpperCase() : '??'; }
-    function isMember(u){ return VALID_MEMBERS.indexOf(u) > -1; }
-    function isAdmin(u){ return normalizeUser(u) === 'ghadi'; }
-    function normalizeUser(u){
+    function getUser() { return sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null; }
+    function initials(u) { return u ? u.slice(0, 2).toUpperCase() : '??'; }
+    function isMember(u) { return VALID_MEMBERS.indexOf(u) > -1; }
+    function isAdmin(u) { return normalizeUser(u) === 'ghadi'; }
+    function normalizeUser(u) {
       var clean = String(u || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
       if (clean === 'matix' || clean === 'ghadimatix') return 'ghadi';
       return clean;
     }
-    function getJoined(){ try{ return Object.keys(JSON.parse(localStorage.getItem('mx_joined')||'{}')); }catch(e){ return []; } }
-    function escapeHtml(value){ return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
-    function getProfile(username){
+    var getJoined = function () { try { return Object.keys(JSON.parse(localStorage.getItem('mx_joined') || '{}')); } catch (e) { return []; } }
+    function escapeHtml(value) { return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+
+    function getProfile(username) {
       return fetch(FB + '/profiles/' + encodeURIComponent(username) + '.json')
-        .then(function(r){ return r.json(); })
-        .then(function(profile){
-          return profile || { displayName: username, bio: '', ideasText: '', memesText: '' };
+        .then(function (r) { return r.json(); })
+        .then(function (profile) {
+          return profile || { displayName: username, bio: '', ideasText: '', memesText: '', profileImage: '' };
         })
-        .catch(function(){
-          return { displayName: username, bio: '', ideasText: '', memesText: '' };
+        .catch(function () {
+          return { displayName: username, bio: '', ideasText: '', memesText: '', profileImage: '' };
         });
     }
-    function saveProfile(username, data){
+    function saveProfile(username, data) {
       var payload = {
         displayName: (data.displayName || username).trim().slice(0, 40) || username,
         bio: (data.bio || '').trim().slice(0, 300),
         ideasText: (data.ideasText || '').trim().slice(0, 500),
         memesText: (data.memesText || '').trim().slice(0, 500),
+        profileImage: data.profileImage || '',
         updatedAt: Date.now()
       };
       return fetch(FB + '/profiles/' + encodeURIComponent(username) + '.json', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      }).then(function(){ return payload; });
+      }).then(function () { return payload; });
     }
-    function removeProfile(username){
+    function removeProfile(username) {
       return fetch(FB + '/profiles/' + encodeURIComponent(username) + '.json', { method: 'DELETE' });
     }
-    function deleteByAuthor(baseUrl, fieldName, username){
-      return fetchJson(baseUrl).then(function(map){
+    function deleteByAuthor(baseUrl, fieldName, username) {
+      return fetchJson(baseUrl).then(function (map) {
         var entries = map || {};
-        var deletions = Object.keys(entries).filter(function(key){
+        var deletions = Object.keys(entries).filter(function (key) {
           return entries[key] && normalizeUser(entries[key][fieldName]) === username;
-        }).map(function(key){
+        }).map(function (key) {
           return fetch(baseUrl.replace('.json', '/' + encodeURIComponent(key) + '.json'), { method: 'DELETE' });
         });
         return Promise.all(deletions);
       });
     }
-    function adminDeleteUser(username){
+    function adminDeleteUser(username) {
       return Promise.all([
         removeProfile(username),
         deleteByAuthor(FB + '/lessons.json', 'createdBy', username),
         deleteByAuthor(FB + '/funny_memes.json', 'postedBy', username),
         deleteByAuthor(IDEAS_FB + '/ideas.json', 'createdBy', username)
-      ]).then(function(){
+      ]).then(function () {
         cleanUserData(username);
         try {
           var joined = JSON.parse(localStorage.getItem('mx_joined') || '{}');
           delete joined[username];
           localStorage.setItem('mx_joined', JSON.stringify(joined));
-        } catch (e) {}
+        } catch (e) { }
       });
     }
-    function fetchJson(url){
-      return fetch(url).then(function(r){ return r.json(); }).catch(function(){ return null; });
+    function fetchJson(url) {
+      return fetch(url).then(function (r) { return r.json(); }).catch(function () { return null; });
     }
 
-    function isFollowing(target){
-      var me = getUser(); if(!me) return false;
-      try{ var f=JSON.parse(localStorage.getItem('mx_following_'+me)||'[]'); return f.indexOf(target)>-1; }catch(e){ return false; }
+    function isFollowing(target) {
+      var me = getUser(); if (!me) return false;
+      try { var f = JSON.parse(localStorage.getItem('mx_following_' + me) || '[]'); return f.indexOf(target) > -1; } catch (e) { return false; }
     }
-    function toggleFollow(target, btn){
-      var me = getUser(); if(!me){ alert('Sign in to follow users.'); return; }
-      var key='mx_following_'+me, f=[];
-      try{ f=JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){}
-      var idx=f.indexOf(target);
-      if(idx>-1){ f.splice(idx,1); } else { f.push(target); }
+    function toggleFollow(target, btn) {
+      var me = getUser(); if (!me) { alert('Sign in to follow users.'); return; }
+      var key = 'mx_following_' + me, f = [];
+      try { f = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { }
+      var idx = f.indexOf(target);
+      if (idx > -1) { f.splice(idx, 1); } else { f.push(target); }
       localStorage.setItem(key, JSON.stringify(f));
       setFollowBtn(btn, target);
     }
-    function setFollowBtn(btn, target){
-      if(isFollowing(target)){ btn.textContent='✓ Following'; btn.className='prof-btn following'; }
-      else { btn.textContent='+ Follow'; btn.className='prof-btn follow'; }
+    function setFollowBtn(btn, target) {
+      if (isFollowing(target)) { btn.textContent = '✓ Following'; btn.className = 'prof-btn following'; }
+      else { btn.textContent = '+ Follow'; btn.className = 'prof-btn follow'; }
     }
-    function followerCount(target){
-      var all=VALID_MEMBERS.concat(getJoined()), c=0;
-      all.forEach(function(u){ try{ var f=JSON.parse(localStorage.getItem('mx_following_'+u)||'[]'); if(f.indexOf(target)>-1) c++; }catch(e){} });
+    function followerCount(target) {
+      var all = VALID_MEMBERS.concat(getJoined()), c = 0;
+      all.forEach(function (u) { try { var f = JSON.parse(localStorage.getItem('mx_following_' + u) || '[]'); if (f.indexOf(target) > -1) c++; } catch (e) { } });
       return c;
     }
-    function cleanUserData(username){
+    function cleanUserData(username) {
       var all = VALID_MEMBERS.concat(getJoined());
-      all.forEach(function(u){
+      all.forEach(function (u) {
         if (u === username) {
           localStorage.removeItem('mx_following_' + u);
           return;
@@ -177,12 +592,12 @@
         try {
           var key = 'mx_following_' + u;
           var list = JSON.parse(localStorage.getItem(key) || '[]');
-          var next = list.filter(function(name){ return name !== username; });
+          var next = list.filter(function (name) { return name !== username; });
           localStorage.setItem(key, JSON.stringify(next));
-        } catch (e) {}
+        } catch (e) { }
       });
     }
-    function deleteCurrentProfile(username){
+    function deleteCurrentProfile(username) {
       removeProfile(username);
       cleanUserData(username);
       if (!isMember(username)) {
@@ -190,17 +605,17 @@
           var joined = JSON.parse(localStorage.getItem('mx_joined') || '{}');
           delete joined[username];
           localStorage.setItem('mx_joined', JSON.stringify(joined));
-        } catch (e) {}
+        } catch (e) { }
       }
       if (getUser() === username) {
         sessionStorage.removeItem('mx_user');
         sessionStorage.removeItem('matix_auth_user');
       }
     }
-    function collectUsernames(profileMap, lessonsMap, ideasMap, memesMap){
+    function collectUsernames(profileMap, lessonsMap, ideasMap, memesMap) {
       var seen = {};
       var list = [];
-      function addUser(user){
+      function addUser(user) {
         if (!user) return;
         var clean = normalizeUser(user);
         if (!clean || seen[clean]) return;
@@ -210,14 +625,14 @@
       VALID_MEMBERS.forEach(addUser);
       getJoined().forEach(addUser);
       Object.keys(profileMap || {}).forEach(addUser);
-      Object.keys(lessonsMap || {}).forEach(function(id){ addUser(lessonsMap[id] && lessonsMap[id].createdBy); });
-      Object.keys(ideasMap || {}).forEach(function(id){ addUser(ideasMap[id] && ideasMap[id].createdBy); });
-      Object.keys(memesMap || {}).forEach(function(id){ addUser(memesMap[id] && memesMap[id].postedBy); });
+      Object.keys(lessonsMap || {}).forEach(function (id) { addUser(lessonsMap[id] && lessonsMap[id].createdBy); });
+      Object.keys(ideasMap || {}).forEach(function (id) { addUser(ideasMap[id] && ideasMap[id].createdBy); });
+      Object.keys(memesMap || {}).forEach(function (id) { addUser(memesMap[id] && memesMap[id].postedBy); });
       return list.sort();
     }
 
     /* ── Profile view ── */
-    function renderProfile(username){
+    function renderProfile(username) {
       username = normalizeUser(username);
       document.title = username + ' — Matix';
       var me = getUser();
@@ -225,7 +640,7 @@
       var root = document.getElementById('ux-root');
       root.innerHTML = '';
 
-      var back = document.createElement('a'); back.className='prof-back'; back.href='/users/'; back.innerHTML='&#8592; All Users';
+      var back = document.createElement('a'); back.className = 'prof-back'; back.href = '/users/'; back.innerHTML = '&#8592; All Users';
       root.appendChild(back);
 
       var loadingPanel = document.createElement('div');
@@ -238,215 +653,347 @@
         fetchJson(FB + '/lessons.json'),
         fetchJson(IDEAS_FB + '/ideas.json'),
         fetchJson(FB + '/funny_memes.json')
-      ]).then(function(results){
-      var profile = results[0];
-      var lessonsData = results[1] || {};
-      var ideasData = results[2] || {};
-      var memesData = results[3] || {};
-      root.innerHTML = '';
-      root.appendChild(back);
+      ]).then(function (results) {
+        var profile = results[0];
+        var lessonsData = results[1] || {};
+        var ideasData = results[2] || {};
+        var memesData = results[3] || {};
+        root.innerHTML = '';
+        root.appendChild(back);
 
-      var hdr = document.createElement('div'); hdr.className='prof-header';
-      var av = document.createElement('div'); av.className='prof-av'; av.textContent=initials(username);
-      var info = document.createElement('div'); info.className='prof-info';
-      var nm = document.createElement('div'); nm.className='prof-name'; nm.textContent=profile.displayName || username;
-      var badge = document.createElement('div'); badge.className='prof-badge '+(isMember(username)?'member':'user');
-      badge.textContent = isMember(username) ? 'Matix Member' : 'Matix User';
-      var acts = document.createElement('div'); acts.className='prof-actions';
-      if(me && me !== username){
-        var fb = document.createElement('button'); fb.className='prof-btn follow'; setFollowBtn(fb, username);
-        fb.addEventListener('click', function(){ toggleFollow(username, fb); buildStats(cachedLessonCount); });
-        acts.appendChild(fb);
-        var ma = document.createElement('a'); ma.className='prof-btn msg'; ma.href='/contactus'; ma.textContent='✉ Message';
-        acts.appendChild(ma);
-        if (isAdmin(me) && !isMember(username)) {
-          var adminDeleteBtn = document.createElement('button');
-          adminDeleteBtn.className = 'prof-btn delete';
-          adminDeleteBtn.textContent = 'Admin Delete';
-          adminDeleteBtn.addEventListener('click', function(){
-            if (!window.confirm('Delete user ' + username + ' and their profile, lessons, memes, and ideas?')) return;
-            adminDeleteUser(username).then(function(){
-              window.location.href = '/users/';
+        var hdr = document.createElement('div'); hdr.className = 'prof-header';
+        var av = document.createElement('div'); av.className = 'prof-av';
+
+        if (profile.profileImage) {
+          av.style.backgroundImage = 'url(' + profile.profileImage + ')';
+          av.style.backgroundSize = 'cover';
+          av.style.backgroundPosition = 'center';
+        } else {
+          av.textContent = initials(username);
+        }
+
+        var info = document.createElement('div'); info.className = 'prof-info';
+        var nm = document.createElement('div'); nm.className = 'prof-name'; nm.textContent = profile.displayName || username;
+        var badge = document.createElement('div'); badge.className = 'prof-badge ' + (isMember(username) ? 'member' : 'user');
+        badge.textContent = isMember(username) ? 'Matix Member' : 'Matix User';
+        var acts = document.createElement('div'); acts.className = 'prof-actions';
+        if (me && me !== username) {
+          var fb = document.createElement('button'); fb.className = 'prof-btn follow'; setFollowBtn(fb, username);
+          fb.addEventListener('click', function () { toggleFollow(username, fb); buildStats(cachedLessonCount); });
+          acts.appendChild(fb);
+          var ma = document.createElement('a'); ma.className = 'prof-btn msg'; ma.href = '/contactus'; ma.textContent = '✉ Message';
+          acts.appendChild(ma);
+          if (isAdmin(me) && !isMember(username)) {
+            var adminDeleteBtn = document.createElement('button');
+            adminDeleteBtn.className = 'prof-btn delete';
+            adminDeleteBtn.textContent = 'Admin Delete';
+            adminDeleteBtn.addEventListener('click', function () {
+              if (!window.confirm('Delete user ' + username + ' and their profile, lessons, memes, and ideas?')) return;
+              adminDeleteUser(username).then(function () {
+                window.location.href = '/users/';
+              });
+            });
+            acts.appendChild(adminDeleteBtn);
+          }
+        }
+        if (me && me === username) {
+          var editBtn = document.createElement('button'); editBtn.className = 'prof-btn edit'; editBtn.textContent = 'Customize';
+          var deleteBtn = document.createElement('button'); deleteBtn.className = 'prof-btn delete'; deleteBtn.textContent = isMember(username) ? 'Reset Profile' : 'Delete Profile';
+          acts.appendChild(editBtn);
+          acts.appendChild(deleteBtn);
+        }
+        info.appendChild(nm); info.appendChild(badge); info.appendChild(acts);
+        if (profile.bio) {
+          var bio = document.createElement('div'); bio.className = 'prof-bio'; bio.textContent = profile.bio;
+          info.appendChild(bio);
+        }
+        hdr.appendChild(av); hdr.appendChild(info);
+        root.appendChild(hdr);
+
+        if (me && me === username) {
+          var editPanel = document.createElement('div'); editPanel.className = 'prof-panel'; editPanel.style.display = 'none';
+          editPanel.innerHTML =
+            '<h3>Customize Profile</h3>' +
+            '<input class="prof-field" id="prof-display-name" type="text" maxlength="40" placeholder="Display name">' +
+            '<textarea class="prof-field ta" id="prof-bio" maxlength="300" placeholder="Bio"></textarea>' +
+            '<div class="prof-help">Your bio is shown at the top of your profile.</div>' +
+
+            /* Upgraded and Interactive Crop Block */
+            '<div style="margin-bottom: 14px;">' +
+            '<label style="font-family:\'Trebuchet MS\',Arial,sans-serif;font-size:.8rem;color:#93c5fd;display:block;margin-bottom:6px;">Profile Image</label>' +
+            '<label for="prof-image" class="upload-label-btn">Choose Image...</label>' +
+            '<input type="file" id="prof-image" accept="image/*" style="display:none;">' +
+            '<div class="crop-container" id="crop-zone">' +
+            '<div class="crop-viewport" id="crop-view"></div>' +
+            '<input type="range" class="crop-slider" id="crop-zoom" min="1" max="3" step="0.01" value="1">' +
+            '<div class="prof-help">Drag to adjust, use slider to zoom.</div>' +
+            '</div>' +
+            '</div>' +
+
+            '<textarea class="prof-field ta" id="prof-ideas" maxlength="500" placeholder="Ideas section text"></textarea>' +
+            '<textarea class="prof-field ta" id="prof-memes" maxlength="500" placeholder="Jokes / memes section text"></textarea>' +
+            '<div class="prof-row">' +
+            '<button class="prof-btn edit" id="prof-save-btn" type="button">Save Changes</button>' +
+            '<button class="prof-btn msg" id="prof-cancel-btn" type="button">Cancel</button>' +
+            '</div>' +
+            '<div class="prof-note">Deleting a joined profile removes the local account from this browser. Published lessons stay online.</div>';
+          root.appendChild(editPanel);
+
+          var editBtnRef = acts.querySelector('.prof-btn.edit');
+          var deleteBtnRef = acts.querySelector('.prof-btn.delete');
+          var displayNameInput = editPanel.querySelector('#prof-display-name');
+          var bioInput = editPanel.querySelector('#prof-bio');
+          var ideasInput = editPanel.querySelector('#prof-ideas');
+          var memesInput = editPanel.querySelector('#prof-memes');
+          var imageInput = editPanel.querySelector('#prof-image');
+
+          // Cropper Variables
+          var cropZone = editPanel.querySelector('#crop-zone');
+          var cropView = editPanel.querySelector('#crop-view');
+          var cropImg = editPanel.querySelector('#crop-img');
+          var cropZoom = editPanel.querySelector('#crop-zoom');
+          var isDragging = false, startX, startY, imgX = 0, imgY = 0, currentScale = 1;
+          var finalImageBase64 = profile.profileImage || '';
+
+          displayNameInput.value = profile.displayName || username;
+          bioInput.value = profile.bio || '';
+          ideasInput.value = profile.ideasText || '';
+          memesInput.value = profile.memesText || '';
+
+          editBtnRef.addEventListener('click', function () {
+            editPanel.style.display = editPanel.style.display === 'none' ? 'block' : 'none';
+          });
+          editPanel.querySelector('#prof-cancel-btn').addEventListener('click', function () {
+            editPanel.style.display = 'none';
+          });
+
+          // Setup local image processing environment when file changes
+          imageInput.addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var r = new FileReader();
+            r.onload = function (evt) {
+              cropImg = new Image();
+              cropImg.onload = function () {
+                cropZone.style.display = 'block';
+                // Calculate "cover" scale so the image always fills the viewport
+                var vw = 200, vh = 200;
+                var coverScale = Math.max(vw / cropImg.naturalWidth, vh / cropImg.naturalHeight);
+
+                // Render the image at its natural size; transform handles all scaling
+                cropImg.style.width = cropImg.naturalWidth + 'px';
+                cropImg.style.height = cropImg.naturalHeight + 'px';
+
+                // Configure slider: min = cover, max = 3x cover
+                cropZoom.min = coverScale;
+                cropZoom.max = coverScale * 3;
+                cropZoom.step = 0.01;
+                cropZoom.value = coverScale;
+                currentScale = coverScale;
+
+                // Center the (scaled) image inside the viewport
+                var displayW = cropImg.naturalWidth * coverScale;
+                var displayH = cropImg.naturalHeight * coverScale;
+                imgX = (vw - displayW) / 2;
+                imgY = (vh - displayH) / 2;
+                cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + coverScale + ')';
+
+                cropView.innerHTML = '';
+                cropView.appendChild(cropImg);
+              };
+              cropImg.src = evt.target.result;
+            };
+            r.readAsDataURL(file);
+          });
+
+          // Handle viewport pointer events for dragging mechanics
+          cropView.addEventListener('mousedown', function (e) {
+            isDragging = true;
+            startX = e.clientX - imgX;
+            startY = e.clientY - imgY;
+          });
+          window.addEventListener('mousemove', function (e) {
+            if (!isDragging) return;
+            imgX = e.clientX - startX;
+            imgY = e.clientY - startY;
+            cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + currentScale + ')';
+          });
+          window.addEventListener('mouseup', function () { isDragging = false; });
+
+          cropZoom.addEventListener('input', function () {
+            currentScale = this.value;
+            cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + currentScale + ')';
+          });
+
+          // Utility to crop active canvas frame parameters to Base64 output
+          function processCroppedImage(callback) {
+            if (!cropImg.src || cropZone.style.display === 'none') {
+              callback(finalImageBase64);
+              return;
+            }
+            var canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            var ctx = canvas.getContext('2d');
+
+            var naturalWidth = cropImg.naturalWidth;
+            var naturalHeight = cropImg.naturalHeight;
+            var displayedWidth = cropImg.offsetWidth;
+
+            var conversionRatio = naturalWidth / displayedWidth;
+
+            var sw = 200 * conversionRatio / currentScale;
+            var sh = 200 * conversionRatio / currentScale;
+            var sx = (-imgX) * conversionRatio / currentScale;
+            var sy = (-imgY) * conversionRatio / currentScale;
+
+            ctx.drawImage(cropImg, sx, sy, sw, sh, 0, 0, 200, 200);
+            callback(canvas.toDataURL('image/jpeg', 0.85));
+          }
+
+          editPanel.querySelector('#prof-save-btn').addEventListener('click', function () {
+            processCroppedImage(function (imgStr) {
+              saveProfile(username, {
+                displayName: displayNameInput.value,
+                bio: bioInput.value,
+                ideasText: ideasInput.value,
+                memesText: memesInput.value,
+                profileImage: imgStr
+              }).then(function () {
+                renderProfile(username);
+              });
             });
           });
-          acts.appendChild(adminDeleteBtn);
+
+          deleteBtnRef.addEventListener('click', function () {
+            var msg = isMember(username)
+              ? 'Reset your custom profile text for ' + username + '?'
+              : 'Delete profile ' + username + ' from this browser?';
+            if (!window.confirm(msg)) return;
+            Promise.resolve(deleteCurrentProfile(username)).then(function () {
+              if (isMember(username)) {
+                renderProfile(username);
+              } else {
+                window.location.href = '/users/';
+              }
+            });
+          });
         }
-      }
-      if(me && me === username){
-        var editBtn = document.createElement('button'); editBtn.className='prof-btn edit'; editBtn.textContent='Customize';
-        var deleteBtn = document.createElement('button'); deleteBtn.className='prof-btn delete'; deleteBtn.textContent=isMember(username) ? 'Reset Profile' : 'Delete Profile';
-        acts.appendChild(editBtn);
-        acts.appendChild(deleteBtn);
-      }
-      info.appendChild(nm); info.appendChild(badge); info.appendChild(acts);
-      if(profile.bio){
-        var bio = document.createElement('div'); bio.className='prof-bio'; bio.textContent=profile.bio;
-        info.appendChild(bio);
-      }
-      hdr.appendChild(av); hdr.appendChild(info);
-      root.appendChild(hdr);
 
-      if(me && me === username){
-        var editPanel = document.createElement('div'); editPanel.className='prof-panel'; editPanel.style.display='none';
-        editPanel.innerHTML =
-          '<h3>Customize Profile</h3>'+
-          '<input class="prof-field" id="prof-display-name" type="text" maxlength="40" placeholder="Display name">'+
-          '<textarea class="prof-field ta" id="prof-bio" maxlength="300" placeholder="Bio"></textarea>'+
-          '<div class="prof-help">Your bio is shown at the top of your profile.</div>'+
-          '<textarea class="prof-field ta" id="prof-ideas" maxlength="500" placeholder="Ideas section text"></textarea>'+
-          '<textarea class="prof-field ta" id="prof-memes" maxlength="500" placeholder="Jokes / memes section text"></textarea>'+
-          '<div class="prof-row">'+
-            '<button class="prof-btn edit" id="prof-save-btn" type="button">Save Changes</button>'+
-            '<button class="prof-btn msg" id="prof-cancel-btn" type="button">Cancel</button>'+
-          '</div>'+
-          '<div class="prof-note">Deleting a joined profile removes the local account from this browser. Published lessons stay online.</div>';
-        root.appendChild(editPanel);
+        var statsBar = document.createElement('div'); statsBar.className = 'prof-stats'; root.appendChild(statsBar);
 
-        var editBtnRef = acts.querySelector('.prof-btn.edit');
-        var deleteBtnRef = acts.querySelector('.prof-btn.delete');
-        var displayNameInput = editPanel.querySelector('#prof-display-name');
-        var bioInput = editPanel.querySelector('#prof-bio');
-        var ideasInput = editPanel.querySelector('#prof-ideas');
-        var memesInput = editPanel.querySelector('#prof-memes');
-        displayNameInput.value = profile.displayName || username;
-        bioInput.value = profile.bio || '';
-        ideasInput.value = profile.ideasText || '';
-        memesInput.value = profile.memesText || '';
-
-        editBtnRef.addEventListener('click', function(){
-          editPanel.style.display = editPanel.style.display === 'none' ? 'block' : 'none';
-        });
-        editPanel.querySelector('#prof-cancel-btn').addEventListener('click', function(){
-          editPanel.style.display = 'none';
-        });
-        editPanel.querySelector('#prof-save-btn').addEventListener('click', function(){
-          saveProfile(username, {
-            displayName: displayNameInput.value,
-            bio: bioInput.value,
-            ideasText: ideasInput.value,
-            memesText: memesInput.value
-          }).then(function(){
-            renderProfile(username);
+        function buildStats(lessonCount) {
+          statsBar.innerHTML = '';
+          var items = [
+            { n: lessonCount !== undefined ? lessonCount : '—', l: 'lessons' },
+            { n: followerCount(username), l: 'followers' },
+            { n: (function () { try { return JSON.parse(localStorage.getItem('mx_following_' + username) || '[]').length; } catch (e) { return 0; } }()), l: 'following' }
+          ];
+          items.forEach(function (s) {
+            var st = document.createElement('div'); st.className = 'prof-stat';
+            var sn = document.createElement('span'); sn.className = 'prof-stat-n'; sn.textContent = s.n;
+            var sl = document.createElement('span'); sl.className = 'prof-stat-l'; sl.textContent = s.l;
+            st.appendChild(sn); st.appendChild(sl); statsBar.appendChild(st);
           });
-        });
-        deleteBtnRef.addEventListener('click', function(){
-          var msg = isMember(username)
-            ? 'Reset your custom profile text for ' + username + '?'
-            : 'Delete profile ' + username + ' from this browser?';
-          if (!window.confirm(msg)) return;
-          Promise.resolve(deleteCurrentProfile(username)).then(function(){
-            if (isMember(username)) {
-              renderProfile(username);
-            } else {
-              window.location.href = '/users/';
-            }
+        }
+        buildStats();
+
+        var tabsRow = document.createElement('div'); tabsRow.className = 'prof-tabs';
+        var tabLabels = ['Lessons', 'Ideas', 'Jokes / Memes'];
+        var panes = [];
+        tabLabels.forEach(function (label, i) {
+          var tab = document.createElement('div'); tab.className = 'prof-tab' + (i === 0 ? ' active' : ''); tab.textContent = label;
+          var pane = document.createElement('div'); pane.className = 'prof-tab-pane' + (i === 0 ? ' active' : '');
+          pane.innerHTML = '<div class="prof-empty">Loading...</div>';
+          tab.addEventListener('click', function () {
+            tabsRow.querySelectorAll('.prof-tab').forEach(function (t) { t.classList.remove('active'); });
+            panes.forEach(function (p) { p.classList.remove('active'); });
+            tab.classList.add('active'); pane.classList.add('active');
           });
+          tabsRow.appendChild(tab); panes.push(pane);
         });
-      }
+        root.appendChild(tabsRow);
+        panes.forEach(function (p) { root.appendChild(p); });
 
-      var statsBar = document.createElement('div'); statsBar.className='prof-stats'; root.appendChild(statsBar);
-
-      function buildStats(lessonCount){
-        statsBar.innerHTML='';
-        var items=[
-          { n: lessonCount !== undefined ? lessonCount : '—', l:'lessons' },
-          { n: followerCount(username), l:'followers' },
-          { n: (function(){ try{ return JSON.parse(localStorage.getItem('mx_following_'+username)||'[]').length; }catch(e){ return 0; } }()), l:'following' }
-        ];
-        items.forEach(function(s){
-          var st=document.createElement('div'); st.className='prof-stat';
-          var sn=document.createElement('span'); sn.className='prof-stat-n'; sn.textContent=s.n;
-          var sl=document.createElement('span'); sl.className='prof-stat-l'; sl.textContent=s.l;
-          st.appendChild(sn); st.appendChild(sl); statsBar.appendChild(st);
+        /* lessons */
+        var lessonKeys = Object.keys(lessonsData).filter(function (k) { return lessonsData[k] && normalizeUser(lessonsData[k].createdBy) === username; });
+        cachedLessonCount = lessonKeys.length;
+        buildStats(lessonKeys.length);
+        panes[0].innerHTML = '';
+        if (!lessonKeys.length) { panes[0].innerHTML = '<div class="prof-empty">No lessons yet.</div>'; }
+        lessonKeys.forEach(function (k) {
+          var d = lessonsData[k];
+          var c = document.createElement('div'); c.className = 'prof-card';
+          var ct = document.createElement('div'); ct.className = 'prof-card-title'; ct.textContent = d.title || 'Untitled';
+          var cm = document.createElement('div'); cm.className = 'prof-card-meta'; cm.textContent = d.description || 'No description.';
+          c.appendChild(ct); c.appendChild(cm); panes[0].appendChild(c);
         });
-      }
-      buildStats();
 
-      var tabsRow=document.createElement('div'); tabsRow.className='prof-tabs';
-      var tabLabels=['Lessons','Ideas','Jokes / Memes'];
-      var panes=[];
-      tabLabels.forEach(function(label,i){
-        var tab=document.createElement('div'); tab.className='prof-tab'+(i===0?' active':''); tab.textContent=label;
-        var pane=document.createElement('div'); pane.className='prof-tab-pane'+(i===0?' active':'');
-        pane.innerHTML='<div class="prof-empty">Loading...</div>';
-        tab.addEventListener('click', function(){
-          tabsRow.querySelectorAll('.prof-tab').forEach(function(t){t.classList.remove('active');});
-          panes.forEach(function(p){p.classList.remove('active');});
-          tab.classList.add('active'); pane.classList.add('active');
+        var ideaKeys = Object.keys(ideasData).filter(function (k) { return ideasData[k] && normalizeUser(ideasData[k].createdBy) === username; });
+        panes[1].innerHTML = '';
+        if (!ideaKeys.length && !profile.ideasText) {
+          panes[1].innerHTML = '<div class="prof-empty">No authored ideas yet.</div>';
+        }
+        ideaKeys.forEach(function (k) {
+          var idea = ideasData[k];
+          var card = document.createElement('div'); card.className = 'prof-card';
+          var title = document.createElement('div'); title.className = 'prof-card-title'; title.textContent = idea.text || 'Untitled idea';
+          var meta = document.createElement('div'); meta.className = 'prof-card-meta'; meta.textContent = 'Idea post';
+          card.appendChild(title); card.appendChild(meta); panes[1].appendChild(card);
         });
-        tabsRow.appendChild(tab); panes.push(pane);
-      });
-      root.appendChild(tabsRow);
-      panes.forEach(function(p){ root.appendChild(p); });
+        if (profile.ideasText) {
+          panes[1].innerHTML += '<div class="prof-card"><div class="prof-card-title">Pinned ideas note</div><div class="prof-card-meta">' + escapeHtml(profile.ideasText) + '</div></div>';
+        }
 
-      /* lessons */
-      var lessonKeys = Object.keys(lessonsData).filter(function(k){ return lessonsData[k] && normalizeUser(lessonsData[k].createdBy) === username; });
-      cachedLessonCount = lessonKeys.length;
-      buildStats(lessonKeys.length);
-      panes[0].innerHTML='';
-      if(!lessonKeys.length){ panes[0].innerHTML='<div class="prof-empty">No lessons yet.</div>'; }
-      lessonKeys.forEach(function(k){
-        var d=lessonsData[k];
-        var c=document.createElement('div'); c.className='prof-card';
-        var ct=document.createElement('div'); ct.className='prof-card-title'; ct.textContent=d.title||'Untitled';
-        var cm=document.createElement('div'); cm.className='prof-card-meta'; cm.textContent=d.description||'No description.';
-        c.appendChild(ct); c.appendChild(cm); panes[0].appendChild(c);
-      });
-
-      var ideaKeys = Object.keys(ideasData).filter(function(k){ return ideasData[k] && normalizeUser(ideasData[k].createdBy) === username; });
-      panes[1].innerHTML='';
-      if (!ideaKeys.length && !profile.ideasText) {
-        panes[1].innerHTML = '<div class="prof-empty">No authored ideas yet.</div>';
-      }
-      ideaKeys.forEach(function(k){
-        var idea = ideasData[k];
-        var card = document.createElement('div'); card.className='prof-card';
-        var title = document.createElement('div'); title.className='prof-card-title'; title.textContent = idea.text || 'Untitled idea';
-        var meta = document.createElement('div'); meta.className='prof-card-meta'; meta.textContent = 'Idea post';
-        card.appendChild(title); card.appendChild(meta); panes[1].appendChild(card);
-      });
-      if (profile.ideasText) {
-        panes[1].innerHTML += '<div class="prof-card"><div class="prof-card-title">Pinned ideas note</div><div class="prof-card-meta">' + escapeHtml(profile.ideasText) + '</div></div>';
-      }
-
-      var memeKeys = Object.keys(memesData).filter(function(k){ return memesData[k] && normalizeUser(memesData[k].postedBy) === username; });
-      panes[2].innerHTML='';
-      if (!memeKeys.length && !profile.memesText) {
-        panes[2].innerHTML = '<div class="prof-empty">No authored jokes or memes yet.</div>';
-      }
-      memeKeys.forEach(function(k){
-        var meme = memesData[k];
-        var card = document.createElement('div'); card.className='prof-card';
-        var title = document.createElement('div'); title.className='prof-card-title'; title.textContent = meme.title || 'Untitled meme';
-        var meta = document.createElement('div'); meta.className='prof-card-meta'; meta.textContent = meme.content || 'No content.';
-        card.appendChild(title); card.appendChild(meta); panes[2].appendChild(card);
-      });
-      if (profile.memesText) {
-        panes[2].innerHTML += '<div class="prof-card"><div class="prof-card-title">Pinned jokes / memes note</div><div class="prof-card-meta">' + escapeHtml(profile.memesText) + '</div></div>';
-      }
+        var memeKeys = Object.keys(memesData).filter(function (k) { return memesData[k] && normalizeUser(memesData[k].postedBy) === username; });
+        panes[2].innerHTML = '';
+        if (!memeKeys.length && !profile.memesText) {
+          panes[2].innerHTML = '<div class="prof-empty">No authored jokes or memes yet.</div>';
+        }
+        memeKeys.forEach(function (k) {
+          var meme = memesData[k];
+          var card = document.createElement('div'); card.className = 'prof-card';
+          var title = document.createElement('div'); title.className = 'prof-card-title'; title.textContent = meme.title || 'Untitled meme';
+          var meta = document.createElement('div'); meta.className = 'prof-card-meta'; meta.textContent = meme.content || 'No content.';
+          card.appendChild(title); card.appendChild(meta); panes[2].appendChild(card);
+        });
+        if (profile.memesText) {
+          panes[2].innerHTML += '<div class="prof-card"><div class="prof-card-title">Pinned jokes / memes note</div><div class="prof-card-meta">' + escapeHtml(profile.memesText) + '</div></div>';
+        }
       });
     }
 
     /* ── Directory view ── */
-    function renderDirectory(filter){
-      var grid=document.getElementById('ux-grid'); if(!grid) return;
-      grid.innerHTML='<div class="ux-loading">Loading users...</div>';
+    function renderDirectory(filter) {
+      var grid = document.getElementById('ux-grid'); if (!grid) return;
+      grid.innerHTML = '<div class="ux-loading">Loading users...</div>';
       Promise.all([
         fetchJson(FB + '/profiles.json'),
         fetchJson(FB + '/lessons.json'),
         fetchJson(IDEAS_FB + '/ideas.json'),
         fetchJson(FB + '/funny_memes.json')
-      ]).then(function(results){
-        var all = collectUsernames(results[0], results[1], results[2], results[3]);
-        if(filter) all=all.filter(function(u){ return u.toLowerCase().indexOf(filter.toLowerCase())>-1; });
-        if(!all.length){ grid.innerHTML='<div class="ux-loading">No users found.</div>'; return; }
-        grid.innerHTML='';
-        all.forEach(function(u){
-          var card=document.createElement('a'); card.className='ux-card'; card.href='/users/'+encodeURIComponent(u);
-          var av=document.createElement('div'); av.className='ux-avatar'; av.textContent=initials(u);
-          var nm=document.createElement('div'); nm.className='ux-uname'; nm.textContent=u;
-          var role=document.createElement('div'); role.className='ux-role'+(isMember(u)?'':' guest');
-          role.textContent=isMember(u)?'Matix Member':'Matix User';
+      ]).then(function (results) {
+        var profilesMap = results[0] || {};
+        var all = collectUsernames(profilesMap, results[1], results[2], results[3]);
+        if (filter) all = all.filter(function (u) { return u.toLowerCase().indexOf(filter.toLowerCase()) > -1; });
+        if (!all.length) { grid.innerHTML = '<div class="ux-loading">No users found.</div>'; return; }
+        grid.innerHTML = '';
+        all.forEach(function (u) {
+          var card = document.createElement('a'); card.className = 'ux-card'; card.href = '/users/' + encodeURIComponent(u);
+          var av = document.createElement('div'); av.className = 'ux-avatar';
+
+          var userProfile = profilesMap[u];
+          if (userProfile && userProfile.profileImage) {
+            av.style.backgroundImage = 'url(' + userProfile.profileImage + ')';
+            av.style.backgroundSize = 'cover';
+            av.style.backgroundPosition = 'center';
+          } else {
+            av.textContent = initials(u);
+          }
+
+          var nm = document.createElement('div'); nm.className = 'ux-uname'; nm.textContent = u;
+          var role = document.createElement('div'); role.className = 'ux-role' + (isMember(u) ? '' : ' guest');
+          role.textContent = isMember(u) ? 'Matix Member' : 'Matix User';
           card.appendChild(av); card.appendChild(nm); card.appendChild(role);
           grid.appendChild(card);
         });
@@ -457,23 +1004,24 @@
     var params = new URLSearchParams(window.location.search);
     var pathMatch = window.location.pathname.match(/^\/users\/([a-z0-9_]+)\/?$/i);
     var targetUser = (pathMatch && pathMatch[1]) || params.get('u');
-    if(targetUser){
+    if (targetUser) {
       var clean = normalizeUser(targetUser);
-      if(window.location.pathname !== '/users/' + clean){
+      if (window.location.pathname !== '/users/' + clean) {
         history.replaceState({}, '', '/users/' + clean);
       }
       renderProfile(clean);
     } else {
-      document.title='Matix Users';
-      var root=document.getElementById('ux-root');
-      root.innerHTML=
-        '<div class="ux-title">Matix Users</div>'+
-        '<div class="ux-sub">Browse members and their lessons, ideas &amp; jokes.</div>'+
-        '<input class="ux-search" id="ux-search" type="text" placeholder="Search users\u2026" autocomplete="off">'+
+      document.title = 'Matix Users';
+      var root = document.getElementById('ux-root');
+      root.innerHTML =
+        '<div class="ux-title">Matix Users</div>' +
+        '<div class="ux-sub">Browse members and their lessons, ideas &amp; jokes.</div>' +
+        '<input class="ux-search" id="ux-search" type="text" placeholder="Search users\u2026" autocomplete="off">' +
         '<div class="ux-grid" id="ux-grid"><div class="ux-loading">Loading\u2026</div></div>';
       renderDirectory('');
-      document.getElementById('ux-search').addEventListener('input',function(){ renderDirectory(this.value); });
+      document.getElementById('ux-search').addEventListener('input', function () { renderDirectory(this.value); });
     }
   </script>
 </body>
+
 </html>

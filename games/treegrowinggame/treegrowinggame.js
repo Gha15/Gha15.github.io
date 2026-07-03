@@ -183,11 +183,16 @@ if (actionID === '003' && actionName === 'water-tree-minigames' && localStorage.
         <button  onclick="setActionID('003.5'); setActionName('minigames'); location.reload();">Play Minigames</button>
     `;
 }
-let randomminnigame1 = Math.floor(Math.random() * 10);
-let randomminnigame2 = Math.floor(Math.random() * 10);
-if (randomminnigame1 === randomminnigame2) {
-    randomminnigame2 = Math.floor(Math.random() * 10);
+function randomMinigameNumber() {
+    return Math.floor(Math.random() * 10) + 1;
 }
+
+let randomminnigame1 = randomMinigameNumber();
+let randomminnigame2 = randomMinigameNumber();
+while (randomminnigame1 === randomminnigame2) {
+    randomminnigame2 = randomMinigameNumber();
+}
+let randomminnigame3 = randomMinigameNumber();
 
 if (actionID === '003.5' && actionName === 'minigames' && localStorage.getItem('tree-planted')) {
     document.body.innerHTML = `
@@ -203,7 +208,7 @@ if (actionID === '003.5' && actionName === 'minigames' && localStorage.getItem('
         </div>
         <h2>minigame 3</h2>
         <div class="minigame-content">
-            <iframe src="/games/minigames/minigame${Math.floor(Math.random() * 10)}.html" width="800" height="600" frameborder="0"></iframe>
+            <iframe src="/games/minigames/minigame${randomminnigame3}.html" width="800" height="600" frameborder="0"></iframe>
         </div>
         <button onclick="setActionID('000'); setActionName('tree-view'); location.reload();">Back home</button>
         `;

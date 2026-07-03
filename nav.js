@@ -74,31 +74,30 @@
     { href: '/merch',   label: 'Merch',      iframe: true },
     { href: '/aboutus', label: 'About Us',   iframe: true },
     { href: '/funny',   label: 'Jokes / Memes', iframe: true },
-    { href: '/FAQ',     label: 'FAQ' },
+    { href: '/FAQ',     label: 'FAQ', iframe: true },
     { href: '/games',   label: 'Games', subs: [
-      { href: '/games/themathplanegame',         label: '✈️  Math Plane Game'   },
-      { href: '/games/mathfight',                label: '⚔️  Math Fight'        },
-      { href: '/games/treegrowinggame',          label: '🌳  Tree Growing'      },
-      { href: '/games/virtualpetgame',           label: '🐾  Virtual Pet'       },
-      { href: '/games/minigames/minigame1.html', label: '🎮  Mini Games'        }
+      { href: '/games/minigames/themathplanegame', label: '✈️  Math Plane Game'  , iframe: true },
+      { href: '/games/mathfight',                label: '⚔️  Math Fight'        , iframe: true },
+      { href: '/games/treegrowinggame', label: '🌳  Tree Growing'      , iframe: true },
+      { href: '/games/minigames/virtualpetgame',  label: '🐾  Virtual Pet'       , iframe: true },
     ]},
-    { href: '/button',    label: 'Button' },
-    { href: '/contactus', label: 'Contact' },
+    { href: '/button',    label: 'Button' , iframe: true },
+    { href: '/contactus', label: 'Contact' , iframe: true },
     { href: '/usefulotherstuffcauseicannotgetanotherdomain', label: 'Tools', subs: [
-      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/calculator',       label: '🔢  Calculator'       },
-      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/calendar',         label: '📅  Calendar'         },
-      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/function-plotter', label: '📈  Function Plotter' },
-      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/graphing-sandbox', label: '📊  Graphing Sandbox' },
-      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/stopwatch',        label: '⏱️  Stopwatch'        },
-      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/timer',            label: '⏰  Timer'            }
+      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/calculator',       label: '🔢  Calculator'       , iframe: true },
+      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/calendar',         label: '📅  Calendar'         , iframe: true },
+      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/function-plotter', label: '📈  Function Plotter' , iframe: true },
+      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/graphing-sandbox', label: '📊  Graphing Sandbox' , iframe: true },
+      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/stopwatch',        label: '⏱️  Stopwatch'        , iframe: true },
+      { href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/timer',            label: '⏰  Timer'            , iframe: true }
     ]},
-    { href: '/ideas',       label: 'Ideas' },
+    { href: '/ideas',       label: 'Ideas' , iframe: true },
     { href: '/membersonly', label: 'Members', subs: [
-      { href: '/membersonly',                   label: '🔐  Members Dashboard'  },
-      { href: '/membersonly/points',            label: '⭐  My Points'          },
-      { href: '/membersonly/points/how-to-get', label: '📈  How to Earn Points' },
-      { href: '/membersonly/points/use-points', label: '🎁  Use Points'         },
-      { href: '/daily-challenge',               label: '🏆  Daily Challenge'    }
+      { href: '/membersonly',                   label: '🔐  Members Dashboard'  , iframe: true },
+      { href: '/points',                         label: '⭐  My Points'          , iframe: true },
+      { href: '/points/how-to-get',              label: '📈  How to Earn Points' , iframe: true },
+      { href: '/points/use-points',              label: '🎁  Use Points'         , iframe: true },
+      { href: '/daily-challenge',               label: '🏆  Daily Challenge'    , iframe: true }
     ]}
   ];
 
@@ -335,7 +334,7 @@
       panel.appendChild(ifr);
       var foot = mk('div', 'mx-ifr-foot');
       var lbl  = mk('span', 'mx-ifr-label');
-      lbl.textContent = link.label + ' — matix.com' + link.href;
+      lbl.textContent = link.label + ' — matixthemathclub.com' + link.href;
       var openA = mk('a', 'mx-ifr-open');
       openA.href = link.href;
       openA.textContent = 'Open page \u2192';
