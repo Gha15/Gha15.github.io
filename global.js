@@ -17,6 +17,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+function getActiveProfileUser() {
+    const sessionUser = sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user');
+    if (sessionUser) return sessionUser;
+    const joined = localStorage.getItem('mx_join_username');
+    return joined || 'guest';
+}
+
 // --- Core Actions ---
 
 window.addidea = function(ideaText) {
@@ -28,6 +35,7 @@ window.addidea = function(ideaText) {
 
     set(newIdeaRef, {
         text: trimmedText,
+        createdBy: getActiveProfileUser(),
         timestamp: serverTimestamp()
     }).then(() => {
         const inputBox = document.getElementById('idea-input');
@@ -106,7 +114,9 @@ function initListeners() {
             const idea = ideas[ideaId];
             const ideaCard = document.createElement('div');
             ideaCard.className = 'idea';
+            const author = idea.createdBy ? `<div class="idea-author">[${idea.createdBy}]</div>` : '';
             ideaCard.innerHTML = `
+                ${author}
                 <p class="idea-text">${idea.text || ''}</p>
                 <div class="idea-actions">
                     <button class="delete-button" onclick="deleteIdea('${ideaId}')">Delete</button>

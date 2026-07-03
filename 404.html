@@ -9,6 +9,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
 
+    <script>
+        (function () {
+            var p = window.location.pathname;
+            var m = p.match(/^\/users\/([a-z0-9_]+)\/?$/i);
+            if (m) {
+                window.location.replace('/users/index.html?u=' + encodeURIComponent(m[1].toLowerCase()));
+            }
+        }());
+    </script>
+
     <style>
         body {
             margin: 0; padding: 0;
@@ -141,5 +151,15 @@
     </div>
 
 <script src="/nav.js" defer></script>
+<script>
+    /* Route /users/USERNAME → /users/index.html?u=USERNAME */
+  (function () {
+    var p = window.location.pathname;
+    var m = p.match(/^\/users\/([a-z0-9_]+)\/?$/i);
+    if (m) {
+            window.location.replace('/users/index.html?u=' + encodeURIComponent(m[1].toLowerCase()));
+    }
+  }());
+</script>
 </body>
 </html>

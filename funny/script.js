@@ -39,29 +39,43 @@ let currentMemes = [];
 let currentChatMessages = [];
 let threadListeners = {};
 
+function normalizeFunnyUser(name) {
+	const cleaned = String(name || "").trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_-]/g, "").slice(0, 20);
+	const compact = cleaned.replace(/[^a-z0-9_]/g, "");
+	if (compact === "matix" || compact === "ghadimatix") {
+		return "ghadi";
+	}
+	return cleaned || "guest";
+}
+
 function getActiveUser() {
-	const savedUser = sessionStorage.getItem("matix_auth_user");
+	const savedUser = sessionStorage.getItem("mx_user") || sessionStorage.getItem("matix_auth_user");
 	if (savedUser) {
-		return savedUser;
+		const normalizedSaved = normalizeFunnyUser(savedUser);
+		sessionStorage.setItem("mx_user", normalizedSaved);
+		sessionStorage.setItem("matix_auth_user", normalizedSaved);
+		return normalizedSaved;
 	}
 
 	const cachedGuest = localStorage.getItem("matix_meme_guest");
 	if (cachedGuest) {
-		return cachedGuest;
+		return normalizeFunnyUser(cachedGuest);
 	}
 
 	const prompted = prompt("Pick a meme nickname:");
-	const finalName = (prompted || "guest").trim().toLowerCase().slice(0, 20) || "guest";
+	const finalName = normalizeFunnyUser(prompted || "guest");
 	localStorage.setItem("matix_meme_guest", finalName);
 	return finalName;
 }
 
 function saveUsername(name) {
-	const cleaned = name.trim().toLowerCase().replace(/\s+/g, "_").slice(0, 20);
+	const cleaned = normalizeFunnyUser(name);
 	if (!cleaned) {
 		return false;
 	}
 	activeUser = cleaned;
+	sessionStorage.setItem("mx_user", cleaned);
+	sessionStorage.setItem("matix_auth_user", cleaned);
 	localStorage.setItem("matix_meme_guest", cleaned);
 	usernameInput.value = cleaned;
 	usernameHint.textContent = "Saved as @" + cleaned;
