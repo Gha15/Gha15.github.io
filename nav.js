@@ -140,24 +140,24 @@
                 },
                 {
                     href: '/games/treegrowinggame',
-                    label: '🌳  Tree Growing',
+                    label: '🌳  Tree Growing Game',
                     iframe: true
                 },
                 {
                     href: '/games/minigames/virtualpetgame',
-                    label: '🐾  Virtual Pet',
+                    label: '🐾  Virtual Pet Game',
                     iframe: true
                 }
             ]
         },
         {
             href: '/button',
-            label: 'Button',
+            label: 'Just A Button',
             iframe: true
         },
         {
             href: '/contactus',
-            label: 'Contact',
+            label: 'Contact us',
             iframe: true
         },
         {
