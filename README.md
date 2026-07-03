@@ -3,6 +3,14 @@
 Welcome to the official repository for **[Matix The Math Club](https://matixthemathclub.com)**. This platform is built to make learning, practicing, and playing with math interactive and fun. Hosted entirely on **GitHub Pages** using the user page repository structure.
 
 ---
+#Contents 📖
+1. **[🚀 Live Site](https://github.com/Gha15/Gha15.github.io/blob/main/README.md#-live-site)**
+2. **[⚙️ Features & Modules](https://github.com/Gha15/Gha15.github.io/blob/main/README.md#%EF%B8%8F-features--modules)**
+3. **[🛠️ Technology Stack](https://github.com/Gha15/Gha15.github.io/blob/main/README.md#%EF%B8%8F-technology-stack)**
+4. **[💻 Local Setup & Development](https://github.com/Gha15/Gha15.github.io/blob/main/README.md#-local-setup--development)**
+5. **[📝 Ongoing Adjustments & Roadmap](https://github.com/Gha15/Gha15.github.io/blob/main/README.md#-ongoing-adjustments--roadmap)**
+6. **[🤝 Contributions](https://github.com/Gha15/Gha15.github.io/blob/main/README.md#-contributions)**
+---
 
 ## 🚀 Live Site
 The site is active and deployed at: **[matixthemathclub.com](https://matixthemathclub.com)**
