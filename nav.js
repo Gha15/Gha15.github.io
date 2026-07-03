@@ -507,10 +507,10 @@
 
   wireHover('lessons', lessonsPanel, lessonsBtn, 420, renderLessons);
 
-  /* Join MaiTx */
+  /* Join Matix */
   right.appendChild(vd());
   var joinBtn = mk('button', 'mx-join-btn');
-  joinBtn.textContent = 'Join MaiTx';
+  joinBtn.textContent = 'Join Matix';
   right.appendChild(joinBtn);
   var joinPanel = mk('div', 'mx-panel');
   joinPanel.id = 'mxp-join';
@@ -524,13 +524,13 @@
     if (user) {
       renderUserCard(w, user, function () { doSignOut(); refreshAuth(); buildJoinPanel(); buildSiPanel(); });
     } else {
-      var h3 = mk('h3'); h3.textContent = 'Join MaiTx'; w.appendChild(h3);
+      var h3 = mk('h3'); h3.textContent = 'Join Matix'; w.appendChild(h3);
       var desc = mk('p', 'mx-p-desc'); desc.textContent = 'Create a free account to make lessons and track progress.'; w.appendChild(desc);
       var ui = mk('input', 'mx-fi'); ui.type = 'text'; ui.placeholder = 'Choose a username'; ui.maxLength = 24; ui.autocomplete = 'username';
       var pi = mk('input', 'mx-fi'); pi.type = 'password'; pi.placeholder = 'Password (min 4 chars)'; pi.autocomplete = 'new-password';
       var p2 = mk('input', 'mx-fi'); p2.type = 'password'; p2.placeholder = 'Confirm password'; p2.autocomplete = 'new-password';
       var er = mk('div', 'mx-ferr');
-      var sb = mk('button', 'mx-pb g'); sb.textContent = 'Join MaiTx';
+      var sb = mk('button', 'mx-pb g'); sb.textContent = 'Join Matix';
       sb.addEventListener('click', function () {
         if (!pi.value || pi.value.length < 4) { er.textContent = 'Password must be at least 4 characters.'; return; }
         if (pi.value !== p2.value) { er.textContent = 'Passwords do not match.'; return; }
@@ -579,7 +579,7 @@
       });
       [ui, pi].forEach(function (inp) { inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') sb.click(); }); });
       var hint = mk('p', 'mx-switch-hint');
-      hint.innerHTML = 'New here? <a id="mx-gjo">Join MaiTx \u2192</a>';
+      hint.innerHTML = 'New here? <a id="mx-gjo">Join Matix \u2192</a>';
       w.appendChild(ui); w.appendChild(pi); w.appendChild(er); w.appendChild(sb); w.appendChild(hint);
     }
     siPanel.appendChild(w);
