@@ -33,7 +33,7 @@ To clone, test, or run this website locally on your computer:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com
+   git clone https://github.com/Gha15/Gha15.github.io/
    ```
 2. **Navigate into the folder:**
    ```bash
