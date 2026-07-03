@@ -209,17 +209,17 @@
                     iframe: true
                 },
                 {
-                    href: '/points',
+                    href: '/membersonly/points',
                     label: '⭐  My Points',
                     iframe: true
                 },
                 {
-                    href: '/points/how-to-get',
+                    href: '/membersonly/points/how-to-get',
                     label: '📈  How to Earn Points',
                     iframe: true
                 },
                 {
-                    href: '/points/use-points',
+                    href: '/membersonly/points/use-points',
                     label: '🎁  Use Points',
                     iframe: true
                 },
