@@ -1,6 +1,5 @@
 // MATIX Global Theme Loader
 // This script loads and applies custom user themes across all pages
-
 (function() {
     function applyCachedTheme() {
         const cachedTheme = localStorage.getItem('matix_theme_hue');

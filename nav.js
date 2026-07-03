@@ -465,7 +465,8 @@
             panel.classList.add('mx-p-iframe');
             var ifr = mk('iframe');
             ifr.setAttribute('loading', 'lazy');
-            ifr.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+            ifr.setAttribute('sandbox', 'allow-same-origin');
+            ifr.setAttribute('sandbox', 'allow-scripts')
             ifr.setAttribute('tabindex', '-1');
             ifr.setAttribute('aria-hidden', 'true');
             ifr.title = link.label + ' preview';
