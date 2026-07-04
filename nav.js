@@ -130,7 +130,7 @@
             href: '/games',
             label: 'Games',
             subs: [{
-                    href: '/games/minigames/themathplanegame',
+                    href: '/games/themathplanegame',
                     label: '✈️  Math Plane Game',
                     iframe: true
                 },
