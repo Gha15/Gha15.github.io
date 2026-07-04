@@ -20,7 +20,8 @@
         yara: 'yara10yoyo20',
         jad: 'ilikebatatameshwiyye',
         marwan: 'ilikebeingnumberonebutiamnumbertwo',
-        mak: 'mak2130'
+        mak: 'mak2130',
+        hicham: 'pwrbulleye'
     };
 
     function getUser() {
