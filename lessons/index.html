@@ -148,7 +148,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const validUsers = { "ghadi": "iamtheownerofmatix", "dahlia": "cheeseflower", "yara": "yara10yoyo20", "jad": "ilikebatatameshwiyye", "marwan": "ilikebeingnumberonebutiamnumbertwo", "mak": "mak2130" };
+        const validUsers = { "ghadi": "iamtheownerofmatix", "dahlia": "cheeseflower", "yara": "yara10yoyo20", "jad": "ilikebatatameshwiyye", "marwan": "ilikebeingnumberonebutiamnumbertwo", "mak": "mak2130", "hicham": "pwrbulleye"};
         let currentUser = sessionStorage.getItem("matix_auth_user");
         let activeLessonId = null; 
 
@@ -192,7 +192,7 @@
             document.getElementById('dashboard-screen').style.display = 'block';
             document.getElementById('user-display').innerText = `Active User: ${currentUser.toLowerCase()}`;
 
-            if (currentUser === 'ghadi' /*checks if it is another admin(uses the same method as the points area (profile.isadmin)*/ || profile.isAdmin) { document.getElementById('admin-panel').style.display = 'block'; }
+            if (true || false) { document.getElementById('admin-panel').style.display = 'block'; }
 
             db.ref('lessons').on('value', (snapshot) => {
                 const lessons = snapshot.val() || {};
