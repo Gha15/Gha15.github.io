@@ -87,11 +87,7 @@
     <div class="container" id="auth-screen">
         <div class="header-title">Vault_Access</div>
         <div id="auth-error" style="color: #ef4444; margin-bottom:10px;"></div>
-        <input type="text" id="username" placeholder="USERNAME">
-        <input type="password" id="password" placeholder="PASSWORD">
-        <button class="btn" onclick="loginMember()">Authorize_Member</button>
-        <div style="margin: 15px 0; color: #334155;">--- OR ---</div>
-        <button class="btn btn-guest" onclick="loginGuest()">Access_As_Guest</button>
+        <p style="color:#94a3b8; font-size:0.95rem; line-height:1.6; margin-top:0;">Sign in using the top menu (open menu &rarr; scroll to right &rarr; Sign In / Join Matix if no account).</p>
       </div>
      <div class="redtext">
      <a href="https://matixthemathclub.com/">return home</a>
@@ -148,7 +144,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const validUsers = { "ghadi": "iamtheownerofmatix", "dahlia": "cheeseflower", "yara": "yara10yoyo20", "jad": "ilikebatatameshwiyye", "marwan": "ilikebeingnumberonebutiamnumbertwo", "mak": "mak2130", "hicham": "pwrbulleye"};
         let currentUser = sessionStorage.getItem("matix_auth_user");
         let activeLessonId = null; 
 
@@ -166,25 +161,25 @@
 
         if (currentUser) { loadDashboard(); }
 
-        function loginMember() {
-            const user = document.getElementById('username').value.trim().toLowerCase();
-            const pass = document.getElementById('password').value;
-            if (validUsers[user] && validUsers[user] === pass) {
-                currentUser = user;
-                sessionStorage.setItem("matix_auth_user", user);
+        function logout() {
+            if (window.MatixAuth && window.MatixAuth.signOut) { window.MatixAuth.signOut(); }
+            else { sessionStorage.removeItem("matix_auth_user"); sessionStorage.removeItem("mx_user"); }
+            location.reload();
+        }
+
+        // Keeps this page in sync when someone signs in/out or joins from the top nav bar,
+        // instead of needing its own login form.
+        window.addEventListener('mx-auth-changed', (e) => {
+            currentUser = (e.detail && e.detail.user) || null;
+            if (currentUser) {
                 loadDashboard();
-            } else { document.getElementById('auth-error').innerText = "ERROR: Invalid credentials."; }
-        }
-
-        function loginGuest() {
-            currentUser = "guest";
-            sessionStorage.setItem("matix_auth_user", "guest");
-            if(!localStorage.getItem('matix_guest_progress')) localStorage.setItem('matix_guest_progress', JSON.stringify({}));
-            if(!localStorage.getItem('matix_guest_exercise_progress')) localStorage.setItem('matix_guest_exercise_progress', JSON.stringify({}));
-            loadDashboard();
-        }
-
-        function logout() { sessionStorage.removeItem("matix_auth_user"); location.reload(); }
+            } else if (!activeLessonId) {
+                document.getElementById('dashboard-screen').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'none';
+                document.getElementById('lesson-viewer').style.display = 'none';
+                document.getElementById('auth-screen').style.display = 'block';
+            }
+        });
 
         function loadDashboard() {
             document.getElementById('auth-screen').style.display = 'none';
@@ -192,29 +187,24 @@
             document.getElementById('dashboard-screen').style.display = 'block';
             document.getElementById('user-display').innerText = `Active User: ${currentUser.toLowerCase()}`;
 
-            if (true || false) { document.getElementById('admin-panel').style.display = 'block'; }
+            const isAdmin = currentUser === 'ghadi';
+            document.getElementById('admin-panel').style.display = isAdmin ? 'block' : 'none';
 
             db.ref('lessons').on('value', (snapshot) => {
                 const lessons = snapshot.val() || {};
                 renderLessonButtons(lessons);
-                if (currentUser === 'ghadi' || profile.isAdmin) { renderAdminManagementList(lessons); }
+                if (isAdmin) { renderAdminManagementList(lessons); }
             });
         }
 
         function renderLessonButtons(lessons) {
-            if (currentUser === 'guest') {
-                const readProg = JSON.parse(localStorage.getItem('matix_guest_progress') || '{}');
-                const exProg = JSON.parse(localStorage.getItem('matix_guest_exercise_progress') || '{}');
-                buildButtons(lessons, readProg, exProg);
-            } else {
-                db.ref('progress/' + currentUser).once('value').then((readSnap) => {
-                    const readProg = readSnap.val() || {};
-                    db.ref('exercise_progress/' + currentUser).once('value').then((exSnap) => {
-                        const exProg = exSnap.val() || {};
-                        buildButtons(lessons, readProg, exProg);
-                    });
+            db.ref('progress/' + currentUser).once('value').then((readSnap) => {
+                const readProg = readSnap.val() || {};
+                db.ref('exercise_progress/' + currentUser).once('value').then((exSnap) => {
+                    const exProg = exSnap.val() || {};
+                    buildButtons(lessons, readProg, exProg);
                 });
-            }
+            });
         }
 
         function buildButtons(lessons, readProg, exProg) {
@@ -321,13 +311,7 @@
         function backToDashboard() { activeLessonId = null; loadDashboard(); }
 
         function finishLesson() {
-            if (currentUser === 'guest') {
-                let progress = JSON.parse(localStorage.getItem('matix_guest_progress') || '{}');
-                progress[activeLessonId] = true;
-                localStorage.setItem('matix_guest_progress', JSON.stringify(progress));
-            } else {
-                db.ref('progress/' + currentUser + '/' + activeLessonId).set(true);
-            }
+            db.ref('progress/' + currentUser + '/' + activeLessonId).set(true);
             alert("Progress Saved! Routing to Target Exercises...");
             window.location.href = '/lessons/exercises'; 
         }

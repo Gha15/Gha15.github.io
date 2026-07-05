@@ -24,6 +24,19 @@
         hicham: 'pwrbulleye'
     };
 
+    var FIREBASE_URL = 'https://matix-1d538-default-rtdb.firebaseio.com';
+    var authListeners = [];
+
+    function notifyAuthChange() {
+        var u = getUser();
+        authListeners.forEach(function(cb) {
+            try { cb(u); } catch (e) {}
+        });
+        try {
+            window.dispatchEvent(new CustomEvent('mx-auth-changed', { detail: { user: u } }));
+        } catch (e) {}
+    }
+
     function getUser() {
         return sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null;
     }
@@ -31,56 +44,83 @@
     function setUser(user) {
         sessionStorage.setItem('mx_user', user);
         sessionStorage.setItem('matix_auth_user', user);
+        notifyAuthChange();
     }
 
-    function doSignIn(rawUser, pass) {
+    /* Sign in checks hardcoded members first, then accounts saved in Firebase,
+       then falls back to any pre-upgrade accounts saved locally in this browser. */
+    function doSignIn(rawUser, pass, cb) {
         var u = (rawUser || '').toLowerCase().trim();
-        if (!u || !pass) return false;
+        if (!u || !pass) { cb(false); return; }
         if (VALID_MEMBERS[u] && VALID_MEMBERS[u] === pass) {
             setUser(u);
-            return true;
+            cb(true);
+            return;
         }
-        try {
-            var m = JSON.parse(localStorage.getItem('mx_joined') || '{}');
-            if (m[u] && m[u] === pass) {
-                setUser(u);
-                return true;
-            }
-        } catch (e) {}
-        return false;
+        function tryLocalFallback() {
+            try {
+                var m = JSON.parse(localStorage.getItem('mx_joined') || '{}');
+                if (m[u] && m[u] === pass) {
+                    setUser(u);
+                    cb(true);
+                    return;
+                }
+            } catch (e) {}
+            cb(false);
+        }
+        fetch(FIREBASE_URL + '/members/' + encodeURIComponent(u) + '.json')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.password === pass) {
+                    setUser(u);
+                    cb(true);
+                    return;
+                }
+                tryLocalFallback();
+            })
+            .catch(tryLocalFallback);
     }
 
-    function doJoin(rawUser, pass) {
+    /* Join creates a Firebase-backed account (readable by anyone with the DB URL,
+       same trust level as the hardcoded member list above) instead of a
+       browser-only localStorage account. */
+    function doJoin(rawUser, pass, cb) {
         var u = (rawUser || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
-        if (!u || u.length < 2) return 'short';
-        if (VALID_MEMBERS[u]) return 'reserved';
-        var m = {};
-        try {
-            m = JSON.parse(localStorage.getItem('mx_joined') || '{}');
-        } catch (e) {}
-        if (m[u]) return 'taken';
-        m[u] = pass;
-        localStorage.setItem('mx_joined', JSON.stringify(m));
-        setUser(u);
-        fetch('https://matix-1d538-default-rtdb.firebaseio.com/profiles/' + encodeURIComponent(u) + '.json', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                displayName: u,
-                bio: '',
-                ideasText: '',
-                memesText: '',
-                updatedAt: Date.now()
+        if (!u || u.length < 2) { cb('short'); return; }
+        if (VALID_MEMBERS[u]) { cb('reserved'); return; }
+        fetch(FIREBASE_URL + '/members/' + encodeURIComponent(u) + '.json')
+            .then(function(r) { return r.json(); })
+            .then(function(existing) {
+                if (existing) { cb('taken'); return; }
+                return fetch(FIREBASE_URL + '/members/' + encodeURIComponent(u) + '.json', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pass, joinedAt: Date.now() })
+                }).then(function() {
+                    setUser(u);
+                    fetch(FIREBASE_URL + '/profiles/' + encodeURIComponent(u) + '.json', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            displayName: u,
+                            bio: '',
+                            ideasText: '',
+                            memesText: '',
+                            updatedAt: Date.now()
+                        })
+                    }).catch(function() {});
+                    cb('ok');
+                });
             })
-        }).catch(function() {});
-        return 'ok';
+            .catch(function() { cb('error'); });
     }
 
     function doSignOut() {
         sessionStorage.removeItem('mx_user');
         sessionStorage.removeItem('matix_auth_user');
+        notifyAuthChange();
     }
 
     /* --- HELPERS --- */
@@ -554,7 +594,6 @@
             var hit = mk('a', 'mx-ifr-hit');
             hit.href = link.href;
             hit.setAttribute('aria-label', 'Open ' + link.label);
-            hit.addEventListener('click', hidePanels);
             view.appendChild(hit);
             var foot = mk('div', 'mx-ifr-foot');
             var lbl = mk('span', 'mx-ifr-label');
@@ -743,14 +782,23 @@
         var de = mk('textarea', 'mx-fi ta');
         de.placeholder = 'Description (optional)';
         f.appendChild(de);
+        var co = mk('textarea', 'mx-fi ta');
+        co.placeholder = 'Lesson content \u2014 what members will read';
+        co.style.height = '110px';
+        f.appendChild(co);
         var err = mk('div', 'mx-ferr');
         f.appendChild(err);
         var sb = mk('button', 'mx-pb g');
         sb.textContent = 'Publish';
         sb.addEventListener('click', function() {
             var ttl = ti.value.trim();
+            var cnt = co.value.trim();
             if (!ttl) {
                 err.textContent = 'Enter a title.';
+                return;
+            }
+            if (!cnt) {
+                err.textContent = 'Enter the lesson content.';
                 return;
             }
             sb.textContent = 'Publishing\u2026';
@@ -763,6 +811,7 @@
                     body: JSON.stringify({
                         title: ttl,
                         description: de.value.trim(),
+                        content: cnt,
                         createdBy: getUser(),
                         createdAt: Date.now()
                     })
@@ -899,22 +948,23 @@
                     er.textContent = 'Passwords do not match.';
                     return;
                 }
-                var res = doJoin(ui.value, pi.value);
-                if (res === 'short') {
-                    er.textContent = 'Username must be at least 2 characters.';
-                    return;
-                }
-                if (res === 'reserved') {
-                    er.textContent = 'That username is reserved \u2014 use Sign In.';
-                    return;
-                }
-                if (res === 'taken') {
-                    er.textContent = 'Username taken. Choose another.';
-                    return;
-                }
-                refreshAuth();
-                buildJoinPanel();
-                buildSiPanel();
+                er.textContent = '';
+                sb.textContent = 'Joining\u2026';
+                sb.disabled = true;
+                doJoin(ui.value, pi.value, function(res) {
+                    if (res === 'ok') {
+                        refreshAuth();
+                        buildJoinPanel();
+                        buildSiPanel();
+                        return;
+                    }
+                    sb.textContent = 'Join Matix';
+                    sb.disabled = false;
+                    if (res === 'short') { er.textContent = 'Username must be at least 2 characters.'; }
+                    else if (res === 'reserved') { er.textContent = 'That username is reserved \u2014 use Sign In.'; }
+                    else if (res === 'taken') { er.textContent = 'Username taken. Choose another.'; }
+                    else { er.textContent = 'Something went wrong. Try again.'; }
+                });
             });
             [ui, pi, p2].forEach(function(inp) {
                 inp.addEventListener('keydown', function(e) {
@@ -977,13 +1027,20 @@
             var sb = mk('button', 'mx-pb y');
             sb.textContent = 'Sign In';
             sb.addEventListener('click', function() {
-                if (doSignIn(ui.value, pi.value)) {
-                    refreshAuth();
-                    buildSiPanel();
-                    buildJoinPanel();
-                } else {
-                    er.textContent = 'Invalid username or password.';
-                }
+                er.textContent = '';
+                sb.textContent = 'Signing In\u2026';
+                sb.disabled = true;
+                doSignIn(ui.value, pi.value, function(ok) {
+                    sb.textContent = 'Sign In';
+                    sb.disabled = false;
+                    if (ok) {
+                        refreshAuth();
+                        buildSiPanel();
+                        buildJoinPanel();
+                    } else {
+                        er.textContent = 'Invalid username or password.';
+                    }
+                });
             });
             [ui, pi].forEach(function(inp) {
                 inp.addEventListener('keydown', function(e) {
@@ -1045,6 +1102,32 @@
     }
     refreshAuth();
 
+    /* --- PUBLIC API ---
+       Lets other pages (e.g. the lessons page) reuse this nav's Sign In / Join Matix
+       panels instead of shipping their own login form. */
+    window.MatixAuth = {
+        getUser: getUser,
+        signOut: function() {
+            doSignOut();
+            refreshAuth();
+            buildJoinPanel();
+            buildSiPanel();
+        },
+        openSignIn: function() {
+            openMenu();
+            buildSiPanel();
+            openPanel('si', siPanel, siBtn, 290);
+        },
+        openJoin: function() {
+            openMenu();
+            buildJoinPanel();
+            openPanel('join', joinPanel, joinBtn, 290);
+        },
+        onChange: function(cb) {
+            if (typeof cb === 'function') authListeners.push(cb);
+        }
+    };
+
     /* --- ASSEMBLE --- */
     bar.appendChild(right);
 
@@ -1078,6 +1161,11 @@
         document.body.insertBefore(bar, document.body.firstChild);
         syncPanelTop();
         menuToggle.addEventListener('click', toggleMenu);
+        // Capture phase: this must run BEFORE a button's own click handler can
+        // clear/rebuild its panel's innerHTML (e.g. Create Lesson, Add Exercise,
+        // Back, Sign Out all do this). Otherwise the clicked element looks like
+        // it's already "outside" the panel by the time this check runs, and the
+        // whole nav bar incorrectly closes right as you press the button.
         document.addEventListener('click', function(e) {
             if (menuToggle.contains(e.target)) return;
             if (bar.contains(e.target)) return;
@@ -1085,7 +1173,7 @@
                     return p.contains(e.target);
                 })) return;
             closeMenu();
-        });
+        }, true);
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeMenu();
         });
