@@ -1,4 +1,4 @@
-﻿/* nav.js — Matix — Apple-style always-visible top bar */
+﻿/* nav.js — Matix — Apple-style not-always-visible top bar */
 (function() {
     'use strict';
 
