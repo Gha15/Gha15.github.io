@@ -47,6 +47,43 @@ let activityCheckInterval = null;
 let botKey = null;
 let botDifficulty = 2;
 
+// Streak & game-over state
+let myStreak = 0, bestStreak = 0;
+let gameEnded = false;
+
+// ── Sound FX (Web Audio, no assets) ───────────────────────
+let audioCtx = null;
+let soundOn = true;
+function initAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function beep(freq, dur, type, vol) {
+  if (!soundOn || !audioCtx) return;
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type || 'sine';
+    o.frequency.value = freq;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    g.gain.setValueAtTime(vol || 0.15, now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    o.start(now);
+    o.stop(now + dur);
+  } catch (e) {}
+}
+const sfx = {
+  challenge: () => { beep(440, 0.12, 'square', 0.12); setTimeout(() => beep(660, 0.15, 'square', 0.12), 120); },
+  correct:   () => { beep(660, 0.1, 'sine', 0.16); setTimeout(() => beep(880, 0.18, 'sine', 0.16), 100); },
+  wrong:     () => { beep(200, 0.25, 'sawtooth', 0.14); },
+  win:       () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.22, 'triangle', 0.16), i * 140)); },
+  lose:      () => { [392, 330, 262].forEach((f, i) => setTimeout(() => beep(f, 0.3, 'sawtooth', 0.14), i * 160)); }
+};
+
 // ── Canvas ────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -124,14 +161,22 @@ function roomLinkFor(id) {
 }
 
 function updateRoomLink(id) {
+  const copyBtn = $('copy-link-btn');
+  // The room-link element is optional; guard so nothing crashes if it's absent.
+  if (!roomLinkEl) {
+    if (copyBtn) copyBtn.classList.toggle('hidden', !id);
+    return;
+  }
   if (!id) {
     roomLinkEl.textContent = '';
     roomLinkEl.removeAttribute('href');
+    if (copyBtn) copyBtn.classList.add('hidden');
     return;
   }
 
   roomLinkEl.href = roomLinkFor(id);
   roomLinkEl.textContent = `/games/mathfight/room?id=${id}`;
+  if (copyBtn) copyBtn.classList.remove('hidden');
 }
 
 function getSelectedDeviceMode() {
@@ -275,6 +320,20 @@ function setupJoinFlow() {
     updateRoomLink(newId);
   });
 
+  const copyLinkBtn = $('copy-link-btn');
+  if (copyLinkBtn) {
+    copyLinkBtn.addEventListener('click', () => {
+      const id = normalizeRoomId(roomIdInput.value);
+      const link = roomLinkFor(id);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => {
+          copyLinkBtn.textContent = '✅ Copied';
+          setTimeout(() => { copyLinkBtn.textContent = '📋 Copy'; }, 1600);
+        }).catch(() => {});
+      }
+    });
+  }
+
   $('join-form').addEventListener('submit', async e => {
     e.preventDefault();
     const name = $('join-name').value.trim();
@@ -389,6 +448,9 @@ function startGame() {
   setupBoostControls(deviceMode);
   setupChat();
   canvas.addEventListener('click', onCanvasClick);
+  setupExtras();
+  myStreak = 0;
+  updateStreakBadge();
   requestAnimationFrame(loop);
   setInterval(pushPos, 90);
   startActivityMonitoring();
@@ -450,7 +512,7 @@ function tryStartTurn() {
   if (turn && alive.includes(turn) && turnPhase) {
     return;
   }
-  if (imFirst(alive)) {
+  if (iAmAuthority(alive)) {
     advanceTurn(alive);
   }
 }
@@ -496,7 +558,7 @@ function handleState() {
     if (gameState.resultMsg) {
       flash(gameState.resultMsg, gameState.lostLife === myKey ? '#ef4444' : '#10b981');
     }
-    if (imFirst(alive)) {
+    if (iAmAuthority(alive)) {
       setTimeout(() => advanceTurn(alive), 2800);
     }
   }
@@ -580,6 +642,7 @@ function openChallenge() {
   challengeQ.textContent = gameState.question;
   answerInput.value = '';
   answerInput.focus();
+  sfx.challenge();
   startTimer();
 }
 
@@ -620,6 +683,15 @@ function resolveAnswer(userAns) {
   }
   challengeOverlay.classList.add('hidden');
   const correct = userAns !== null && userAns === parseInt(gameState.correctAnswer);
+  if (correct) {
+    sfx.correct();
+    myStreak++;
+    if (myStreak > bestStreak) bestStreak = myStreak;
+  } else {
+    sfx.wrong();
+    myStreak = 0;
+  }
+  updateStreakBadge();
   const loserKey = correct ? gameState.challenger : myKey;
   const challengerName = playerLabel(gameState.challenger);
   const challengedName = playerLabel(myKey);
@@ -715,7 +787,87 @@ function checkWin() {
   const alive = getAlive();
   const total = Object.keys(players).length;
   if (total > 1 && alive.length === 1) {
-    flash(`🏆 ${playerLabel(alive[0]).toUpperCase()} WINS!`, '#fcd34d');
+    if (!gameEnded) {
+      gameEnded = true;
+      showGameOver(alive[0]);
+    }
+  } else if (alive.length > 1) {
+    gameEnded = false;
+    hideGameOver();
+  }
+}
+
+function showGameOver(winnerKey) {
+  const won = winnerKey === myKey;
+  if (won) sfx.win(); else sfx.lose();
+  const ov = $('gameover-overlay');
+  if (!ov) {
+    flash(`🏆 ${playerLabel(winnerKey).toUpperCase()} WINS!`, '#fcd34d');
+    return;
+  }
+  const titleEl = $('gameover-title');
+  const subEl = $('gameover-sub');
+  if (titleEl) titleEl.textContent = won ? '🏆 VICTORY!' : '💀 GAME OVER';
+  if (subEl) {
+    subEl.textContent = won
+      ? `You're the last one standing!${bestStreak > 1 ? '  Best streak: ' + bestStreak + ' 🔥' : ''}`
+      : `${playerLabel(winnerKey)} wins the match!`;
+  }
+  ov.classList.remove('hidden');
+}
+
+function hideGameOver() {
+  const ov = $('gameover-overlay');
+  if (ov) ov.classList.add('hidden');
+}
+
+// Reset everyone to 3 lives for an instant rematch in the same room.
+function rematch() {
+  roomRef('players').once('value').then(s => {
+    const all = s.val() || {};
+    const updates = {};
+    Object.keys(all).forEach(k => { updates[`${k}/lives`] = 3; updates[`${k}/alive`] = true; });
+    roomRef('players').update(updates).then(() => {
+      myStreak = 0;
+      updateStreakBadge();
+      writeGame({ turn: null, turnPhase: null, challenger: null, challenged: null, question: null, correctAnswer: null, resultMsg: null, lostLife: null });
+    });
+  });
+}
+
+function updateStreakBadge() {
+  const el = $('streak-badge');
+  if (!el) return;
+  if (myStreak >= 2) {
+    el.textContent = `🔥 ${myStreak} streak`;
+    el.classList.remove('hidden');
+  } else {
+    el.classList.add('hidden');
+  }
+}
+
+// Wire up sound toggle + game-over buttons once the game screen is live.
+function setupExtras() {
+  initAudio();
+  const st = $('sound-toggle');
+  if (st && !st.dataset.wired) {
+    st.dataset.wired = '1';
+    st.addEventListener('click', () => {
+      soundOn = !soundOn;
+      st.textContent = soundOn ? '🔊' : '🔇';
+      st.classList.toggle('off', !soundOn);
+      if (soundOn) { initAudio(); beep(660, 0.1, 'sine', 0.14); }
+    });
+  }
+  const again = $('gameover-again');
+  if (again && !again.dataset.wired) {
+    again.dataset.wired = '1';
+    again.addEventListener('click', () => { hideGameOver(); gameEnded = false; rematch(); });
+  }
+  const menu = $('gameover-menu');
+  if (menu && !menu.dataset.wired) {
+    menu.dataset.wired = '1';
+    menu.addEventListener('click', () => { location.href = '/games/mathfight/'; });
   }
 }
 
@@ -1109,6 +1261,12 @@ function imFirst(alive) {
   return alive.slice().sort()[0] === myKey;
 }
 
+// In bot mode the human's browser is the only real client driving the bot, so
+// it must always own turn/state progression regardless of key sort order.
+function iAmAuthority(alive) {
+  return joinMode === 'bot' ? true : imFirst(alive);
+}
+
 function getStickmanImage(color) {
   if (stickmanCache[color]) {
     return stickmanCache[color];
@@ -1141,8 +1299,9 @@ function updatePlayerCount() {
         count += Object.keys(r.players).length;
       }
     });
-    document.getElementById('player-count').textContent = count;
-  });
+    const el = document.getElementById('player-count');
+    if (el) el.textContent = count;
+  }).catch(() => {});
 }
 updatePlayerCount();
 setInterval(updatePlayerCount, 60000);

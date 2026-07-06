@@ -137,6 +137,11 @@
           </select>
         </div>
 
+        <div class="room-link-row">
+          <a class="room-link" id="room-link" target="_blank" rel="noopener"></a>
+          <button type="button" id="copy-link-btn" class="btn-secondary hidden">📋 Copy</button>
+        </div>
+
         <p class="field-error hidden" id="join-error"></p>
         <button type="submit" id="play-btn">PLAY</button>
       </form>
@@ -148,6 +153,8 @@
     <div class="scan-line" aria-hidden="true"></div>
     <div id="player-list" class="player-list"></div>
     <canvas id="canvas"></canvas>
+    <div id="streak-badge" class="streak-badge hidden"></div>
+    <button id="sound-toggle" class="sound-btn" type="button" title="Sound on/off">🔊</button>
 
     <div id="challenge-overlay" class="overlay hidden">
       <div class="overlay-box">
@@ -163,6 +170,17 @@
 
     <div id="result-flash" class="result-flash hidden"></div>
 
+    <div id="gameover-overlay" class="overlay hidden">
+      <div class="overlay-box gameover-box">
+        <div id="gameover-title" class="gameover-title"></div>
+        <div id="gameover-sub" class="gameover-sub"></div>
+        <div class="gameover-btns">
+          <button type="button" id="gameover-again" class="go-btn go-primary">🔁 Play Again</button>
+          <button type="button" id="gameover-menu" class="go-btn go-secondary">🏠 Back to Menu</button>
+        </div>
+      </div>
+    </div>
+
     <div class="action-controls-stack">
       <div id="chat-panel" class="chat-panel hidden">
         <div id="chat-msgs"></div>
@@ -172,12 +190,9 @@
         </form>
       </div>
       <button id="chat-toggle" class="chat-btn" title="Chat">💬</button>
-      <button id="boost-btn" class="boost-btn hidden" type="button">⚡ Boost</button>
-    </div>
-
-    <div id="joystick-zone" class="joystick-zone">
-      <div id="joystick-base" class="joystick-base">
-        <div id="joystick-stick" class="joystick-stick"></div>
+      <button id="boost-btn" class="boost-btn hidden">⚡ Boost</button>
+      <div id="joystick-zone" class="joystick-zone hidden">
+        <div id="joystick-base" class="joystick-base"><div id="joystick-stick" class="joystick-stick"></div></div>
       </div>
     </div>
   </div>
@@ -185,6 +200,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <script src="mathfight.js"></script>
-<script src="/nav.js" defer></script>
+  <script src="/nav.js" defer></script>
 </body>
 </html>

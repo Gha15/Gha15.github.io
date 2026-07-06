@@ -52,17 +52,23 @@
     function doSignIn(rawUser, pass, cb) {
         var u = (rawUser || '').toLowerCase().trim();
         if (!u || !pass) { cb(false); return; }
+        /* Block sign-in for banned users; ghadi can never be banned. */
+        function finishSignIn() {
+            checkBan(u, function(ban) {
+                if (ban) { cb(false, ban); return; }
+                setUser(u);
+                cb(true);
+            });
+        }
         if (VALID_MEMBERS[u] && VALID_MEMBERS[u] === pass) {
-            setUser(u);
-            cb(true);
+            finishSignIn();
             return;
         }
         function tryLocalFallback() {
             try {
                 var m = JSON.parse(localStorage.getItem('mx_joined') || '{}');
                 if (m[u] && m[u] === pass) {
-                    setUser(u);
-                    cb(true);
+                    finishSignIn();
                     return;
                 }
             } catch (e) {}
@@ -72,8 +78,7 @@
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data && data.password === pass) {
-                    setUser(u);
-                    cb(true);
+                    finishSignIn();
                     return;
                 }
                 tryLocalFallback();
@@ -121,6 +126,101 @@
         sessionStorage.removeItem('mx_user');
         sessionStorage.removeItem('matix_auth_user');
         notifyAuthChange();
+    }
+
+    /* --- BANS ---
+       Bans live in Firebase at /bans/<user> = { until, reason, by, at }.
+       `until` is a ms timestamp (0 = permanent). Expired bans self-clear on read.
+       ghadi (the owner) can never be banned. */
+    function normUser(user) {
+        var clean = String(user || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+        if (clean === 'matix' || clean === 'ghadimatix') return 'ghadi';
+        return clean;
+    }
+
+    function checkBan(user, cb) {
+        var u = normUser(user);
+        if (!u || u === 'ghadi') { cb(null); return; }
+        fetch(FIREBASE_URL + '/bans/' + encodeURIComponent(u) + '.json')
+            .then(function(r) { return r.json(); })
+            .then(function(b) {
+                if (b && (b.until === 0 || b.until > Date.now())) { cb(b); return; }
+                if (b) {
+                    fetch(FIREBASE_URL + '/bans/' + encodeURIComponent(u) + '.json', { method: 'DELETE' }).catch(function() {});
+                }
+                cb(null);
+            })
+            .catch(function() { cb(null); });
+    }
+
+    function banUser(user, ms, reason, cb) {
+        var u = normUser(user);
+        if (!u || u === 'ghadi') { cb(false); return; }
+        var payload = {
+            until: ms > 0 ? (Date.now() + ms) : 0,
+            reason: (reason || '').trim().slice(0, 300),
+            by: getUser() || 'ghadi',
+            at: Date.now()
+        };
+        fetch(FIREBASE_URL + '/bans/' + encodeURIComponent(u) + '.json', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(function() { cb(true, payload); }).catch(function() { cb(false); });
+    }
+
+    function unbanUser(user, cb) {
+        var u = normUser(user);
+        if (!u) { cb(false); return; }
+        fetch(FIREBASE_URL + '/bans/' + encodeURIComponent(u) + '.json', { method: 'DELETE' })
+            .then(function() { cb(true); }).catch(function() { cb(false); });
+    }
+
+    function formatBanRemaining(ban) {
+        if (!ban) return '';
+        if (ban.until === 0) return 'Permanent';
+        var ms = ban.until - Date.now();
+        if (ms <= 0) return 'Expired';
+        var mins = Math.round(ms / 60000);
+        if (mins < 60) return mins + ' min left';
+        var hrs = Math.round(mins / 60);
+        if (hrs < 24) return hrs + ' hr left';
+        var days = Math.round(hrs / 24);
+        return days + ' day' + (days === 1 ? '' : 's') + ' left';
+    }
+
+    /* Styled ban notice (replaces the native alert popup). */
+    function showBanNotice(ban) {
+        var existing = document.getElementById('mx-ban-overlay');
+        if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+        var ov = mk('div', 'mx-ban-overlay');
+        ov.id = 'mx-ban-overlay';
+        var modal = mk('div', 'mx-ban-modal');
+        var ico = mk('div', 'mx-ban-ico');
+        ico.textContent = '\ud83d\udeab';
+        var h2 = mk('h2');
+        h2.textContent = 'You are banned';
+        var rs = mk('p', 'mx-ban-reason');
+        rs.textContent = (ban && ban.reason) ? ban.reason : 'No reason was provided.';
+        modal.appendChild(ico);
+        modal.appendChild(h2);
+        modal.appendChild(rs);
+        if (ban && ban.by) {
+            var by = mk('p', 'mx-ban-by');
+            by.textContent = 'Banned by ' + ban.by;
+            modal.appendChild(by);
+        }
+        var tm = mk('p', 'mx-ban-time');
+        tm.textContent = ban ? formatBanRemaining(ban) : '';
+        modal.appendChild(tm);
+        var cls = mk('button', 'mx-ban-close');
+        cls.textContent = 'OK';
+        cls.addEventListener('click', function() {
+            if (ov.parentNode) ov.parentNode.removeChild(ov);
+        });
+        modal.appendChild(cls);
+        ov.appendChild(modal);
+        (document.body || document.documentElement).appendChild(ov);
     }
 
     /* --- HELPERS --- */
@@ -385,6 +485,23 @@
         '.mx-lbtn.v:.is-clicked{background:rgba(59,130,246,.18)}',
         '.mx-lbtn.e{border-color:rgba(245,158,11,.30);color:#fbbf24}',
         '.mx-lbtn.e:.is-clicked{background:rgba(245,158,11,.18)}',
+        '.mx-lbtn.ban{border-color:rgba(239,68,68,.32);color:#f87171}',
+        '.mx-lbtn.ban:hover,.mx-lbtn.ban.is-clicked,.mx-lbtn.ban:.is-clicked{background:rgba(239,68,68,.18)}',
+        '.mx-lbtn.unban{border-color:rgba(16,185,129,.30);color:#34d399}',
+        '.mx-lbtn.unban:hover,.mx-lbtn.unban.is-clicked,.mx-lbtn.unban:.is-clicked{background:rgba(16,185,129,.18)}',
+        '.mx-ban-dur{display:flex;gap:8px}',
+        '.mx-ban-dur .mx-fi{flex:1;min-width:0}',
+        'select.mx-fi{cursor:pointer;-webkit-appearance:none;appearance:none}',
+        /* ban notice modal */
+        '.mx-ban-overlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(2,7,22,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:20px;box-sizing:border-box}',
+        '.mx-ban-modal{max-width:420px;width:100%;background:rgba(10,15,30,.99);border:1px solid rgba(239,68,68,.42);border-top:4px solid #ef4444;border-radius:14px;box-shadow:0 32px 80px rgba(0,0,0,.9);padding:26px 24px;text-align:center;font-family:"Trebuchet MS",Arial,sans-serif;box-sizing:border-box}',
+        '.mx-ban-modal .mx-ban-ico{font-size:2.6rem;line-height:1;margin-bottom:10px}',
+        '.mx-ban-modal h2{color:#f87171;font-size:1.3rem;font-weight:800;margin:0 0 12px}',
+        '.mx-ban-modal .mx-ban-reason{color:#f8fafc;font-size:.95rem;line-height:1.4;margin:0 0 8px;word-break:break-word}',
+        '.mx-ban-modal .mx-ban-by{color:#64748b;font-size:.74rem;margin:0 0 4px}',
+        '.mx-ban-modal .mx-ban-time{color:#fca5a5;font-size:.83rem;font-weight:700;margin:0 0 18px}',
+        '.mx-ban-modal .mx-ban-close{background:rgba(239,68,68,.14);border:1.5px solid #ef4444;color:#f87171;border-radius:8px;padding:10px 18px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;transition:background .12s}',
+        '.mx-ban-modal .mx-ban-close:hover,.mx-ban-modal .mx-ban-close:.is-clicked{background:rgba(239,68,68,.28)}',
         '.mx-pl-empty{padding:20px 17px;text-align:center;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.81rem;color:#475569}',
         '.mx-pl-foot{padding:9px 17px;border-top:1px solid rgba(96,165,250,.10);flex-shrink:0;display:flex;gap:7px;flex-wrap:wrap}',
         '.mx-pl-foot a,.mx-pl-foot button{flex:1;min-width:80px;text-align:center;padding:7px;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.78rem;font-weight:700;border-radius:6px;border:1.5px solid;cursor:pointer;text-decoration:none;transition:background .12s;line-height:1;background:none}',
@@ -661,8 +778,202 @@
     right.appendChild(vd());
     var usersBtn = mk('a', 'mx-nb');
     usersBtn.href = '/users';
-    usersBtn.textContent = 'Users';
+    usersBtn.innerHTML = 'Users <span class="mx-arr">\u25be</span>';
     right.appendChild(usersBtn);
+
+    var usersPanel = mk('div', 'mx-panel mx-p-lessons');
+    usersPanel.id = 'mxp-users';
+    getPortal().appendChild(usersPanel);
+    allPanels.push(usersPanel);
+
+    var usersList = [];
+    var usersLoaded = false;
+    var bansData = {};
+
+    function banActive(u) {
+        var b = bansData[u];
+        return (b && (b.until === 0 || b.until > Date.now())) ? b : null;
+    }
+
+    function renderUsers() {
+        usersPanel.innerHTML = '';
+        var me = getUser();
+        var isAdmin = normUser(me) === 'ghadi';
+
+        var hd = mk('div', 'mx-pl-head');
+        var ht = mk('h3');
+        ht.textContent = 'Users';
+        hd.appendChild(ht);
+        var badge = mk('span', me ? 'mx-pl-badge' : 'mx-pl-guest');
+        badge.textContent = isAdmin ? '\ud83d\udee1\ufe0f Admin' : (me ? ('\ud83d\udc64 ' + me) : 'Guest');
+        hd.appendChild(badge);
+        usersPanel.appendChild(hd);
+
+        var bd = mk('div', 'mx-pl-body');
+        usersPanel.appendChild(bd);
+
+        if (!usersLoaded) {
+            bd.innerHTML = '<div class="mx-pl-empty">Loading\u2026</div>';
+            Promise.all([
+                fetch(FIREBASE_URL + '/profiles.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
+                fetch(FIREBASE_URL + '/members.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
+                fetch(FIREBASE_URL + '/bans.json').then(function(r) { return r.json(); }).catch(function() { return null; })
+            ]).then(function(res) {
+                var seen = {};
+                var list = [];
+                function add(u) {
+                    var c = normUser(u);
+                    if (!c || seen[c]) return;
+                    seen[c] = true;
+                    list.push(c);
+                }
+                Object.keys(VALID_MEMBERS).forEach(add);
+                Object.keys(res[0] || {}).forEach(add);
+                Object.keys(res[1] || {}).forEach(add);
+                bansData = res[2] || {};
+                usersList = list.sort();
+                usersLoaded = true;
+                fillUsers(bd, me, isAdmin);
+            }).catch(function() {
+                bd.innerHTML = '<div class="mx-pl-empty">Could not load users.</div>';
+            });
+        } else {
+            fillUsers(bd, me, isAdmin);
+        }
+
+        var ft = mk('div', 'mx-pl-foot');
+        var va = mk('a', 'va');
+        va.href = '/users';
+        va.textContent = 'All Users';
+        va.addEventListener('click', hidePanels);
+        ft.appendChild(va);
+        usersPanel.appendChild(ft);
+    }
+
+    function fillUsers(bd, me, isAdmin) {
+        bd.innerHTML = '';
+        if (!usersList.length) {
+            bd.innerHTML = '<div class="mx-pl-empty">No users yet.</div>';
+            return;
+        }
+        usersList.forEach(function(u) {
+            var row = mk('div', 'mx-lesson-row');
+            var meta = mk('div', 'mx-lesson-meta');
+            var nm = mk('div', 'mx-lesson-name');
+            nm.textContent = '\ud83d\udc64 ' + u;
+            meta.appendChild(nm);
+            var sub = mk('div', 'mx-lesson-by');
+            var active = banActive(u);
+            if (active) {
+                sub.textContent = '\ud83d\udeab Banned \u2014 ' + formatBanRemaining(active);
+                sub.style.color = '#f87171';
+            } else {
+                sub.textContent = VALID_MEMBERS[u] ? 'Matix Member' : 'Matix User';
+            }
+            meta.appendChild(sub);
+            meta.addEventListener('click', function() {
+                hidePanels();
+                window.location.href = '/users/' + u;
+            });
+            row.appendChild(meta);
+
+            var btns = mk('div', 'mx-lesson-btns');
+            if (isAdmin && u !== 'ghadi') {
+                if (active) {
+                    var ub = mk('button', 'mx-lbtn unban');
+                    ub.textContent = 'Unban';
+                    ub.addEventListener('click', function() {
+                        ub.textContent = '\u2026';
+                        ub.disabled = true;
+                        unbanUser(u, function(ok) {
+                            if (ok) { delete bansData[u]; fillUsers(bd, me, isAdmin); }
+                            else { ub.textContent = 'Unban'; ub.disabled = false; }
+                        });
+                    });
+                    btns.appendChild(ub);
+                } else {
+                    var bb = mk('button', 'mx-lbtn ban');
+                    bb.textContent = 'Ban';
+                    bb.addEventListener('click', function() { showBanForm(u); });
+                    btns.appendChild(bb);
+                }
+            }
+            row.appendChild(btns);
+            bd.appendChild(row);
+        });
+    }
+
+    function showBanForm(target) {
+        usersPanel.innerHTML = '';
+        var f = mk('div', 'mx-pf');
+        var bk = mk('button', 'mx-pf-back');
+        bk.textContent = '\u2190 Back';
+        bk.addEventListener('click', renderUsers);
+        f.appendChild(bk);
+        var h4 = mk('h4');
+        h4.textContent = 'Ban user';
+        f.appendChild(h4);
+        var sub = mk('p', 'mx-pf-sub');
+        sub.textContent = '\ud83d\udc64 ' + target;
+        f.appendChild(sub);
+
+        var durRow = mk('div', 'mx-ban-dur');
+        var amt = mk('input', 'mx-fi');
+        amt.type = 'number';
+        amt.min = '1';
+        amt.value = '1';
+        amt.placeholder = 'Amount';
+        var unit = mk('select', 'mx-fi');
+        [['minutes', 60000], ['hours', 3600000], ['days', 86400000], ['weeks', 604800000], ['permanent', 0]].forEach(function(o) {
+            var op = mk('option');
+            op.value = String(o[1]);
+            op.textContent = o[0];
+            unit.appendChild(op);
+        });
+        unit.value = '86400000';
+        durRow.appendChild(amt);
+        durRow.appendChild(unit);
+        f.appendChild(durRow);
+
+        function syncAmt() { amt.style.display = (unit.value === '0') ? 'none' : ''; }
+        unit.addEventListener('change', syncAmt);
+        syncAmt();
+
+        var reason = mk('textarea', 'mx-fi ta');
+        reason.placeholder = 'Reason for the ban';
+        reason.maxLength = 300;
+        f.appendChild(reason);
+
+        var err = mk('div', 'mx-ferr');
+        f.appendChild(err);
+
+        var sb = mk('button', 'mx-pb r');
+        sb.textContent = 'Ban user';
+        sb.addEventListener('click', function() {
+            var unitMs = parseFloat(unit.value);
+            var n = parseInt(amt.value, 10);
+            if (unitMs !== 0 && (!n || n < 1)) { err.textContent = 'Enter a valid amount.'; return; }
+            if (!reason.value.trim()) { err.textContent = 'Enter a reason.'; return; }
+            var totalMs = unitMs === 0 ? 0 : n * unitMs;
+            err.textContent = '';
+            sb.textContent = 'Banning\u2026';
+            sb.disabled = true;
+            banUser(target, totalMs, reason.value, function(ok, payload) {
+                if (ok) {
+                    bansData[target] = payload;
+                    renderUsers();
+                } else {
+                    err.textContent = 'Failed. Try again.';
+                    sb.textContent = 'Ban user';
+                    sb.disabled = false;
+                }
+            });
+        });
+        f.appendChild(sb);
+        usersPanel.appendChild(f);
+    }
+
+    wirePanel('users', usersPanel, usersBtn, 420, function() { usersLoaded = false; renderUsers(); });
 
     var lsData = {};
     var lsLoaded = false;
@@ -1038,13 +1349,16 @@
                 er.textContent = '';
                 sb.textContent = 'Signing In\u2026';
                 sb.disabled = true;
-                doSignIn(ui.value, pi.value, function(ok) {
+                doSignIn(ui.value, pi.value, function(ok, ban) {
                     sb.textContent = 'Sign In';
                     sb.disabled = false;
                     if (ok) {
                         refreshAuth();
                         buildSiPanel();
                         buildJoinPanel();
+                    } else if (ban) {
+                        er.textContent = '\ud83d\udeab Banned: ' + (ban.reason || 'no reason given') + ' (' + formatBanRemaining(ban) + ')';
+                        showBanNotice(ban);
                     } else {
                         er.textContent = 'Invalid username or password.';
                     }
@@ -1109,6 +1423,24 @@
         }
     }
     refreshAuth();
+
+    /* If the signed-in user is (or becomes) banned, sign them out on load. */
+    (function enforceBanOnLoad() {
+        var cur = getUser();
+        if (!cur) return;
+        checkBan(cur, function(ban) {
+            if (!ban) return;
+            doSignOut();
+            refreshAuth();
+            try {
+                buildSiPanel();
+                buildJoinPanel();
+            } catch (e) {}
+            try {
+                showBanNotice(ban);
+            } catch (e) {}
+        });
+    })();
 
     /* --- PUBLIC API ---
        Lets other pages (e.g. the lessons page) reuse this nav's Sign In / Join Matix

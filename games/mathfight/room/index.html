@@ -118,6 +118,11 @@
           </select>
         </div>
 
+        <div class="room-link-row">
+          <a class="room-link" id="room-link" target="_blank" rel="noopener"></a>
+          <button type="button" id="copy-link-btn" class="btn-secondary hidden">📋 Copy</button>
+        </div>
+
         <p class="field-error hidden" id="join-error"></p>
         <button type="submit" id="play-btn">PLAY</button>
       </form>
@@ -128,6 +133,8 @@
     <div id="notif" class="notif"></div>
     <div id="player-list" class="player-list"></div>
     <canvas id="canvas"></canvas>
+    <div id="streak-badge" class="streak-badge hidden"></div>
+    <button id="sound-toggle" class="sound-btn" type="button" title="Sound on/off">🔊</button>
 
     <div id="challenge-overlay" class="overlay hidden">
       <div class="overlay-box">
@@ -151,6 +158,17 @@
       </div>
       <button id="chat-toggle" class="chat-btn">💬</button>
       <button id="boost-btn" class="boost-btn hidden">⚡ Boost</button>
+    </div>
+
+    <div id="gameover-overlay" class="overlay hidden">
+      <div class="overlay-box gameover-box">
+        <div id="gameover-title" class="gameover-title"></div>
+        <div id="gameover-sub" class="gameover-sub"></div>
+        <div class="gameover-btns">
+          <button type="button" id="gameover-again" class="go-btn go-primary">🔁 Play Again</button>
+          <button type="button" id="gameover-menu" class="go-btn go-secondary">🏠 Back to Menu</button>
+        </div>
+      </div>
     </div>
   </div>
 

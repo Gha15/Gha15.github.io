@@ -1025,3 +1025,85 @@ body.game-active #boost-btn.hidden {
         font-size: 1.12rem;
     }
 }
+
+/* ─── Added: room link row, sound toggle, streak badge, game over ─── */
+.room-link-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+.room-link-row .room-link { margin-top: 0; flex: 1; min-width: 0; }
+#copy-link-btn { cursor: pointer; white-space: nowrap; }
+
+.sound-btn {
+    position: fixed;
+    top: 74px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 0;
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 150;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.5);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.sound-btn:hover { transform: scale(1.08); }
+.sound-btn.off { background: #334155; filter: grayscale(0.6); }
+
+.streak-badge {
+    position: fixed;
+    top: 74px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: #fff;
+    font-family: 'Vibur', cursive;
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+    padding: 6px 18px;
+    border-radius: 99px;
+    z-index: 60;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);
+    animation: streakPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes streakPop {
+    0% { transform: translateX(-50%) scale(0.6); opacity: 0; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+.gameover-box { max-width: 480px; }
+.gameover-title {
+    font-family: 'Vibur', cursive;
+    font-size: clamp(2.4rem, 7vw, 3.4rem);
+    color: #fcd34d;
+    text-shadow: 0 0 30px #fbbf24aa, 0 0 80px #f59e0b55;
+    margin-bottom: 12px;
+}
+.gameover-sub {
+    color: #c7d2fe;
+    font-size: 1.2rem;
+    margin-bottom: 26px;
+}
+.gameover-btns {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.go-btn {
+    padding: 14px 22px;
+    border: 0;
+    border-radius: 12px;
+    font-family: 'Vibur', cursive;
+    font-size: 1.35rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.go-primary { background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5); }
+.go-secondary { background: linear-gradient(135deg, #4f46e5, #818cf8); color: #fff; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5); }
+.go-btn:hover { transform: translateY(-2px); }
