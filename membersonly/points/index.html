@@ -493,13 +493,14 @@
 
         // REALTIME LISTENER
         db.ref('points').on('value', (snapshot) => {
-            const val = snapshot.val() || { ghadi: 0, marwan: 0, jad: 0, dahlia: 0};
+            const val = snapshot.val() || { ghadi: 0, marwan: 0, jad: 0, dahlia: 0 || 0, yara: 0, mak: 0, hicham: 0 };
             document.getElementById('score-ghadi').innerText = val.ghadi || 0;
             document.getElementById('score-marwan').innerText = val.marwan || 0;
             document.getElementById('score-jad').innerText = val.jad || 0;
             document.getElementById('score-dahlia').innerText = val.dahlia || 0;
             document.getElementById('score-yara').innerText = val.yara || 0;
             document.getElementById('score-mak').innerText = val.mak || 0;
+            document.getElementById('score-hicham').innerText = val.hicham || 0;
         });
         
         // Listen for user profiles (badges and admin status)
@@ -514,7 +515,7 @@
                 controlBlock.style.display = activeIsAdmin ? 'flex' : 'none';
             });
             
-            ['ghadi', 'dahlia', 'marwan', 'yara', 'jad', 'mak'].forEach(user => {
+            ['ghadi', 'dahlia', 'marwan', 'yara', 'jad', 'mak', 'hicham'].forEach(user => {
                 const profile = profiles[user] || {};
                 
                 // Update badge

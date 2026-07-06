@@ -94,7 +94,7 @@
      </div>
 
     <div class="container" id="admin-panel">
-        <div class="header-title" style="color:#818cf8;" id="admin-panel-title">Admin_Lesson_Creator</div>
+        <div class="header-title" style="color:#818cf8;" id="admin-panel-title">Lesson_Creator</div>
         <input type="hidden" id="editing-id" value="">
         
         <span class="admin-label">Lesson Title:</span>
@@ -109,7 +109,7 @@
         <button class="btn btn-admin" id="submit-admin-btn" onclick="addLesson()">Deploy_Lesson</button>
         <button class="btn btn-guest" id="cancel-edit-btn" style="display:none; border-color:#ef4444; color:#ef4444;" onclick="resetAdminForm()">Cancel_Edit</button>
         
-        <div style="margin-top:20px; border-top: 1px dashed #334155; padding-top:15px;">
+        <div id="admin-manage-section" style="margin-top:20px; border-top: 1px dashed #334155; padding-top:15px;">
             <span class="admin-label" style="margin-bottom:10px;">Modify Deployed Content Nodes:</span>
             <div id="admin-raw-list"></div>
         </div>
@@ -188,7 +188,8 @@
             document.getElementById('user-display').innerText = `Active User: ${currentUser.toLowerCase()}`;
 
             const isAdmin = currentUser === 'ghadi';
-            document.getElementById('admin-panel').style.display = isAdmin ? 'block' : 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('admin-manage-section').style.display = isAdmin ? 'block' : 'none';
 
             db.ref('lessons').on('value', (snapshot) => {
                 const lessons = snapshot.val() || {};
@@ -260,7 +261,7 @@
                 });
             } else {
                 // Production Push Path
-                db.ref('lessons').push({ title, description: desc, content }).then(() => {
+                db.ref('lessons').push({ title, description: desc, content, createdBy: currentUser, createdAt: Date.now() }).then(() => {
                     alert("Lesson deployed to network!");
                     resetAdminForm();
                 });
@@ -318,7 +319,6 @@
     </script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <script src="/theme-loader.js"></script>
-<script src="/nav.js" defer></script>
+  <script src="/nav.js" defer></script>
 </body>
 </html>

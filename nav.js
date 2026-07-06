@@ -1,4 +1,4 @@
-﻿/* nav.js — Matix — Apple-style not-always-visible top bar */
+﻿/* nav.js — Matix — Apple-style always-visible top bar */
 (function() {
     'use strict';
 
@@ -594,6 +594,7 @@
             var hit = mk('a', 'mx-ifr-hit');
             hit.href = link.href;
             hit.setAttribute('aria-label', 'Open ' + link.label);
+            hit.addEventListener('click', hidePanels);
             view.appendChild(hit);
             var foot = mk('div', 'mx-ifr-foot');
             var lbl = mk('span', 'mx-ifr-label');
@@ -655,6 +656,13 @@
     lessonsPanel.id = 'mxp-lessons';
     getPortal().appendChild(lessonsPanel);
     allPanels.push(lessonsPanel);
+
+    /* Users */
+    right.appendChild(vd());
+    var usersBtn = mk('a', 'mx-nb');
+    usersBtn.href = '/users';
+    usersBtn.textContent = 'Users';
+    right.appendChild(usersBtn);
 
     var lsData = {};
     var lsLoaded = false;

@@ -698,8 +698,10 @@
         }
         if (me && me === username) {
           var editBtn = document.createElement('button'); editBtn.className = 'prof-btn edit'; editBtn.textContent = 'Customize';
+          var photoBtn = document.createElement('button'); photoBtn.className = 'prof-btn edit'; photoBtn.textContent = '\uD83D\uDCF7 Change Photo';
           var deleteBtn = document.createElement('button'); deleteBtn.className = 'prof-btn delete'; deleteBtn.textContent = isMember(username) ? 'Reset Profile' : 'Delete Profile';
           acts.appendChild(editBtn);
+          acts.appendChild(photoBtn);
           acts.appendChild(deleteBtn);
         }
         info.appendChild(nm); info.appendChild(badge); info.appendChild(acts);
@@ -717,19 +719,6 @@
             '<input class="prof-field" id="prof-display-name" type="text" maxlength="40" placeholder="Display name">' +
             '<textarea class="prof-field ta" id="prof-bio" maxlength="300" placeholder="Bio"></textarea>' +
             '<div class="prof-help">Your bio is shown at the top of your profile.</div>' +
-
-            /* Upgraded and Interactive Crop Block */
-            '<div style="margin-bottom: 14px;">' +
-            '<label style="font-family:\'Trebuchet MS\',Arial,sans-serif;font-size:.8rem;color:#93c5fd;display:block;margin-bottom:6px;">Profile Image</label>' +
-            '<label for="prof-image" class="upload-label-btn">Choose Image...</label>' +
-            '<input type="file" id="prof-image" accept="image/*" style="display:none;">' +
-            '<div class="crop-container" id="crop-zone">' +
-            '<div class="crop-viewport" id="crop-view"></div>' +
-            '<input type="range" class="crop-slider" id="crop-zoom" min="1" max="3" step="0.01" value="1">' +
-            '<div class="prof-help">Drag to adjust, use slider to zoom.</div>' +
-            '</div>' +
-            '</div>' +
-
             '<textarea class="prof-field ta" id="prof-ideas" maxlength="500" placeholder="Ideas section text"></textarea>' +
             '<textarea class="prof-field ta" id="prof-memes" maxlength="500" placeholder="Jokes / memes section text"></textarea>' +
             '<div class="prof-row">' +
@@ -739,71 +728,216 @@
             '<div class="prof-note">Deleting a joined profile removes the local account from this browser. Published lessons stay online.</div>';
           root.appendChild(editPanel);
 
-          var editBtnRef = acts.querySelector('.prof-btn.edit');
-          var deleteBtnRef = acts.querySelector('.prof-btn.delete');
+          var photoPanel = document.createElement('div'); photoPanel.className = 'prof-panel'; photoPanel.style.display = 'none';
+          photoPanel.innerHTML =
+            '<h3>Change Profile Photo</h3>' +
+            '<div id="photo-choose-view">' +
+            '<div class="prof-row">' +
+            '<button class="prof-btn edit" id="photo-resize-btn" type="button">Resize Current Photo</button>' +
+            '<button class="prof-btn msg" id="photo-pick-btn" type="button">Pick New Image</button>' +
+            '<button class="prof-btn msg" id="photo-camera-btn" type="button">Use Camera</button>' +
+            '</div>' +
+            '<input type="file" id="prof-image" accept="image/*" style="display:none;">' +
+            '<div class="prof-help">Choose how you\'d like to update your profile photo.</div>' +
+            '<div class="prof-row"><button class="prof-btn msg" id="photo-close-btn" type="button">Close</button></div>' +
+            '</div>' +
+            '<div id="photo-camera-view" style="display:none;">' +
+            '<div class="crop-viewport" id="camera-viewport">' +
+            '<video id="camera-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>' +
+            '</div>' +
+            '<div class="prof-help" id="camera-error"></div>' +
+            '<div class="prof-row" style="justify-content:center;margin-top:8px;">' +
+            '<button class="prof-btn edit" id="camera-capture-btn" type="button">Capture Photo</button>' +
+            '<button class="prof-btn msg" id="camera-cancel-btn" type="button">Cancel</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="crop-container" id="crop-zone">' +
+            '<div class="crop-viewport" id="crop-view"></div>' +
+            '<input type="range" class="crop-slider" id="crop-zoom" min="1" max="3" step="0.01" value="1">' +
+            '<div class="prof-help">Drag to adjust, use slider to zoom.</div>' +
+            '<div class="prof-row">' +
+            '<button class="prof-btn edit" id="photo-save-btn" type="button">Save Photo</button>' +
+            '<button class="prof-btn msg" id="photo-back-btn" type="button">Choose Different Photo</button>' +
+            '</div>' +
+            '</div>';
+          root.appendChild(photoPanel);
+
           var displayNameInput = editPanel.querySelector('#prof-display-name');
           var bioInput = editPanel.querySelector('#prof-bio');
           var ideasInput = editPanel.querySelector('#prof-ideas');
           var memesInput = editPanel.querySelector('#prof-memes');
-          var imageInput = editPanel.querySelector('#prof-image');
-
-          // Cropper Variables
-          var cropZone = editPanel.querySelector('#crop-zone');
-          var cropView = editPanel.querySelector('#crop-view');
-          var cropImg = editPanel.querySelector('#crop-img');
-          var cropZoom = editPanel.querySelector('#crop-zoom');
-          var isDragging = false, startX, startY, imgX = 0, imgY = 0, currentScale = 1;
-          var finalImageBase64 = profile.profileImage || '';
 
           displayNameInput.value = profile.displayName || username;
           bioInput.value = profile.bio || '';
           ideasInput.value = profile.ideasText || '';
           memesInput.value = profile.memesText || '';
 
-          editBtnRef.addEventListener('click', function () {
+          /* ── Customize (text) panel ── */
+          editBtn.addEventListener('click', function () {
+            stopCameraStream();
+            photoPanel.style.display = 'none';
             editPanel.style.display = editPanel.style.display === 'none' ? 'block' : 'none';
           });
           editPanel.querySelector('#prof-cancel-btn').addEventListener('click', function () {
             editPanel.style.display = 'none';
           });
+          editPanel.querySelector('#prof-save-btn').addEventListener('click', function () {
+            saveProfile(username, {
+              displayName: displayNameInput.value,
+              bio: bioInput.value,
+              ideasText: ideasInput.value,
+              memesText: memesInput.value,
+              profileImage: profile.profileImage || ''
+            }).then(function () {
+              renderProfile(username);
+            });
+          });
 
-          // Setup local image processing environment when file changes
+          /* ── Change Photo panel: choose source → (camera) → crop/zoom → save ── */
+          var photoChooseView = photoPanel.querySelector('#photo-choose-view');
+          var photoCameraView = photoPanel.querySelector('#photo-camera-view');
+          var cameraVideo = photoPanel.querySelector('#camera-video');
+          var cameraError = photoPanel.querySelector('#camera-error');
+          var resizeBtn = photoPanel.querySelector('#photo-resize-btn');
+          var pickBtn = photoPanel.querySelector('#photo-pick-btn');
+          var cameraBtn = photoPanel.querySelector('#photo-camera-btn');
+          var photoCloseBtn = photoPanel.querySelector('#photo-close-btn');
+          var cameraCaptureBtn = photoPanel.querySelector('#camera-capture-btn');
+          var cameraCancelBtn = photoPanel.querySelector('#camera-cancel-btn');
+          var imageInput = photoPanel.querySelector('#prof-image');
+          var cropZone = photoPanel.querySelector('#crop-zone');
+          var cropView = photoPanel.querySelector('#crop-view');
+          var cropZoom = photoPanel.querySelector('#crop-zoom');
+          var photoSaveBtn = photoPanel.querySelector('#photo-save-btn');
+          var photoBackBtn = photoPanel.querySelector('#photo-back-btn');
+
+          var cropImg = null;
+          var isDragging = false, startX, startY, imgX = 0, imgY = 0, currentScale = 1;
+          var cameraStream = null;
+
+          function stopCameraStream() {
+            if (cameraStream) {
+              cameraStream.getTracks().forEach(function (t) { t.stop(); });
+              cameraStream = null;
+            }
+          }
+          window.addEventListener('beforeunload', stopCameraStream);
+
+          function showChooseView() {
+            stopCameraStream();
+            photoChooseView.style.display = 'block';
+            photoCameraView.style.display = 'none';
+            cropZone.style.display = 'none';
+            var hasImage = !!profile.profileImage;
+            resizeBtn.disabled = !hasImage;
+            resizeBtn.style.opacity = hasImage ? '1' : '.4';
+            resizeBtn.style.cursor = hasImage ? 'pointer' : 'not-allowed';
+          }
+
+          // Shared by "resize current", "pick new", and "camera" — loads any source
+          // image into the same drag/zoom cropping tool.
+          function loadImageIntoCropper(srcDataUrl) {
+            cropImg = new Image();
+            cropImg.onload = function () {
+              photoChooseView.style.display = 'none';
+              photoCameraView.style.display = 'none';
+              cropZone.style.display = 'block';
+              // Calculate "cover" scale so the image always fills the viewport
+              var vw = 200, vh = 200;
+              var coverScale = Math.max(vw / cropImg.naturalWidth, vh / cropImg.naturalHeight);
+
+              // Render the image at its natural size; transform handles all scaling
+              cropImg.style.width = cropImg.naturalWidth + 'px';
+              cropImg.style.height = cropImg.naturalHeight + 'px';
+
+              // Configure slider: min = cover, max = 3x cover
+              cropZoom.min = coverScale;
+              cropZoom.max = coverScale * 3;
+              cropZoom.step = 0.01;
+              cropZoom.value = coverScale;
+              currentScale = coverScale;
+
+              // Center the (scaled) image inside the viewport
+              var displayW = cropImg.naturalWidth * coverScale;
+              var displayH = cropImg.naturalHeight * coverScale;
+              imgX = (vw - displayW) / 2;
+              imgY = (vh - displayH) / 2;
+              cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + coverScale + ')';
+
+              cropView.innerHTML = '';
+              cropView.appendChild(cropImg);
+            };
+            cropImg.src = srcDataUrl;
+          }
+
+          photoBtn.addEventListener('click', function () {
+            editPanel.style.display = 'none';
+            var opening = photoPanel.style.display === 'none';
+            photoPanel.style.display = opening ? 'block' : 'none';
+            if (opening) { showChooseView(); } else { stopCameraStream(); }
+          });
+          photoCloseBtn.addEventListener('click', function () {
+            stopCameraStream();
+            photoPanel.style.display = 'none';
+          });
+
+          // Option 1: resize the photo already saved on the profile
+          resizeBtn.addEventListener('click', function () {
+            if (!profile.profileImage) return;
+            loadImageIntoCropper(profile.profileImage);
+          });
+
+          // Option 2: pick a new image file from disk
+          pickBtn.addEventListener('click', function () { imageInput.click(); });
           imageInput.addEventListener('change', function (e) {
             var file = e.target.files[0];
             if (!file) return;
             var r = new FileReader();
-            r.onload = function (evt) {
-              cropImg = new Image();
-              cropImg.onload = function () {
-                cropZone.style.display = 'block';
-                // Calculate "cover" scale so the image always fills the viewport
-                var vw = 200, vh = 200;
-                var coverScale = Math.max(vw / cropImg.naturalWidth, vh / cropImg.naturalHeight);
-
-                // Render the image at its natural size; transform handles all scaling
-                cropImg.style.width = cropImg.naturalWidth + 'px';
-                cropImg.style.height = cropImg.naturalHeight + 'px';
-
-                // Configure slider: min = cover, max = 3x cover
-                cropZoom.min = coverScale;
-                cropZoom.max = coverScale * 3;
-                cropZoom.step = 0.01;
-                cropZoom.value = coverScale;
-                currentScale = coverScale;
-
-                // Center the (scaled) image inside the viewport
-                var displayW = cropImg.naturalWidth * coverScale;
-                var displayH = cropImg.naturalHeight * coverScale;
-                imgX = (vw - displayW) / 2;
-                imgY = (vh - displayH) / 2;
-                cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + coverScale + ')';
-
-                cropView.innerHTML = '';
-                cropView.appendChild(cropImg);
-              };
-              cropImg.src = evt.target.result;
-            };
+            r.onload = function (evt) { loadImageIntoCropper(evt.target.result); };
             r.readAsDataURL(file);
+          });
+
+          // Option 3: take a photo with the camera
+          cameraBtn.addEventListener('click', function () {
+            photoChooseView.style.display = 'none';
+            photoCameraView.style.display = 'block';
+            cameraError.textContent = '';
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+              cameraError.textContent = 'Camera not supported in this browser.';
+              return;
+            }
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }).then(function (stream) {
+              cameraStream = stream;
+              cameraVideo.srcObject = stream;
+            }).catch(function () {
+              cameraError.textContent = 'Could not access camera. Check permissions and try again.';
+            });
+          });
+          cameraCancelBtn.addEventListener('click', showChooseView);
+          cameraCaptureBtn.addEventListener('click', function () {
+            var vw = cameraVideo.videoWidth, vh = cameraVideo.videoHeight;
+            if (!cameraStream || !vw || !vh) return;
+            var canvas = document.createElement('canvas');
+            canvas.width = vw; canvas.height = vh;
+            canvas.getContext('2d').drawImage(cameraVideo, 0, 0, vw, vh);
+            var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            stopCameraStream();
+            loadImageIntoCropper(dataUrl);
+          });
+
+          photoBackBtn.addEventListener('click', showChooseView);
+          photoSaveBtn.addEventListener('click', function () {
+            processCroppedImage(function (imgStr) {
+              saveProfile(username, {
+                displayName: profile.displayName || username,
+                bio: profile.bio || '',
+                ideasText: profile.ideasText || '',
+                memesText: profile.memesText || '',
+                profileImage: imgStr
+              }).then(function () {
+                renderProfile(username);
+              });
+            });
           });
 
           // Handle viewport pointer events for dragging mechanics
@@ -813,7 +947,7 @@
             startY = e.clientY - imgY;
           });
           window.addEventListener('mousemove', function (e) {
-            if (!isDragging) return;
+            if (!isDragging || !cropImg) return;
             imgX = e.clientX - startX;
             imgY = e.clientY - startY;
             cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + currentScale + ')';
@@ -822,13 +956,13 @@
 
           cropZoom.addEventListener('input', function () {
             currentScale = this.value;
-            cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + currentScale + ')';
+            if (cropImg) cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + currentScale + ')';
           });
 
           // Utility to crop active canvas frame parameters to Base64 output
           function processCroppedImage(callback) {
-            if (!cropImg.src || cropZone.style.display === 'none') {
-              callback(finalImageBase64);
+            if (!cropImg || !cropImg.src || cropZone.style.display === 'none') {
+              callback(profile.profileImage || '');
               return;
             }
             var canvas = document.createElement('canvas');
@@ -851,25 +985,12 @@
             callback(canvas.toDataURL('image/jpeg', 0.85));
           }
 
-          editPanel.querySelector('#prof-save-btn').addEventListener('click', function () {
-            processCroppedImage(function (imgStr) {
-              saveProfile(username, {
-                displayName: displayNameInput.value,
-                bio: bioInput.value,
-                ideasText: ideasInput.value,
-                memesText: memesInput.value,
-                profileImage: imgStr
-              }).then(function () {
-                renderProfile(username);
-              });
-            });
-          });
-
-          deleteBtnRef.addEventListener('click', function () {
+          deleteBtn.addEventListener('click', function () {
             var msg = isMember(username)
               ? 'Reset your custom profile text for ' + username + '?'
               : 'Delete profile ' + username + ' from this browser?';
             if (!window.confirm(msg)) return;
+            stopCameraStream();
             Promise.resolve(deleteCurrentProfile(username)).then(function () {
               if (isMember(username)) {
                 renderProfile(username);
