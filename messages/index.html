@@ -64,14 +64,16 @@
       redeem:    { icon: '\uD83C\uDF81', color: '#f472b6', label: 'Points request accepted' },
       meme:      { icon: '\uD83D\uDE02', color: '#facc15', label: 'New joke / meme posted' },
       lesson:    { icon: '\uD83D\uDCDA', color: '#22d3ee', label: 'New lesson added' },
-      deleted:   { icon: '\uD83D\uDDD1', color: '#f87171', label: 'A user was removed' }
+      deleted:   { icon: '\uD83D\uDDD1', color: '#f87171', label: 'A user was removed' },
+      reply:     { icon: '\u21A9', color: '#a78bfa', label: 'Replies to your comments' },
+      mention:   { icon: '\uD83D\uDCAC', color: '#c084fc', label: 'Mentions of you' }
     };
-    var NOTIF_ORDER = ['follower', 'joined', 'role', 'changelog', 'comment', 'points', 'redeem', 'meme', 'lesson', 'deleted'];
+    var NOTIF_ORDER = ['follower', 'joined', 'role', 'changelog', 'comment', 'reply', 'mention', 'points', 'redeem', 'meme', 'lesson', 'deleted'];
     var CHIPS = [
       { id: 'all', label: 'All', types: null },
       { id: 'follower', label: 'Follows', types: ['follower'] },
       { id: 'joined', label: 'Members', types: ['joined'] },
-      { id: 'comment', label: 'Comments', types: ['comment'] },
+      { id: 'comment', label: 'Comments', types: ['comment', 'reply', 'mention'] },
       { id: 'role', label: 'Roles', types: ['role'] },
       { id: 'points', label: 'Points', types: ['points', 'redeem'] },
       { id: 'meme', label: '\uD83D\uDE02 Jokes & Memes', types: ['meme'] },

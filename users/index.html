@@ -571,6 +571,29 @@
     .cmt-text { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .9rem; color: #e2e8f0; line-height: 1.5; word-break: break-word; white-space: pre-wrap }
     .cmt-del { position: absolute; top: 9px; right: 10px; background: none; border: none; color: #64748b; cursor: pointer; font-size: .85rem; line-height: 1; padding: 2px 5px; border-radius: 5px; transition: background .12s, color .12s }
     .cmt-del:hover { background: rgba(239, 68, 68, .16); color: #f87171 }
+    .cmt-mention { color: #93c5fd; text-decoration: none; font-weight: 700 }
+    .cmt-mention:hover { text-decoration: underline; color: #bfdbfe }
+    .cmt-actions { margin-top: 8px; display: flex; justify-content: flex-end }
+    .cmt-reply-btn { background: none; border: none; color: #7dd3fc; cursor: pointer; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .76rem; font-weight: 700; padding: 2px 0 }
+    .cmt-reply-btn:hover { text-decoration: underline; color: #bae6fd }
+    .cmt-mention-menu { position: absolute; top: 100%; left: 0; z-index: 40; margin-top: 4px; min-width: 190px; max-height: 220px; overflow-y: auto; background: #0b1836; border: 1px solid rgba(96, 165, 250, .32); border-radius: 10px; box-shadow: 0 12px 30px -8px rgba(0,0,0,.7); padding: 5px }
+    .cmt-mention-opt { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 8px; cursor: pointer; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .85rem; color: #dbeafe }
+    .cmt-mention-opt:hover, .cmt-mention-opt.active { background: rgba(37, 99, 235, .35) }
+    .cmt-mention-av { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #1e3a8a, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700; color: #93c5fd; flex-shrink: 0 }
+    .cmt-replies { margin-left: 2vw; margin-top: 8px; display: flex; flex-direction: column; gap: 12px; border-left: 2px solid rgba(96, 165, 250, .22); padding-left: 14px }
+    .cmt-item-reply { background: rgba(12, 35, 100, .38) }
+    .cmt-reply-chip { display: flex; align-items: center; gap: 8px; background: rgba(37, 99, 235, .18); border: 1px solid rgba(96, 165, 250, .3); border-radius: 8px; padding: 5px 10px; margin-bottom: 8px; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .78rem; color: #bfdbfe }
+    .cmt-reply-cancel { background: none; border: none; color: #93c5fd; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0 2px; margin-left: auto }
+    .cmt-del { font-size: .95rem }
+    .cc-modal-overlay { position: fixed; inset: 0; background: rgba(2, 5, 18, .72); display: flex; align-items: center; justify-content: center; z-index: 999 }
+    .cc-modal-box { background: #0b1836; border: 1px solid rgba(96, 165, 250, .28); border-radius: 14px; padding: 22px 24px; max-width: 340px; box-shadow: 0 20px 50px -10px rgba(0, 0, 0, .7) }
+    .cc-modal-msg { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .92rem; color: #e2e8f0; line-height: 1.5; margin-bottom: 18px }
+    .cc-modal-row { display: flex; justify-content: flex-end; gap: 10px }
+    .cc-modal-btn { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .84rem; font-weight: 700; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; transition: filter .13s }
+    .cc-modal-cancel { background: rgba(148, 163, 184, .18); color: #cbd5e1 }
+    .cc-modal-cancel:hover { filter: brightness(1.2) }
+    .cc-modal-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff }
+    .cc-modal-danger:hover { filter: brightness(1.12) }
   </style>
 </head>
 
@@ -601,8 +624,9 @@
         .catch(function () { if (cb) cb(false); });
     }
     /* Send a stored notification (read by nav.js). Each is its own push-id child. */
-    function pushNotification(u, type, title, body) {
+    function pushNotification(u, type, title, body, fromUser) {
       var payload = { type: type, title: title, body: body, at: Date.now() };
+      if (fromUser) payload.user = normalizeUser(fromUser);
       return fetch(FB + '/notifications/' + encodeURIComponent(normalizeUser(u)) + '.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(function () { });
     }
     /* On a role change: notify the user, and enroll new members/admins/owners into
@@ -890,16 +914,50 @@
     /* ── Per-user comment wall (scratch.mit.edu style) ── */
     function commentsUrl(username) { return FB + '/profile_comments/' + encodeURIComponent(normalizeUser(username)) + '.json'; }
     function loadComments(username, cb) { fetchJson(commentsUrl(username)).then(function (map) { cb(map || {}); }); }
-    function postComment(username, author, text, cb) {
+    function postComment(username, author, text, replyTo, cb) {
       fetch(commentsUrl(username), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ by: normalizeUser(author), text: String(text).slice(0, 500), at: Date.now() })
+        body: JSON.stringify((function () { var p = { by: normalizeUser(author), text: String(text).slice(0, 500), at: Date.now() }; if (replyTo) p.replyTo = replyTo; return p; })())
       }).then(function (r) { return r.json(); }).then(function (res) { cb(true, res && res.name); }).catch(function () { cb(false); });
     }
     function deleteComment(username, key, cb) {
       fetch(FB + '/profile_comments/' + encodeURIComponent(normalizeUser(username)) + '/' + encodeURIComponent(key) + '.json', { method: 'DELETE' })
         .then(function () { cb(true); }).catch(function () { cb(false); });
+    }
+    /* Custom-styled confirmation modal (replaces the native browser confirm() popup). */
+    function customConfirm(message, onYes) {
+      var ov = document.createElement('div'); ov.className = 'cc-modal-overlay';
+      var box = document.createElement('div'); box.className = 'cc-modal-box';
+      var msg = document.createElement('div'); msg.className = 'cc-modal-msg'; msg.textContent = message;
+      var row = document.createElement('div'); row.className = 'cc-modal-row';
+      var cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'cc-modal-btn cc-modal-cancel'; cancel.textContent = 'Cancel';
+      var yes = document.createElement('button'); yes.type = 'button'; yes.className = 'cc-modal-btn cc-modal-danger'; yes.textContent = 'Delete';
+      row.appendChild(cancel); row.appendChild(yes);
+      box.appendChild(msg); box.appendChild(row);
+      ov.appendChild(box);
+      document.body.appendChild(ov);
+      function onKey(e) { if (e.key === 'Escape') close(); }
+      function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); document.removeEventListener('keydown', onKey); }
+      cancel.addEventListener('click', close);
+      ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+      yes.addEventListener('click', function () { close(); onYes(); });
+      document.addEventListener('keydown', onKey);
+      yes.focus();
+    }
+    /* Turn @username tokens into links to that user's profile. Built with DOM nodes (no innerHTML) so comment text stays safe. */
+    function renderCommentText(el, text) {
+      el.textContent = '';
+      var re = /@(\w+)/g;
+      var last = 0, m;
+      while ((m = re.exec(text)) !== null) {
+        if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+        var a = document.createElement('a'); a.className = 'cmt-mention';
+        a.href = '/users/' + normalizeUser(m[1]); a.textContent = '@' + m[1];
+        el.appendChild(a);
+        last = m.index + m[0].length;
+      }
+      if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
     }
     function timeAgo(ms) {
       var s = Math.floor((Date.now() - ms) / 1000);
@@ -909,6 +967,60 @@
       var d = Math.floor(h / 24); if (d < 30) return d + 'd ago';
       return new Date(ms).toLocaleDateString();
     }
+    /* Notify users mentioned in a comment. The first @mention when the comment starts with @ is treated as a reply; the rest are plain mentions. */
+    function notifyMentions(author, text) {
+      var startsWithMention = /^\s*@\w+/.test(text);
+      var validList = VALID_MEMBERS.concat(getJoined());
+      var re = /@(\w+)/g, m, idx = 0, seen = {};
+      while ((m = re.exec(text)) !== null) {
+        var u = normalizeUser(m[1]); var isFirst = (idx === 0); idx++;
+        if (!u || u === author || seen[u] || validList.indexOf(u) === -1) continue;
+        seen[u] = 1;
+        if (isFirst && startsWithMention) pushNotification(u, 'reply', '@' + author + ' replied to your comment', text, author);
+        else pushNotification(u, 'mention', '@' + author + ' mentioned you in a comment', text, author);
+      }
+    }
+    /* @-autocomplete for the comment box, styled like a community mention picker. */
+    function setupMentionAutocomplete(ta, col, me) {
+      var menu = document.createElement('div'); menu.className = 'cmt-mention-menu'; menu.style.display = 'none';
+      col.appendChild(menu);
+      var seenU = {}, users = VALID_MEMBERS.concat(getJoined()).filter(function (u) { if (!u || u === me || seenU[u]) return false; seenU[u] = 1; return true; });
+      var active = -1, matches = [];
+      function hide() { menu.style.display = 'none'; active = -1; }
+      function currentQuery() { var pos = ta.selectionStart; var mm = ta.value.slice(0, pos).match(/@(\w*)$/); return mm ? mm[1] : null; }
+      function pick(uname) {
+        var pos = ta.selectionStart;
+        var before = ta.value.slice(0, pos).replace(/@(\w*)$/, '@' + uname + ' ');
+        var after = ta.value.slice(pos);
+        ta.value = before + after; var np = before.length;
+        ta.focus(); try { ta.setSelectionRange(np, np); } catch (e) { }
+        hide();
+      }
+      function highlight() { var opts = menu.querySelectorAll('.cmt-mention-opt'); for (var i = 0; i < opts.length; i++) opts[i].classList.toggle('active', i === active); }
+      function render(q) {
+        matches = users.filter(function (u) { return u.indexOf(q.toLowerCase()) === 0; }).slice(0, 6);
+        if (!matches.length) { hide(); return; }
+        menu.innerHTML = ''; active = -1;
+        matches.forEach(function (u) {
+          var it = document.createElement('div'); it.className = 'cmt-mention-opt';
+          var av = document.createElement('span'); av.className = 'cmt-mention-av'; av.textContent = initials(u);
+          var nm = document.createElement('span'); nm.textContent = '@' + u;
+          it.appendChild(av); it.appendChild(nm);
+          it.addEventListener('mousedown', function (ev) { ev.preventDefault(); pick(u); });
+          menu.appendChild(it);
+        });
+        menu.style.display = 'block';
+      }
+      ta.addEventListener('input', function () { var q = currentQuery(); if (q === null) { hide(); return; } render(q); });
+      ta.addEventListener('keydown', function (e) {
+        if (menu.style.display === 'none') return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(active + 1, matches.length - 1); highlight(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(active - 1, 0); highlight(); }
+        else if (e.key === 'Enter' && active > -1) { e.preventDefault(); pick(matches[active]); }
+        else if (e.key === 'Escape') { hide(); }
+      });
+      ta.addEventListener('blur', function () { setTimeout(hide, 150); });
+    }
     function renderComments(root, username, me) {
       var section = document.createElement('div'); section.className = 'cmt-section';
       var h = document.createElement('h3'); h.className = 'cmt-heading'; h.textContent = '\uD83D\uDCAC Comments';
@@ -916,7 +1028,7 @@
       if (me) {
         var composer = document.createElement('div'); composer.className = 'cmt-composer';
         var av0 = document.createElement('div'); av0.className = 'cmt-avatar'; av0.textContent = initials(me);
-        var col = document.createElement('div'); col.style.flex = '1';
+        var col = document.createElement('div'); col.style.flex = '1'; col.style.position = 'relative';
         var ta = document.createElement('textarea'); ta.className = 'cmt-input'; ta.maxLength = 500; ta.placeholder = 'Write a comment as @' + me + '\u2026';
         var rowb = document.createElement('div'); rowb.className = 'cmt-composer-row';
         var post = document.createElement('button'); post.className = 'cmt-post-btn'; post.textContent = 'Post comment';
@@ -924,13 +1036,25 @@
         col.appendChild(ta); col.appendChild(rowb);
         composer.appendChild(av0); composer.appendChild(col);
         section.appendChild(composer);
+        setupMentionAutocomplete(ta, col, me);
+        var replyTarget = null;
+        var replyChip = document.createElement('div'); replyChip.className = 'cmt-reply-chip'; replyChip.style.display = 'none';
+        col.insertBefore(replyChip, ta);
+        var clearReplyTarget = function () { replyTarget = null; replyChip.style.display = 'none'; };
+        var setReplyTarget = function (k, user) {
+          replyTarget = k; replyChip.innerHTML = '';
+          var span = document.createElement('span'); span.textContent = 'Replying to @' + user;
+          var x = document.createElement('button'); x.type = 'button'; x.className = 'cmt-reply-cancel'; x.textContent = '\u00D7'; x.title = 'Cancel reply';
+          x.addEventListener('click', function () { clearReplyTarget(); });
+          replyChip.appendChild(span); replyChip.appendChild(x); replyChip.style.display = 'flex';
+        };
         post.addEventListener('click', function () {
           var text = ta.value.trim();
           if (!text) return;
           post.disabled = true; post.textContent = 'Posting\u2026';
-          postComment(username, me, text, function (ok) {
+          postComment(username, me, text, replyTarget, function (ok) {
             post.disabled = false; post.textContent = 'Post comment';
-            if (ok) { ta.value = ''; loadAndRender(); }
+            if (ok) { notifyMentions(me, text); ta.value = ''; clearReplyTarget(); loadAndRender(); }
           });
         });
       } else {
@@ -943,31 +1067,64 @@
       root.appendChild(section);
       function loadAndRender() {
         loadComments(username, function (map) {
-          var keys = Object.keys(map).sort(function (a, b) { return (map[b].at || 0) - (map[a].at || 0); });
           list.innerHTML = '';
-          if (!keys.length) { list.innerHTML = '<div class="cmt-empty">No comments yet. Be the first!</div>'; return; }
-          keys.forEach(function (k) {
-            var c = map[k]; if (!c) return;
+          var allKeys = Object.keys(map).filter(function (k) { return !!map[k]; });
+          if (!allKeys.length) { list.innerHTML = '<div class="cmt-empty">No comments yet. Be the first!</div>'; return; }
+          var tops = [], repliesByParent = {};
+          allKeys.forEach(function (k) {
+            var c = map[k];
+            if (c.replyTo && map[c.replyTo]) { (repliesByParent[c.replyTo] = repliesByParent[c.replyTo] || []).push(k); }
+            else tops.push(k);
+          });
+          tops.sort(function (a, b) { return (map[b].at || 0) - (map[a].at || 0); });
+          function buildItem(k, isReply) {
+            var c = map[k];
             var by = normalizeUser(c.by);
-            var item = document.createElement('div'); item.className = 'cmt-item';
+            var item = document.createElement('div'); item.className = 'cmt-item' + (isReply ? ' cmt-item-reply' : '');
             var av = document.createElement('a'); av.className = 'cmt-avatar'; av.href = '/users/' + by; av.textContent = initials(by);
             var body = document.createElement('div'); body.className = 'cmt-body';
             var head = document.createElement('div'); head.className = 'cmt-head';
             var nameA = document.createElement('a'); nameA.className = 'cmt-name'; nameA.href = '/users/' + by; nameA.textContent = '@' + by;
             var time = document.createElement('span'); time.className = 'cmt-time'; time.textContent = c.at ? timeAgo(c.at) : '';
             head.appendChild(nameA); head.appendChild(time);
-            var txt = document.createElement('div'); txt.className = 'cmt-text'; txt.textContent = c.text || '';
+            var txt = document.createElement('div'); txt.className = 'cmt-text'; renderCommentText(txt, c.text || '');
             body.appendChild(head); body.appendChild(txt);
+            if (me) {
+              var actions = document.createElement('div'); actions.className = 'cmt-actions';
+              var reply = document.createElement('button'); reply.className = 'cmt-reply-btn'; reply.type = 'button'; reply.textContent = 'Reply \u21A9';
+              reply.addEventListener('click', function () {
+                var parentKey = (c.replyTo && map[c.replyTo]) ? c.replyTo : k;
+                setReplyTarget(parentKey, by);
+                ta.value = '@' + by + ' ';
+                ta.focus();
+                try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (e) { }
+                ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              });
+              actions.appendChild(reply);
+              body.appendChild(actions);
+            }
             item.appendChild(av); item.appendChild(body);
-            if (me && (me === by || isAdmin(me) || me === normalizeUser(username))) {
-              var del = document.createElement('button'); del.className = 'cmt-del'; del.textContent = '\u2715'; del.title = 'Delete comment';
+            if (me && (me === by || roleOf(me) === 'owner' || me === normalizeUser(username))) {
+              var del = document.createElement('button'); del.className = 'cmt-del'; del.textContent = '\uD83D\uDDD1'; del.title = 'Delete comment';
               del.addEventListener('click', function () {
-                del.disabled = true;
-                deleteComment(username, k, function (ok) { if (ok) loadAndRender(); else del.disabled = false; });
+                customConfirm('Delete this comment? This cannot be undone.', function () {
+                  del.disabled = true;
+                  deleteComment(username, k, function (ok) { if (ok) loadAndRender(); else del.disabled = false; });
+                });
               });
               item.appendChild(del);
             }
-            list.appendChild(item);
+            return item;
+          }
+          tops.forEach(function (k) {
+            list.appendChild(buildItem(k, false));
+            var reps = repliesByParent[k];
+            if (reps && reps.length) {
+              reps.sort(function (a, b) { return (map[a].at || 0) - (map[b].at || 0); });
+              var wrap = document.createElement('div'); wrap.className = 'cmt-replies';
+              reps.forEach(function (rk) { wrap.appendChild(buildItem(rk, true)); });
+              list.appendChild(wrap);
+            }
           });
         });
       }
