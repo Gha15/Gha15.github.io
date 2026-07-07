@@ -4,7 +4,6 @@ Welcome to the official repository for **[Matix The Math Club](https://matixthem
 
 ---
 # Contents 📖
-## ````Matix the math club site contents````
 1. **[🚀 Live Site](https://github.com/Gha15/Gha15.github.io/blob/main/README.md#-live-site)**
 2. **[⚙️ Features & Modules](https://github.com/Gha15/Gha15.github.io/blob/main/README.md#%EF%B8%8F-features--modules)**
 3. **[🛠️ Technology Stack](https://github.com/Gha15/Gha15.github.io/blob/main/README.md#%EF%B8%8F-technology-stack)**
