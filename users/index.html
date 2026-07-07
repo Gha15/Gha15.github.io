@@ -620,6 +620,10 @@
           pushNotification(u, 'points', '\uD83C\uDF89 Welcome bonus', 'You joined the points system and got 150 welcome points!');
         }).catch(function () { });
       }
+      else if (newRole === 'user') {
+        // Demoted below member: remove them from the points ledger
+        fetch(FB + '/points/' + encodeURIComponent(u) + '.json', { method: 'DELETE' }).catch(function () { });
+      }
     }
     var FB = 'https://matix-1d538-default-rtdb.firebaseio.com';
     var IDEAS_FB = 'https://matix-the-math-club-views-default-rtdb.firebaseio.com';

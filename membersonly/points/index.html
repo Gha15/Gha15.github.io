@@ -212,18 +212,6 @@
         </svg>
     </div>
 
-    <div class="theme-customizer">
-        <div class="theme-customizer-title">🎨 Theme_Customizer</div>
-        <input type="range" min="0" max="360" value="0" class="theme-slider" id="theme-slider">
-        <div class="theme-value" id="theme-value">0°</div>
-        <button class="btn-reset-theme" onclick="resetTheme()">Reset</button>
-        <div class="theme-save-status" id="theme-save-status"></div>
-    </div>
-
-    <div class="notifications-area" id="notifications-area">
-        <!-- Notifications will be dynamically added here -->
-    </div>
-
     <div id="login-screen">
         <div class="ledger-header">Vault_Access</div>
         <p style="color:#94a3b8; font-size:1.5rem; line-height:1.6;">Sign in using the top menu (open the menu, scroll to the right, then Sign In — or Join Matix if you don't have an account).</p>
@@ -232,9 +220,11 @@
     </div>
 
     <div class="ledger-box" id="main-content">
-        <div class="ledger-header">Sync_Points_Ledger</div>
-
-        <div id="ledger-rows"></div>
+        <div id="ledger-view">
+            <div class="ledger-header">Members</div>
+            <div id="ledger-rows"></div>
+        </div>
+        <div id="user-view" style="display:none;"></div>
 
         <div class="nav-buttons">
             <a href="how-to-get/index.html" class="btn-nav">📈 How_to_Get_Points</a>
@@ -244,6 +234,21 @@
         <button class="btn" style="margin-top:40px; width:100%; opacity:0.4; border:none;" onclick="logout()">Terminate_Session</button>
     </div>
 
+    <style>
+        .member-link{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:rgba(30,41,59,.5);border:1px solid #1e293b;border-radius:14px;padding:16px 18px;margin-bottom:10px;color:#e2e8f0;font-size:1.15rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s}
+        .member-link:hover{background:rgba(51,65,85,.75);border-color:#6366f1}
+        .member-link .name{flex:1}
+        .member-link .chev{color:#6366f1;font-size:1.7rem;line-height:1}
+        .member-link .admin-tag{font-size:.8rem;color:#f59e0b;font-weight:600}
+        .btn-back{background:transparent;border:1px solid #334155;color:#94a3b8;border-radius:10px;padding:8px 14px;cursor:pointer;font-size:.95rem;font-family:inherit;margin-bottom:22px}
+        .btn-back:hover{color:#e2e8f0;border-color:#6366f1}
+        .user-hd{display:flex;align-items:center;gap:10px;font-size:1.7rem;font-weight:800;color:#f1f5f9;margin-bottom:4px}
+        .user-hd .admin-tag{font-size:.9rem;color:#f59e0b;font-weight:600}
+        .user-score{font-size:4rem;font-weight:900;color:#818cf8;line-height:1;margin-top:14px}
+        .user-score-label{color:#64748b;text-transform:uppercase;letter-spacing:2px;font-size:.85rem;margin-bottom:26px}
+        .user-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+        .readonly-note{color:#64748b;font-size:1.05rem;margin-top:10px;font-style:italic}
+    </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -278,7 +283,7 @@
         function memberList() {
             const set = {};
             VALID_MEMBERS.forEach(function (u) { set[u] = 1; });
-            Object.keys(POINTS).forEach(function (u) { set[u] = 1; });
+            Object.keys(POINTS).forEach(function (u) { if (isMemberUser(u)) set[u] = 1; });
             Object.keys(ROLES).forEach(function (u) { const r = ROLES[u]; if (r === 'member' || r === 'admin' || r === 'owner') set[u] = 1; });
             return Object.keys(set).sort(function (a, b) { if (a === 'ghadi') return -1; if (b === 'ghadi') return 1; return a < b ? -1 : (a > b ? 1 : 0); });
         }
@@ -293,40 +298,105 @@
         }
 
         function renderLedger() {
+            activeView = 'ledger'; activeViewUser = null;
             const wrap = document.getElementById('ledger-rows');
             if (!wrap) return;
-            const activeUser = getActiveUser();
-            const showControls = isAdminUser(activeUser);
             wrap.innerHTML = '';
             memberList().forEach(function (user) {
-                const profile = PROFILES[user] || {};
-                const pts = POINTS[user] || 0;
-                const isAdm = user === 'ghadi' || profile.isAdmin || roleOfLocal(user) === 'admin' || roleOfLocal(user) === 'owner';
-                const row = document.createElement('div'); row.className = 'member-row';
-                const info = document.createElement('div'); info.className = 'member-info';
-                const nameSpan = document.createElement('span'); nameSpan.className = 'name';
-                const badgeSpan = document.createElement('span');
-                if (profile.hasBadge) { const img = document.createElement('img'); img.src = '/favicon.svg'; img.className = 'badge-icon'; img.title = 'Badge Unlocked'; badgeSpan.appendChild(img); }
-                const nm = document.createElement('span'); nm.textContent = displayNameFor(user) + ':';
-                const tag = document.createElement('span'); tag.className = 'admin-tag';
-                tag.textContent = user === 'ghadi' ? '(matix owner and admin)' : (isAdm ? '(admin)' : '');
-                nameSpan.appendChild(badgeSpan); nameSpan.appendChild(nm); nameSpan.appendChild(tag);
-                const score = document.createElement('span'); score.className = 'score'; score.textContent = pts;
-                info.appendChild(nameSpan); info.appendChild(score);
-                row.appendChild(info);
-                const ctrls = document.createElement('div'); ctrls.className = 'controls'; ctrls.style.display = showControls ? 'flex' : 'none';
+                const isAdm = user === 'ghadi' || roleOfLocal(user) === 'admin' || roleOfLocal(user) === 'owner';
+                const row = document.createElement('button'); row.className = 'member-link'; row.type = 'button';
+                const nm = document.createElement('span'); nm.className = 'name'; nm.textContent = displayNameFor(user);
+                row.appendChild(nm);
+                if (isAdm) { const tag = document.createElement('span'); tag.className = 'admin-tag'; tag.textContent = user === 'ghadi' ? '(owner)' : '(admin)'; row.appendChild(tag); }
+                const chev = document.createElement('span'); chev.className = 'chev'; chev.textContent = '›'; row.appendChild(chev);
+                row.onclick = function () { navigateToUser(user); };
+                wrap.appendChild(row);
+            });
+        }
+
+        // ---- Per-user points page + in-app routing (clean /membersonly/points/<username> URLs, no server rewrites needed) ----
+        const POINTS_BASE = '/membersonly/points/';
+        let activeView = 'ledger', activeViewUser = null;
+
+        function routeUserFromPath() {
+            let p = location.pathname;
+            try { p = decodeURIComponent(p); } catch (e) { }
+            if (p.indexOf(POINTS_BASE) !== 0) return null;
+            let rest = p.slice(POINTS_BASE.length).replace(/\/+$/, '');
+            if (!rest || rest === 'index.html') return null;
+            if (rest.indexOf('/') > -1) return null;
+            if (rest === 'how-to-get' || rest === 'use-points') return null;
+            return rest.toLowerCase();
+        }
+
+        function navigateToUser(user) {
+            history.pushState({ mxUser: user }, '', POINTS_BASE + encodeURIComponent(user));
+            showUserPage(user);
+        }
+
+        function showLedgerView() {
+            const uv = document.getElementById('user-view'); if (uv) uv.style.display = 'none';
+            const lv = document.getElementById('ledger-view'); if (lv) lv.style.display = 'block';
+            renderLedger();
+        }
+
+        function showUserPage(user) {
+            const lv = document.getElementById('ledger-view'); if (lv) lv.style.display = 'none';
+            const uv = document.getElementById('user-view'); if (!uv) return;
+            uv.style.display = 'block';
+            renderUserView(user);
+        }
+
+        function refreshViews() {
+            if (activeView === 'user' && activeViewUser) renderUserView(activeViewUser);
+            else renderLedger();
+        }
+
+        function routeView() {
+            const u = routeUserFromPath();
+            if (u) showUserPage(u); else showLedgerView();
+        }
+        window.addEventListener('popstate', function () { routeView(); });
+
+        function renderUserView(user) {
+            activeView = 'user'; activeViewUser = user;
+            const uv = document.getElementById('user-view'); if (!uv) return;
+            const viewer = getActiveUser();
+            const canEdit = isAdminUser(viewer);
+            const pts = POINTS[user] || 0;
+            const targetIsAdmin = user === 'ghadi' || roleOfLocal(user) === 'admin' || roleOfLocal(user) === 'owner';
+            uv.innerHTML = '';
+
+            uv.appendChild(mkBtn('‹ Back to members', 'btn-back', '', function () { history.pushState({}, '', POINTS_BASE); showLedgerView(); }));
+
+            const hd = document.createElement('div'); hd.className = 'user-hd';
+            const hn = document.createElement('span'); hn.textContent = displayNameFor(user); hd.appendChild(hn);
+            if (targetIsAdmin) { const tg = document.createElement('span'); tg.className = 'admin-tag'; tg.textContent = user === 'ghadi' ? '(owner)' : '(admin)'; hd.appendChild(tg); }
+            uv.appendChild(hd);
+
+            const sc = document.createElement('div'); sc.className = 'user-score'; sc.textContent = pts; uv.appendChild(sc);
+            const scl = document.createElement('div'); scl.className = 'user-score-label'; scl.textContent = 'points'; uv.appendChild(scl);
+
+            if (canEdit) {
+                const ctrls = document.createElement('div'); ctrls.className = 'controls user-controls';
                 ctrls.appendChild(mkBtn('+10', 'btn', '', function () { addPoints(user, 10); }));
                 ctrls.appendChild(mkBtn('+1', 'btn', '', function () { addPoints(user, 1); }));
                 ctrls.appendChild(mkBtn('-1', 'btn btn-neg', '', function () { addPoints(user, -1); }));
                 ctrls.appendChild(mkBtn('-10', 'btn btn-neg', '', function () { addPoints(user, -10); }));
-                ctrls.appendChild(mkBtn('Reset', 'btn btn-reset', '', function () { resetPerson(user); }));
                 ctrls.appendChild(mkBtn('+Custom', 'btn', 'background:#10b981;color:#020617;', function () { addCustomPoints(user); }));
                 ctrls.appendChild(mkBtn('-Custom', 'btn', 'background:#ef4444;color:#020617;', function () { removeCustomPoints(user); }));
-                ctrls.appendChild(mkBtn('Give Admin', 'btn', 'background:#f59e0b;color:#020617;', function () { giveAdmin(user); }));
-                ctrls.appendChild(mkBtn('Remove Admin', 'btn', 'background:#ef4444;color:#020617;', function () { removeAdmin(user); }));
-                row.appendChild(ctrls);
-                wrap.appendChild(row);
-            });
+                ctrls.appendChild(mkBtn('Reset', 'btn btn-reset', '', function () { resetPerson(user); }));
+                uv.appendChild(ctrls);
+
+                if (user !== 'ghadi' && user !== viewer) {
+                    const adm = document.createElement('div'); adm.className = 'controls user-controls';
+                    if (!targetIsAdmin) adm.appendChild(mkBtn('⬆ Promote to admin', 'btn', 'background:#f59e0b;color:#020617;', function () { giveAdmin(user); }));
+                    else adm.appendChild(mkBtn('⬇ Remove admin', 'btn', 'background:#ef4444;color:#020617;', function () { removeAdmin(user); }));
+                    uv.appendChild(adm);
+                }
+            } else {
+                const ro = document.createElement('div'); ro.className = 'readonly-note'; ro.textContent = 'Only admins and the owner can change points.'; uv.appendChild(ro);
+            }
         }
 
         function showGate(msg) {
@@ -347,24 +417,19 @@
                 }
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
-                if (roleOfLocal(activeUser) === 'owner') { loadNotifications(); loadPointRequests(); }
+                // Point/redemption requests now reach the owner as notifications instead of an on-page box.
                 db.ref('profiles/' + activeUser).once('value').then(function (s2) {
                     const profile = s2.val() || {};
                     if (profile.customTheme) {
                         document.documentElement.style.filter = 'hue-rotate(' + profile.customTheme + 'deg)';
-                        document.getElementById('theme-slider').value = profile.customTheme;
-                        document.getElementById('theme-value').innerText = profile.customTheme + '°';
                     }
                 });
                 const cachedTheme = localStorage.getItem('matix_theme_hue');
                 const hasChangedColor = localStorage.getItem('haschangedcolor');
                 if (cachedTheme && hasChangedColor === 'true') {
                     document.documentElement.style.filter = 'hue-rotate(' + cachedTheme + 'deg)';
-                    document.getElementById('theme-slider').value = cachedTheme;
-                    document.getElementById('theme-value').innerText = cachedTheme + '°';
                 }
-                setupThemeSlider();
-                renderLedger();
+                routeView();
             });
         }
 
@@ -388,14 +453,14 @@
         });
 
         // REALTIME LISTENERS (data-driven so promoted members appear automatically)
-        db.ref('points').on('value', function (snapshot) { POINTS = snapshot.val() || {}; renderLedger(); });
-        db.ref('roles').on('value', function (snapshot) { ROLES = snapshot.val() || {}; renderLedger(); });
+        db.ref('points').on('value', function (snapshot) { POINTS = snapshot.val() || {}; refreshViews(); });
+        db.ref('roles').on('value', function (snapshot) { ROLES = snapshot.val() || {}; refreshViews(); });
         db.ref('profiles').on('value', function (snapshot) {
             PROFILES = snapshot.val() || {};
             const activeUser = getActiveUser();
             const ap = activeUser ? (PROFILES[activeUser] || {}) : {};
             if (ap.customTheme) { document.documentElement.style.filter = 'hue-rotate(' + ap.customTheme + 'deg)'; }
-            renderLedger();
+            refreshViews();
         });
 
         // UPDATE LOGIC
@@ -420,6 +485,7 @@
                     status: 'pending',
                     timestamp: Date.now()
                 }).then(() => {
+                    pushNotif('ghadi', 'points', '📊 Point change request', displayNameFor(activeUser) + ' wants to ' + (amount > 0 ? 'add ' : 'remove ') + Math.abs(amount) + ' points for ' + displayNameFor(name) + '.');
                     alert(`REQUEST_SENT: ${activeUser.toUpperCase()} asked to ${amount > 0 ? 'add' : 'remove'} ${Math.abs(amount)} points for ${name.toUpperCase()}`);
                 });
             }
@@ -443,6 +509,7 @@
                         status: 'pending',
                         timestamp: Date.now()
                     }).then(() => {
+                        pushNotif('ghadi', 'points', '📊 Point reset request', displayNameFor(activeUser) + ' wants to reset ' + displayNameFor(name) + "'s points.");
                         alert(`REQUEST_SENT: Point reset request for ${name} sent to admin for approval`);
                     });
                 }
@@ -670,8 +737,10 @@
                 return;
             }
             
-            db.ref('profiles/' + user + '/isAdmin').set(true).then(() => {
-                alert(`ADMIN_GRANTED: ${user} now has admin privileges`);
+            db.ref('roles/' + user).set('admin').then(() => {
+                db.ref('profiles/' + user + '/isAdmin').set(true);
+                pushNotif(user, 'role', '⬆ You were promoted', 'You are now a Matix Admin!');
+                alert(displayNameFor(user) + ' is now an admin across all of Matix.');
             });
         }
         
@@ -680,8 +749,10 @@
                 return;
             }
             
-            db.ref('profiles/' + user + '/isAdmin').set(false).then(() => {
-                alert(`ADMIN_REMOVED: ${user} no longer has admin privileges`);
+            db.ref('roles/' + user).set('member').then(() => {
+                db.ref('profiles/' + user + '/isAdmin').set(false);
+                pushNotif(user, 'role', '⬇ Your role changed', 'You are now a Matix Member.');
+                alert(displayNameFor(user) + ' is no longer an admin.');
             });
         }
         
@@ -710,6 +781,7 @@
         function setupThemeSlider() {
             const slider = document.getElementById('theme-slider');
             const valueDisplay = document.getElementById('theme-value');
+            if (!slider || !valueDisplay) return;
             const activeUser = sessionStorage.getItem("matix_auth_user");
             
             slider.addEventListener('input', function() {
@@ -734,8 +806,8 @@
             document.documentElement.style.filter = '';
             localStorage.removeItem('matix_theme_hue');
             localStorage.removeItem('haschangedcolor');
-            document.getElementById('theme-slider').value = 0;
-            document.getElementById('theme-value').innerText = '0°';
+            const rs = document.getElementById('theme-slider'); if (rs) rs.value = 0;
+            const rv = document.getElementById('theme-value'); if (rv) rv.innerText = '0°';
 
             const activeUser = sessionStorage.getItem("matix_auth_user");
             if (activeUser) {
