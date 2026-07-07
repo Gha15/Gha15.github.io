@@ -98,7 +98,8 @@
     /* Join creates a Firebase-backed account (readable by anyone with the DB URL,
        same trust level as the hardcoded member list above) instead of a
        browser-only localStorage account. */
-    function doJoin(rawUser, pass, cb) {
+    function doJoin(rawUser, pass, testUser, cb) {
+        if (typeof testUser === 'function') { cb = testUser; testUser = true; }
         var u = (rawUser || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
         if (!u || u.length < 2) { cb('short'); return; }
         if (VALID_MEMBERS[u]) { cb('reserved'); return; }
@@ -109,7 +110,7 @@
                 return fetch(FIREBASE_URL + '/members/' + encodeURIComponent(u) + '.json', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: pass, joinedAt: Date.now() })
+                    body: JSON.stringify({ password: pass, joinedAt: Date.now(), testUser: testUser !== false })
                 }).then(function() {
                     setUser(u);
                     fetch(FIREBASE_URL + '/profiles/' + encodeURIComponent(u) + '.json', {
@@ -544,6 +545,26 @@
         '.mx-toggle input{width:15px;height:15px;accent-color:#f59e0b;cursor:pointer;flex-shrink:0}',
         '.mx-notif-all{display:block;text-align:center;margin-top:6px;padding:7px;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.76rem;color:#93c5fd;text-decoration:none;border:1px solid rgba(59,130,246,.25);border-radius:6px}',
         '.mx-cl-btn{color:#fbbf24!important}',
+        '.mx-users-btn{color:#93c5fd!important}',
+        '.mx-p-users{width:340px;max-height:560px;overflow-y:auto}',
+        '.mx-users-list{display:flex;flex-direction:column;gap:7px;margin-top:4px}',
+        '.mx-user-row{padding:8px 10px;border-radius:8px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.14)}',
+        '.mx-user-row-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap}',
+        '.mx-user-row-name{font-family:"Trebuchet MS",Arial,sans-serif;font-weight:700;font-size:.82rem;color:#f0f8ff}',
+        '.mx-user-row-role{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.62rem;color:#93c5fd;text-transform:uppercase;letter-spacing:.4px}',
+        '.mx-user-row-tag{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.58rem;font-weight:800;color:#052e16;background:#34d399;border-radius:9px;padding:1px 7px}',
+        '.mx-user-row-pw{font-family:"SFMono-Regular",Consolas,monospace;font-size:.78rem;color:#fcd34d;margin-top:4px;word-break:break-all}',
+        '.mx-user-row-pw.muted{color:#64748b;font-style:italic}',
+        '.mx-join-tu{margin:2px 0;font-size:.74rem;align-items:flex-start;line-height:1.35}',
+        '.mx-join-learn{margin-top:3px;align-self:flex-start;background:none;border:none;padding:0;color:#60a5fa;text-decoration:underline;font-size:.74rem;font-weight:600;cursor:pointer}',
+        '.mx-join-learn:hover{color:#93c5fd}',
+        '.mx-notif-overlay{position:fixed;inset:0;background:rgba(2,6,23,.72);z-index:10050;display:none;align-items:center;justify-content:center;padding:20px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}',
+        '.mx-notif-overlay.open{display:flex}',
+        '.mx-notif-modal{position:relative;width:min(820px,96vw);height:min(88vh,940px);background:#0b1730;border:1px solid rgba(147,197,253,.28);border-radius:20px;box-shadow:0 40px 90px -25px rgba(0,0,0,.85);overflow:hidden;display:flex;flex-direction:column;animation:mxNotifPop .22s cubic-bezier(.22,1,.36,1)}',
+        '@keyframes mxNotifPop{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}',
+        '.mx-notif-x{position:absolute;top:13px;right:15px;z-index:3;width:34px;height:34px;border:none;border-radius:50%;background:rgba(255,255,255,.12);color:#e2e8f0;font-size:1.25rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .15s}',
+        '.mx-notif-x:hover{background:rgba(239,68,68,.85);color:#fff;transform:rotate(90deg)}',
+        '.mx-notif-frame{border:0;width:100%;height:100%;flex:1;background:#0b1730}',
 
         /* media */
         '@media(max-width:768px){#mx-menu-toggle{top:8px;left:8px;width:48px;height:48px}#mx-nav-bar{top:8px;left:62px;right:8px;height:48px;padding:0 10px}body{padding-top:66px!important}.mx-nb{height:48px;padding:0 9px;font-size:.8rem}.mx-panel{max-height:calc(100vh - 72px);overflow-y:auto;z-index:10002}.mx-p-iframe{max-width:calc(100vw - 16px)!important;height:auto!important;min-height:180px}.mx-p-auth,.mx-p-sub,.mx-p-lessons{width:100%!important;box-sizing:border-box}.mx-p-lessons{max-height:min(540px,calc(100vh - 72px))}.mx-ifr-label{font-size:.62rem;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}'
@@ -835,6 +856,65 @@
     authListeners.push(refreshChangelogBtn);
     refreshChangelogBtn();
 
+    /* Owner-only: Users & passwords directory (sits next to Lessons/Changelog) */
+    var usersBtn = mk('a', 'mx-nb mx-users-btn');
+    usersBtn.href = '#';
+    usersBtn.style.display = 'none';
+    usersBtn.innerHTML = '\ud83d\udc65 Users';
+    right.appendChild(usersBtn);
+    var usersPanel = mk('div', 'mx-panel mx-p-users');
+    usersPanel.id = 'mxp-users';
+    getPortal().appendChild(usersPanel);
+    allPanels.push(usersPanel);
+    function renderUsers() {
+        usersPanel.innerHTML = '';
+        var w = mk('div', 'mx-pf');
+        var h4 = mk('h4'); h4.textContent = '\ud83d\udc65 Users & passwords'; w.appendChild(h4);
+        var sub = mk('div', 'mx-pf-sub'); sub.textContent = 'Owner only \u2014 test users\u2019 passwords are shown here.'; w.appendChild(sub);
+        var listWrap = mk('div', 'mx-users-list'); listWrap.innerHTML = '<div class="mx-notif-empty">Loading\u2026</div>'; w.appendChild(listWrap);
+        usersPanel.appendChild(w);
+        Promise.all([
+            grabJson(FIREBASE_URL + '/members.json'),
+            grabJson(FIREBASE_URL + '/roles.json')
+        ]).then(function (res) {
+            var members = res[0] || {}, roles = res[1] || {};
+            var map = {};
+            Object.keys(VALID_MEMBERS).forEach(function (u) { map[u] = { password: VALID_MEMBERS[u], testUser: true, builtin: true }; });
+            Object.keys(members).forEach(function (u) {
+                var m = members[u] || {};
+                map[u] = { password: m.password != null ? m.password : (map[u] ? map[u].password : ''), testUser: m.testUser !== false, builtin: map[u] ? true : false };
+            });
+            var names = Object.keys(map).sort(function (a, b) { if (a === 'ghadi') return -1; if (b === 'ghadi') return 1; return a < b ? -1 : (a > b ? 1 : 0); });
+            listWrap.innerHTML = '';
+            if (!names.length) { listWrap.innerHTML = '<div class="mx-notif-empty">No users yet.</div>'; return; }
+            names.forEach(function (u) {
+                var info = map[u];
+                var role = roles[u] || (info.builtin ? 'member' : 'user');
+                var row = mk('div', 'mx-user-row');
+                var top = mk('div', 'mx-user-row-top');
+                var nm = mk('span', 'mx-user-row-name'); nm.textContent = '@' + u; top.appendChild(nm);
+                var rl = mk('span', 'mx-user-row-role'); rl.textContent = role; top.appendChild(rl);
+                if (info.testUser) { var tg = mk('span', 'mx-user-row-tag'); tg.textContent = 'test user'; top.appendChild(tg); }
+                row.appendChild(top);
+                var pw = mk('div', 'mx-user-row-pw');
+                if (info.testUser && info.password) { pw.textContent = '\ud83d\udd11 ' + info.password; }
+                else if (!info.testUser) { pw.textContent = '\ud83d\udd12 opted out \u2014 password hidden'; pw.className += ' muted'; }
+                else { pw.textContent = '\ud83d\udd12 no password on record'; pw.className += ' muted'; }
+                row.appendChild(pw);
+                listWrap.appendChild(row);
+            });
+        });
+    }
+    wirePanel('users', usersPanel, usersBtn, 340, renderUsers);
+    function refreshUsersBtn() {
+        var u = getUser();
+        if (!u) { usersBtn.style.display = 'none'; return; }
+        if (normUser(u) === 'ghadi') { usersBtn.style.display = ''; return; }
+        grabJson(FIREBASE_URL + '/roles/' + encodeURIComponent(normUser(u)) + '.json').then(function (r) { usersBtn.style.display = (r === 'owner') ? '' : 'none'; });
+    }
+    authListeners.push(refreshUsersBtn);
+    refreshUsersBtn();
+
     var lessonsPanel = mk('div', 'mx-panel mx-p-lessons');
     lessonsPanel.id = 'mxp-lessons';
     getPortal().appendChild(lessonsPanel);
@@ -1120,6 +1200,12 @@
             p2.type = 'password';
             p2.placeholder = 'Confirm password';
             p2.autocomplete = 'new-password';
+            var tuWrap = mk('label', 'mx-toggle mx-join-tu');
+            var tu = mk('input'); tu.type = 'checkbox'; tu.checked = true;
+            var tuSp = mk('span'); tuSp.textContent = 'I\u2019d like to be a test user on the math club site';
+            var tuLearn = mk('button', 'mx-join-learn'); tuLearn.type = 'button'; tuLearn.textContent = 'Learn more';
+            tuLearn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); openDocsModal('/docs/whatistestuser.html'); });
+            tuWrap.appendChild(tu); tuWrap.appendChild(tuSp); tuWrap.appendChild(tuLearn);
             var er = mk('div', 'mx-ferr');
             var sb = mk('button', 'mx-pb g');
             sb.textContent = 'Join Matix';
@@ -1135,7 +1221,7 @@
                 er.textContent = '';
                 sb.textContent = 'Joining\u2026';
                 sb.disabled = true;
-                doJoin(ui.value, pi.value, function(res) {
+                doJoin(ui.value, pi.value, tu.checked, function(res) {
                     if (res === 'ok') {
                         refreshAuth();
                         buildJoinPanel();
@@ -1160,6 +1246,7 @@
             w.appendChild(ui);
             w.appendChild(pi);
             w.appendChild(p2);
+            w.appendChild(tuWrap);
             w.appendChild(er);
             w.appendChild(sb);
             w.appendChild(hint);
@@ -1194,7 +1281,10 @@
         { key: 'changelog', label: 'New changelog item' },
         { key: 'comment', label: 'New comment on your profile' },
         { key: 'points', label: 'Points earned / changed' },
-        { key: 'redeem', label: 'Points request accepted' }
+        { key: 'redeem', label: 'Points request accepted' },
+        { key: 'meme', label: 'New joke / meme posted' },
+        { key: 'lesson', label: 'New lesson added' },
+        { key: 'deleted', label: 'A user was removed' }
     ];
     function notifPrefs(user) {
         var n = normUser(user), prefs = {};
@@ -1214,15 +1304,21 @@
             grabJson(FIREBASE_URL + '/members.json'),
             grabJson(FIREBASE_URL + '/profile_comments/' + encodeURIComponent(n) + '.json'),
             grabJson(FIREBASE_URL + '/notifications/' + encodeURIComponent(n) + '.json'),
-            grabJson(FIREBASE_URL + '/changelog.json')
+            grabJson(FIREBASE_URL + '/changelog.json'),
+            grabJson(FIREBASE_URL + '/funny_memes.json'),
+            grabJson(FIREBASE_URL + '/lessons.json'),
+            grabJson(FIREBASE_URL + '/deletions.json')
         ]).then(function (res) {
-            var follows = res[0] || {}, members = res[1] || {}, comments = res[2] || {}, stored = res[3] || {}, changelog = res[4] || {};
+            var follows = res[0] || {}, members = res[1] || {}, comments = res[2] || {}, stored = res[3] || {}, changelog = res[4] || {}, memes = res[5] || {}, lessons = res[6] || {}, dels = res[7] || {};
             var out = [];
             Object.keys(follows).forEach(function (k) { var f = follows[k]; if (f) out.push({ type: 'follower', title: 'New follower', body: '@' + k + ' followed you', at: f.at || 0 }); });
             Object.keys(members).forEach(function (k) { if (normUser(k) === n) return; var m = members[k]; if (m) out.push({ type: 'joined', title: 'New member joined', body: '@' + k + ' joined Matix', at: m.joinedAt || 0 }); });
             Object.keys(comments).forEach(function (k) { var c = comments[k]; if (!c || normUser(c.by) === n) return; out.push({ type: 'comment', title: 'New profile comment', body: '@' + (c.by || '?') + ': ' + String(c.text || '').slice(0, 60), at: c.at || 0 }); });
             Object.keys(stored).forEach(function (k) { var s = stored[k]; if (s) out.push({ type: s.type || 'role', title: s.title || 'Notification', body: s.body || '', at: s.at || 0 }); });
             Object.keys(changelog).forEach(function (k) { var c = changelog[k]; if (c) out.push({ type: 'changelog', title: '\ud83d\udcdc ' + (c.title || 'Changelog update'), body: c.description || '', at: c.at || 0 }); });
+            Object.keys(memes).forEach(function (k) { var mm = memes[k]; if (!mm || normUser(mm.postedBy) === n) return; out.push({ type: 'meme', title: '\ud83d\ude02 New joke / meme', body: (mm.title ? '\u201c' + String(mm.title).slice(0, 60) + '\u201d' : 'A new meme was posted') + ' \u2014 @' + (mm.postedBy || '?'), at: mm.createdAt || 0 }); });
+            Object.keys(lessons).forEach(function (k) { var ls = lessons[k]; if (!ls || normUser(ls.createdBy) === n) return; out.push({ type: 'lesson', title: '\ud83d\udcda New lesson', body: (ls.title || 'Untitled') + ' \u2014 by @' + (ls.createdBy || 'ghadi'), at: ls.createdAt || 0 }); });
+            Object.keys(dels).forEach(function (k) { var dd = dels[k]; if (!dd || normUser(k) === n) return; out.push({ type: 'deleted', title: '\ud83d\uddd1 User removed', body: '@' + k + ' was removed from Matix' + (dd.by ? ' by @' + dd.by : ''), at: dd.at || 0 }); });
             out.sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
             cb(out);
         });
@@ -1294,8 +1390,41 @@
         setWrap.appendChild(allLink);
         msgPanel.appendChild(setWrap);
     }
-    wirePanel('msg', msgPanel, msgBtn, 320, renderNotifPanel);
+    /* Notifications now live on a full center page (/messages) \u2014 the bell is a plain link, not a dropdown. */
     (function initNotifPoller() { setInterval(function () { try { updateMessagesBadge(); } catch (e) {} try { fireBrowserNotifs(); } catch (e) {} }, 30000); })();
+
+    /* Bell opens a centered notifications modal (iframe) with X + click-outside to close. */
+    var notifOverlay = mk('div', 'mx-notif-overlay');
+    notifOverlay.innerHTML = '<div class="mx-notif-modal" role="dialog" aria-label="Notifications"><button class="mx-notif-x" aria-label="Close">\u00d7</button><iframe class="mx-notif-frame" title="Notifications"></iframe></div>';
+    getPortal().appendChild(notifOverlay);
+    var notifFrame = notifOverlay.querySelector('.mx-notif-frame');
+    function closeNotifModal() {
+        notifOverlay.classList.remove('open');
+        document.body.style.overflow = '';
+        try { notifFrame.src = 'about:blank'; } catch (e) { }
+        try { updateMessagesBadge(); } catch (e) { }
+    }
+    function openNotifModal() {
+        hidePanels();
+        notifFrame.src = '/messages';
+        notifOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    notifOverlay.querySelector('.mx-notif-x').addEventListener('click', closeNotifModal);
+    notifOverlay.addEventListener('click', function (e) { if (e.target === notifOverlay) closeNotifModal(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && notifOverlay.classList.contains('open')) closeNotifModal(); });
+    msgBtn.addEventListener('click', function (e) { e.preventDefault(); openNotifModal(); });
+
+    /* A generic centered docs modal (iframe), reused for "Learn more" links. */
+    var docsOverlay = mk('div', 'mx-notif-overlay');
+    docsOverlay.innerHTML = '<div class="mx-notif-modal" role="dialog" aria-label="Docs"><button class="mx-notif-x" aria-label="Close">\u00d7</button><iframe class="mx-notif-frame" title="Docs"></iframe></div>';
+    getPortal().appendChild(docsOverlay);
+    var docsFrame = docsOverlay.querySelector('.mx-notif-frame');
+    function closeDocsModal() { docsOverlay.classList.remove('open'); document.body.style.overflow = ''; try { docsFrame.src = 'about:blank'; } catch (e) { } }
+    function openDocsModal(url) { hidePanels(); docsFrame.src = url; docsOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    docsOverlay.querySelector('.mx-notif-x').addEventListener('click', closeDocsModal);
+    docsOverlay.addEventListener('click', function (e) { if (e.target === docsOverlay) closeDocsModal(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && docsOverlay.classList.contains('open')) closeDocsModal(); });
 
     right.appendChild(vd());
     var siBtn = mk('button', 'mx-si-btn');

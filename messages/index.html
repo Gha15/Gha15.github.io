@@ -4,72 +4,124 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Messages — Matix</title>
+  <title>Notifications &mdash; Matix the Math Club</title>
   <link rel="stylesheet" href="/global.css">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="/nav.js" defer></script>
   <style>
-    .msg-wrap { max-width: 720px; margin: 0 auto; padding: 30px 18px 60px }
-    .msg-hero { background: linear-gradient(135deg, rgba(29, 78, 216, .35), rgba(245, 158, 11, .12)); border: 1px solid rgba(96, 165, 250, .20); border-top: 3px solid #f59e0b; border-radius: 16px; padding: 16px 18px; margin-bottom: 16px }
-    .msg-title { font-family: "Trebuchet MS", Arial, sans-serif; font-size: 1.4rem; font-weight: 900; color: #f0f8ff; margin-bottom: 4px }
-    .msg-sub { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .88rem; color: #bfdbfe }
-    .msg-sub b { color: #fbbf24 }
-    .msg-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px }
-    .msg-chip { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; border: 1.5px solid rgba(96, 165, 250, .3); color: #93c5fd; background: none; cursor: pointer; transition: background .12s }
-    .msg-chip.active { background: rgba(59, 130, 246, .22); border-color: #3b82f6; color: #dbeafe }
-    .msg-list { display: flex; flex-direction: column; gap: 8px }
-    .msg-item { display: flex; gap: 13px; align-items: flex-start; background: rgba(12, 35, 100, .6); border: 1px solid rgba(96, 165, 250, .15); border-radius: 12px; padding: 10px 12px; position: relative; transition: background .12s }
-    .msg-item:hover { background: rgba(18, 46, 130, .75) }
-    .msg-item.unread { border-left: 3px solid #f59e0b }
-    .msg-av { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #1e3a8a, #1d4ed8); display: flex; align-items: center; justify-content: center; font-family: "Trebuchet MS", Arial, sans-serif; font-weight: 700; color: #93c5fd; text-decoration: none; background-size: cover; background-position: center }
-    .msg-body { flex: 1; min-width: 0 }
-    .msg-line { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .9rem; color: #e2e8f0; line-height: 1.5 }
-    .msg-line a { color: #bfdbfe; font-weight: 700; text-decoration: none }
-    .msg-line a:hover { text-decoration: underline }
-    .msg-quote { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .85rem; color: #94a3b8; margin-top: 4px; padding-left: 10px; border-left: 2px solid rgba(96, 165, 250, .3); white-space: pre-wrap; word-break: break-word }
-    .msg-time { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .68rem; color: #64748b; margin-top: 4px }
-    .msg-icon { position: absolute; top: 12px; right: 13px; font-size: 1rem }
-    .msg-new { display: inline-block; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .6rem; font-weight: 800; color: #052e16; background: #fbbf24; border-radius: 10px; padding: 1px 7px; margin-left: 8px; vertical-align: middle }
-    .msg-empty { font-family: "Trebuchet MS", Arial, sans-serif; color: #475569; text-align: center; padding: 44px 0; font-size: .9rem }
-    .msg-signin { font-family: "Trebuchet MS", Arial, sans-serif; color: #94a3b8; text-align: center; padding: 40px 22px; font-size: .95rem }
-    .msg-signin a { color: #fbbf24; text-decoration: none; font-weight: 700 }
+    .nc-wrap { max-width: 760px; margin: 0 auto; padding: 34px 18px 70px }
+    .nc-hero { position: relative; overflow: hidden; border-radius: 20px; padding: 26px 24px; margin-bottom: 20px; background: linear-gradient(120deg, rgba(29,78,216,.5), rgba(139,92,246,.28) 45%, rgba(245,158,11,.22)); border: 1px solid rgba(147,197,253,.28); box-shadow: 0 14px 40px -18px rgba(59,130,246,.7) }
+    .nc-hero::before { content: ''; position: absolute; inset: -40% -10% auto auto; width: 260px; height: 260px; background: radial-gradient(circle, rgba(250,204,21,.35), transparent 70%); filter: blur(6px); animation: ncFloat 7s ease-in-out infinite }
+    @keyframes ncFloat { 0%,100% { transform: translateY(0) } 50% { transform: translateY(22px) } }
+    .nc-badge { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 7px; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .68rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #0b1220; background: linear-gradient(90deg,#fbbf24,#fde68a); padding: 4px 12px; border-radius: 30px; margin-bottom: 12px }
+    .nc-title { position: relative; z-index: 1; font-family: "Trebuchet MS", Arial, sans-serif; font-size: 2rem; font-weight: 900; line-height: 1.1; background: linear-gradient(90deg,#ffffff,#bfdbfe 55%,#fef3c7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 6px }
+    .nc-sub { position: relative; z-index: 1; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .95rem; color: #dbeafe }
+    .nc-sub b { color: #fde68a }
+    .nc-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px }
+    .nc-chip { display: inline-flex; align-items: center; gap: 6px; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .78rem; font-weight: 700; padding: 7px 14px; border-radius: 22px; border: 1.5px solid rgba(96,165,250,.3); color: #93c5fd; background: rgba(12,35,100,.35); cursor: pointer; transition: all .15s }
+    .nc-chip:hover { border-color: #60a5fa; color: #dbeafe }
+    .nc-chip.active { background: linear-gradient(90deg,#2563eb,#7c3aed); border-color: transparent; color: #fff; box-shadow: 0 6px 16px -8px rgba(124,58,237,.9) }
+    .nc-chip .nc-count { font-size: .66rem; font-weight: 800; background: rgba(255,255,255,.16); border-radius: 20px; padding: 1px 7px }
+    .nc-list { display: flex; flex-direction: column; gap: 10px }
+    .nc-item { display: flex; gap: 14px; align-items: flex-start; background: rgba(12,35,100,.55); border: 1px solid rgba(96,165,250,.14); border-left: 4px solid var(--accent,#3b82f6); border-radius: 14px; padding: 13px 15px; position: relative; transition: transform .12s, background .12s; animation: ncIn .32s ease both }
+    .nc-item:hover { background: rgba(20,50,140,.72); transform: translateX(3px) }
+    @keyframes ncIn { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+    .nc-av { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#1e3a8a,#1d4ed8); display: flex; align-items: center; justify-content: center; font-family: "Trebuchet MS", Arial, sans-serif; font-weight: 700; color: #93c5fd; text-decoration: none; background-size: cover; background-position: center }
+    .nc-ico { flex-shrink: 0; width: 42px; height: 42px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; background: linear-gradient(135deg, var(--accent,#3b82f6), rgba(2,6,23,.5)); box-shadow: 0 6px 16px -10px var(--accent,#3b82f6) }
+    .nc-body { flex: 1; min-width: 0 }
+    .nc-line { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .94rem; font-weight: 700; color: #f0f8ff; line-height: 1.45 }
+    .nc-line a { color: #bfdbfe; text-decoration: none }
+    .nc-line a:hover { text-decoration: underline }
+    .nc-desc { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .86rem; color: #cbd5e1; margin-top: 3px; word-break: break-word }
+    .nc-quote { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .85rem; color: #94a3b8; margin-top: 5px; padding-left: 10px; border-left: 2px solid rgba(96,165,250,.3); white-space: pre-wrap; word-break: break-word }
+    .nc-time { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .68rem; color: #64748b; margin-top: 5px }
+    .nc-new { display: inline-block; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .58rem; font-weight: 800; color: #052e16; background: linear-gradient(90deg,#fbbf24,#fde047); border-radius: 10px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; box-shadow: 0 0 10px rgba(250,204,21,.6) }
+    .nc-empty { font-family: "Trebuchet MS", Arial, sans-serif; color: #475569; text-align: center; padding: 46px 0; font-size: .92rem }
+    .nc-signin { font-family: "Trebuchet MS", Arial, sans-serif; color: #94a3b8; text-align: center; padding: 42px 22px; font-size: .95rem }
+    .set-box { margin-top: 28px; background: linear-gradient(160deg, rgba(12,35,100,.6), rgba(30,20,70,.5)); border: 1px solid rgba(147,197,253,.18); border-radius: 16px; padding: 18px 20px }
+    .set-h { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .8rem; font-weight: 800; color: #fde68a; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 13px }
+    .set-enable { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .86rem; font-weight: 800; color: #052e16; background: linear-gradient(90deg,#fbbf24,#fde047); border: none; border-radius: 10px; padding: 10px 15px; cursor: pointer; margin-bottom: 15px; box-shadow: 0 8px 18px -10px rgba(250,204,21,.9) }
+    .set-note { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .76rem; color: #7c8db0; margin-bottom: 13px }
+    .set-toggle { display: flex; align-items: center; gap: 11px; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .88rem; color: #cbd5e1; cursor: pointer; padding: 6px 0 }
+    .set-toggle input { width: 17px; height: 17px; accent-color: #f59e0b; cursor: pointer; flex-shrink: 0 }
   </style>
 </head>
 
 <body>
-  <div class="msg-wrap" id="msg-root">
-    <div class="msg-empty">Loading…</div>
+  <div class="nc-wrap" id="nc-root">
+    <div class="nc-empty">Loading&hellip;</div>
   </div>
   <script>
     var FB = 'https://matix-1d538-default-rtdb.firebaseio.com';
+
+    var TYPE_META = {
+      follower:  { icon: '\u2795', color: '#38bdf8', label: 'New follower' },
+      joined:    { icon: '\uD83C\uDF89', color: '#34d399', label: 'New member joined' },
+      role:      { icon: '\uD83C\uDF96', color: '#fbbf24', label: 'Role change (promotion/demotion)' },
+      changelog: { icon: '\uD83D\uDCDC', color: '#60a5fa', label: 'New changelog item' },
+      comment:   { icon: '\uD83D\uDCAC', color: '#a78bfa', label: 'New comment on your profile' },
+      points:    { icon: '\u2B50', color: '#f59e0b', label: 'Points earned / changed' },
+      redeem:    { icon: '\uD83C\uDF81', color: '#f472b6', label: 'Points request accepted' },
+      meme:      { icon: '\uD83D\uDE02', color: '#facc15', label: 'New joke / meme posted' },
+      lesson:    { icon: '\uD83D\uDCDA', color: '#22d3ee', label: 'New lesson added' },
+      deleted:   { icon: '\uD83D\uDDD1', color: '#f87171', label: 'A user was removed' }
+    };
+    var NOTIF_ORDER = ['follower', 'joined', 'role', 'changelog', 'comment', 'points', 'redeem', 'meme', 'lesson', 'deleted'];
+    var CHIPS = [
+      { id: 'all', label: 'All', types: null },
+      { id: 'follower', label: 'Follows', types: ['follower'] },
+      { id: 'joined', label: 'Members', types: ['joined'] },
+      { id: 'comment', label: 'Comments', types: ['comment'] },
+      { id: 'role', label: 'Roles', types: ['role'] },
+      { id: 'points', label: 'Points', types: ['points', 'redeem'] },
+      { id: 'meme', label: '\uD83D\uDE02 Jokes & Memes', types: ['meme'] },
+      { id: 'lesson', label: '\uD83D\uDCDA Lessons', types: ['lesson'] },
+      { id: 'deleted', label: '\uD83D\uDDD1 Removed', types: ['deleted'] },
+      { id: 'changelog', label: 'Updates', types: ['changelog'] }
+    ];
 
     function getUser() { return sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null; }
     function normalizeUser(u) { var c = String(u || '').toLowerCase().replace(/[^a-z0-9_]/g, ''); if (c === 'matix' || c === 'ghadimatix') return 'ghadi'; return c; }
     function initials(u) { return u ? u.slice(0, 2).toUpperCase() : '??'; }
     function escapeHtml(v) { return String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
-    function timeAgo(ms) { var s = Math.floor((Date.now() - ms) / 1000); if (s < 60) return 'just now'; var m = Math.floor(s / 60); if (m < 60) return m + 'm ago'; var h = Math.floor(m / 60); if (h < 24) return h + 'h ago'; var d = Math.floor(h / 24); if (d < 30) return d + 'd ago'; return new Date(ms).toLocaleDateString(); }
+    function timeAgo(ms) { if (!ms) return ''; var s = Math.floor((Date.now() - ms) / 1000); if (s < 60) return 'just now'; var m = Math.floor(s / 60); if (m < 60) return m + 'm ago'; var h = Math.floor(m / 60); if (h < 24) return h + 'h ago'; var d = Math.floor(h / 24); if (d < 30) return d + 'd ago'; return new Date(ms).toLocaleDateString(); }
     function fetchJson(url) { return fetch(url).then(function (r) { return r.json(); }).catch(function () { return null; }); }
 
-    var root = document.getElementById('msg-root');
+    function loadPrefs(u) {
+      var prefs = {};
+      try { prefs = JSON.parse(localStorage.getItem('mx_notif_prefs_' + u) || '{}') || {}; } catch (e) { prefs = {}; }
+      NOTIF_ORDER.forEach(function (k) { if (prefs[k] === undefined) prefs[k] = true; });
+      return prefs;
+    }
+    function savePrefs(u, prefs) { try { localStorage.setItem('mx_notif_prefs_' + u, JSON.stringify(prefs)); } catch (e) { } }
+
+    var root = document.getElementById('nc-root');
     var me = getUser();
     var currentFilter = 'all';
     var allEvents = [];
     var profilesMap = {};
+    var prefs = {};
     var seen = 0;
+    var isOwner = false;
 
     if (!me) {
-      root.innerHTML = '<div class="msg-hero"><div class="msg-title">\uD83D\uDD14 Messages</div><div class="msg-sub">Your notifications live here.</div></div>' +
-        '<div class="msg-signin">Sign in from the menu to see your messages.</div>';
+      root.innerHTML = '<div class="nc-hero"><div class="nc-badge">\uD83D\uDD14 Matix</div><h1 class="nc-title">Notifications</h1><div class="nc-sub">Your alerts from across the math club live here.</div></div>' +
+        '<div class="nc-signin">Sign in from the top menu to see your notifications.</div>';
     } else {
       me = normalizeUser(me);
+      prefs = loadPrefs(me);
       render();
     }
 
     function avatarEl(user, profile) {
-      var a = document.createElement('a'); a.className = 'msg-av'; a.href = '/users/' + user;
+      var a = document.createElement('a'); a.className = 'nc-av'; a.href = '/users/' + user;
       if (profile && profile.profileImage) { a.style.backgroundImage = 'url(' + profile.profileImage + ')'; }
       else { a.textContent = initials(user); }
       return a;
+    }
+    function iconEl(type) {
+      var meta = TYPE_META[type] || { icon: '\uD83D\uDD14', color: '#3b82f6' };
+      var d = document.createElement('div'); d.className = 'nc-ico'; d.style.setProperty('--accent', meta.color); d.textContent = meta.icon; return d;
     }
 
     function render() {
@@ -77,85 +129,186 @@
         fetchJson(FB + '/follows/' + encodeURIComponent(me) + '.json'),
         fetchJson(FB + '/members.json'),
         fetchJson(FB + '/profiles.json'),
-        fetchJson(FB + '/profile_comments/' + encodeURIComponent(me) + '.json')
+        fetchJson(FB + '/profile_comments/' + encodeURIComponent(me) + '.json'),
+        fetchJson(FB + '/notifications/' + encodeURIComponent(me) + '.json'),
+        fetchJson(FB + '/changelog.json'),
+        fetchJson(FB + '/funny_memes.json'),
+        fetchJson(FB + '/lessons.json'),
+        fetchJson(FB + '/deletions.json'),
+        fetchJson(FB + '/roles/' + encodeURIComponent(me) + '.json')
       ]).then(function (res) {
-        var follows = res[0] || {}, members = res[1] || {}, comments = res[3] || {};
+        var follows = res[0] || {}, members = res[1] || {}, comments = res[3] || {}, stored = res[4] || {}, changelog = res[5] || {}, memes = res[6] || {}, lessons = res[7] || {}, dels = res[8] || {};
+        isOwner = (res[9] === 'owner' || normalizeUser(me) === 'ghadi');
         profilesMap = res[2] || {};
         try { seen = parseInt(localStorage.getItem('mx_messages_seen_' + me) || '0', 10) || 0; } catch (e) { seen = 0; }
 
         allEvents = [];
         Object.keys(follows).forEach(function (k) {
           var f = follows[k]; var u = normalizeUser(k); if (!u || u === me) return;
-          allEvents.push({ type: 'follow', user: u, at: (f && f.at) || 0 });
+          allEvents.push({ type: 'follower', user: u, at: (f && f.at) || 0 });
         });
         Object.keys(members).forEach(function (k) {
           var u = normalizeUser(k); if (!u || u === me) return;
           var jt = members[k] && members[k].joinedAt; if (!jt) return;
-          allEvents.push({ type: 'join', user: u, at: jt });
+          allEvents.push({ type: 'joined', user: u, at: jt });
         });
         Object.keys(comments).forEach(function (k) {
           var c = comments[k]; if (!c) return; var u = normalizeUser(c.by); if (u === me) return;
           allEvents.push({ type: 'comment', user: u, at: c.at || 0, text: c.text || '' });
         });
+        Object.keys(stored).forEach(function (k) {
+          var s = stored[k]; if (!s) return;
+          allEvents.push({ type: s.type || 'role', at: s.at || 0, title: s.title || 'Notification', body: s.body || '' });
+        });
+        Object.keys(changelog).forEach(function (k) {
+          var c = changelog[k]; if (!c) return;
+          allEvents.push({ type: 'changelog', at: c.at || 0, title: '\uD83D\uDCDC ' + (c.title || 'Changelog update'), body: c.description || '' });
+        });
+        Object.keys(memes).forEach(function (k) {
+          var mm = memes[k]; if (!mm) return; var by = normalizeUser(mm.postedBy); if (by === me) return;
+          allEvents.push({ type: 'meme', at: mm.createdAt || 0, title: '\uD83D\uDE02 New joke / meme', body: (mm.title ? '\u201C' + mm.title + '\u201D' : 'A new meme was posted') + ' \u2014 @' + (mm.postedBy || '?') });
+        });
+        Object.keys(lessons).forEach(function (k) {
+          var ls = lessons[k]; if (!ls) return; var by = normalizeUser(ls.createdBy); if (by === me) return;
+          allEvents.push({ type: 'lesson', at: ls.createdAt || 0, title: '\uD83D\uDCDA New lesson', body: (ls.title || 'Untitled') + ' \u2014 by @' + (ls.createdBy || 'ghadi') });
+        });
+        Object.keys(dels).forEach(function (k) {
+          var dd = dels[k]; if (!dd) return; var u = normalizeUser(k); if (u === me) return;
+          allEvents.push({ type: 'deleted', user: u, at: dd.at || 0, title: '\uD83D\uDDD1 User removed', body: '@' + u + ' was removed from Matix' + (dd.by ? ' by @' + dd.by : '') });
+        });
         allEvents.sort(function (a, b) { return b.at - a.at; });
 
-        buildHero();
+        buildShell();
         draw();
 
-        // Mark everything as seen for next visit + clear the nav dot
         try { localStorage.setItem('mx_messages_seen_' + me, String(Date.now())); } catch (e) { }
       });
     }
 
-    function buildHero() {
-      var newCount = allEvents.filter(function (e) { return e.at > seen; }).length;
+    function visibleEvents() { return allEvents.filter(function (e) { return prefs[e.type] !== false; }); }
+
+    function buildShell() {
+      var vis = visibleEvents();
+      var newCount = vis.filter(function (e) { return e.at > seen; }).length;
       root.innerHTML = '';
-      var hero = document.createElement('div'); hero.className = 'msg-hero';
-      hero.innerHTML = '<div class="msg-title">\uD83D\uDD14 Messages</div>' +
-        '<div class="msg-sub">' + (newCount ? ('You have <b>' + newCount + '</b> new notification' + (newCount === 1 ? '' : 's') + '.') : 'All caught up \u2014 no new notifications.') + '</div>';
+      var hero = document.createElement('div'); hero.className = 'nc-hero';
+      hero.innerHTML = '<div class="nc-badge">\uD83D\uDD14 Matix the Math Club</div>' +
+        '<h1 class="nc-title">Notifications</h1>' +
+        '<div class="nc-sub">' + (newCount ? ('You have <b>' + newCount + '</b> new notification' + (newCount === 1 ? '' : 's') + '.') : 'All caught up \u2014 no new notifications.') + '</div>';
       root.appendChild(hero);
 
-      var chips = document.createElement('div'); chips.className = 'msg-chips';
-      [['all', 'All'], ['follow', 'New follows'], ['join', 'New members'], ['comment', 'Comments']].forEach(function (c) {
-        var b = document.createElement('button'); b.className = 'msg-chip' + (currentFilter === c[0] ? ' active' : ''); b.textContent = c[1];
-        b.addEventListener('click', function () { currentFilter = c[0]; refreshChips(chips); draw(); });
+      var chips = document.createElement('div'); chips.className = 'nc-chips';
+      CHIPS.forEach(function (c) {
+        var count = vis.filter(function (e) { return !c.types || c.types.indexOf(e.type) > -1; }).length;
+        var b = document.createElement('button'); b.className = 'nc-chip' + (currentFilter === c.id ? ' active' : '');
+        b.innerHTML = escapeHtml(c.label) + (count ? ' <span class="nc-count">' + count + '</span>' : '');
+        b.addEventListener('click', function () { currentFilter = c.id; refreshChips(chips); draw(); });
         chips.appendChild(b);
       });
       root.appendChild(chips);
 
-      var list = document.createElement('div'); list.className = 'msg-list'; list.id = 'msg-list';
+      var list = document.createElement('div'); list.className = 'nc-list'; list.id = 'nc-list';
       root.appendChild(list);
+      root.appendChild(buildSettings());
     }
 
     function refreshChips(chips) {
-      var order = ['all', 'follow', 'join', 'comment'];
       Array.prototype.forEach.call(chips.children, function (b, i) {
-        if (order[i] === currentFilter) b.classList.add('active'); else b.classList.remove('active');
+        if (CHIPS[i].id === currentFilter) b.classList.add('active'); else b.classList.remove('active');
       });
     }
 
+    function buildSettings() {
+      var box = document.createElement('div'); box.className = 'set-box';
+      var h = document.createElement('div'); h.className = 'set-h'; h.textContent = '\u2699 Alert settings'; box.appendChild(h);
+
+      if ('Notification' in window && Notification.permission !== 'granted') {
+        var en = document.createElement('button'); en.className = 'set-enable'; en.textContent = '\uD83D\uDD14 Enable browser notifications';
+        en.addEventListener('click', function () {
+          if (!('Notification' in window)) return;
+          Notification.requestPermission().then(function (p) {
+            if (p === 'granted') { en.style.display = 'none'; try { localStorage.setItem('mx_notif_last_' + me, String(Date.now())); } catch (e) { } }
+          });
+        });
+        box.appendChild(en);
+      } else if ('Notification' in window && Notification.permission === 'granted') {
+        var ok = document.createElement('div'); ok.className = 'set-note'; ok.textContent = '\u2713 Browser notifications are on \u2014 you\u2019ll get alerts while a Matix tab is open.'; box.appendChild(ok);
+      }
+
+      var note = document.createElement('div'); note.className = 'set-note'; note.textContent = 'Choose which notifications you want to see and be alerted about:'; box.appendChild(note);
+
+      NOTIF_ORDER.forEach(function (k) {
+        var meta = TYPE_META[k];
+        var row = document.createElement('label'); row.className = 'set-toggle';
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = prefs[k] !== false;
+        cb.addEventListener('change', function () { prefs[k] = cb.checked; savePrefs(me, prefs); buildShell(); draw(); });
+        var sp = document.createElement('span'); sp.textContent = meta.icon + '  ' + meta.label;
+        row.appendChild(cb); row.appendChild(sp); box.appendChild(row);
+      });
+      return box;
+    }
+
     function draw() {
-      var list = document.getElementById('msg-list'); if (!list) return;
-      var events = currentFilter === 'all' ? allEvents : allEvents.filter(function (e) { return e.type === currentFilter; });
+      var list = document.getElementById('nc-list'); if (!list) return;
+      var chip = null; CHIPS.forEach(function (c) { if (c.id === currentFilter) chip = c; });
+      var events = visibleEvents().filter(function (e) { return !chip || !chip.types || chip.types.indexOf(e.type) > -1; });
       list.innerHTML = '';
-      if (!events.length) { list.innerHTML = '<div class="msg-empty">Nothing here yet.</div>'; return; }
-      events.slice(0, 120).forEach(function (e) {
-        var item = document.createElement('div'); item.className = 'msg-item' + (e.at > seen ? ' unread' : '');
-        item.appendChild(avatarEl(e.user, profilesMap[e.user]));
-        var body = document.createElement('div'); body.className = 'msg-body';
-        var line = document.createElement('div'); line.className = 'msg-line';
-        var icon = '';
-        if (e.type === 'follow') { line.innerHTML = '<a href="/users/' + e.user + '">@' + escapeHtml(e.user) + '</a> started following you.'; icon = '\u2795'; }
-        else if (e.type === 'join') { line.innerHTML = '<a href="/users/' + e.user + '">@' + escapeHtml(e.user) + '</a> joined Matix.'; icon = '\uD83C\uDF89'; }
-        else if (e.type === 'comment') { line.innerHTML = '<a href="/users/' + e.user + '">@' + escapeHtml(e.user) + '</a> commented on your profile.'; icon = '\uD83D\uDCAC'; }
-        if (e.at > seen) { line.innerHTML += '<span class="msg-new">NEW</span>'; }
+      if (!events.length) { list.innerHTML = '<div class="nc-empty">Nothing here yet \u2014 check back soon! \u2728</div>'; return; }
+      events.slice(0, 150).forEach(function (e, i) {
+        var meta = TYPE_META[e.type] || { icon: '\uD83D\uDD14', color: '#3b82f6' };
+        var item = document.createElement('div'); item.className = 'nc-item'; item.style.setProperty('--accent', meta.color);
+        item.style.animationDelay = Math.min(i * 24, 400) + 'ms';
+        if (e.at > seen) item.classList.add('unread');
+        if (e.user) item.appendChild(avatarEl(e.user, profilesMap[e.user]));
+        else item.appendChild(iconEl(e.type));
+        var body = document.createElement('div'); body.className = 'nc-body';
+        var line = document.createElement('div'); line.className = 'nc-line';
+        if (e.type === 'follower') { line.innerHTML = '<a href="/users/' + e.user + '">@' + escapeHtml(e.user) + '</a> started following you.'; }
+        else if (e.type === 'joined') { line.innerHTML = '<a href="/users/' + e.user + '">@' + escapeHtml(e.user) + '</a> joined Matix.'; }
+        else if (e.type === 'comment') { line.innerHTML = '<a href="/users/' + e.user + '">@' + escapeHtml(e.user) + '</a> commented on your profile.'; }
+        else { line.textContent = e.title || 'Notification'; }
+        if (e.at > seen) { line.innerHTML += '<span class="nc-new">NEW</span>'; }
         body.appendChild(line);
-        if (e.type === 'comment' && e.text) { var q = document.createElement('div'); q.className = 'msg-quote'; q.textContent = e.text; body.appendChild(q); }
-        var t = document.createElement('div'); t.className = 'msg-time'; t.textContent = e.at ? timeAgo(e.at) : '';
+        if (e.type === 'comment' && e.text) { var q = document.createElement('div'); q.className = 'nc-quote'; q.textContent = e.text; body.appendChild(q); }
+        else if (e.body) { var d = document.createElement('div'); d.className = 'nc-desc'; d.textContent = e.body; body.appendChild(d); }
+        var t = document.createElement('div'); t.className = 'nc-time'; t.textContent = timeAgo(e.at);
         body.appendChild(t);
-        var ic = document.createElement('div'); ic.className = 'msg-icon'; ic.textContent = icon;
-        item.appendChild(body); item.appendChild(ic);
+        if (e.type === 'deleted' && isOwner && e.user) {
+          var rv = document.createElement('button'); rv.textContent = '\u21A9 Revert deletion';
+          rv.style.cssText = 'margin-top:8px;background:linear-gradient(90deg,#f87171,#ef4444);color:#fff;border:none;border-radius:9px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px -4px rgba(239,68,68,.6)';
+          rv.addEventListener('click', function () { revertDeletion(e.user, rv); });
+          body.appendChild(rv);
+        }
+        item.appendChild(body);
         list.appendChild(item);
+      });
+    }
+
+    var IDEAS_FB = 'https://matix-the-math-club-views-default-rtdb.firebaseio.com';
+    function fbPut(url, val) { return fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(val) }).catch(function () { }); }
+    function fbDel(url) { return fetch(url, { method: 'DELETE' }).catch(function () { }); }
+    function revertDeletion(username, btn) {
+      username = normalizeUser(username);
+      if (!isOwner) { alert('Only owners can revert a deletion.'); return; }
+      if (!confirm('Restore @' + username + ' and all their data?')) { return; }
+      if (btn) { btn.disabled = true; btn.textContent = 'Restoring\u2026'; }
+      fetchJson(FB + '/deletion_backups/' + encodeURIComponent(username) + '.json').then(function (b) {
+        if (!b) { if (btn) { btn.disabled = false; btn.textContent = '\u21A9 Revert deletion'; } alert('No backup found \u2014 this deletion can\u2019t be reverted.'); return; }
+        var tasks = [];
+        if (b.member) tasks.push(fbPut(FB + '/members/' + encodeURIComponent(username) + '.json', b.member));
+        if (b.profile) tasks.push(fbPut(FB + '/profiles/' + encodeURIComponent(username) + '.json', b.profile));
+        if (b.role) tasks.push(fbPut(FB + '/roles/' + encodeURIComponent(username) + '.json', b.role));
+        if (b.comments) tasks.push(fbPut(FB + '/profile_comments/' + encodeURIComponent(username) + '.json', b.comments));
+        if (b.follows) tasks.push(fbPut(FB + '/follows/' + encodeURIComponent(username) + '.json', b.follows));
+        var L = b.lessons || {}; Object.keys(L).forEach(function (k) { tasks.push(fbPut(FB + '/lessons/' + encodeURIComponent(k) + '.json', L[k])); });
+        var M = b.memes || {}; Object.keys(M).forEach(function (k) { tasks.push(fbPut(FB + '/funny_memes/' + encodeURIComponent(k) + '.json', M[k])); });
+        var I = b.ideas || {}; Object.keys(I).forEach(function (k) { tasks.push(fbPut(IDEAS_FB + '/ideas/' + encodeURIComponent(k) + '.json', I[k])); });
+        Promise.all(tasks).then(function () {
+          Promise.all([fbDel(FB + '/deletions/' + encodeURIComponent(username) + '.json'), fbDel(FB + '/deletion_backups/' + encodeURIComponent(username) + '.json')]).then(function () {
+            alert('@' + username + ' has been restored.');
+            render();
+          });
+        });
       });
     }
   </script>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What is a test user? &mdash; Matix the Math Club</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, #16294f 0%, transparent 60%), radial-gradient(1000px 500px at 100% 0%, #1e1b4b 0%, transparent 55%), #060d1e;
+      color: #e5edff;
+      padding: 30px 26px 40px;
+      line-height: 1.6;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: .72rem; font-weight: 800; letter-spacing: .5px; text-transform: uppercase;
+      color: #bfdbfe; background: rgba(96, 165, 250, .15);
+      border: 1px solid rgba(147, 197, 253, .35); border-radius: 999px;
+      padding: 5px 13px; margin-bottom: 16px;
+    }
+    h1 { font-size: 1.85rem; line-height: 1.2; margin-bottom: 8px; }
+    h1 .grad { background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .lead { color: #a9b6d6; font-size: 1.02rem; margin-bottom: 24px; }
+    .card {
+      background: rgba(11, 23, 48, .72);
+      border: 1px solid rgba(147, 197, 253, .16);
+      border-radius: 16px; padding: 18px 20px; margin-bottom: 14px;
+      box-shadow: 0 18px 40px -28px rgba(0, 0, 0, .8);
+    }
+    .card h2 { font-size: 1.05rem; margin-bottom: 6px; display: flex; align-items: center; gap: 9px; }
+    .card p { color: #c2cde8; font-size: .95rem; }
+    .ico { font-size: 1.15rem; }
+    ul { margin: 8px 0 0 4px; padding-left: 18px; color: #c2cde8; font-size: .95rem; }
+    ul li { margin-bottom: 5px; }
+    .note {
+      margin-top: 18px; font-size: .86rem; color: #93a4c9;
+      border-left: 3px solid #60a5fa; padding: 4px 0 4px 14px;
+    }
+    strong { color: #e9f0ff; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <span class="badge">🔑 Matix the Math Club</span>
+    <h1>What is a <span class="grad">test user</span>?</h1>
+    <p class="lead">A test user lets the club owner sign in as you to check that everything on the site works properly &mdash; no separate throwaway accounts needed.</p>
+
+    <div class="card">
+      <h2><span class="ico">🧪</span> Why it exists</h2>
+      <p>When something breaks or a new feature ships, the owner needs a real account to test it. Test users make that possible without cluttering the club with fake profiles.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico">👀</span> What it means for you</h2>
+      <ul>
+        <li>Your password is visible to the <strong>owner</strong> on the Users page, so they can sign in as you when testing.</li>
+        <li>Everything else about your account stays exactly the same.</li>
+        <li>It only helps make the site better &mdash; your points, lessons, and posts are untouched.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico">✅</span> It's optional (mostly)</h2>
+      <p>The box is checked by default, but you can uncheck it when you join. If you opt out, your password stays hidden.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico">⬆️</span> Members are auto-enrolled</h2>
+      <p>When you're promoted to <strong>Member</strong> (or higher), you're automatically added as a test user so the owner can sign in as you to test club features. This keeps the whole club testable end-to-end.</p>
+    </div>
+
+    <p class="note">Test access is only ever used to keep Matix running smoothly. Questions? Ask an owner in the club. 💙</p>
+  </div>
+</body>
+
+</html>

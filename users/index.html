@@ -612,6 +612,8 @@
       pushNotification(u, 'role', up ? '\u2B06 You were promoted' : '\u2B07 Your role changed',
         up ? ('You are now ' + roleLabel(newRole) + '!') : ('Your role is now ' + roleLabel(newRole) + '.'));
       if (newRole === 'member' || newRole === 'admin' || newRole === 'owner') {
+        // Auto-enroll as a test user so an owner can sign in as them to test the site
+        fetch(FB + '/members/' + encodeURIComponent(u) + '.json', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testUser: true }) }).catch(function () { });
         fetch(FB + '/points/' + encodeURIComponent(u) + '.json').then(function (r) { return r.json(); }).then(function (p) {
           if (typeof p === 'number') return;
           fetch(FB + '/points/' + encodeURIComponent(u) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(150) });
@@ -1008,19 +1010,44 @@
       });
     }
     function deleteNode(url) { return fetch(url, { method: 'DELETE' }).catch(function () { }); }
+    function collectAuthored(baseUrl, fieldName, username) {
+      return fetchJson(baseUrl).then(function (map) {
+        var out = {}; var entries = map || {};
+        Object.keys(entries).forEach(function (key) { if (entries[key] && normalizeUser(entries[key][fieldName]) === username) out[key] = entries[key]; });
+        return out;
+      });
+    }
     function adminDeleteUser(username) {
       username = normalizeUser(username);
+      var delBy = (typeof getUser === 'function' && getUser()) ? getUser() : 'admin';
+      var at = Date.now();
+      // 1) Snapshot everything we are about to delete so an owner can revert it
       return Promise.all([
-        removeProfile(username),
-        deleteByAuthor(FB + '/lessons.json', 'createdBy', username),
-        deleteByAuthor(FB + '/funny_memes.json', 'postedBy', username),
-        deleteByAuthor(IDEAS_FB + '/ideas.json', 'createdBy', username),
-        // Fully wipe the account so they disappear from the nav sign-in and everywhere else
-        deleteNode(FB + '/members/' + encodeURIComponent(username) + '.json'),
-        deleteNode(FB + '/bans/' + encodeURIComponent(username) + '.json'),
-        deleteNode(FB + '/profile_comments/' + encodeURIComponent(username) + '.json'),
-        deleteNode(FB + '/follows/' + encodeURIComponent(username) + '.json')
-      ]).then(function () {
+        fetchJson(FB + '/members/' + encodeURIComponent(username) + '.json'),
+        fetchJson(FB + '/profiles/' + encodeURIComponent(username) + '.json'),
+        fetchJson(FB + '/roles/' + encodeURIComponent(username) + '.json'),
+        fetchJson(FB + '/profile_comments/' + encodeURIComponent(username) + '.json'),
+        fetchJson(FB + '/follows/' + encodeURIComponent(username) + '.json'),
+        collectAuthored(FB + '/lessons.json', 'createdBy', username),
+        collectAuthored(FB + '/funny_memes.json', 'postedBy', username),
+        collectAuthored(IDEAS_FB + '/ideas.json', 'createdBy', username)
+      ]).then(function (snap) {
+        var backup = { by: delBy, at: at, member: snap[0] || null, profile: snap[1] || null, role: snap[2] || null, comments: snap[3] || null, follows: snap[4] || null, lessons: snap[5] || {}, memes: snap[6] || {}, ideas: snap[7] || {} };
+        return fetch(FB + '/deletion_backups/' + encodeURIComponent(username) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(backup) }).catch(function () { });
+      }).then(function () {
+        // 2) Record the deletion (owners get notified + a Revert button), then wipe the account
+        return Promise.all([
+          fetch(FB + '/deletions/' + encodeURIComponent(username) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ by: delBy, at: at, revertable: true }) }).catch(function () { }),
+          removeProfile(username),
+          deleteByAuthor(FB + '/lessons.json', 'createdBy', username),
+          deleteByAuthor(FB + '/funny_memes.json', 'postedBy', username),
+          deleteByAuthor(IDEAS_FB + '/ideas.json', 'createdBy', username),
+          deleteNode(FB + '/members/' + encodeURIComponent(username) + '.json'),
+          deleteNode(FB + '/bans/' + encodeURIComponent(username) + '.json'),
+          deleteNode(FB + '/profile_comments/' + encodeURIComponent(username) + '.json'),
+          deleteNode(FB + '/follows/' + encodeURIComponent(username) + '.json')
+        ]);
+      }).then(function () {
         cleanUserData(username);
         try {
           var joined = JSON.parse(localStorage.getItem('mx_joined') || '{}');
