@@ -1,13 +1,1753 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>dahlia — Matix</title>
-  <meta http-equiv="refresh" content="0; url=/users/index.html?u=dahlia">
-  <script>
-    window.location.replace('/users/index.html?u=dahlia');
-  </script>
+  <title id="page-title">Matix Users</title>
+  <link rel="stylesheet" href="/global.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script src="/nav.js" defer></script>
+  <style>
+    .ux-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 30px 18px 60px
+    }
+
+    .ux-title {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #f0f8ff;
+      margin-bottom: 4px
+    }
+
+    .ux-sub {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .88rem;
+      color: #475569;
+      margin-bottom: 28px
+    }
+
+    .ux-search {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(2, 5, 18, .92);
+      border: 1px solid rgba(96, 165, 250, .20);
+      border-radius: 8px;
+      color: #f8fafc;
+      padding: 8px 12px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .88rem;
+      outline: none;
+      margin-bottom: 16px;
+      box-sizing: border-box;
+      display: block;
+      transition: border-color .13s
+    }
+
+    .ux-search:focus {
+      border-color: rgba(96, 165, 250, .5)
+    }
+
+    .ux-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+      gap: 10px
+    }
+
+    .ux-card {
+      background: rgba(12, 35, 100, .75);
+      border: 1px solid rgba(96, 165, 250, .18);
+      border-top: 3px solid #f59e0b;
+      border-radius: 12px;
+      padding: 12px 13px;
+      text-decoration: none;
+      transition: background .15s, box-shadow .15s;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer
+    }
+
+    .ux-card:hover {
+      background: rgba(20, 50, 140, .85);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .5);
+      text-decoration: none
+    }
+
+    .ux-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #93c5fd;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      margin-bottom: 4px;
+      flex-shrink: 0
+    }
+
+    .ux-uname {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f0f8ff
+    }
+
+    .ux-role {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .71rem;
+      color: #f59e0b
+    }
+
+    .ux-role.guest {
+      color: #64748b
+    }
+
+    .ux-loading {
+      text-align: center;
+      padding: 44px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      color: #475569;
+      font-size: .88rem
+    }
+
+    /* profile */
+    .prof-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .82rem;
+      color: #3b82f6;
+      margin-bottom: 28px
+    }
+
+    .prof-back:hover {
+      color: #93c5fd;
+      text-decoration: none
+    }
+
+    .prof-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 18px;
+      flex-wrap: wrap
+    }
+
+    .prof-av {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #93c5fd;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      flex-shrink: 0;
+      border: 3px solid rgba(96, 165, 250, .3)
+    }
+
+    .prof-info {
+      flex: 1;
+      min-width: 0
+    }
+
+    .prof-name {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #f0f8ff
+    }
+
+    .prof-badge {
+      display: inline-block;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .72rem;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-top: 5px
+    }
+
+    .prof-badge.member {
+      background: rgba(245, 158, 11, .12);
+      border: 1px solid rgba(245, 158, 11, .4);
+      color: #f59e0b
+    }
+
+    .prof-badge.user {
+      background: rgba(100, 116, 139, .10);
+      border: 1px solid rgba(100, 116, 139, .25);
+      color: #64748b
+    }
+
+    .prof-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap
+    }
+
+    .prof-btn {
+      height: 28px;
+      padding: 0 11px;
+      border-radius: 7px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid;
+      transition: background .13s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      background: none
+    }
+
+    .prof-btn.follow {
+      border-color: #10b981;
+      color: #34d399
+    }
+
+    .prof-btn.follow:hover {
+      background: rgba(16, 185, 129, .18)
+    }
+
+    .prof-btn.following {
+      background: rgba(16, 185, 129, .18);
+      border-color: #10b981;
+      color: #34d399
+    }
+
+    .prof-btn.msg {
+      border-color: #3b82f6;
+      color: #93c5fd
+    }
+
+    .prof-btn.msg:hover {
+      background: rgba(59, 130, 246, .18);
+      text-decoration: none
+    }
+
+    .prof-btn.edit {
+      border-color: #f59e0b;
+      color: #fbbf24
+    }
+
+    .prof-btn.edit:hover {
+      background: rgba(245, 158, 11, .18)
+    }
+
+    .prof-btn.delete {
+      border-color: #ef4444;
+      color: #f87171
+    }
+
+    .prof-btn.delete:hover {
+      background: rgba(239, 68, 68, .18)
+    }
+
+    .prof-stats {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 18px;
+      flex-wrap: wrap
+    }
+
+    .prof-stat {
+      font-family: "Trebuchet MS", Arial, sans-serif
+    }
+
+    .prof-stat-n {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #f0f8ff;
+      display: block
+    }
+
+    .prof-stat-l {
+      font-size: .69rem;
+      color: #475569
+    }
+
+    .prof-bio {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .9rem;
+      color: #dbe4f3;
+      line-height: 1.6;
+      margin-top: 12px;
+      max-width: 620px
+    }
+
+    .prof-panel {
+      background: rgba(12, 35, 100, .72);
+      border: 1px solid rgba(96, 165, 250, .16);
+      border-top: 3px solid #f59e0b;
+      border-radius: 12px;
+      padding: 12px 14px 11px;
+      margin: 0 0 18px
+    }
+
+    .prof-panel h3 {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .95rem;
+      font-weight: 700;
+      color: #f0f8ff;
+      margin: 0 0 12px
+    }
+
+    .prof-field {
+      display: block;
+      width: 100%;
+      background: rgba(2, 5, 18, .92);
+      border: 1px solid rgba(96, 165, 250, .18);
+      border-radius: 8px;
+      color: #f8fafc;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .88rem;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color .13s
+    }
+
+    .prof-field:focus {
+      border-color: rgba(96, 165, 250, .5)
+    }
+
+    .prof-field.ta {
+      min-height: 88px;
+      resize: vertical
+    }
+
+    .prof-help {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .72rem;
+      color: #64748b;
+      margin: -2px 0 10px
+    }
+
+    .prof-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .prof-note {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .75rem;
+      color: #475569;
+      margin-top: 10px
+    }
+
+    .prof-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(96, 165, 250, .14);
+      margin-bottom: 22px;
+      gap: 0
+    }
+
+    .prof-tab {
+      padding: 9px 18px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .84rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      border-bottom: 2.5px solid transparent;
+      transition: color .13s, border-bottom-color .13s;
+      user-select: none
+    }
+
+    .prof-tab.active {
+      color: #f0f8ff;
+      border-bottom-color: #f59e0b
+    }
+
+    .prof-tab:hover {
+      color: #93c5fd
+    }
+
+    .prof-tab-pane {
+      display: none
+    }
+
+    .prof-tab-pane.active {
+      display: block
+    }
+
+    .prof-card {
+      background: rgba(12, 35, 100, .75);
+      border: 1px solid rgba(96, 165, 250, .15);
+      border-radius: 10px;
+      padding: 11px 14px;
+      margin-bottom: 8px;
+      transition: background .13s
+    }
+
+    .prof-card:hover {
+      background: rgba(18, 46, 130, .8)
+    }
+
+    .prof-card-title {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .92rem;
+      font-weight: 700;
+      color: #bfdbfe;
+      margin-bottom: 4px
+    }
+
+    .prof-card-meta {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .70rem;
+      color: #ffffff
+    }
+
+    .prof-empty {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .84rem;
+      color: #475569;
+      padding: 28px 0;
+      text-align: center
+    }
+
+    /* Modern Crop Styles */
+    .crop-container {
+      display: none;
+      margin: 14px 0;
+      background: rgba(2, 5, 18, 0.95);
+      border: 1px dashed rgba(96, 165, 250, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .crop-viewport {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 12px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 50%;
+      border: 2px solid #f59e0b;
+      cursor: move;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.75);
+    }
+
+    .crop-viewport img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .crop-slider {
+      width: 100%;
+      max-width: 200px;
+      margin: 8px auto;
+      display: block;
+    }
+
+    .upload-label-btn {
+      display: inline-block;
+      padding: 8px 14px;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid #3b82f6;
+      border-radius: 6px;
+      color: #93c5fd;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .upload-label-btn:hover {
+      background: rgba(59, 130, 246, 0.4);
+    }
+
+    /* ── Cooler directory hero ── */
+    .ux-hero {
+      background: linear-gradient(135deg, rgba(29, 78, 216, .35), rgba(245, 158, 11, .12));
+      border: 1px solid rgba(96, 165, 250, .20);
+      border-top: 3px solid #f59e0b;
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin-bottom: 16px
+    }
+    .ux-hero .ux-title { margin-bottom: 8px }
+    .ux-hero .ux-sub { margin-bottom: 0; color: #bfdbfe }
+    .ux-hero .ux-sub b { color: #fbbf24 }
+    .ux-dname {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .76rem;
+      color: #93c5fd
+    }
+    .prof-aka {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: .9rem;
+      color: #93c5fd;
+      margin-top: 2px
+    }
+
+    /* ── Change-password / status messages ── */
+    .pw-msg { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .78rem; min-height: 1em; margin: 2px 0 10px; color: #64748b }
+    .pw-msg.err { color: #f87171 }
+    .pw-msg.ok { color: #34d399 }
+
+    /* ── Ban overlay ── */
+    .ban-overlay { position: fixed; inset: 0; z-index: 90000; display: flex; align-items: center; justify-content: center; background: rgba(2, 7, 22, .82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding: 20px; box-sizing: border-box }
+    .ban-box { max-width: 420px; width: 100%; background: rgba(10, 15, 30, .99); border: 1px solid rgba(239, 68, 68, .42); border-top: 4px solid #ef4444; border-radius: 14px; box-shadow: 0 32px 80px rgba(0, 0, 0, .9); padding: 22px 22px; box-sizing: border-box; font-family: "Trebuchet MS", Arial, sans-serif }
+    .ban-box h3 { color: #f87171; font-size: 1.15rem; font-weight: 800; margin: 0 0 12px }
+    .cf-box { max-width: 430px; width: 100%; background: rgba(10, 15, 30, .99); border: 1px solid rgba(59, 130, 246, .45); border-top: 4px solid #f59e0b; border-radius: 14px; box-shadow: 0 32px 80px rgba(0, 0, 0, .9); padding: 20px 20px; box-sizing: border-box; font-family: "Trebuchet MS", Arial, sans-serif }
+    .cf-box h3 { color: #fbbf24; font-size: 1.12rem; font-weight: 800; margin: 0 0 10px }
+    .cf-box p { color: #cbd5e1; font-size: .9rem; line-height: 1.55; margin: 0 0 14px }
+    .cf-box .prof-field { margin-bottom: 8px }
+    .cf-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px }
+    .pw-msg { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px }
+    .pw-msg.err::before { content: "\2716  " }
+    .pw-msg.ok::before { content: "\2714  " }
+    .pw-msg:empty::before { content: none }
+    .acct-divider { height: 1px; background: rgba(96, 165, 250, .16); margin: 4px 0 16px }
+    .acct-sec label.prof-help { display: block; font-weight: 700; color: #93c5fd; margin-bottom: 6px }
+    .acct-sec label.prof-help.acct-strong { color: #bfe0ff }
+    .prof-badge.admin { background: rgba(251, 191, 36, .16); color: #fbbf24; border-color: rgba(251, 191, 36, .4) }
+    .ux-role.admin { color: #fbbf24 }
+    .cf-toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: #0f172a; color: #e2e8f0; border: 1px solid rgba(148, 163, 184, .3); border-radius: 12px; padding: 12px 18px; font-size: .9rem; font-weight: 600; box-shadow: 0 10px 30px rgba(0, 0, 0, .4); opacity: 0; transition: opacity .25s, transform .25s; z-index: 9999; max-width: 90vw }
+    .cf-toast.show { opacity: 1; transform: translate(-50%, 0) }
+    .cf-toast.err { border-color: rgba(248, 113, 113, .55); color: #fecaca }
+    .cf-toast.ok { border-color: rgba(74, 222, 128, .55); color: #bbf7d0 }
+    .ban-status { font-size: .8rem; color: #94a3b8; margin-bottom: 12px }
+    .ban-status.active { color: #fca5a5 }
+    .ban-row { display: flex; gap: 10px; margin-bottom: 10px }
+    .ban-row .prof-field { flex: 1; min-width: 0 }
+    select.prof-field { cursor: pointer; -webkit-appearance: none; appearance: none }
+    .ban-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px }
+
+    /* ── Comment wall (scratch.mit.edu style) ── */
+    .cmt-section { margin-top: 22px; border-top: 1px solid rgba(96, 165, 250, .14); padding-top: 16px }
+    .cmt-heading { font-family: "Trebuchet MS", Arial, sans-serif; font-size: 1.05rem; font-weight: 800; color: #f0f8ff; margin: 0 0 16px }
+    .cmt-composer { display: flex; gap: 11px; margin-bottom: 14px }
+    .cmt-input {
+      width: 100%; box-sizing: border-box; min-height: 64px; resize: vertical;
+      background: rgba(2, 5, 18, .92); border: 1px solid rgba(96, 165, 250, .20);
+      border-radius: 10px; color: #f8fafc; padding: 11px 13px;
+      font-family: "Trebuchet MS", Arial, sans-serif; font-size: .9rem; outline: none; transition: border-color .13s
+    }
+    .cmt-input:focus { border-color: rgba(96, 165, 250, .55) }
+    .cmt-composer-row { display: flex; justify-content: flex-end; margin-top: 8px }
+    .cmt-post-btn {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb); border: none; color: #fff;
+      font-family: "Trebuchet MS", Arial, sans-serif; font-size: .84rem; font-weight: 700;
+      padding: 8px 18px; border-radius: 8px; cursor: pointer; transition: filter .13s
+    }
+    .cmt-post-btn:hover { filter: brightness(1.12) }
+    .cmt-post-btn:disabled { opacity: .6; cursor: default }
+    .cmt-signin { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .84rem; color: #64748b; background: rgba(12, 35, 100, .5); border: 1px solid rgba(96, 165, 250, .14); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px }
+    .cmt-list { display: flex; flex-direction: column; gap: 12px }
+    .cmt-empty { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .84rem; color: #475569; text-align: center; padding: 22px 0 }
+    .cmt-item { display: flex; gap: 12px; align-items: flex-start; background: rgba(12, 35, 100, .55); border: 1px solid rgba(96, 165, 250, .14); border-radius: 12px; padding: 9px 12px; position: relative }
+    .cmt-avatar { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #1e3a8a, #1d4ed8); display: flex; align-items: center; justify-content: center; font-family: "Trebuchet MS", Arial, sans-serif; font-weight: 700; font-size: .85rem; color: #93c5fd; text-decoration: none; background-size: cover; background-position: center }
+    .cmt-body { flex: 1; min-width: 0 }
+    .cmt-head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 3px; flex-wrap: wrap }
+    .cmt-name { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .86rem; font-weight: 700; color: #bfdbfe; text-decoration: none }
+    .cmt-name:hover { color: #93c5fd; text-decoration: underline }
+    .cmt-time { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .68rem; color: #64748b }
+    .cmt-text { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .9rem; color: #e2e8f0; line-height: 1.5; word-break: break-word; white-space: pre-wrap }
+    .cmt-del { position: absolute; top: 9px; right: 10px; background: none; border: none; color: #64748b; cursor: pointer; font-size: .85rem; line-height: 1; padding: 2px 5px; border-radius: 5px; transition: background .12s, color .12s }
+    .cmt-del:hover { background: rgba(239, 68, 68, .16); color: #f87171 }
+  </style>
 </head>
-<body></body>
+
+<body>
+  <div class="ux-wrap" id="ux-root">
+    <div class="ux-loading">Loading...</div>
+  </div>
+  <script>
+    var VALID_MEMBERS = ['ghadi', 'dahlia', 'yara', 'jad', 'marwan', 'mak', 'hicham'];
+    /* Persisted roles live at /roles/<user> = "admin" | "member" | "user".
+       When nothing is stored yet we fall back to the built-in defaults below,
+       so status survives username changes and can be promoted/demoted. */
+    var ROLES = {};
+    var ROLE_ORDER = ['user', 'member', 'admin'];
+    function roleOf(u) {
+      var n = normalizeUser(u);
+      if (ROLES[n] === 'admin' || ROLES[n] === 'member' || ROLES[n] === 'user') return ROLES[n];
+      if (n === 'ghadi') return 'admin';
+      if (VALID_MEMBERS.indexOf(n) > -1) return 'member';
+      return 'user';
+    }
+    function roleLabel(r) { return r === 'admin' ? 'Matix Admin' : (r === 'member' ? 'Matix Member' : 'Matix User'); }
+    function setRole(username, role, cb) {
+      var u = normalizeUser(username);
+      fetch(FB + '/roles/' + encodeURIComponent(u) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(role) })
+        .then(function () { ROLES[u] = role; if (cb) cb(true); })
+        .catch(function () { if (cb) cb(false); });
+    }
+    var FB = 'https://matix-1d538-default-rtdb.firebaseio.com';
+    var IDEAS_FB = 'https://matix-the-math-club-views-default-rtdb.firebaseio.com';
+    /* Built-in member passwords, mirrored from nav.js. A password saved in
+       Firebase /members/<user> overrides these once someone changes it. */
+    var HARDCODED_PW = {
+      ghadi: 'iamtheownerofmatix',
+      dahlia: 'cheeseflower',
+      yara: 'yara10yoyo20',
+      jad: 'ilikebatatameshwiyye',
+      marwan: 'ilikebeingnumberonebutiamnumbertwo',
+      mak: 'mak2130',
+      hicham: 'pwrbulleye'
+    };
+
+    function getUser() { return sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null; }
+    function initials(u) { return u ? u.slice(0, 2).toUpperCase() : '??'; }
+    function isMember(u) { var r = roleOf(u); return r === 'member' || r === 'admin'; }
+    function isAdmin(u) { return roleOf(u) === 'admin'; }
+    function normalizeUser(u) {
+      var clean = String(u || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+      if (clean === 'matix' || clean === 'ghadimatix') return 'ghadi';
+      return clean;
+    }
+    var getJoined = function () { try { return Object.keys(JSON.parse(localStorage.getItem('mx_joined') || '{}')); } catch (e) { return []; } }
+    function escapeHtml(value) { return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+
+    /* ── Password: verify current + change (used on your own profile) ── */
+    function verifyPassword(username, pass, cb) {
+      var u = normalizeUser(username);
+      fetchJson(FB + '/members/' + encodeURIComponent(u) + '.json').then(function (data) {
+        if (data && data.password) { cb(data.password === pass); return; }
+        if (HARDCODED_PW[u]) { cb(HARDCODED_PW[u] === pass); return; }
+        try {
+          var m = JSON.parse(localStorage.getItem('mx_joined') || '{}');
+          if (m[u]) { cb(m[u] === pass); return; }
+        } catch (e) {}
+        cb(false);
+      });
+    }
+    function changePassword(username, newPass, cb) {
+      var u = normalizeUser(username);
+      fetch(FB + '/members/' + encodeURIComponent(u) + '.json', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newPass, updatedAt: Date.now() })
+      }).then(function () {
+        try {
+          var m = JSON.parse(localStorage.getItem('mx_joined') || '{}');
+          if (m[u]) { m[u] = newPass; localStorage.setItem('mx_joined', JSON.stringify(m)); }
+        } catch (e) {}
+        cb(true);
+      }).catch(function () { cb(false); });
+    }
+
+    /* ── Bans (owner-only, moved here from the nav bar) ── */
+    /* ── Custom toast (replaces native alert) ── */
+    function showToast(message, type) {
+      var existing = document.getElementById('cf-toast'); if (existing) existing.parentNode.removeChild(existing);
+      var t = document.createElement('div'); t.id = 'cf-toast'; t.className = 'cf-toast' + (type === 'err' ? ' err' : (type === 'ok' ? ' ok' : ''));
+      t.textContent = message;
+      document.body.appendChild(t);
+      requestAnimationFrame(function () { t.classList.add('show'); });
+      setTimeout(function () { t.classList.remove('show'); setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 300); }, 3200);
+    }
+    /* ── Custom confirm modal (optionally verify with passcode) ── */
+    function showConfirmModal(opts) {
+      var existing = document.getElementById('cf-ui'); if (existing) existing.parentNode.removeChild(existing);
+      var ov = document.createElement('div'); ov.id = 'cf-ui'; ov.className = 'ban-overlay';
+      var box = document.createElement('div'); box.className = 'cf-box';
+      box.innerHTML =
+        '<h3>' + escapeHtml(opts.title || 'Are you sure?') + '</h3>' +
+        '<p>' + escapeHtml(opts.message || '') + '</p>' +
+        (opts.requirePasscode ? '<input class="prof-field" id="cf-pass" type="password" autocomplete="current-password" placeholder="Enter your passcode to verify">' : '') +
+        '<div class="pw-msg" id="cf-msg"></div>' +
+        '<div class="cf-btns"><button class="prof-btn edit" id="cf-ok">' + escapeHtml(opts.confirmLabel || 'Confirm') + '</button><button class="prof-btn msg" id="cf-cancel">Cancel</button></div>';
+      ov.appendChild(box); document.body.appendChild(ov);
+      function closeCf() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+      box.querySelector('#cf-cancel').addEventListener('click', closeCf);
+      ov.addEventListener('click', function (e) { if (e.target === ov) closeCf(); });
+      var okBtn = box.querySelector('#cf-ok'); var msg = box.querySelector('#cf-msg');
+      okBtn.addEventListener('click', function () {
+        msg.className = 'pw-msg';
+        if (opts.requirePasscode) {
+          var pass = box.querySelector('#cf-pass').value;
+          if (!pass) { msg.className = 'pw-msg err'; msg.textContent = 'Enter your passcode.'; return; }
+          okBtn.disabled = true; okBtn.textContent = 'Verifying\u2026';
+          verifyPassword(opts.username, pass, function (ok) {
+            if (!ok) { msg.className = 'pw-msg err'; msg.textContent = 'Passcode is incorrect.'; okBtn.disabled = false; okBtn.textContent = opts.confirmLabel || 'Confirm'; return; }
+            closeCf(); opts.onConfirm();
+          });
+        } else { closeCf(); opts.onConfirm(); }
+      });
+    }
+    /* ── Rename a user's account: migrates data + updates this session ── */
+    function copyNode(fromUrl, toUrl) {
+      return fetchJson(fromUrl).then(function (data) {
+        if (data === null || data === undefined) return null;
+        return fetch(toUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(function () { return data; });
+      });
+    }
+    function reassignAuthor(baseUrl, field, oldU, newU) {
+      return fetchJson(baseUrl).then(function (map) {
+        var entries = map || {};
+        var ops = Object.keys(entries).filter(function (k) {
+          return entries[k] && normalizeUser(entries[k][field]) === oldU;
+        }).map(function (k) {
+          return fetch(baseUrl.replace('.json', '/' + encodeURIComponent(k) + '/' + field + '.json'), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newU) });
+        });
+        return Promise.all(ops);
+      });
+    }
+    function renameUser(oldNameRaw, newNameRaw, cb) {
+      var oldU = normalizeUser(oldNameRaw), newU = normalizeUser(newNameRaw);
+      var keepRole = roleOf(oldU);
+      fetchJson(FB + '/members/' + encodeURIComponent(oldU) + '.json').then(function (mem) {
+        var pw = (mem && mem.password) || HARDCODED_PW[oldU] || '';
+        try { var j = JSON.parse(localStorage.getItem('mx_joined') || '{}'); if (!pw && j[oldU]) pw = j[oldU]; } catch (e) { }
+        var joinedAt = (mem && mem.joinedAt) || Date.now();
+        var memberPayload = { password: pw, joinedAt: joinedAt, updatedAt: Date.now() };
+        var tasks = [];
+        tasks.push(fetch(FB + '/members/' + encodeURIComponent(newU) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(memberPayload) }));
+        tasks.push(getProfile(oldU).then(function (p) {
+          p = p || {};
+          if (normalizeUser(p.displayName) === oldU) p.displayName = (newNameRaw || '').trim().slice(0, 40) || newU;
+          return fetch(FB + '/profiles/' + encodeURIComponent(newU) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
+        }));
+        tasks.push(copyNode(FB + '/bans/' + encodeURIComponent(oldU) + '.json', FB + '/bans/' + encodeURIComponent(newU) + '.json'));
+        tasks.push(copyNode(FB + '/profile_comments/' + encodeURIComponent(oldU) + '.json', FB + '/profile_comments/' + encodeURIComponent(newU) + '.json'));
+        tasks.push(copyNode(FB + '/follows/' + encodeURIComponent(oldU) + '.json', FB + '/follows/' + encodeURIComponent(newU) + '.json'));
+        tasks.push(fetch(FB + '/roles/' + encodeURIComponent(newU) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(keepRole) }));
+        tasks.push(reassignAuthor(FB + '/lessons.json', 'createdBy', oldU, newU));
+        tasks.push(reassignAuthor(FB + '/funny_memes.json', 'postedBy', oldU, newU));
+        tasks.push(reassignAuthor(IDEAS_FB + '/ideas.json', 'createdBy', oldU, newU));
+        Promise.all(tasks).then(function () {
+          /* Wait for the old records to actually finish deleting before we redirect —
+             navigating away too early can cancel in-flight deletes and leave stale duplicates. */
+          return Promise.all([
+            deleteNode(FB + '/members/' + encodeURIComponent(oldU) + '.json'),
+            deleteNode(FB + '/profiles/' + encodeURIComponent(oldU) + '.json'),
+            deleteNode(FB + '/bans/' + encodeURIComponent(oldU) + '.json'),
+            deleteNode(FB + '/profile_comments/' + encodeURIComponent(oldU) + '.json'),
+            deleteNode(FB + '/follows/' + encodeURIComponent(oldU) + '.json'),
+            deleteNode(FB + '/roles/' + encodeURIComponent(oldU) + '.json')
+          ]);
+        }).then(function () {
+          try { var j2 = JSON.parse(localStorage.getItem('mx_joined') || '{}'); if (j2[oldU] !== undefined) { j2[newU] = j2[oldU]; delete j2[oldU]; localStorage.setItem('mx_joined', JSON.stringify(j2)); } } catch (e) { }
+          try {
+            var f = localStorage.getItem('mx_following_' + oldU);
+            if (f !== null) { localStorage.setItem('mx_following_' + newU, f); localStorage.removeItem('mx_following_' + oldU); }
+            var s = localStorage.getItem('mx_messages_seen_' + oldU);
+            if (s !== null) { localStorage.setItem('mx_messages_seen_' + newU, s); localStorage.removeItem('mx_messages_seen_' + oldU); }
+          } catch (e) { }
+          ROLES[newU] = keepRole; delete ROLES[oldU];
+          var cu = getUser();
+          if (cu && normalizeUser(cu) === oldU) { sessionStorage.setItem('mx_user', newU); sessionStorage.setItem('matix_auth_user', newU); }
+          cb(true, newU);
+        }).catch(function () { cb(false); });
+      });
+    }
+    function banRef(u) { return FB + '/bans/' + encodeURIComponent(normalizeUser(u)) + '.json'; }
+    function checkBan(u, cb) {
+      var n = normalizeUser(u);
+      if (isAdmin(n)) { cb(null); return; }
+      fetchJson(banRef(u)).then(function (b) {
+        if (b && (b.until === 0 || b.until > Date.now())) { cb(b); return; }
+        if (b) { fetch(banRef(u), { method: 'DELETE' }); }
+        cb(null);
+      });
+    }
+    function banUser(u, ms, reason, cb) {
+      if (isAdmin(u)) { cb(false); return; }
+      var payload = { until: ms > 0 ? Date.now() + ms : 0, reason: (reason || '').trim().slice(0, 300), by: getUser() || 'ghadi', at: Date.now() };
+      fetch(banRef(u), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        .then(function () { cb(true, payload); }).catch(function () { cb(false); });
+    }
+    function unbanUser(u, cb) {
+      fetch(banRef(u), { method: 'DELETE' }).then(function () { cb(true); }).catch(function () { cb(false); });
+    }
+    function formatBanRemaining(ban) {
+      if (!ban) return '';
+      if (ban.until === 0) return 'Permanent';
+      var ms = ban.until - Date.now(); if (ms <= 0) return 'Expired';
+      var mins = Math.round(ms / 60000); if (mins < 60) return mins + ' min left';
+      var hrs = Math.round(mins / 60); if (hrs < 24) return hrs + ' hr left';
+      var days = Math.round(hrs / 24); return days + ' day' + (days === 1 ? '' : 's') + ' left';
+    }
+    function showBanUI(root, username) {
+      var existing = document.getElementById('ban-ui'); if (existing) existing.parentNode.removeChild(existing);
+      var ov = document.createElement('div'); ov.id = 'ban-ui'; ov.className = 'ban-overlay';
+      var box = document.createElement('div'); box.className = 'ban-box';
+      box.innerHTML =
+        '<h3>\uD83D\uDEAB Ban @' + escapeHtml(username) + '</h3>' +
+        '<div class="ban-status" id="ban-status">Checking current status\u2026</div>' +
+        '<div class="ban-row"><input class="prof-field" id="ban-amt" type="number" min="1" value="1" style="margin:0"><select class="prof-field" id="ban-unit" style="margin:0"></select></div>' +
+        '<textarea class="prof-field ta" id="ban-reason" maxlength="300" placeholder="Reason for the ban"></textarea>' +
+        '<div class="pw-msg" id="ban-msg"></div>' +
+        '<div class="ban-btns"><button class="prof-btn delete" id="ban-do">Ban user</button><button class="prof-btn follow" id="ban-unban" style="display:none">Unban</button><button class="prof-btn msg" id="ban-close">Close</button></div>';
+      ov.appendChild(box); root.appendChild(ov);
+      var unitSel = box.querySelector('#ban-unit');
+      [['minutes', 60000], ['hours', 3600000], ['days', 86400000], ['weeks', 604800000], ['permanent', 0]].forEach(function (o) {
+        var op = document.createElement('option'); op.value = String(o[1]); op.textContent = o[0]; unitSel.appendChild(op);
+      });
+      unitSel.value = '86400000';
+      var amt = box.querySelector('#ban-amt');
+      function syncAmt() { amt.style.display = unitSel.value === '0' ? 'none' : ''; }
+      unitSel.addEventListener('change', syncAmt); syncAmt();
+      var status = box.querySelector('#ban-status');
+      var unbanBtn = box.querySelector('#ban-unban');
+      checkBan(username, function (b) {
+        if (b) {
+          status.className = 'ban-status active';
+          status.textContent = '\uD83D\uDEAB Currently banned \u2014 ' + formatBanRemaining(b) + (b.reason ? ' \u00b7 ' + b.reason : '');
+          unbanBtn.style.display = '';
+        } else {
+          status.className = 'ban-status';
+          status.textContent = '\u2713 Not currently banned.';
+        }
+      });
+      box.querySelector('#ban-close').addEventListener('click', function () { ov.parentNode.removeChild(ov); });
+      unbanBtn.addEventListener('click', function () {
+        unbanBtn.disabled = true; unbanBtn.textContent = '\u2026';
+        unbanUser(username, function (ok) { if (ok) { ov.parentNode.removeChild(ov); } else { unbanBtn.disabled = false; unbanBtn.textContent = 'Unban'; } });
+      });
+      var msg = box.querySelector('#ban-msg');
+      box.querySelector('#ban-do').addEventListener('click', function () {
+        var unitMs = parseFloat(unitSel.value);
+        var n = parseInt(amt.value, 10);
+        var reason = box.querySelector('#ban-reason').value;
+        msg.className = 'pw-msg';
+        if (unitMs !== 0 && (!n || n < 1)) { msg.className = 'pw-msg err'; msg.textContent = 'Enter a valid amount.'; return; }
+        if (!reason.trim()) { msg.className = 'pw-msg err'; msg.textContent = 'Enter a reason.'; return; }
+        var total = unitMs === 0 ? 0 : n * unitMs;
+        var doBtn = box.querySelector('#ban-do'); doBtn.disabled = true; doBtn.textContent = 'Banning\u2026';
+        banUser(username, total, reason, function (ok) {
+          if (ok) { ov.parentNode.removeChild(ov); }
+          else { doBtn.disabled = false; doBtn.textContent = 'Ban user'; msg.className = 'pw-msg err'; msg.textContent = 'Failed. Try again.'; }
+        });
+      });
+    }
+
+    /* ── Per-user comment wall (scratch.mit.edu style) ── */
+    function commentsUrl(username) { return FB + '/profile_comments/' + encodeURIComponent(normalizeUser(username)) + '.json'; }
+    function loadComments(username, cb) { fetchJson(commentsUrl(username)).then(function (map) { cb(map || {}); }); }
+    function postComment(username, author, text, cb) {
+      fetch(commentsUrl(username), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ by: normalizeUser(author), text: String(text).slice(0, 500), at: Date.now() })
+      }).then(function (r) { return r.json(); }).then(function (res) { cb(true, res && res.name); }).catch(function () { cb(false); });
+    }
+    function deleteComment(username, key, cb) {
+      fetch(FB + '/profile_comments/' + encodeURIComponent(normalizeUser(username)) + '/' + encodeURIComponent(key) + '.json', { method: 'DELETE' })
+        .then(function () { cb(true); }).catch(function () { cb(false); });
+    }
+    function timeAgo(ms) {
+      var s = Math.floor((Date.now() - ms) / 1000);
+      if (s < 60) return 'just now';
+      var m = Math.floor(s / 60); if (m < 60) return m + 'm ago';
+      var h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+      var d = Math.floor(h / 24); if (d < 30) return d + 'd ago';
+      return new Date(ms).toLocaleDateString();
+    }
+    function renderComments(root, username, me) {
+      var section = document.createElement('div'); section.className = 'cmt-section';
+      var h = document.createElement('h3'); h.className = 'cmt-heading'; h.textContent = '\uD83D\uDCAC Comments';
+      section.appendChild(h);
+      if (me) {
+        var composer = document.createElement('div'); composer.className = 'cmt-composer';
+        var av0 = document.createElement('div'); av0.className = 'cmt-avatar'; av0.textContent = initials(me);
+        var col = document.createElement('div'); col.style.flex = '1';
+        var ta = document.createElement('textarea'); ta.className = 'cmt-input'; ta.maxLength = 500; ta.placeholder = 'Write a comment as @' + me + '\u2026';
+        var rowb = document.createElement('div'); rowb.className = 'cmt-composer-row';
+        var post = document.createElement('button'); post.className = 'cmt-post-btn'; post.textContent = 'Post comment';
+        rowb.appendChild(post);
+        col.appendChild(ta); col.appendChild(rowb);
+        composer.appendChild(av0); composer.appendChild(col);
+        section.appendChild(composer);
+        post.addEventListener('click', function () {
+          var text = ta.value.trim();
+          if (!text) return;
+          post.disabled = true; post.textContent = 'Posting\u2026';
+          postComment(username, me, text, function (ok) {
+            post.disabled = false; post.textContent = 'Post comment';
+            if (ok) { ta.value = ''; loadAndRender(); }
+          });
+        });
+      } else {
+        var signin = document.createElement('div'); signin.className = 'cmt-signin'; signin.textContent = 'Sign in from the menu to leave a comment.';
+        section.appendChild(signin);
+      }
+      var list = document.createElement('div'); list.className = 'cmt-list';
+      list.innerHTML = '<div class="cmt-empty">Loading comments\u2026</div>';
+      section.appendChild(list);
+      root.appendChild(section);
+      function loadAndRender() {
+        loadComments(username, function (map) {
+          var keys = Object.keys(map).sort(function (a, b) { return (map[b].at || 0) - (map[a].at || 0); });
+          list.innerHTML = '';
+          if (!keys.length) { list.innerHTML = '<div class="cmt-empty">No comments yet. Be the first!</div>'; return; }
+          keys.forEach(function (k) {
+            var c = map[k]; if (!c) return;
+            var by = normalizeUser(c.by);
+            var item = document.createElement('div'); item.className = 'cmt-item';
+            var av = document.createElement('a'); av.className = 'cmt-avatar'; av.href = '/users/' + by; av.textContent = initials(by);
+            var body = document.createElement('div'); body.className = 'cmt-body';
+            var head = document.createElement('div'); head.className = 'cmt-head';
+            var nameA = document.createElement('a'); nameA.className = 'cmt-name'; nameA.href = '/users/' + by; nameA.textContent = '@' + by;
+            var time = document.createElement('span'); time.className = 'cmt-time'; time.textContent = c.at ? timeAgo(c.at) : '';
+            head.appendChild(nameA); head.appendChild(time);
+            var txt = document.createElement('div'); txt.className = 'cmt-text'; txt.textContent = c.text || '';
+            body.appendChild(head); body.appendChild(txt);
+            item.appendChild(av); item.appendChild(body);
+            if (me && (me === by || isAdmin(me) || me === normalizeUser(username))) {
+              var del = document.createElement('button'); del.className = 'cmt-del'; del.textContent = '\u2715'; del.title = 'Delete comment';
+              del.addEventListener('click', function () {
+                del.disabled = true;
+                deleteComment(username, k, function (ok) { if (ok) loadAndRender(); else del.disabled = false; });
+              });
+              item.appendChild(del);
+            }
+            list.appendChild(item);
+          });
+        });
+      }
+      loadAndRender();
+    }
+
+    function getProfile(username) {
+      return fetch(FB + '/profiles/' + encodeURIComponent(username) + '.json')
+        .then(function (r) { return r.json(); })
+        .then(function (profile) {
+          return profile || { displayName: username, bio: '', ideasText: '', memesText: '', profileImage: '' };
+        })
+        .catch(function () {
+          return { displayName: username, bio: '', ideasText: '', memesText: '', profileImage: '' };
+        });
+    }
+    function saveProfile(username, data) {
+      var payload = {
+        displayName: (data.displayName || username).trim().slice(0, 40) || username,
+        bio: (data.bio || '').trim().slice(0, 300),
+        ideasText: (data.ideasText || '').trim().slice(0, 500),
+        memesText: (data.memesText || '').trim().slice(0, 500),
+        profileImage: data.profileImage || '',
+        updatedAt: Date.now()
+      };
+      return fetch(FB + '/profiles/' + encodeURIComponent(username) + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function () { return payload; });
+    }
+    function removeProfile(username) {
+      return fetch(FB + '/profiles/' + encodeURIComponent(username) + '.json', { method: 'DELETE' });
+    }
+    function deleteByAuthor(baseUrl, fieldName, username) {
+      return fetchJson(baseUrl).then(function (map) {
+        var entries = map || {};
+        var deletions = Object.keys(entries).filter(function (key) {
+          return entries[key] && normalizeUser(entries[key][fieldName]) === username;
+        }).map(function (key) {
+          return fetch(baseUrl.replace('.json', '/' + encodeURIComponent(key) + '.json'), { method: 'DELETE' });
+        });
+        return Promise.all(deletions);
+      });
+    }
+    function deleteNode(url) { return fetch(url, { method: 'DELETE' }).catch(function () { }); }
+    function adminDeleteUser(username) {
+      username = normalizeUser(username);
+      return Promise.all([
+        removeProfile(username),
+        deleteByAuthor(FB + '/lessons.json', 'createdBy', username),
+        deleteByAuthor(FB + '/funny_memes.json', 'postedBy', username),
+        deleteByAuthor(IDEAS_FB + '/ideas.json', 'createdBy', username),
+        // Fully wipe the account so they disappear from the nav sign-in and everywhere else
+        deleteNode(FB + '/members/' + encodeURIComponent(username) + '.json'),
+        deleteNode(FB + '/bans/' + encodeURIComponent(username) + '.json'),
+        deleteNode(FB + '/profile_comments/' + encodeURIComponent(username) + '.json'),
+        deleteNode(FB + '/follows/' + encodeURIComponent(username) + '.json')
+      ]).then(function () {
+        cleanUserData(username);
+        try {
+          var joined = JSON.parse(localStorage.getItem('mx_joined') || '{}');
+          delete joined[username];
+          localStorage.setItem('mx_joined', JSON.stringify(joined));
+        } catch (e) { }
+        try {
+          if (getUser() === username) { sessionStorage.removeItem('mx_user'); sessionStorage.removeItem('matix_auth_user'); }
+        } catch (e) { }
+      });
+    }
+    function fetchJson(url) {
+      return fetch(url).then(function (r) { return r.json(); }).catch(function () { return null; });
+    }
+
+    function isFollowing(target) {
+      var me = getUser(); if (!me) return false;
+      try { var f = JSON.parse(localStorage.getItem('mx_following_' + me) || '[]'); return f.indexOf(target) > -1; } catch (e) { return false; }
+    }
+    function toggleFollow(target, btn) {
+      var me = getUser(); if (!me) { showToast('Sign in to follow users.', 'err'); return; }
+      var key = 'mx_following_' + me, f = [];
+      try { f = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { }
+      var idx = f.indexOf(target);
+      var nowFollowing;
+      if (idx > -1) { f.splice(idx, 1); nowFollowing = false; } else { f.push(target); nowFollowing = true; }
+      localStorage.setItem(key, JSON.stringify(f));
+      setFollowBtn(btn, target);
+      // Mirror to Firebase so the target sees a "new follower" note in /messages
+      var ref = FB + '/follows/' + encodeURIComponent(normalizeUser(target)) + '/' + encodeURIComponent(normalizeUser(me)) + '.json';
+      if (nowFollowing) {
+        fetch(ref, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ at: Date.now() }) }).catch(function () { });
+      } else {
+        fetch(ref, { method: 'DELETE' }).catch(function () { });
+      }
+    }
+    function setFollowBtn(btn, target) {
+      if (isFollowing(target)) { btn.textContent = '✓ Following'; btn.className = 'prof-btn following'; }
+      else { btn.textContent = '+ Follow'; btn.className = 'prof-btn follow'; }
+    }
+    function followerCount(target) {
+      var all = VALID_MEMBERS.concat(getJoined()), c = 0;
+      all.forEach(function (u) { try { var f = JSON.parse(localStorage.getItem('mx_following_' + u) || '[]'); if (f.indexOf(target) > -1) c++; } catch (e) { } });
+      return c;
+    }
+    function cleanUserData(username) {
+      var all = VALID_MEMBERS.concat(getJoined());
+      all.forEach(function (u) {
+        if (u === username) {
+          localStorage.removeItem('mx_following_' + u);
+          return;
+        }
+        try {
+          var key = 'mx_following_' + u;
+          var list = JSON.parse(localStorage.getItem(key) || '[]');
+          var next = list.filter(function (name) { return name !== username; });
+          localStorage.setItem(key, JSON.stringify(next));
+        } catch (e) { }
+      });
+    }
+    function deleteCurrentProfile(username) {
+      removeProfile(username);
+      cleanUserData(username);
+      if (!isMember(username)) {
+        try {
+          var joined = JSON.parse(localStorage.getItem('mx_joined') || '{}');
+          delete joined[username];
+          localStorage.setItem('mx_joined', JSON.stringify(joined));
+        } catch (e) { }
+      }
+      if (getUser() === username) {
+        sessionStorage.removeItem('mx_user');
+        sessionStorage.removeItem('matix_auth_user');
+      }
+    }
+    function collectUsernames(profileMap, lessonsMap, ideasMap, memesMap) {
+      var seen = {};
+      var list = [];
+      function addUser(user) {
+        if (!user) return;
+        var clean = normalizeUser(user);
+        if (!clean || seen[clean]) return;
+        seen[clean] = true;
+        list.push(clean);
+      }
+      VALID_MEMBERS.forEach(addUser);
+      getJoined().forEach(addUser);
+      Object.keys(profileMap || {}).forEach(addUser);
+      Object.keys(lessonsMap || {}).forEach(function (id) { addUser(lessonsMap[id] && lessonsMap[id].createdBy); });
+      Object.keys(ideasMap || {}).forEach(function (id) { addUser(ideasMap[id] && ideasMap[id].createdBy); });
+      Object.keys(memesMap || {}).forEach(function (id) { addUser(memesMap[id] && memesMap[id].postedBy); });
+      return list.sort();
+    }
+
+    /* ── Profile view ── */
+    function renderProfile(username) {
+      username = normalizeUser(username);
+      document.title = username + ' — Matix';
+      var me = getUser();
+      var cachedLessonCount = null;
+      var root = document.getElementById('ux-root');
+      root.innerHTML = '';
+
+      var back = document.createElement('a'); back.className = 'prof-back'; back.href = '/users/'; back.innerHTML = '&#8592; All Users';
+      root.appendChild(back);
+
+      var loadingPanel = document.createElement('div');
+      loadingPanel.className = 'prof-empty';
+      loadingPanel.textContent = 'Loading profile...';
+      root.appendChild(loadingPanel);
+
+      Promise.all([
+        getProfile(username),
+        fetchJson(FB + '/lessons.json'),
+        fetchJson(IDEAS_FB + '/ideas.json'),
+        fetchJson(FB + '/funny_memes.json')
+      ]).then(function (results) {
+        var profile = results[0];
+        var lessonsData = results[1] || {};
+        var ideasData = results[2] || {};
+        var memesData = results[3] || {};
+        root.innerHTML = '';
+        root.appendChild(back);
+
+        var hdr = document.createElement('div'); hdr.className = 'prof-header';
+        var av = document.createElement('div'); av.className = 'prof-av';
+
+        if (profile.profileImage) {
+          av.style.backgroundImage = 'url(' + profile.profileImage + ')';
+          av.style.backgroundSize = 'cover';
+          av.style.backgroundPosition = 'center';
+        } else {
+          av.textContent = initials(username);
+        }
+
+        var info = document.createElement('div'); info.className = 'prof-info';
+        var nm = document.createElement('div'); nm.className = 'prof-name'; nm.textContent = '@' + username;
+        var uRole = roleOf(username);
+        var badge = document.createElement('div'); badge.className = 'prof-badge ' + (uRole === 'admin' ? 'admin' : (uRole === 'member' ? 'member' : 'user'));
+        badge.textContent = roleLabel(uRole);
+        var acts = document.createElement('div'); acts.className = 'prof-actions';
+        if (me && me !== username) {
+          var fb = document.createElement('button'); fb.className = 'prof-btn follow'; setFollowBtn(fb, username);
+          fb.addEventListener('click', function () { toggleFollow(username, fb); buildStats(cachedLessonCount); });
+          acts.appendChild(fb);
+          var ma = document.createElement('a'); ma.className = 'prof-btn msg'; ma.href = '/contactus'; ma.textContent = '✉ Message';
+          acts.appendChild(ma);
+          if (isAdmin(me)) {
+            var targetRole = roleOf(username);
+            if (targetRole !== 'admin') {
+              var nextRole = ROLE_ORDER[ROLE_ORDER.indexOf(targetRole) + 1];
+              var promoteBtn = document.createElement('button'); promoteBtn.className = 'prof-btn edit'; promoteBtn.textContent = '\u2B06 Promote to ' + (nextRole === 'admin' ? 'Admin' : 'Member');
+              promoteBtn.addEventListener('click', function () {
+                showConfirmModal({
+                  title: 'Promote @' + username + '?',
+                  message: 'Change @' + username + ' from ' + roleLabel(targetRole) + ' to ' + roleLabel(nextRole) + '. Continue?',
+                  requirePasscode: true, username: me, confirmLabel: 'Promote',
+                  onConfirm: function () { setRole(username, nextRole, function (ok) { if (ok) { renderProfile(username); showToast('@' + username + ' is now ' + roleLabel(nextRole) + '.', 'ok'); } else { showToast('Could not update role. Try again.', 'err'); } }); }
+                });
+              });
+              acts.appendChild(promoteBtn);
+            }
+            if (targetRole !== 'user') {
+              var prevRole = ROLE_ORDER[ROLE_ORDER.indexOf(targetRole) - 1];
+              var demoteBtn = document.createElement('button'); demoteBtn.className = 'prof-btn msg'; demoteBtn.textContent = '\u2B07 Demote to ' + (prevRole === 'member' ? 'Member' : 'User');
+              demoteBtn.addEventListener('click', function () {
+                showConfirmModal({
+                  title: 'Demote @' + username + '?',
+                  message: 'Change @' + username + ' from ' + roleLabel(targetRole) + ' to ' + roleLabel(prevRole) + '. Continue?',
+                  requirePasscode: true, username: me, confirmLabel: 'Demote',
+                  onConfirm: function () { setRole(username, prevRole, function (ok) { if (ok) { renderProfile(username); showToast('@' + username + ' is now ' + roleLabel(prevRole) + '.', 'ok'); } else { showToast('Could not update role. Try again.', 'err'); } }); }
+                });
+              });
+              acts.appendChild(demoteBtn);
+            }
+            if (!isAdmin(username)) {
+              var banBtn = document.createElement('button'); banBtn.className = 'prof-btn delete'; banBtn.textContent = '\uD83D\uDEAB Ban';
+              banBtn.addEventListener('click', function () { showBanUI(root, username); });
+              acts.appendChild(banBtn);
+            }
+          }
+          if (isAdmin(me) && !isMember(username)) {
+            var adminDeleteBtn = document.createElement('button');
+            adminDeleteBtn.className = 'prof-btn delete';
+            adminDeleteBtn.textContent = 'Admin Delete';
+            adminDeleteBtn.addEventListener('click', function () {
+              showConfirmModal({
+                title: 'Delete this user?',
+                message: 'Permanently delete @' + username + ' along with their profile, lessons, memes, and ideas? This cannot be undone.',
+                requirePasscode: true,
+                username: me,
+                confirmLabel: 'Delete user',
+                onConfirm: function () {
+                  adminDeleteUser(username).then(function () { window.location.href = '/users/'; });
+                }
+              });
+            });
+            acts.appendChild(adminDeleteBtn);
+          }
+        }
+        if (me && me === username) {
+          var editBtn = document.createElement('button'); editBtn.className = 'prof-btn edit'; editBtn.textContent = 'Customize';
+          var photoBtn = document.createElement('button'); photoBtn.className = 'prof-btn edit'; photoBtn.textContent = '\uD83D\uDCF7 Change Photo';
+          var passBtn = document.createElement('button'); passBtn.className = 'prof-btn edit'; passBtn.textContent = '\uD83D\uDD12 Change Password';
+          var deleteBtn = document.createElement('button'); deleteBtn.className = 'prof-btn delete'; deleteBtn.textContent = isMember(username) ? 'Reset Profile' : 'Delete Profile';
+          acts.appendChild(editBtn);
+          acts.appendChild(photoBtn);
+          acts.appendChild(passBtn);
+          acts.appendChild(deleteBtn);
+        }
+        info.appendChild(nm);
+        if (profile.displayName && normalizeUser(profile.displayName) !== username) {
+          var akaEl = document.createElement('div'); akaEl.className = 'prof-aka'; akaEl.textContent = 'aka ' + profile.displayName; info.appendChild(akaEl);
+        }
+        info.appendChild(badge); info.appendChild(acts);
+        if (profile.bio) {
+          var bio = document.createElement('div'); bio.className = 'prof-bio'; bio.textContent = profile.bio;
+          info.appendChild(bio);
+        }
+        hdr.appendChild(av); hdr.appendChild(info);
+        root.appendChild(hdr);
+
+        if (me && me === username) {
+          var editPanel = document.createElement('div'); editPanel.className = 'prof-panel'; editPanel.style.display = 'none';
+          editPanel.innerHTML =
+            '<h3>Customize Profile</h3>' +
+            '<div class="acct-sec"><label class="prof-help acct-strong" for="acct-username">Username \u2014 you sign in with this</label>' +
+            '<input class="prof-field" id="acct-username" type="text" maxlength="20" autocomplete="username" placeholder="New username" style="margin-bottom:6px">' +
+            '<div class="prof-help">No spaces. Lowercase letters, numbers and _ only. Your role and profile stay with you.</div>' +
+            '<div class="prof-row"><button class="prof-btn edit" id="uname-save-btn" type="button">Change Username</button></div>' +
+            '<div class="pw-msg" id="uname-msg"></div></div>' +
+            '<div class="acct-divider"></div>' +
+            '<input class="prof-field" id="prof-display-name" type="text" maxlength="40" placeholder="Display name">' +
+            '<textarea class="prof-field ta" id="prof-bio" maxlength="300" placeholder="Bio"></textarea>' +
+            '<div class="prof-help">Your bio is shown at the top of your profile.</div>' +
+            '<textarea class="prof-field ta" id="prof-ideas" maxlength="500" placeholder="Ideas section text"></textarea>' +
+            '<textarea class="prof-field ta" id="prof-memes" maxlength="500" placeholder="Jokes / memes section text"></textarea>' +
+            '<div class="prof-row">' +
+            '<button class="prof-btn edit" id="prof-save-btn" type="button">Save Changes</button>' +
+            '<button class="prof-btn msg" id="prof-cancel-btn" type="button">Cancel</button>' +
+            '</div>' +
+            '<div class="prof-note">Deleting a joined profile removes the local account from this browser. Published lessons stay online.</div>';
+          root.appendChild(editPanel);
+
+          var photoPanel = document.createElement('div'); photoPanel.className = 'prof-panel'; photoPanel.style.display = 'none';
+          photoPanel.innerHTML =
+            '<h3>Change Profile Photo</h3>' +
+            '<div id="photo-choose-view">' +
+            '<div class="prof-row">' +
+            '<button class="prof-btn edit" id="photo-resize-btn" type="button">Resize Current Photo</button>' +
+            '<button class="prof-btn msg" id="photo-pick-btn" type="button">Pick New Image</button>' +
+            '<button class="prof-btn msg" id="photo-camera-btn" type="button">Use Camera</button>' +
+            '</div>' +
+            '<input type="file" id="prof-image" accept="image/*" style="display:none;">' +
+            '<div class="prof-help">Choose how you\'d like to update your profile photo.</div>' +
+            '<div class="prof-row"><button class="prof-btn msg" id="photo-close-btn" type="button">Close</button></div>' +
+            '</div>' +
+            '<div id="photo-camera-view" style="display:none;">' +
+            '<div class="crop-viewport" id="camera-viewport">' +
+            '<video id="camera-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>' +
+            '</div>' +
+            '<div class="prof-help" id="camera-error"></div>' +
+            '<div class="prof-row" style="justify-content:center;margin-top:8px;">' +
+            '<button class="prof-btn edit" id="camera-capture-btn" type="button">Capture Photo</button>' +
+            '<button class="prof-btn msg" id="camera-cancel-btn" type="button">Cancel</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="crop-container" id="crop-zone">' +
+            '<div class="crop-viewport" id="crop-view"></div>' +
+            '<input type="range" class="crop-slider" id="crop-zoom" min="1" max="3" step="0.01" value="1">' +
+            '<div class="prof-help">Drag to adjust, use slider to zoom.</div>' +
+            '<div class="prof-row">' +
+            '<button class="prof-btn edit" id="photo-save-btn" type="button">Save Photo</button>' +
+            '<button class="prof-btn msg" id="photo-back-btn" type="button">Choose Different Photo</button>' +
+            '</div>' +
+            '</div>';
+          root.appendChild(photoPanel);
+
+          var accountPanel = document.createElement('div'); accountPanel.className = 'prof-panel'; accountPanel.style.display = 'none';
+          accountPanel.innerHTML =
+            '<h3>\uD83D\uDD12 Change Password</h3>' +
+            '<input class="prof-field" id="pw-current" type="password" autocomplete="current-password" placeholder="Current password">' +
+            '<input class="prof-field" id="pw-new" type="password" autocomplete="new-password" placeholder="New password">' +
+            '<input class="prof-field" id="pw-verify" type="password" autocomplete="new-password" placeholder="Verify new password">' +
+            '<div class="pw-msg" id="pw-msg"></div>' +
+            '<div class="prof-row">' +
+            '<button class="prof-btn edit" id="pw-save-btn" type="button">Change Password</button>' +
+            '<button class="prof-btn msg" id="pw-cancel-btn" type="button">Close</button>' +
+            '</div>' +
+            '<div class="prof-note">You sign in with your username (@' + escapeHtml(username) + ').</div>';
+          root.appendChild(accountPanel);
+          passBtn.addEventListener('click', function () {
+            stopCameraStream();
+            editPanel.style.display = 'none';
+            photoPanel.style.display = 'none';
+            accountPanel.style.display = accountPanel.style.display === 'none' ? 'block' : 'none';
+          });
+          accountPanel.querySelector('#pw-cancel-btn').addEventListener('click', function () { accountPanel.style.display = 'none'; });
+
+          var pwMsg = accountPanel.querySelector('#pw-msg');
+
+          /* Change password: verify old + new + verify new in the form, then just confirm (no passcode in the modal) */
+          accountPanel.querySelector('#pw-save-btn').addEventListener('click', function () {
+            pwMsg.className = 'pw-msg';
+            var cur = accountPanel.querySelector('#pw-current').value;
+            var nw = accountPanel.querySelector('#pw-new').value;
+            var vf = accountPanel.querySelector('#pw-verify').value;
+            if (!cur || !nw || !vf) { pwMsg.className = 'pw-msg err'; pwMsg.textContent = 'Fill in all three fields.'; return; }
+            if (nw.length < 4) { pwMsg.className = 'pw-msg err'; pwMsg.textContent = 'New password must be at least 4 characters.'; return; }
+            if (nw !== vf) { pwMsg.className = 'pw-msg err'; pwMsg.textContent = 'New passwords do not match.'; return; }
+            var sBtn = accountPanel.querySelector('#pw-save-btn');
+            sBtn.disabled = true; sBtn.textContent = 'Checking\u2026';
+            verifyPassword(username, cur, function (ok) {
+              sBtn.disabled = false; sBtn.textContent = 'Change Password';
+              if (!ok) { pwMsg.className = 'pw-msg err'; pwMsg.textContent = 'Current password is incorrect.'; return; }
+              showConfirmModal({
+                title: 'Change password?',
+                message: 'Are you sure you want to change your password? You will sign in with this new password from now on.',
+                requirePasscode: false,
+                username: username,
+                confirmLabel: 'Change password',
+                onConfirm: function () {
+                  sBtn.disabled = true; sBtn.textContent = 'Updating\u2026';
+                  changePassword(username, nw, function (done) {
+                    sBtn.disabled = false; sBtn.textContent = 'Change Password';
+                    if (done) { pwMsg.className = 'pw-msg ok'; pwMsg.textContent = '\u2713 Password updated. Use it next time you sign in.'; accountPanel.querySelector('#pw-current').value = ''; accountPanel.querySelector('#pw-new').value = ''; accountPanel.querySelector('#pw-verify').value = ''; }
+                    else { pwMsg.className = 'pw-msg err'; pwMsg.textContent = 'Could not update password. Try again.'; }
+                  });
+                }
+              });
+            });
+          });
+
+          var displayNameInput = editPanel.querySelector('#prof-display-name');
+          var bioInput = editPanel.querySelector('#prof-bio');
+          var ideasInput = editPanel.querySelector('#prof-ideas');
+          var memesInput = editPanel.querySelector('#prof-memes');
+
+          displayNameInput.value = profile.displayName || username;
+          bioInput.value = profile.bio || '';
+          ideasInput.value = profile.ideasText || '';
+          memesInput.value = profile.memesText || '';
+
+          /* ── Customize (text) panel ── */
+          editBtn.addEventListener('click', function () {
+            stopCameraStream();
+            photoPanel.style.display = 'none';
+            accountPanel.style.display = 'none';
+            editPanel.style.display = editPanel.style.display === 'none' ? 'block' : 'none';
+          });
+          editPanel.querySelector('#prof-cancel-btn').addEventListener('click', function () {
+            editPanel.style.display = 'none';
+          });
+          editPanel.querySelector('#prof-save-btn').addEventListener('click', function () {
+            saveProfile(username, {
+              displayName: displayNameInput.value,
+              bio: bioInput.value,
+              ideasText: ideasInput.value,
+              memesText: memesInput.value,
+              profileImage: profile.profileImage || ''
+            }).then(function () {
+              renderProfile(username);
+            });
+          });
+
+          var unameMsg = editPanel.querySelector('#uname-msg');
+          editPanel.querySelector('#uname-save-btn').addEventListener('click', function () {
+            unameMsg.className = 'pw-msg';
+            var raw = editPanel.querySelector('#acct-username').value;
+            var neu = normalizeUser(raw);
+            if (/\s/.test(raw)) { unameMsg.className = 'pw-msg err'; unameMsg.textContent = 'Usernames cannot contain spaces.'; return; }
+            if (!neu || neu.length < 2) { unameMsg.className = 'pw-msg err'; unameMsg.textContent = 'Pick a username with at least 2 letters or numbers.'; return; }
+            if (neu === username) { unameMsg.className = 'pw-msg err'; unameMsg.textContent = 'That is already your username.'; return; }
+            var uBtn = editPanel.querySelector('#uname-save-btn');
+            uBtn.disabled = true; uBtn.textContent = 'Checking\u2026';
+            Promise.all([
+              fetchJson(FB + '/members/' + encodeURIComponent(neu) + '.json'),
+              fetchJson(FB + '/profiles/' + encodeURIComponent(neu) + '.json')
+            ]).then(function (r) {
+              uBtn.disabled = false; uBtn.textContent = 'Change Username';
+              var taken = (r[0] && (r[0].password || r[0].joinedAt)) || r[1] || (VALID_MEMBERS.indexOf(neu) > -1);
+              if (taken) { unameMsg.className = 'pw-msg err'; unameMsg.textContent = '@' + neu + ' is already taken. Try another one.'; return; }
+              showConfirmModal({
+                title: 'Change username?',
+                message: 'Change your username to @' + neu + '? You will sign in with @' + neu + ' from now on. Your profile, role and posts stay with you.',
+                requirePasscode: true,
+                username: username,
+                confirmLabel: 'Change username',
+                onConfirm: function () {
+                  unameMsg.className = 'pw-msg'; unameMsg.textContent = 'Updating your username\u2026';
+                  renameUser(username, neu, function (ok, finalName) {
+                    if (ok) { window.location.href = '/users/' + finalName; }
+                    else { unameMsg.className = 'pw-msg err'; unameMsg.textContent = 'Could not change username. Try again.'; }
+                  });
+                }
+              });
+            });
+          });
+
+          /* ── Change Photo panel: choose source → (camera) → crop/zoom → save ── */
+          var photoChooseView = photoPanel.querySelector('#photo-choose-view');
+          var photoCameraView = photoPanel.querySelector('#photo-camera-view');
+          var cameraVideo = photoPanel.querySelector('#camera-video');
+          var cameraError = photoPanel.querySelector('#camera-error');
+          var resizeBtn = photoPanel.querySelector('#photo-resize-btn');
+          var pickBtn = photoPanel.querySelector('#photo-pick-btn');
+          var cameraBtn = photoPanel.querySelector('#photo-camera-btn');
+          var photoCloseBtn = photoPanel.querySelector('#photo-close-btn');
+          var cameraCaptureBtn = photoPanel.querySelector('#camera-capture-btn');
+          var cameraCancelBtn = photoPanel.querySelector('#camera-cancel-btn');
+          var imageInput = photoPanel.querySelector('#prof-image');
+          var cropZone = photoPanel.querySelector('#crop-zone');
+          var cropView = photoPanel.querySelector('#crop-view');
+          var cropZoom = photoPanel.querySelector('#crop-zoom');
+          var photoSaveBtn = photoPanel.querySelector('#photo-save-btn');
+          var photoBackBtn = photoPanel.querySelector('#photo-back-btn');
+
+          var cropImg = null;
+          var isDragging = false, startX, startY, imgX = 0, imgY = 0, currentScale = 1;
+          var cameraStream = null;
+
+          function stopCameraStream() {
+            if (cameraStream) {
+              cameraStream.getTracks().forEach(function (t) { t.stop(); });
+              cameraStream = null;
+            }
+          }
+          window.addEventListener('beforeunload', stopCameraStream);
+
+          function showChooseView() {
+            stopCameraStream();
+            photoChooseView.style.display = 'block';
+            photoCameraView.style.display = 'none';
+            cropZone.style.display = 'none';
+            var hasImage = !!profile.profileImage;
+            resizeBtn.disabled = !hasImage;
+            resizeBtn.style.opacity = hasImage ? '1' : '.4';
+            resizeBtn.style.cursor = hasImage ? 'pointer' : 'not-allowed';
+          }
+
+          // Shared by "resize current", "pick new", and "camera" — loads any source
+          // image into the same drag/zoom cropping tool.
+          function loadImageIntoCropper(srcDataUrl) {
+            cropImg = new Image();
+            cropImg.onload = function () {
+              photoChooseView.style.display = 'none';
+              photoCameraView.style.display = 'none';
+              cropZone.style.display = 'block';
+              // Calculate "cover" scale so the image always fills the viewport
+              var vw = 200, vh = 200;
+              var coverScale = Math.max(vw / cropImg.naturalWidth, vh / cropImg.naturalHeight);
+
+              // Render the image at its natural size; transform handles all scaling
+              cropImg.style.width = cropImg.naturalWidth + 'px';
+              cropImg.style.height = cropImg.naturalHeight + 'px';
+
+              // Configure slider: min = cover, max = 3x cover
+              cropZoom.min = coverScale;
+              cropZoom.max = coverScale * 3;
+              cropZoom.step = 0.01;
+              cropZoom.value = coverScale;
+              currentScale = coverScale;
+
+              // Center the (scaled) image inside the viewport
+              var displayW = cropImg.naturalWidth * coverScale;
+              var displayH = cropImg.naturalHeight * coverScale;
+              imgX = (vw - displayW) / 2;
+              imgY = (vh - displayH) / 2;
+              cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + coverScale + ')';
+
+              cropView.innerHTML = '';
+              cropView.appendChild(cropImg);
+            };
+            cropImg.src = srcDataUrl;
+          }
+
+          photoBtn.addEventListener('click', function () {
+            editPanel.style.display = 'none';
+            accountPanel.style.display = 'none';
+            var opening = photoPanel.style.display === 'none';
+            photoPanel.style.display = opening ? 'block' : 'none';
+            if (opening) { showChooseView(); } else { stopCameraStream(); }
+          });
+          photoCloseBtn.addEventListener('click', function () {
+            stopCameraStream();
+            photoPanel.style.display = 'none';
+          });
+
+          // Option 1: resize the photo already saved on the profile
+          resizeBtn.addEventListener('click', function () {
+            if (!profile.profileImage) return;
+            loadImageIntoCropper(profile.profileImage);
+          });
+
+          // Option 2: pick a new image file from disk
+          pickBtn.addEventListener('click', function () { imageInput.click(); });
+          imageInput.addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var r = new FileReader();
+            r.onload = function (evt) { loadImageIntoCropper(evt.target.result); };
+            r.readAsDataURL(file);
+          });
+
+          // Option 3: take a photo with the camera
+          cameraBtn.addEventListener('click', function () {
+            photoChooseView.style.display = 'none';
+            photoCameraView.style.display = 'block';
+            cameraError.textContent = '';
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+              cameraError.textContent = 'Camera not supported in this browser.';
+              return;
+            }
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }).then(function (stream) {
+              cameraStream = stream;
+              cameraVideo.srcObject = stream;
+            }).catch(function () {
+              cameraError.textContent = 'Could not access camera. Check permissions and try again.';
+            });
+          });
+          cameraCancelBtn.addEventListener('click', showChooseView);
+          cameraCaptureBtn.addEventListener('click', function () {
+            var vw = cameraVideo.videoWidth, vh = cameraVideo.videoHeight;
+            if (!cameraStream || !vw || !vh) return;
+            var canvas = document.createElement('canvas');
+            canvas.width = vw; canvas.height = vh;
+            canvas.getContext('2d').drawImage(cameraVideo, 0, 0, vw, vh);
+            var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            stopCameraStream();
+            loadImageIntoCropper(dataUrl);
+          });
+
+          photoBackBtn.addEventListener('click', showChooseView);
+          photoSaveBtn.addEventListener('click', function () {
+            processCroppedImage(function (imgStr) {
+              saveProfile(username, {
+                displayName: profile.displayName || username,
+                bio: profile.bio || '',
+                ideasText: profile.ideasText || '',
+                memesText: profile.memesText || '',
+                profileImage: imgStr
+              }).then(function () {
+                renderProfile(username);
+              });
+            });
+          });
+
+          // Handle viewport pointer events for dragging mechanics
+          cropView.addEventListener('mousedown', function (e) {
+            isDragging = true;
+            startX = e.clientX - imgX;
+            startY = e.clientY - imgY;
+          });
+          window.addEventListener('mousemove', function (e) {
+            if (!isDragging || !cropImg) return;
+            imgX = e.clientX - startX;
+            imgY = e.clientY - startY;
+            cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + currentScale + ')';
+          });
+          window.addEventListener('mouseup', function () { isDragging = false; });
+
+          cropZoom.addEventListener('input', function () {
+            currentScale = this.value;
+            if (cropImg) cropImg.style.transform = 'translate(' + imgX + 'px, ' + imgY + 'px) scale(' + currentScale + ')';
+          });
+
+          // Utility to crop active canvas frame parameters to Base64 output
+          function processCroppedImage(callback) {
+            if (!cropImg || !cropImg.src || cropZone.style.display === 'none') {
+              callback(profile.profileImage || '');
+              return;
+            }
+            var canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            var ctx = canvas.getContext('2d');
+
+            var naturalWidth = cropImg.naturalWidth;
+            var naturalHeight = cropImg.naturalHeight;
+            var displayedWidth = cropImg.offsetWidth;
+
+            var conversionRatio = naturalWidth / displayedWidth;
+
+            var sw = 200 * conversionRatio / currentScale;
+            var sh = 200 * conversionRatio / currentScale;
+            var sx = (-imgX) * conversionRatio / currentScale;
+            var sy = (-imgY) * conversionRatio / currentScale;
+
+            ctx.drawImage(cropImg, sx, sy, sw, sh, 0, 0, 200, 200);
+            callback(canvas.toDataURL('image/jpeg', 0.85));
+          }
+
+          deleteBtn.addEventListener('click', function () {
+            var member = isMember(username);
+            showConfirmModal({
+              title: member ? 'Reset your profile?' : 'Delete your profile?',
+              message: member
+                ? 'This clears your custom profile text (bio, ideas, jokes/memes). Your account, username and role stay.'
+                : 'This deletes your profile from this browser. Published lessons stay online.',
+              requirePasscode: false,
+              username: username,
+              confirmLabel: member ? 'Reset profile' : 'Delete profile',
+              onConfirm: function () {
+                stopCameraStream();
+                Promise.resolve(deleteCurrentProfile(username)).then(function () {
+                  if (member) { renderProfile(username); }
+                  else { window.location.href = '/users/'; }
+                });
+              }
+            });
+          });
+        }
+
+        var statsBar = document.createElement('div'); statsBar.className = 'prof-stats'; root.appendChild(statsBar);
+
+        function buildStats(lessonCount) {
+          statsBar.innerHTML = '';
+          var items = [
+            { n: lessonCount !== undefined ? lessonCount : '—', l: 'lessons' },
+            { n: followerCount(username), l: 'followers' },
+            { n: (function () { try { return JSON.parse(localStorage.getItem('mx_following_' + username) || '[]').length; } catch (e) { return 0; } }()), l: 'following' }
+          ];
+          items.forEach(function (s) {
+            var st = document.createElement('div'); st.className = 'prof-stat';
+            var sn = document.createElement('span'); sn.className = 'prof-stat-n'; sn.textContent = s.n;
+            var sl = document.createElement('span'); sl.className = 'prof-stat-l'; sl.textContent = s.l;
+            st.appendChild(sn); st.appendChild(sl); statsBar.appendChild(st);
+          });
+        }
+        buildStats();
+
+        var tabsRow = document.createElement('div'); tabsRow.className = 'prof-tabs';
+        var tabLabels = ['Lessons', 'Ideas', 'Jokes / Memes'];
+        var panes = [];
+        tabLabels.forEach(function (label, i) {
+          var tab = document.createElement('div'); tab.className = 'prof-tab' + (i === 0 ? ' active' : ''); tab.textContent = label;
+          var pane = document.createElement('div'); pane.className = 'prof-tab-pane' + (i === 0 ? ' active' : '');
+          pane.innerHTML = '<div class="prof-empty">Loading...</div>';
+          tab.addEventListener('click', function () {
+            tabsRow.querySelectorAll('.prof-tab').forEach(function (t) { t.classList.remove('active'); });
+            panes.forEach(function (p) { p.classList.remove('active'); });
+            tab.classList.add('active'); pane.classList.add('active');
+          });
+          tabsRow.appendChild(tab); panes.push(pane);
+        });
+        root.appendChild(tabsRow);
+        panes.forEach(function (p) { root.appendChild(p); });
+
+        /* lessons */
+        var lessonKeys = Object.keys(lessonsData).filter(function (k) { return lessonsData[k] && normalizeUser(lessonsData[k].createdBy) === username; });
+        cachedLessonCount = lessonKeys.length;
+        buildStats(lessonKeys.length);
+        panes[0].innerHTML = '';
+        if (!lessonKeys.length) { panes[0].innerHTML = '<div class="prof-empty">No lessons yet.</div>'; }
+        lessonKeys.forEach(function (k) {
+          var d = lessonsData[k];
+          var c = document.createElement('div'); c.className = 'prof-card';
+          var ct = document.createElement('div'); ct.className = 'prof-card-title'; ct.textContent = d.title || 'Untitled';
+          var cm = document.createElement('div'); cm.className = 'prof-card-meta'; cm.textContent = d.description || 'No description.';
+          c.appendChild(ct); c.appendChild(cm); panes[0].appendChild(c);
+        });
+
+        var ideaKeys = Object.keys(ideasData).filter(function (k) { return ideasData[k] && normalizeUser(ideasData[k].createdBy) === username; });
+        panes[1].innerHTML = '';
+        if (!ideaKeys.length && !profile.ideasText) {
+          panes[1].innerHTML = '<div class="prof-empty">No authored ideas yet.</div>';
+        }
+        ideaKeys.forEach(function (k) {
+          var idea = ideasData[k];
+          var card = document.createElement('div'); card.className = 'prof-card';
+          var title = document.createElement('div'); title.className = 'prof-card-title'; title.textContent = idea.text || 'Untitled idea';
+          var meta = document.createElement('div'); meta.className = 'prof-card-meta'; meta.textContent = 'Idea post';
+          card.appendChild(title); card.appendChild(meta); panes[1].appendChild(card);
+        });
+        if (profile.ideasText) {
+          panes[1].innerHTML += '<div class="prof-card"><div class="prof-card-title">Pinned ideas note</div><div class="prof-card-meta">' + escapeHtml(profile.ideasText) + '</div></div>';
+        }
+
+        var memeKeys = Object.keys(memesData).filter(function (k) { return memesData[k] && normalizeUser(memesData[k].postedBy) === username; });
+        panes[2].innerHTML = '';
+        if (!memeKeys.length && !profile.memesText) {
+          panes[2].innerHTML = '<div class="prof-empty">No authored jokes or memes yet.</div>';
+        }
+        memeKeys.forEach(function (k) {
+          var meme = memesData[k];
+          var card = document.createElement('div'); card.className = 'prof-card';
+          var title = document.createElement('div'); title.className = 'prof-card-title'; title.textContent = meme.title || 'Untitled meme';
+          var meta = document.createElement('div'); meta.className = 'prof-card-meta'; meta.textContent = meme.content || 'No content.';
+          card.appendChild(title); card.appendChild(meta); panes[2].appendChild(card);
+        });
+        if (profile.memesText) {
+          panes[2].innerHTML += '<div class="prof-card"><div class="prof-card-title">Pinned jokes / memes note</div><div class="prof-card-meta">' + escapeHtml(profile.memesText) + '</div></div>';
+        }
+
+        renderComments(root, username, me);
+      });
+    }
+
+    /* ── Directory view ── */
+    function renderDirectory(filter) {
+      var grid = document.getElementById('ux-grid'); if (!grid) return;
+      grid.innerHTML = '<div class="ux-loading">Loading users...</div>';
+      Promise.all([
+        fetchJson(FB + '/profiles.json'),
+        fetchJson(FB + '/lessons.json'),
+        fetchJson(IDEAS_FB + '/ideas.json'),
+        fetchJson(FB + '/funny_memes.json')
+      ]).then(function (results) {
+        var profilesMap = results[0] || {};
+        var all = collectUsernames(profilesMap, results[1], results[2], results[3]);
+        if (filter) all = all.filter(function (u) { return u.toLowerCase().indexOf(filter.toLowerCase()) > -1; });
+        if (!all.length) { grid.innerHTML = '<div class="ux-loading">No users found.</div>'; return; }
+        grid.innerHTML = '';
+        all.forEach(function (u) {
+          var card = document.createElement('a'); card.className = 'ux-card'; card.href = '/users/' + encodeURIComponent(u);
+          var av = document.createElement('div'); av.className = 'ux-avatar';
+
+          var userProfile = profilesMap[u];
+          if (userProfile && userProfile.profileImage) {
+            av.style.backgroundImage = 'url(' + userProfile.profileImage + ')';
+            av.style.backgroundSize = 'cover';
+            av.style.backgroundPosition = 'center';
+          } else {
+            av.textContent = initials(u);
+          }
+
+          var nm = document.createElement('div'); nm.className = 'ux-uname'; nm.textContent = '@' + u;
+          var uRole = roleOf(u);
+          var role = document.createElement('div'); role.className = 'ux-role' + (uRole === 'user' ? ' guest' : '') + (uRole === 'admin' ? ' admin' : '');
+          role.textContent = roleLabel(uRole);
+          card.appendChild(av); card.appendChild(nm);
+          if (userProfile && userProfile.displayName && normalizeUser(userProfile.displayName) !== u) {
+            var dn = document.createElement('div'); dn.className = 'ux-dname'; dn.textContent = userProfile.displayName; card.appendChild(dn);
+          }
+          card.appendChild(role);
+          grid.appendChild(card);
+        });
+      });
+    }
+
+    /* ── Router ── */
+    function startApp() {
+    var params = new URLSearchParams(window.location.search);
+    var pathMatch = window.location.pathname.match(/^\/users\/([a-z0-9_]+)\/?$/i);
+    var targetUser = (pathMatch && pathMatch[1]) || params.get('u');
+    if (targetUser) {
+      var clean = normalizeUser(targetUser);
+      if (window.location.pathname !== '/users/' + clean) {
+        history.replaceState({}, '', '/users/' + clean);
+      }
+      renderProfile(clean);
+    } else {
+      document.title = 'Matix Users';
+      var root = document.getElementById('ux-root');
+      root.innerHTML =
+        '<div class="ux-hero">' +
+        '<div class="ux-title">\uD83D\uDC65 Matix Users</div>' +
+        '<div class="ux-sub">Browse everyone in the club by their <b>@username</b> \u2014 open a profile to see their lessons, ideas &amp; leave comments.</div>' +
+        '</div>' +
+        '<input class="ux-search" id="ux-search" type="text" placeholder="\uD83D\uDD0D Search users by username\u2026" autocomplete="off">' +
+        '<div class="ux-grid" id="ux-grid"><div class="ux-loading">Loading\u2026</div></div>';
+      renderDirectory('');
+      document.getElementById('ux-search').addEventListener('input', function () { renderDirectory(this.value); });
+    }
+    }
+    /* Load persisted roles once so member/admin status is correct everywhere, then start. */
+    fetchJson(FB + '/roles.json').then(function (r) {
+      if (r && typeof r === 'object') { Object.keys(r).forEach(function (k) { if (typeof r[k] === 'string') ROLES[normalizeUser(k)] = r[k]; }); }
+      startApp();
+    });
+  </script>
+</body>
+
 </html>

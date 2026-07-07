@@ -1,4 +1,4 @@
-﻿/* nav.js — Matix — Apple-style always-visible top bar */
+/* nav.js — Matix — Apple-style always-visible top bar */
 (function() {
     'use strict';
 
@@ -50,7 +50,9 @@
     /* Sign in checks hardcoded members first, then accounts saved in Firebase,
        then falls back to any pre-upgrade accounts saved locally in this browser. */
     function doSignIn(rawUser, pass, cb) {
-        var u = (rawUser || '').toLowerCase().trim();
+        /* Usernames never contain spaces; strip them so "you sign in with your
+           current username" works even if the field has stray whitespace. */
+        var u = (rawUser || '').toLowerCase().replace(/\s+/g, '').trim();
         if (!u || !pass) { cb(false); return; }
         /* Block sign-in for banned users; ghadi can never be banned. */
         function finishSignIn() {
@@ -59,10 +61,6 @@
                 setUser(u);
                 cb(true);
             });
-        }
-        if (VALID_MEMBERS[u] && VALID_MEMBERS[u] === pass) {
-            finishSignIn();
-            return;
         }
         function tryLocalFallback() {
             try {
@@ -74,16 +72,27 @@
             } catch (e) {}
             cb(false);
         }
+        function tryHardcoded() {
+            if (VALID_MEMBERS[u] && VALID_MEMBERS[u] === pass) {
+                finishSignIn();
+                return;
+            }
+            tryLocalFallback();
+        }
+        /* A password saved in Firebase (set via "Change Password" on the users
+           page) ALWAYS takes precedence over the built-in member password, so
+           changing your password actually replaces the old one. */
         fetch(FIREBASE_URL + '/members/' + encodeURIComponent(u) + '.json')
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                if (data && data.password === pass) {
-                    finishSignIn();
+                if (data && data.password) {
+                    if (data.password === pass) { finishSignIn(); }
+                    else { cb(false); }
                     return;
                 }
-                tryLocalFallback();
+                tryHardcoded();
             })
-            .catch(tryLocalFallback);
+            .catch(tryHardcoded);
     }
 
     /* Join creates a Firebase-backed account (readable by anyone with the DB URL,
@@ -386,22 +395,22 @@
         '#mx-menu-toggle.mx-open .mx-menu-line:nth-child(3){transform:translateY(-8px) rotate(-45deg)}',
 
         /* bar */
-        '#mx-nav-bar{position:fixed;top:10px;left:74px;right:12px;height:52px;z-index:10000;display:flex;align-items:center;background:rgba(2,7,22,0.96);border:1px solid rgba(59,130,246,0.18);border-top:4px solid #f59e0b;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 2px 32px rgba(0,0,0,0.7);padding:0 14px;border-radius:12px;user-select:none;overflow-x:auto;overflow-y:visible;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-10px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease}',
+        '#mx-nav-bar{position:fixed;top:8px;left:74px;right:12px;height:44px;z-index:10000;display:flex;align-items:center;background:rgba(2,7,22,0.96);border:1px solid rgba(59,130,246,0.18);border-top:4px solid #f59e0b;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 2px 32px rgba(0,0,0,0.7);padding:0 10px;border-radius:11px;user-select:none;overflow-x:auto;overflow-y:visible;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-10px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease}',
         '#mx-nav-bar.mx-open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}',
         '#mx-nav-bar::-webkit-scrollbar{display:none}',
-        'body{padding-top:72px!important;box-sizing:border-box}',
+        'body{padding-top:60px!important;box-sizing:border-box}',
 
         /* logo */
         '.mx-logo{display:inline-flex;align-items:center;text-decoration:none;flex-shrink:0;margin-right:6px;gap:0}',
-        '.mx-logo-img{height:26px;width:auto;display:block;filter:drop-shadow(0 0 6px rgba(59,130,246,0.45))}',
-        '.mx-logo-wordmark{font-family:"Trebuchet MS",Arial,sans-serif;font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:2.5px;margin-left:6px}',
+        '.mx-logo-img{height:22px;width:auto;display:block;filter:drop-shadow(0 0 6px rgba(59,130,246,0.45))}',
+        '.mx-logo-wordmark{font-family:"Trebuchet MS",Arial,sans-serif;font-size:1rem;font-weight:900;color:#fff;letter-spacing:2px;margin-left:5px}',
         '.mx-logo-wordmark em{color:#f59e0b;font-style:normal}',
 
         /* divider */
-        '.mx-vd{width:1px;height:22px;background:rgba(255,255,255,0.10);margin:0 3px;flex-shrink:0}',
+        '.mx-vd{width:1px;height:18px;background:rgba(255,255,255,0.10);margin:0 2px;flex-shrink:0}',
 
         /* nav button */
-        '.mx-nb{display:inline-flex;align-items:center;gap:3px;height:52px;padding:0 11px;background:transparent;color:rgba(255,255,255,0.75);font-family:"Trebuchet MS",Arial,sans-serif;font-size:0.83rem;font-weight:600;text-decoration:none;border:0;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;transition:color .12s,background .12s,border-bottom-color .12s;box-sizing:border-box;line-height:1;flex-shrink:0}',
+        '.mx-nb{display:inline-flex;align-items:center;gap:3px;height:44px;padding:0 9px;background:transparent;color:rgba(255,255,255,0.75);font-family:"Trebuchet MS",Arial,sans-serif;font-size:0.8rem;font-weight:600;text-decoration:none;border:0;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;transition:color .12s,background .12s,border-bottom-color .12s;box-sizing:border-box;line-height:1;flex-shrink:0}',
         '.mx-nb:.is-clicked,.mx-nb.mx-open{color:#fff;background:rgba(255,255,255,0.06);border-bottom-color:#f59e0b;text-decoration:none}',
         '.mx-arr{font-size:.58em;opacity:.55;margin-left:2px}',
 
@@ -409,12 +418,15 @@
         '.mx-right{margin-left:auto;display:flex;align-items:center;gap:4px;flex-shrink:0;padding-left:8px}',
 
         /* auth buttons */
-        '.mx-join-btn{height:30px;padding:0 12px;background:rgba(16,185,129,.08);border:1.5px solid #10b981;color:#34d399;border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:"Trebuchet MS",Arial,sans-serif;white-space:nowrap;transition:background .12s;flex-shrink:0}',
+        '.mx-join-btn{height:26px;padding:0 10px;background:rgba(16,185,129,.08);border:1.5px solid #10b981;color:#34d399;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:"Trebuchet MS",Arial,sans-serif;white-space:nowrap;transition:background .12s;flex-shrink:0}',
         '.mx-join-btn:.is-clicked,.mx-join-btn.mx-open{background:rgba(16,185,129,.22)}',
-        '.mx-si-btn{height:30px;padding:0 12px;background:rgba(245,158,11,.08);border:1.5px solid #f59e0b;color:#fbbf24;border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:"Trebuchet MS",Arial,sans-serif;white-space:nowrap;transition:background .12s;flex-shrink:0}',
+        '.mx-si-btn{height:26px;padding:0 10px;background:rgba(245,158,11,.08);border:1.5px solid #f59e0b;color:#fbbf24;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:"Trebuchet MS",Arial,sans-serif;white-space:nowrap;transition:background .12s;flex-shrink:0}',
         '.mx-si-btn:.is-clicked,.mx-si-btn.mx-open{background:rgba(245,158,11,.20)}',
         '.mx-si-btn.mx-signed{background:rgba(59,130,246,.08);border-color:#3b82f6;color:#93c5fd}',
         '.mx-si-btn.mx-signed:.is-clicked{background:rgba(59,130,246,.20)}',
+        '.mx-msg-btn{position:relative;display:inline-flex;align-items:center;text-decoration:none;background:rgba(59,130,246,.08);border-color:#3b82f6;color:#93c5fd}',
+        '.mx-msg-btn:hover{background:rgba(59,130,246,.20);text-decoration:none}',
+        '.mx-msg-dot{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:1.5px solid #030d1e;box-shadow:0 0 6px rgba(239,68,68,.8)}',
 
         /* panel base */
         '.mx-panel{position:fixed;top:-9999px;left:-9999px;background:rgba(2,7,22,0.98);border:1px solid rgba(59,130,246,.18);border-top:3px solid #f59e0b;border-radius:0 0 14px 14px;box-shadow:0 32px 80px rgba(0,0,0,.90);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:9999;opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity .16s ease,transform .16s ease;overflow:hidden}',
@@ -518,6 +530,20 @@
         '.mx-pf-sub{font-size:.69rem;color:#475569;font-family:"Trebuchet MS",Arial,sans-serif;margin-bottom:9px;word-break:break-word}',
         '.mx-pf-back{background:none;border:none;color:#3b82f6;cursor:pointer;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.76rem;padding:0;margin-bottom:9px;display:block}',
         '.mx-pf-back:.is-clicked{color:#93c5fd}',
+
+        /* notifications */
+        '.mx-p-notif{width:320px;max-height:560px;display:flex;flex-direction:column;overflow-y:auto;padding:0 0 10px}',
+        '.mx-notif-list{padding:6px 8px;display:flex;flex-direction:column;gap:5px}',
+        '.mx-notif-empty{padding:14px 16px;color:#64748b;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.78rem}',
+        '.mx-notif-item{padding:8px 12px;border-radius:8px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.14)}',
+        '.mx-notif-t{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.8rem;font-weight:700;color:#e8f2ff}',
+        '.mx-notif-b{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.72rem;color:#94a3b8;margin-top:2px;word-break:break-word}',
+        '.mx-notif-set{margin:10px 12px 0;padding-top:11px;border-top:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:8px}',
+        '.mx-notif-set-h{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.5px}',
+        '.mx-toggle{display:flex;align-items:center;gap:8px;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.77rem;color:#cbd5e1;cursor:pointer}',
+        '.mx-toggle input{width:15px;height:15px;accent-color:#f59e0b;cursor:pointer;flex-shrink:0}',
+        '.mx-notif-all{display:block;text-align:center;margin-top:6px;padding:7px;font-family:"Trebuchet MS",Arial,sans-serif;font-size:.76rem;color:#93c5fd;text-decoration:none;border:1px solid rgba(59,130,246,.25);border-radius:6px}',
+        '.mx-cl-btn{color:#fbbf24!important}',
 
         /* media */
         '@media(max-width:768px){#mx-menu-toggle{top:8px;left:8px;width:48px;height:48px}#mx-nav-bar{top:8px;left:62px;right:8px;height:48px;padding:0 10px}body{padding-top:66px!important}.mx-nb{height:48px;padding:0 9px;font-size:.8rem}.mx-panel{max-height:calc(100vh - 72px);overflow-y:auto;z-index:10002}.mx-p-iframe{max-width:calc(100vw - 16px)!important;height:auto!important;min-height:180px}.mx-p-auth,.mx-p-sub,.mx-p-lessons{width:100%!important;box-sizing:border-box}.mx-p-lessons{max-height:min(540px,calc(100vh - 72px))}.mx-ifr-label{font-size:.62rem;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}'
@@ -769,211 +795,50 @@
     lessonsBtn.innerHTML = 'Lessons <span class="mx-arr">\u25be</span>';
     right.appendChild(lessonsBtn);
 
+    /* Owner-only: Add changelog item (sits right next to Lessons) */
+    var clBtn = mk('a', 'mx-nb mx-cl-btn');
+    clBtn.href = '#';
+    clBtn.style.display = 'none';
+    clBtn.innerHTML = '\u2795 Changelog';
+    right.appendChild(clBtn);
+    var clPanel = mk('div', 'mx-panel');
+    clPanel.id = 'mxp-changelog';
+    getPortal().appendChild(clPanel);
+    allPanels.push(clPanel);
+    function renderChangelog() {
+        clPanel.innerHTML = '';
+        var w = mk('div', 'mx-pf');
+        var h4 = mk('h4'); h4.textContent = '\u2795 Add changelog item'; w.appendChild(h4);
+        var sub = mk('div', 'mx-pf-sub'); sub.textContent = 'Owner only \u2014 notifies everyone.'; w.appendChild(sub);
+        var ti = mk('input', 'mx-fi'); ti.type = 'text'; ti.placeholder = 'Title'; ti.maxLength = 80; w.appendChild(ti);
+        var de = mk('textarea', 'mx-fi'); de.placeholder = 'Description'; de.rows = 3; de.maxLength = 400; de.style.resize = 'vertical'; w.appendChild(de);
+        var er = mk('div', 'mx-ferr'); w.appendChild(er);
+        var sb = mk('button', 'mx-pb y'); sb.textContent = 'Post to changelog'; w.appendChild(sb);
+        sb.addEventListener('click', function () {
+            var t = ti.value.trim(), d = de.value.trim();
+            if (!t) { er.textContent = 'Title is required.'; return; }
+            er.textContent = ''; sb.disabled = true; sb.textContent = 'Posting\u2026';
+            var payload = { title: t, description: d, by: getUser() || 'ghadi', at: Date.now() };
+            fetch(FIREBASE_URL + '/changelog.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                .then(function () { ti.value = ''; de.value = ''; sb.disabled = false; sb.textContent = 'Posted \u2713'; setTimeout(function () { sb.textContent = 'Post to changelog'; }, 1500); })
+                .catch(function () { er.textContent = 'Could not post. Try again.'; sb.disabled = false; sb.textContent = 'Post to changelog'; });
+        });
+        clPanel.appendChild(w);
+    }
+    wirePanel('changelog', clPanel, clBtn, 300, renderChangelog);
+    function refreshChangelogBtn() {
+        var u = getUser();
+        if (!u) { clBtn.style.display = 'none'; return; }
+        if (normUser(u) === 'ghadi') { clBtn.style.display = ''; return; }
+        grabJson(FIREBASE_URL + '/roles/' + encodeURIComponent(normUser(u)) + '.json').then(function (r) { clBtn.style.display = (r === 'owner') ? '' : 'none'; });
+    }
+    authListeners.push(refreshChangelogBtn);
+    refreshChangelogBtn();
+
     var lessonsPanel = mk('div', 'mx-panel mx-p-lessons');
     lessonsPanel.id = 'mxp-lessons';
     getPortal().appendChild(lessonsPanel);
     allPanels.push(lessonsPanel);
-
-    /* Users */
-    right.appendChild(vd());
-    var usersBtn = mk('a', 'mx-nb');
-    usersBtn.href = '/users';
-    usersBtn.innerHTML = 'Users <span class="mx-arr">\u25be</span>';
-    right.appendChild(usersBtn);
-
-    var usersPanel = mk('div', 'mx-panel mx-p-lessons');
-    usersPanel.id = 'mxp-users';
-    getPortal().appendChild(usersPanel);
-    allPanels.push(usersPanel);
-
-    var usersList = [];
-    var usersLoaded = false;
-    var bansData = {};
-
-    function banActive(u) {
-        var b = bansData[u];
-        return (b && (b.until === 0 || b.until > Date.now())) ? b : null;
-    }
-
-    function renderUsers() {
-        usersPanel.innerHTML = '';
-        var me = getUser();
-        var isAdmin = normUser(me) === 'ghadi';
-
-        var hd = mk('div', 'mx-pl-head');
-        var ht = mk('h3');
-        ht.textContent = 'Users';
-        hd.appendChild(ht);
-        var badge = mk('span', me ? 'mx-pl-badge' : 'mx-pl-guest');
-        badge.textContent = isAdmin ? '\ud83d\udee1\ufe0f Admin' : (me ? ('\ud83d\udc64 ' + me) : 'Guest');
-        hd.appendChild(badge);
-        usersPanel.appendChild(hd);
-
-        var bd = mk('div', 'mx-pl-body');
-        usersPanel.appendChild(bd);
-
-        if (!usersLoaded) {
-            bd.innerHTML = '<div class="mx-pl-empty">Loading\u2026</div>';
-            Promise.all([
-                fetch(FIREBASE_URL + '/profiles.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
-                fetch(FIREBASE_URL + '/members.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
-                fetch(FIREBASE_URL + '/bans.json').then(function(r) { return r.json(); }).catch(function() { return null; })
-            ]).then(function(res) {
-                var seen = {};
-                var list = [];
-                function add(u) {
-                    var c = normUser(u);
-                    if (!c || seen[c]) return;
-                    seen[c] = true;
-                    list.push(c);
-                }
-                Object.keys(VALID_MEMBERS).forEach(add);
-                Object.keys(res[0] || {}).forEach(add);
-                Object.keys(res[1] || {}).forEach(add);
-                bansData = res[2] || {};
-                usersList = list.sort();
-                usersLoaded = true;
-                fillUsers(bd, me, isAdmin);
-            }).catch(function() {
-                bd.innerHTML = '<div class="mx-pl-empty">Could not load users.</div>';
-            });
-        } else {
-            fillUsers(bd, me, isAdmin);
-        }
-
-        var ft = mk('div', 'mx-pl-foot');
-        var va = mk('a', 'va');
-        va.href = '/users';
-        va.textContent = 'All Users';
-        va.addEventListener('click', hidePanels);
-        ft.appendChild(va);
-        usersPanel.appendChild(ft);
-    }
-
-    function fillUsers(bd, me, isAdmin) {
-        bd.innerHTML = '';
-        if (!usersList.length) {
-            bd.innerHTML = '<div class="mx-pl-empty">No users yet.</div>';
-            return;
-        }
-        usersList.forEach(function(u) {
-            var row = mk('div', 'mx-lesson-row');
-            var meta = mk('div', 'mx-lesson-meta');
-            var nm = mk('div', 'mx-lesson-name');
-            nm.textContent = '\ud83d\udc64 ' + u;
-            meta.appendChild(nm);
-            var sub = mk('div', 'mx-lesson-by');
-            var active = banActive(u);
-            if (active) {
-                sub.textContent = '\ud83d\udeab Banned \u2014 ' + formatBanRemaining(active);
-                sub.style.color = '#f87171';
-            } else {
-                sub.textContent = VALID_MEMBERS[u] ? 'Matix Member' : 'Matix User';
-            }
-            meta.appendChild(sub);
-            meta.addEventListener('click', function() {
-                hidePanels();
-                window.location.href = '/users/' + u;
-            });
-            row.appendChild(meta);
-
-            var btns = mk('div', 'mx-lesson-btns');
-            if (isAdmin && u !== 'ghadi') {
-                if (active) {
-                    var ub = mk('button', 'mx-lbtn unban');
-                    ub.textContent = 'Unban';
-                    ub.addEventListener('click', function() {
-                        ub.textContent = '\u2026';
-                        ub.disabled = true;
-                        unbanUser(u, function(ok) {
-                            if (ok) { delete bansData[u]; fillUsers(bd, me, isAdmin); }
-                            else { ub.textContent = 'Unban'; ub.disabled = false; }
-                        });
-                    });
-                    btns.appendChild(ub);
-                } else {
-                    var bb = mk('button', 'mx-lbtn ban');
-                    bb.textContent = 'Ban';
-                    bb.addEventListener('click', function() { showBanForm(u); });
-                    btns.appendChild(bb);
-                }
-            }
-            row.appendChild(btns);
-            bd.appendChild(row);
-        });
-    }
-
-    function showBanForm(target) {
-        usersPanel.innerHTML = '';
-        var f = mk('div', 'mx-pf');
-        var bk = mk('button', 'mx-pf-back');
-        bk.textContent = '\u2190 Back';
-        bk.addEventListener('click', renderUsers);
-        f.appendChild(bk);
-        var h4 = mk('h4');
-        h4.textContent = 'Ban user';
-        f.appendChild(h4);
-        var sub = mk('p', 'mx-pf-sub');
-        sub.textContent = '\ud83d\udc64 ' + target;
-        f.appendChild(sub);
-
-        var durRow = mk('div', 'mx-ban-dur');
-        var amt = mk('input', 'mx-fi');
-        amt.type = 'number';
-        amt.min = '1';
-        amt.value = '1';
-        amt.placeholder = 'Amount';
-        var unit = mk('select', 'mx-fi');
-        [['minutes', 60000], ['hours', 3600000], ['days', 86400000], ['weeks', 604800000], ['permanent', 0]].forEach(function(o) {
-            var op = mk('option');
-            op.value = String(o[1]);
-            op.textContent = o[0];
-            unit.appendChild(op);
-        });
-        unit.value = '86400000';
-        durRow.appendChild(amt);
-        durRow.appendChild(unit);
-        f.appendChild(durRow);
-
-        function syncAmt() { amt.style.display = (unit.value === '0') ? 'none' : ''; }
-        unit.addEventListener('change', syncAmt);
-        syncAmt();
-
-        var reason = mk('textarea', 'mx-fi ta');
-        reason.placeholder = 'Reason for the ban';
-        reason.maxLength = 300;
-        f.appendChild(reason);
-
-        var err = mk('div', 'mx-ferr');
-        f.appendChild(err);
-
-        var sb = mk('button', 'mx-pb r');
-        sb.textContent = 'Ban user';
-        sb.addEventListener('click', function() {
-            var unitMs = parseFloat(unit.value);
-            var n = parseInt(amt.value, 10);
-            if (unitMs !== 0 && (!n || n < 1)) { err.textContent = 'Enter a valid amount.'; return; }
-            if (!reason.value.trim()) { err.textContent = 'Enter a reason.'; return; }
-            var totalMs = unitMs === 0 ? 0 : n * unitMs;
-            err.textContent = '';
-            sb.textContent = 'Banning\u2026';
-            sb.disabled = true;
-            banUser(target, totalMs, reason.value, function(ok, payload) {
-                if (ok) {
-                    bansData[target] = payload;
-                    renderUsers();
-                } else {
-                    err.textContent = 'Failed. Try again.';
-                    sb.textContent = 'Ban user';
-                    sb.disabled = false;
-                }
-            });
-        });
-        f.appendChild(sb);
-        usersPanel.appendChild(f);
-    }
-
-    wirePanel('users', usersPanel, usersBtn, 420, function() { usersLoaded = false; renderUsers(); });
 
     var lsData = {};
     var lsLoaded = false;
@@ -1311,6 +1176,127 @@
     wirePanel('join', joinPanel, joinBtn, 290, buildJoinPanel);
 
     /* Sign In */
+    /* Messages / notifications button */
+    right.appendChild(vd());
+    var msgBtn = mk('a', 'mx-si-btn mx-msg-btn');
+    msgBtn.href = '/messages';
+    msgBtn.innerHTML = '\ud83d\udd14 Messages';
+    var msgDot = mk('span', 'mx-msg-dot');
+    msgDot.style.display = 'none';
+    msgBtn.appendChild(msgDot);
+    right.appendChild(msgBtn);
+
+    /* ===== Notifications center + background browser alerts ===== */
+    var NOTIF_TYPES = [
+        { key: 'follower', label: 'New follower' },
+        { key: 'joined', label: 'New member joined' },
+        { key: 'role', label: 'Role change (promotion/demotion)' },
+        { key: 'changelog', label: 'New changelog item' },
+        { key: 'comment', label: 'New comment on your profile' },
+        { key: 'points', label: 'Points earned / changed' },
+        { key: 'redeem', label: 'Points request accepted' }
+    ];
+    function notifPrefs(user) {
+        var n = normUser(user), prefs = {};
+        try { prefs = JSON.parse(localStorage.getItem('mx_notif_prefs_' + n) || '{}') || {}; } catch (e) { prefs = {}; }
+        NOTIF_TYPES.forEach(function (t) { if (prefs[t.key] === undefined) prefs[t.key] = true; });
+        return prefs;
+    }
+    function saveNotifPrefs(user, prefs) {
+        try { localStorage.setItem('mx_notif_prefs_' + normUser(user), JSON.stringify(prefs)); } catch (e) {}
+    }
+    function grabJson(url) { return fetch(url).then(function (r) { return r.json(); }).catch(function () { return null; }); }
+    /* Unified, time-sorted alert feed: computed (followers/joins/comments) + stored (role/points/redeem) + broadcast changelog. */
+    function collectAlerts(user, cb) {
+        var n = normUser(user);
+        Promise.all([
+            grabJson(FIREBASE_URL + '/follows/' + encodeURIComponent(n) + '.json'),
+            grabJson(FIREBASE_URL + '/members.json'),
+            grabJson(FIREBASE_URL + '/profile_comments/' + encodeURIComponent(n) + '.json'),
+            grabJson(FIREBASE_URL + '/notifications/' + encodeURIComponent(n) + '.json'),
+            grabJson(FIREBASE_URL + '/changelog.json')
+        ]).then(function (res) {
+            var follows = res[0] || {}, members = res[1] || {}, comments = res[2] || {}, stored = res[3] || {}, changelog = res[4] || {};
+            var out = [];
+            Object.keys(follows).forEach(function (k) { var f = follows[k]; if (f) out.push({ type: 'follower', title: 'New follower', body: '@' + k + ' followed you', at: f.at || 0 }); });
+            Object.keys(members).forEach(function (k) { if (normUser(k) === n) return; var m = members[k]; if (m) out.push({ type: 'joined', title: 'New member joined', body: '@' + k + ' joined Matix', at: m.joinedAt || 0 }); });
+            Object.keys(comments).forEach(function (k) { var c = comments[k]; if (!c || normUser(c.by) === n) return; out.push({ type: 'comment', title: 'New profile comment', body: '@' + (c.by || '?') + ': ' + String(c.text || '').slice(0, 60), at: c.at || 0 }); });
+            Object.keys(stored).forEach(function (k) { var s = stored[k]; if (s) out.push({ type: s.type || 'role', title: s.title || 'Notification', body: s.body || '', at: s.at || 0 }); });
+            Object.keys(changelog).forEach(function (k) { var c = changelog[k]; if (c) out.push({ type: 'changelog', title: '\ud83d\udcdc ' + (c.title || 'Changelog update'), body: c.description || '', at: c.at || 0 }); });
+            out.sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+            cb(out);
+        });
+    }
+    /* Fire OS-level notifications for fresh alerts while any Matix tab is open. */
+    function fireBrowserNotifs() {
+        var me = getUser();
+        if (!me || !('Notification' in window) || Notification.permission !== 'granted') return;
+        var n = normUser(me), prefs = notifPrefs(me), lastRaw = null;
+        try { lastRaw = localStorage.getItem('mx_notif_last_' + n); } catch (e) {}
+        if (lastRaw === null) { try { localStorage.setItem('mx_notif_last_' + n, String(Date.now())); } catch (e) {} return; }
+        var last = parseInt(lastRaw, 10) || 0;
+        collectAlerts(me, function (list) {
+            var maxAt = last;
+            list.filter(function (a) { return prefs[a.type] !== false && (a.at || 0) > last; }).forEach(function (a, i) {
+                if (i < 5) { try { new Notification(a.title, { body: a.body }); } catch (e) {} }
+                if ((a.at || 0) > maxAt) maxAt = a.at || 0;
+            });
+            if (maxAt > last) { try { localStorage.setItem('mx_notif_last_' + n, String(maxAt)); } catch (e) {} }
+        });
+    }
+    var msgPanel = mk('div', 'mx-panel mx-p-notif');
+    msgPanel.id = 'mxp-msg';
+    getPortal().appendChild(msgPanel);
+    allPanels.push(msgPanel);
+    function renderNotifPanel() {
+        msgPanel.innerHTML = '';
+        var me = getUser();
+        var hd = mk('div', 'mx-pl-head');
+        var ht = mk('h3'); ht.textContent = '\ud83d\udd14 Notifications'; hd.appendChild(ht);
+        msgPanel.appendChild(hd);
+        if (!me) { var g = mk('div', 'mx-notif-empty'); g.textContent = 'Sign in to see your notifications.'; msgPanel.appendChild(g); return; }
+        var prefs = notifPrefs(me);
+        var listWrap = mk('div', 'mx-notif-list');
+        listWrap.innerHTML = '<div class="mx-notif-empty">Loading\u2026</div>';
+        msgPanel.appendChild(listWrap);
+        collectAlerts(me, function (list) {
+            listWrap.innerHTML = '';
+            var shown = list.filter(function (a) { return prefs[a.type] !== false; }).slice(0, 15);
+            if (!shown.length) { listWrap.innerHTML = '<div class="mx-notif-empty">No notifications yet.</div>'; }
+            else shown.forEach(function (a) {
+                var it = mk('div', 'mx-notif-item');
+                var t = mk('div', 'mx-notif-t'); t.textContent = a.title; it.appendChild(t);
+                if (a.body) { var b = mk('div', 'mx-notif-b'); b.textContent = a.body; it.appendChild(b); }
+                listWrap.appendChild(it);
+            });
+            try { localStorage.setItem('mx_messages_seen_' + normUser(me), String(Date.now())); } catch (e) {}
+            if (msgDot) msgDot.style.display = 'none';
+        });
+        var setWrap = mk('div', 'mx-notif-set');
+        var setHead = mk('div', 'mx-notif-set-h'); setHead.textContent = 'Alert settings'; setWrap.appendChild(setHead);
+        if ('Notification' in window && Notification.permission !== 'granted') {
+            var enable = mk('button', 'mx-pb b'); enable.textContent = '\ud83d\udd14 Enable browser notifications';
+            enable.addEventListener('click', function () {
+                if (!('Notification' in window)) return;
+                Notification.requestPermission().then(function (p) { if (p === 'granted') { enable.style.display = 'none'; try { localStorage.setItem('mx_notif_last_' + normUser(me), String(Date.now())); } catch (e) {} } });
+            });
+            setWrap.appendChild(enable);
+        }
+        NOTIF_TYPES.forEach(function (ty) {
+            var row = mk('label', 'mx-toggle');
+            var cbx = mk('input'); cbx.type = 'checkbox'; cbx.checked = prefs[ty.key] !== false;
+            cbx.addEventListener('change', function () { var p = notifPrefs(me); p[ty.key] = cbx.checked; saveNotifPrefs(me, p); });
+            var sp = mk('span'); sp.textContent = ty.label;
+            row.appendChild(cbx); row.appendChild(sp); setWrap.appendChild(row);
+        });
+        var allLink = mk('a', 'mx-notif-all'); allLink.href = '/messages'; allLink.textContent = 'Open Messages page \u2192';
+        allLink.addEventListener('click', hidePanels);
+        setWrap.appendChild(allLink);
+        msgPanel.appendChild(setWrap);
+    }
+    wirePanel('msg', msgPanel, msgBtn, 320, renderNotifPanel);
+    (function initNotifPoller() { setInterval(function () { try { updateMessagesBadge(); } catch (e) {} try { fireBrowserNotifs(); } catch (e) {} }, 30000); })();
+
     right.appendChild(vd());
     var siBtn = mk('button', 'mx-si-btn');
     right.appendChild(siBtn);
@@ -1358,7 +1344,6 @@
                         buildJoinPanel();
                     } else if (ban) {
                         er.textContent = '\ud83d\udeab Banned: ' + (ban.reason || 'no reason given') + ' (' + formatBanRemaining(ban) + ')';
-                        showBanNotice(ban);
                     } else {
                         er.textContent = 'Invalid username or password.';
                     }
@@ -1416,11 +1401,27 @@
             siBtn.textContent = '\ud83d\udc64 ' + user;
             siBtn.classList.add('mx-signed');
             joinBtn.style.display = 'none';
+            if (msgBtn) msgBtn.style.display = '';
         } else {
             siBtn.textContent = 'Sign In';
             siBtn.classList.remove('mx-signed');
             joinBtn.style.display = '';
+            if (msgBtn) msgBtn.style.display = 'none';
         }
+        updateMessagesBadge();
+    }
+
+    /* Show a red dot on the Messages button when there are new followers,
+       newly-joined members, or new profile comments since the last visit. */
+    function updateMessagesBadge() {
+        var me = getUser();
+        if (!me) { if (msgDot) msgDot.style.display = 'none'; return; }
+        var n = normUser(me), seen = 0, prefs = notifPrefs(me);
+        try { seen = parseInt(localStorage.getItem('mx_messages_seen_' + n) || '0', 10) || 0; } catch (e) {}
+        collectAlerts(me, function (list) {
+            var has = list.some(function (a) { return prefs[a.type] !== false && (a.at || 0) > seen; });
+            if (msgDot) msgDot.style.display = has ? 'block' : 'none';
+        });
     }
     refreshAuth();
 
