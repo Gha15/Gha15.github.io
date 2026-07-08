@@ -428,6 +428,8 @@
         '.mx-msg-btn{position:relative;display:inline-flex;align-items:center;text-decoration:none;background:rgba(59,130,246,.08);border-color:#3b82f6;color:#93c5fd}',
         '.mx-msg-btn:hover{background:rgba(59,130,246,.20);text-decoration:none}',
         '.mx-msg-dot{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:1.5px solid #030d1e;box-shadow:0 0 6px rgba(239,68,68,.8)}',
+        '.mx-mobile-notif-btn{display:none;position:fixed;top:8px;right:8px;z-index:10001;width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,rgba(12,35,100,.96),rgba(29,78,216,.92));border:1.5px solid rgba(59,130,246,.5);color:#93c5fd;align-items:center;justify-content:center;font-size:1.3rem;text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.45);cursor:pointer;-webkit-tap-highlight-color:transparent}',
+        '.mx-mobile-notif-btn .mx-msg-dot{top:3px;right:3px}',
 
         /* panel base */
         '.mx-panel{position:fixed;top:-9999px;left:-9999px;background:rgba(2,7,22,0.98);border:1px solid rgba(59,130,246,.18);border-top:3px solid #f59e0b;border-radius:0 0 14px 14px;box-shadow:0 32px 80px rgba(0,0,0,.90);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:9999;opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity .16s ease,transform .16s ease;overflow:hidden}',
@@ -567,7 +569,7 @@
         '.mx-notif-frame{border:0;width:100%;height:100%;flex:1;background:#0b1730}',
 
         /* media */
-        '@media(max-width:768px){#mx-menu-toggle{top:8px;left:8px;width:48px;height:48px}#mx-nav-bar{top:8px;left:62px;right:8px;height:48px;padding:0 10px}body{padding-top:66px!important}.mx-nb{height:48px;padding:0 9px;font-size:.8rem}.mx-panel{max-height:calc(100vh - 72px);overflow-y:auto;z-index:10002}.mx-p-iframe{max-width:calc(100vw - 16px)!important;height:auto!important;min-height:180px}.mx-p-auth,.mx-p-sub,.mx-p-lessons{width:100%!important;box-sizing:border-box}.mx-p-lessons{max-height:min(540px,calc(100vh - 72px))}.mx-ifr-label{font-size:.62rem;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}'
+        '@media(max-width:768px){#mx-menu-toggle{top:8px;left:8px;width:48px;height:48px}#mx-nav-bar{top:8px;left:62px;right:8px;height:48px;padding:0 10px}body{padding-top:66px!important}.mx-nb{height:48px;padding:0 9px;font-size:.8rem}.mx-panel{max-height:calc(100vh - 72px);overflow-y:auto;z-index:10002}.mx-p-iframe{max-width:calc(100vw - 16px)!important;height:auto!important;min-height:180px}.mx-p-auth,.mx-p-sub,.mx-p-lessons{width:100%!important;box-sizing:border-box}.mx-p-lessons{max-height:min(540px,calc(100vh - 72px))}.mx-ifr-label{font-size:.62rem;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mx-mobile-notif-btn.mx-show{display:flex}}'
     ].join('\n');
 
     var sEl = mk('style');
@@ -1273,6 +1275,17 @@
     msgBtn.appendChild(msgDot);
     right.appendChild(msgBtn);
 
+    /* Floating bell button so notifications stay reachable on mobile, since the scrolling nav bar can otherwise hide mx-msg-btn off-screen. */
+    var mobileNotifBtn = mk('a', 'mx-mobile-notif-btn');
+    mobileNotifBtn.href = '/messages';
+    mobileNotifBtn.setAttribute('aria-label', 'Notifications');
+    mobileNotifBtn.innerHTML = '\ud83d\udd14';
+    var mobileNotifDot = mk('span', 'mx-msg-dot');
+    mobileNotifDot.style.display = 'none';
+    mobileNotifBtn.appendChild(mobileNotifDot);
+    getPortal().appendChild(mobileNotifBtn);
+    mobileNotifBtn.addEventListener('click', function (e) { e.preventDefault(); openNotifModal(); });
+
     /* ===== Notifications center + background browser alerts ===== */
     var NOTIF_TYPES = [
         { key: 'follower', label: 'New follower' },
@@ -1531,11 +1544,13 @@
             siBtn.classList.add('mx-signed');
             joinBtn.style.display = 'none';
             if (msgBtn) msgBtn.style.display = '';
+            if (mobileNotifBtn) mobileNotifBtn.classList.add('mx-show');
         } else {
             siBtn.textContent = 'Sign In';
             siBtn.classList.remove('mx-signed');
             joinBtn.style.display = '';
             if (msgBtn) msgBtn.style.display = 'none';
+            if (mobileNotifBtn) mobileNotifBtn.classList.remove('mx-show');
         }
         updateMessagesBadge();
     }
@@ -1544,12 +1559,13 @@
        newly-joined members, or new profile comments since the last visit. */
     function updateMessagesBadge() {
         var me = getUser();
-        if (!me) { if (msgDot) msgDot.style.display = 'none'; return; }
+        if (!me) { if (msgDot) msgDot.style.display = 'none'; if (mobileNotifDot) mobileNotifDot.style.display = 'none'; return; }
         var n = normUser(me), seen = 0, prefs = notifPrefs(me);
         try { seen = parseInt(localStorage.getItem('mx_messages_seen_' + n) || '0', 10) || 0; } catch (e) {}
         collectAlerts(me, function (list) {
             var has = list.some(function (a) { return prefs[a.type] !== false && (a.at || 0) > seen; });
             if (msgDot) msgDot.style.display = has ? 'block' : 'none';
+            if (mobileNotifDot) mobileNotifDot.style.display = has ? 'block' : 'none';
         });
     }
     refreshAuth();

@@ -66,20 +66,27 @@
       lesson:    { icon: '\uD83D\uDCDA', color: '#22d3ee', label: 'New lesson added' },
       deleted:   { icon: '\uD83D\uDDD1', color: '#f87171', label: 'A user was removed' },
       reply:     { icon: '\u21A9', color: '#a78bfa', label: 'Replies to your comments' },
-      mention:   { icon: '\uD83D\uDCAC', color: '#c084fc', label: 'Mentions of you' }
+      mention:   { icon: '\uD83D\uDCAC', color: '#c084fc', label: 'Mentions of you' },
+      points_request: { icon: '\uD83D\uDCCA', color: '#f59e0b', label: 'Point change requests to approve' },
+      approval_request: { icon: '\uD83D\uDCDD', color: '#facc15', label: 'Admin/manager requests to approve' },
+      manager_points: { icon: '\u2B50', color: '#34d399', label: 'Manager point changes (revertable)' },
+      manager_role_change: { icon: '\uD83C\uDF96', color: '#34d399', label: 'Manager role changes (revertable)' },
+      manager_delete_comment: { icon: '\uD83D\uDDD1', color: '#f87171', label: 'Manager comment deletions (revertable)' },
+      game: { icon: '\uD83C\uDFAE', color: '#818cf8', label: 'Math Fight room deleted' }
     };
-    var NOTIF_ORDER = ['follower', 'joined', 'role', 'changelog', 'comment', 'reply', 'mention', 'points', 'redeem', 'meme', 'lesson', 'deleted'];
+    var NOTIF_ORDER = ['follower', 'joined', 'role', 'changelog', 'comment', 'reply', 'mention', 'points', 'redeem', 'meme', 'lesson', 'deleted', 'points_request', 'approval_request', 'manager_points', 'manager_role_change', 'manager_delete_comment', 'game'];
     var CHIPS = [
       { id: 'all', label: 'All', types: null },
       { id: 'follower', label: 'Follows', types: ['follower'] },
       { id: 'joined', label: 'Members', types: ['joined'] },
       { id: 'comment', label: 'Comments', types: ['comment', 'reply', 'mention'] },
-      { id: 'role', label: 'Roles', types: ['role'] },
-      { id: 'points', label: 'Points', types: ['points', 'redeem'] },
+      { id: 'role', label: 'Roles', types: ['role', 'approval_request', 'manager_role_change'] },
+      { id: 'points', label: 'Points', types: ['points', 'redeem', 'points_request', 'manager_points'] },
       { id: 'meme', label: '\uD83D\uDE02 Jokes & Memes', types: ['meme'] },
       { id: 'lesson', label: '\uD83D\uDCDA Lessons', types: ['lesson'] },
-      { id: 'deleted', label: '\uD83D\uDDD1 Removed', types: ['deleted'] },
-      { id: 'changelog', label: 'Updates', types: ['changelog'] }
+      { id: 'deleted', label: '\uD83D\uDDD1 Removed', types: ['deleted', 'manager_delete_comment'] },
+      { id: 'changelog', label: 'Updates', types: ['changelog'] },
+      { id: 'game', label: '\uD83C\uDFAE Math Fight', types: ['game'] }
     ];
 
     function getUser() { return sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null; }
@@ -105,6 +112,8 @@
     var prefs = {};
     var seen = 0;
     var isOwner = false;
+    var isManager = false;
+    var canApprove = false;
 
     if (!me) {
       root.innerHTML = '<div class="nc-hero"><div class="nc-badge">\uD83D\uDD14 Matix</div><h1 class="nc-title">Notifications</h1><div class="nc-sub">Your alerts from across the math club live here.</div></div>' +
@@ -141,6 +150,8 @@
       ]).then(function (res) {
         var follows = res[0] || {}, members = res[1] || {}, comments = res[3] || {}, stored = res[4] || {}, changelog = res[5] || {}, memes = res[6] || {}, lessons = res[7] || {}, dels = res[8] || {};
         isOwner = (res[9] === 'owner' || normalizeUser(me) === 'ghadi');
+        isManager = (res[9] === 'manager');
+        canApprove = isOwner || isManager;
         profilesMap = res[2] || {};
         try { seen = parseInt(localStorage.getItem('mx_messages_seen_' + me) || '0', 10) || 0; } catch (e) { seen = 0; }
 
@@ -160,7 +171,20 @@
         });
         Object.keys(stored).forEach(function (k) {
           var s = stored[k]; if (!s) return;
-          allEvents.push({ type: s.type || 'role', at: s.at || 0, title: s.title || 'Notification', body: s.body || '' });
+          var ev = { type: s.type || 'role', at: s.at || 0, title: s.title || 'Notification', body: s.body || '', notifKey: k };
+          if (s.user) ev.user = s.user;
+          if (s.targetUser) ev.targetUser = s.targetUser;
+          if (s.commentKey) ev.commentKey = s.commentKey;
+          if (s.requestId) ev.requestId = s.requestId;
+          if (s.requestedBy) ev.requestedBy = s.requestedBy;
+          if (s.amount !== undefined) ev.amount = s.amount;
+          if (s.rewardId) ev.rewardId = s.rewardId;
+          if (s.cost !== undefined) ev.cost = s.cost;
+          if (s.rewardName) ev.rewardName = s.rewardName;
+          if (s.prevValue !== undefined) ev.prevValue = s.prevValue;
+          if (s.newValue !== undefined) ev.newValue = s.newValue;
+          if (s.prevRole) ev.prevRole = s.prevRole;
+          allEvents.push(ev);
         });
         Object.keys(changelog).forEach(function (k) {
           var c = changelog[k]; if (!c) return;
@@ -281,6 +305,42 @@
           rv.addEventListener('click', function () { revertDeletion(e.user, rv); });
           body.appendChild(rv);
         }
+        if (e.type === 'points_request' && canApprove && e.requestId) {
+          var pAcc = document.createElement('button'); pAcc.textContent = '\u2713 Approve';
+          pAcc.style.cssText = 'margin-top:8px;margin-right:8px;background:linear-gradient(90deg,#34d399,#10b981);color:#052e16;border:none;border-radius:9px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer';
+          pAcc.addEventListener('click', function () { approvePointsRequest(e, pAcc); });
+          var pRej = document.createElement('button'); pRej.textContent = '\u2715 Deny';
+          pRej.style.cssText = 'margin-top:8px;background:linear-gradient(90deg,#f87171,#ef4444);color:#fff;border:none;border-radius:9px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer';
+          pRej.addEventListener('click', function () { rejectPointsRequest(e, pRej); });
+          body.appendChild(pAcc); body.appendChild(pRej);
+        }
+        if (e.type === 'approval_request' && canApprove && e.requestId) {
+          var aAcc = document.createElement('button'); aAcc.textContent = '\u2713 Approve';
+          aAcc.style.cssText = 'margin-top:8px;margin-right:8px;background:linear-gradient(90deg,#34d399,#10b981);color:#052e16;border:none;border-radius:9px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer';
+          aAcc.addEventListener('click', function () { approveApprovalRequest(e, aAcc); });
+          var aRej = document.createElement('button'); aRej.textContent = '\u2715 Deny';
+          aRej.style.cssText = 'margin-top:8px;background:linear-gradient(90deg,#f87171,#ef4444);color:#fff;border:none;border-radius:9px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer';
+          aRej.addEventListener('click', function () { rejectApprovalRequest(e, aRej); });
+          body.appendChild(aAcc); body.appendChild(aRej);
+        }
+        if (e.type === 'manager_points' && isOwner && e.targetUser) {
+          var rvp = document.createElement('button'); rvp.textContent = '\u21A9 Revert points change';
+          rvp.style.cssText = 'margin-top:8px;background:linear-gradient(90deg,#f87171,#ef4444);color:#fff;border:none;border-radius:9px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer';
+          rvp.addEventListener('click', function () { revertManagerPoints(e, rvp); });
+          body.appendChild(rvp);
+        }
+        if (e.type === 'manager_role_change' && isOwner && e.targetUser) {
+          var rvr = document.createElement('button'); rvr.textContent = '\u21A9 Revert role change';
+          rvr.style.cssText = 'margin-top:8px;background:linear-gradient(90deg,#f87171,#ef4444);color:#fff;border:none;border-radius:9px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer';
+          rvr.addEventListener('click', function () { revertManagerRole(e, rvr); });
+          body.appendChild(rvr);
+        }
+        if (e.type === 'manager_delete_comment' && isOwner && e.targetUser && e.commentKey) {
+          var rvc = document.createElement('button'); rvc.textContent = '\u21A9 Restore comment';
+          rvc.style.cssText = 'margin-top:8px;background:linear-gradient(90deg,#f87171,#ef4444);color:#fff;border:none;border-radius:9px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer';
+          rvc.addEventListener('click', function () { revertCommentDeletion(e, rvc); });
+          body.appendChild(rvc);
+        }
         item.appendChild(body);
         list.appendChild(item);
       });
@@ -310,6 +370,97 @@
             alert('@' + username + ' has been restored.');
             render();
           });
+        });
+      });
+    }
+
+    function approvePointsRequest(e, btn) {
+      if (!canApprove) return;
+      btn.disabled = true; btn.textContent = 'Approving\u2026';
+      fetchJson(FB + '/points/' + encodeURIComponent(e.targetUser) + '.json').then(function (cur) {
+        var prevValue = cur || 0;
+        var newValue = (e.amount === 'reset') ? 0 : Math.max(0, prevValue + Number(e.amount));
+        fbPut(FB + '/points/' + encodeURIComponent(e.targetUser) + '.json', newValue).then(function () {
+          fbPut(FB + '/point_requests/' + encodeURIComponent(e.requestId) + '/status.json', 'approved');
+          fetch(FB + '/notifications/' + encodeURIComponent(e.requestedBy) + '.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'points', title: '\u2705 Request approved', body: 'Your point change request for @' + e.targetUser + ' was approved.', at: Date.now() }) }).catch(function () { });
+          fetch(FB + '/notifications/' + encodeURIComponent(e.targetUser) + '.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'points', title: '\u2B50 Points updated', body: (e.amount === 'reset' ? 'Your points were reset.' : ((Number(e.amount) > 0 ? 'You earned ' : 'You lost ') + Math.abs(Number(e.amount)) + ' points!')), at: Date.now() }) }).catch(function () { });
+          if (!isOwner) {
+            fetch(FB + '/notifications/ghadi.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'manager_points', title: '\u2B50 Manager approved points change', body: '@' + me + ' approved a points request for @' + e.targetUser + '.', at: Date.now(), targetUser: e.targetUser, prevValue: prevValue, newValue: newValue }) }).catch(function () { });
+          }
+          fbDel(FB + '/notifications/ghadi/' + encodeURIComponent(e.notifKey) + '.json').then(function () { render(); });
+        });
+      });
+    }
+
+    function rejectPointsRequest(e, btn) {
+      if (!canApprove) return;
+      btn.disabled = true; btn.textContent = 'Rejecting\u2026';
+      fbPut(FB + '/point_requests/' + encodeURIComponent(e.requestId) + '/status.json', 'rejected').then(function () {
+        fetch(FB + '/notifications/' + encodeURIComponent(e.requestedBy) + '.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'points', title: '\u274C Request denied', body: 'Your point change request for @' + e.targetUser + ' was denied.', at: Date.now() }) }).catch(function () { });
+        fbDel(FB + '/notifications/ghadi/' + encodeURIComponent(e.notifKey) + '.json').then(function () { render(); });
+      });
+    }
+
+    function approveApprovalRequest(e, btn) {
+      if (!canApprove) return;
+      btn.disabled = true; btn.textContent = 'Approving\u2026';
+      fetchJson(FB + '/roles/' + encodeURIComponent(e.user) + '.json').then(function (prevRoleRaw) {
+        var prevRole = prevRoleRaw || 'member';
+        var newRole = e.rewardId;
+        fetchJson(FB + '/points/' + encodeURIComponent(e.user) + '.json').then(function (curPts) {
+          var prevPoints = curPts || 0;
+          var afterCost = Math.max(0, prevPoints - Number(e.cost || 0));
+          var tasks = [
+            fbPut(FB + '/roles/' + encodeURIComponent(e.user) + '.json', newRole),
+            fbPut(FB + '/profiles/' + encodeURIComponent(e.user) + '/isAdmin.json', true),
+            fbPut(FB + '/members/' + encodeURIComponent(e.user) + '/testUser.json', true),
+            fbPut(FB + '/points/' + encodeURIComponent(e.user) + '.json', afterCost)
+          ];
+          Promise.all(tasks).then(function () {
+            fbPut(FB + '/requests/' + encodeURIComponent(e.requestId) + '/status.json', 'approved');
+            fetch(FB + '/notifications/' + encodeURIComponent(e.user) + '.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'role', title: '\u2B06 You were promoted', body: 'Your request for ' + (e.rewardName || newRole) + ' was approved. You are now a Matix ' + (newRole === 'manager' ? 'Manager' : 'Admin') + '!', at: Date.now() }) }).catch(function () { });
+            if (!isOwner) {
+              fetch(FB + '/notifications/ghadi.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'manager_role_change', title: '\u2B06 Manager approved a promotion', body: '@' + me + ' approved @' + e.user + '\u2019s request to become ' + (e.rewardName || newRole) + '.', at: Date.now(), targetUser: e.user, prevRole: prevRole, newRole: newRole }) }).catch(function () { });
+            }
+            fbDel(FB + '/notifications/ghadi/' + encodeURIComponent(e.notifKey) + '.json').then(function () { render(); });
+          });
+        });
+      });
+    }
+
+    function rejectApprovalRequest(e, btn) {
+      if (!canApprove) return;
+      btn.disabled = true; btn.textContent = 'Rejecting\u2026';
+      fbPut(FB + '/requests/' + encodeURIComponent(e.requestId) + '/status.json', 'rejected').then(function () {
+        fetch(FB + '/notifications/' + encodeURIComponent(e.user) + '.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'role', title: '\u274C Request denied', body: 'Your request for ' + (e.rewardName || e.rewardId) + ' was denied.', at: Date.now() }) }).catch(function () { });
+        fbDel(FB + '/notifications/ghadi/' + encodeURIComponent(e.notifKey) + '.json').then(function () { render(); });
+      });
+    }
+
+    function revertManagerPoints(e, btn) {
+      if (!isOwner) { alert('Only the owner can revert this.'); return; }
+      btn.disabled = true; btn.textContent = 'Reverting\u2026';
+      fbPut(FB + '/points/' + encodeURIComponent(e.targetUser) + '.json', e.prevValue || 0).then(function () {
+        fbDel(FB + '/notifications/ghadi/' + encodeURIComponent(e.notifKey) + '.json').then(function () { alert('Points reverted for @' + e.targetUser + '.'); render(); });
+      });
+    }
+
+    function revertManagerRole(e, btn) {
+      if (!isOwner) { alert('Only the owner can revert this.'); return; }
+      btn.disabled = true; btn.textContent = 'Reverting\u2026';
+      fbPut(FB + '/roles/' + encodeURIComponent(e.targetUser) + '.json', e.prevRole || 'member').then(function () {
+        fbDel(FB + '/notifications/ghadi/' + encodeURIComponent(e.notifKey) + '.json').then(function () { alert('Role reverted for @' + e.targetUser + '.'); render(); });
+      });
+    }
+
+    function revertCommentDeletion(e, btn) {
+      if (!isOwner) { alert('Only the owner can revert this.'); return; }
+      btn.disabled = true; btn.textContent = 'Restoring\u2026';
+      fetchJson(FB + '/comment_deletion_backups/' + encodeURIComponent(e.targetUser) + '/' + encodeURIComponent(e.commentKey) + '.json').then(function (b) {
+        if (!b || !b.comment) { alert('No backup found \u2014 this comment can\u2019t be restored.'); btn.disabled = false; btn.textContent = '\u21A9 Restore comment'; return; }
+        fbPut(FB + '/profile_comments/' + encodeURIComponent(e.targetUser) + '/' + encodeURIComponent(e.commentKey) + '.json', b.comment).then(function () {
+          fbDel(FB + '/comment_deletion_backups/' + encodeURIComponent(e.targetUser) + '/' + encodeURIComponent(e.commentKey) + '.json');
+          fbDel(FB + '/notifications/ghadi/' + encodeURIComponent(e.notifKey) + '.json').then(function () { alert('Comment restored.'); render(); });
         });
       });
     }

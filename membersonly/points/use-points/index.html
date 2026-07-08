@@ -202,6 +202,15 @@
                 </div>
             </div>
             
+            <div class="reward-item" data-reward="manager" data-cost="200">
+                <div class="reward-title">Manager Privileges</div>
+                <div class="reward-desc">Become a manager for 5 weeks(all admin powers, plus extra trust from the owner)</div>
+                <div class="reward-cost">→ Cost: 200 points</div>
+                <div class="reward-actions">
+                    <button class="btn-request" onclick="requestManual('manager', 200, 'Manager Privileges')">Request Approval</button>
+                </div>
+            </div>
+            
             <div class="reward-item" data-reward="theme" data-cost="75">
                 <div class="reward-title">Custom Theme Colors</div>
                 <div class="reward-desc">Personalize your MATIX experience with custom color themes for your dashboard and pages.</div>
@@ -329,7 +338,7 @@
                 }
                 
                 // Create request
-                db.ref('requests').push({
+                const reqRef = db.ref('requests').push({
                     user: currentUser,
                     reward: rewardName,
                     rewardId: rewardId,
@@ -337,7 +346,20 @@
                     type: 'manual',
                     status: 'pending',
                     timestamp: Date.now()
-                }).then(() => {
+                });
+                reqRef.then(() => {
+                    // Notify the owner (and any manager reviewing notifications) with an actionable request
+                    db.ref('notifications/ghadi').push({
+                        type: 'approval_request',
+                        title: '📝 Approval needed',
+                        body: currentUser.toUpperCase() + ' requested ' + rewardName + ' for ' + cost + ' points.',
+                        at: Date.now(),
+                        requestId: reqRef.key,
+                        user: currentUser,
+                        rewardId: rewardId,
+                        cost: cost,
+                        rewardName: rewardName
+                    });
                     alert('REQUEST_SENT: Your request has been sent to the admin for approval.');
                 });
             });

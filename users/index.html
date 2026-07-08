@@ -526,6 +526,8 @@
     .acct-sec label.prof-help.acct-strong { color: #bfe0ff }
     .prof-badge.admin { background: rgba(251, 191, 36, .16); color: #fbbf24; border-color: rgba(251, 191, 36, .4) }
     .ux-role.admin { color: #fbbf24 }
+    .prof-badge.manager { background: rgba(52, 211, 153, .16); color: #34d399; border-color: rgba(52, 211, 153, .4) }
+    .ux-role.manager { color: #34d399 }
     .prof-badge.owner { background: rgba(192, 132, 252, .18); color: #c084fc; border-color: rgba(192, 132, 252, .45) }
     .ux-role.owner { color: #c084fc }
     .cf-toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: #0f172a; color: #e2e8f0; border: 1px solid rgba(148, 163, 184, .3); border-radius: 12px; padding: 12px 18px; font-size: .9rem; font-weight: 600; box-shadow: 0 10px 30px rgba(0, 0, 0, .4); opacity: 0; transition: opacity .25s, transform .25s; z-index: 9999; max-width: 90vw }
@@ -569,11 +571,11 @@
     .cmt-name:hover { color: #93c5fd; text-decoration: underline }
     .cmt-time { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .68rem; color: #64748b }
     .cmt-text { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .9rem; color: #e2e8f0; line-height: 1.5; word-break: break-word; white-space: pre-wrap }
-    .cmt-del { position: absolute; top: 9px; right: 10px; background: none; border: none; color: #64748b; cursor: pointer; font-size: .85rem; line-height: 1; padding: 2px 5px; border-radius: 5px; transition: background .12s, color .12s }
-    .cmt-del:hover { background: rgba(239, 68, 68, .16); color: #f87171 }
+    .cmt-del { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, .12); border: 1px solid rgba(239, 68, 68, .28); color: #f87171; cursor: pointer; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .7rem; font-weight: 700; line-height: 1; padding: 4px 8px; border-radius: 6px; transition: background .12s, color .12s }
+    .cmt-del:hover { background: rgba(239, 68, 68, .26); color: #fca5a5 }
     .cmt-mention { color: #93c5fd; text-decoration: none; font-weight: 700 }
     .cmt-mention:hover { text-decoration: underline; color: #bfdbfe }
-    .cmt-actions { margin-top: 8px; display: flex; justify-content: flex-end }
+    .cmt-actions { margin-top: 8px; display: flex; align-items: center; justify-content: flex-end; gap: 10px }
     .cmt-reply-btn { background: none; border: none; color: #7dd3fc; cursor: pointer; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .76rem; font-weight: 700; padding: 2px 0 }
     .cmt-reply-btn:hover { text-decoration: underline; color: #bae6fd }
     .cmt-mention-menu { position: absolute; top: 100%; left: 0; z-index: 40; margin-top: 4px; min-width: 190px; max-height: 220px; overflow-y: auto; background: #0b1836; border: 1px solid rgba(96, 165, 250, .32); border-radius: 10px; box-shadow: 0 12px 30px -8px rgba(0,0,0,.7); padding: 5px }
@@ -584,7 +586,7 @@
     .cmt-item-reply { background: rgba(12, 35, 100, .38) }
     .cmt-reply-chip { display: flex; align-items: center; gap: 8px; background: rgba(37, 99, 235, .18); border: 1px solid rgba(96, 165, 250, .3); border-radius: 8px; padding: 5px 10px; margin-bottom: 8px; font-family: "Trebuchet MS", Arial, sans-serif; font-size: .78rem; color: #bfdbfe }
     .cmt-reply-cancel { background: none; border: none; color: #93c5fd; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0 2px; margin-left: auto }
-    .cmt-del { font-size: .95rem }
+    .cmt-inline-reply { margin: 10px 0 2px 40px }
     .cc-modal-overlay { position: fixed; inset: 0; background: rgba(2, 5, 18, .72); display: flex; align-items: center; justify-content: center; z-index: 999 }
     .cc-modal-box { background: #0b1836; border: 1px solid rgba(96, 165, 250, .28); border-radius: 14px; padding: 22px 24px; max-width: 340px; box-shadow: 0 20px 50px -10px rgba(0, 0, 0, .7) }
     .cc-modal-msg { font-family: "Trebuchet MS", Arial, sans-serif; font-size: .92rem; color: #e2e8f0; line-height: 1.5; margin-bottom: 18px }
@@ -607,15 +609,15 @@
        When nothing is stored yet we fall back to the built-in defaults below,
        so status survives username changes and can be promoted/demoted. */
     var ROLES = {};
-    var ROLE_ORDER = ['user', 'member', 'admin', 'owner'];
+    var ROLE_ORDER = ['user', 'member', 'admin', 'manager', 'owner'];
     function roleOf(u) {
       var n = normalizeUser(u);
-      if (ROLES[n] === 'owner' || ROLES[n] === 'admin' || ROLES[n] === 'member' || ROLES[n] === 'user') return ROLES[n];
+      if (ROLES[n] === 'owner' || ROLES[n] === 'admin' || ROLES[n] === 'manager' || ROLES[n] === 'member' || ROLES[n] === 'user') return ROLES[n];
       if (n === 'ghadi') return 'owner';
       if (VALID_MEMBERS.indexOf(n) > -1) return 'member';
       return 'user';
     }
-    function roleLabel(r) { return r === 'owner' ? 'Matix Owner' : (r === 'admin' ? 'Matix Admin' : (r === 'member' ? 'Matix Member' : 'Matix User')); }
+    function roleLabel(r) { return r === 'owner' ? 'Matix Owner' : (r === 'manager' ? 'Matix Manager' : (r === 'admin' ? 'Matix Admin' : (r === 'member' ? 'Matix Member' : 'Matix User'))); }
     function setRole(username, role, cb) {
       var u = normalizeUser(username);
       var prevRole = roleOf(u);
@@ -635,9 +637,19 @@
       var up = ROLE_ORDER.indexOf(newRole) > ROLE_ORDER.indexOf(prevRole);
       pushNotification(u, 'role', up ? '\u2B06 You were promoted' : '\u2B07 Your role changed',
         up ? ('You are now ' + roleLabel(newRole) + '!') : ('Your role is now ' + roleLabel(newRole) + '.'));
-      if (newRole === 'member' || newRole === 'admin' || newRole === 'owner') {
-        // Auto-enroll as a test user so an owner can sign in as them to test the site
+      if (newRole === 'member' || newRole === 'admin' || newRole === 'manager' || newRole === 'owner') {
+        // Members/admins/managers/owners are obliged to be auto-enrolled as a test user so an owner can sign in as them to test the site
         fetch(FB + '/members/' + encodeURIComponent(u) + '.json', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testUser: true }) }).catch(function () { });
+      }
+      if (newRole === 'manager') {
+        // Manager promotion bonus: always award 200 points
+        fetch(FB + '/points/' + encodeURIComponent(u) + '.json').then(function (r) { return r.json(); }).then(function (p) {
+          var cur = typeof p === 'number' ? p : 0;
+          fetch(FB + '/points/' + encodeURIComponent(u) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cur + 200) });
+          pushNotification(u, 'points', '\uD83C\uDF89 Manager bonus', 'You were promoted to Matix Manager and got 200 bonus points!');
+        }).catch(function () { });
+      }
+      else if (newRole === 'member' || newRole === 'admin' || newRole === 'owner') {
         fetch(FB + '/points/' + encodeURIComponent(u) + '.json').then(function (r) { return r.json(); }).then(function (p) {
           if (typeof p === 'number') return;
           fetch(FB + '/points/' + encodeURIComponent(u) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(150) });
@@ -665,8 +677,8 @@
 
     function getUser() { return sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null; }
     function initials(u) { return u ? u.slice(0, 2).toUpperCase() : '??'; }
-    function isMember(u) { var r = roleOf(u); return r === 'member' || r === 'admin' || r === 'owner'; }
-    function isAdmin(u) { var r = roleOf(u); return r === 'admin' || r === 'owner'; }
+    function isMember(u) { var r = roleOf(u); return r === 'member' || r === 'admin' || r === 'manager' || r === 'owner'; }
+    function isAdmin(u) { var r = roleOf(u); return r === 'admin' || r === 'manager' || r === 'owner'; }
     function isOwner(u) { return roleOf(u) === 'owner'; }
     function normalizeUser(u) {
       var clean = String(u || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -1077,6 +1089,46 @@
             else tops.push(k);
           });
           tops.sort(function (a, b) { return (map[b].at || 0) - (map[a].at || 0); });
+          function buildReplyBox(parentKey, replyToUser) {
+            var wrap = document.createElement('div'); wrap.className = 'cmt-inline-reply';
+            var composer = document.createElement('div'); composer.className = 'cmt-composer';
+            var av0 = document.createElement('div'); av0.className = 'cmt-avatar'; av0.textContent = initials(me);
+            var col = document.createElement('div'); col.style.flex = '1'; col.style.position = 'relative';
+            var REPLY_PREFIX = '@' + replyToUser + ' ';
+            var ta2 = document.createElement('textarea'); ta2.className = 'cmt-input'; ta2.maxLength = 500; ta2.placeholder = 'Reply as @' + me + '\u2026'; ta2.value = REPLY_PREFIX;
+            var rowb = document.createElement('div'); rowb.className = 'cmt-composer-row';
+            var cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'cmt-reply-btn'; cancelBtn.textContent = 'Cancel';
+            var post2 = document.createElement('button'); post2.type = 'button'; post2.className = 'cmt-post-btn'; post2.textContent = 'Reply';
+            rowb.appendChild(cancelBtn); rowb.appendChild(post2);
+            col.appendChild(ta2); col.appendChild(rowb);
+            composer.appendChild(av0); composer.appendChild(col);
+            wrap.appendChild(composer);
+            setupMentionAutocomplete(ta2, col, me);
+            /* Protect the leading @mention so it cannot be deleted or edited. */
+            ta2.addEventListener('keydown', function (e) {
+              var s = ta2.selectionStart, en = ta2.selectionEnd;
+              if (e.key === 'Backspace' && s <= REPLY_PREFIX.length && s === en) { e.preventDefault(); }
+              else if ((e.key === 'Backspace' || e.key === 'Delete') && s < REPLY_PREFIX.length) { e.preventDefault(); }
+            });
+            ta2.addEventListener('input', function () {
+              if (ta2.value.indexOf(REPLY_PREFIX) !== 0) {
+                var body = ta2.value; var bare = '@' + replyToUser;
+                if (body.indexOf(bare) === 0) { body = body.slice(bare.length).replace(/^\s*/, ''); }
+                ta2.value = REPLY_PREFIX + body;
+                try { ta2.setSelectionRange(REPLY_PREFIX.length, REPLY_PREFIX.length); } catch (e2) { }
+              }
+            });
+            cancelBtn.addEventListener('click', function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); });
+            post2.addEventListener('click', function () {
+              var text = ta2.value.trim(); if (!text) return;
+              post2.disabled = true; post2.textContent = 'Posting\u2026';
+              postComment(username, me, text, parentKey, function (ok) {
+                post2.disabled = false; post2.textContent = 'Reply';
+                if (ok) { notifyMentions(me, text); loadAndRender(); }
+              });
+            });
+            return wrap;
+          }
           function buildItem(k, isReply) {
             var c = map[k];
             var by = normalizeUser(c.by);
@@ -1085,31 +1137,45 @@
             var body = document.createElement('div'); body.className = 'cmt-body';
             var head = document.createElement('div'); head.className = 'cmt-head';
             var nameA = document.createElement('a'); nameA.className = 'cmt-name'; nameA.href = '/users/' + by; nameA.textContent = '@' + by;
-            var time = document.createElement('span'); time.className = 'cmt-time'; time.textContent = c.at ? timeAgo(c.at) : '';
-            head.appendChild(nameA); head.appendChild(time);
+            head.appendChild(nameA);
             var txt = document.createElement('div'); txt.className = 'cmt-text'; renderCommentText(txt, c.text || '');
             body.appendChild(head); body.appendChild(txt);
+            var actions = document.createElement('div'); actions.className = 'cmt-actions';
+            var time = document.createElement('span'); time.className = 'cmt-time'; time.textContent = c.at ? timeAgo(c.at) : '';
+            actions.appendChild(time);
             if (me) {
-              var actions = document.createElement('div'); actions.className = 'cmt-actions';
-              var reply = document.createElement('button'); reply.className = 'cmt-reply-btn'; reply.type = 'button'; reply.textContent = 'Reply \u21A9';
+              var reply = document.createElement('button'); reply.className = 'cmt-reply-btn'; reply.type = 'button'; reply.textContent = 'reply \uD83D\uDD01';
               reply.addEventListener('click', function () {
+                if (item.nextSibling && item.nextSibling.className && ('' + item.nextSibling.className).indexOf('cmt-inline-reply') > -1) {
+                  item.parentNode.removeChild(item.nextSibling); return;
+                }
                 var parentKey = (c.replyTo && map[c.replyTo]) ? c.replyTo : k;
-                setReplyTarget(parentKey, by);
-                ta.value = '@' + by + ' ';
-                ta.focus();
-                try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (e) { }
-                ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                var rbox = buildReplyBox(parentKey, by);
+                item.parentNode.insertBefore(rbox, item.nextSibling);
+                var rta = rbox.querySelector('textarea');
+                if (rta) { rta.focus(); try { rta.setSelectionRange(rta.value.length, rta.value.length); } catch (e) { } }
+                rbox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
               });
               actions.appendChild(reply);
-              body.appendChild(actions);
             }
+            body.appendChild(actions);
             item.appendChild(av); item.appendChild(body);
-            if (me && (me === by || roleOf(me) === 'owner' || me === normalizeUser(username))) {
-              var del = document.createElement('button'); del.className = 'cmt-del'; del.textContent = '\uD83D\uDDD1'; del.title = 'Delete comment';
+            if (me && (me === by || roleOf(me) === 'owner' || roleOf(me) === 'manager' || me === normalizeUser(username))) {
+              var del = document.createElement('button'); del.className = 'cmt-del'; del.type = 'button'; del.textContent = 'delete \uD83D\uDDD1\uFE0F'; del.title = 'Delete comment';
               del.addEventListener('click', function () {
                 customConfirm('Delete this comment? This cannot be undone.', function () {
                   del.disabled = true;
-                  deleteComment(username, k, function (ok) { if (ok) loadAndRender(); else del.disabled = false; });
+                  var isManagerMod = roleOf(me) === 'manager';
+                  var backupUser = normalizeUser(username);
+                  deleteComment(username, k, function (ok) {
+                    if (ok) {
+                      if (isManagerMod) {
+                        fetch(FB + '/comment_deletion_backups/' + encodeURIComponent(backupUser) + '/' + encodeURIComponent(k) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment: c, deletedBy: me, at: Date.now() }) }).catch(function () { });
+                        fetch(FB + '/notifications/ghadi.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'manager_delete_comment', title: '\uD83D\uDDD1 Manager deleted a comment', body: '@' + me + ' deleted a comment by @' + by + ' on @' + backupUser + '\u2019s profile.', at: Date.now(), targetUser: backupUser, commentKey: k }) }).catch(function () { });
+                      }
+                      loadAndRender();
+                    } else del.disabled = false;
+                  });
                 });
               });
               item.appendChild(del);
@@ -1347,7 +1413,7 @@
         var info = document.createElement('div'); info.className = 'prof-info';
         var nm = document.createElement('div'); nm.className = 'prof-name'; nm.textContent = '@' + username;
         var uRole = roleOf(username);
-        var badge = document.createElement('div'); badge.className = 'prof-badge ' + (uRole === 'owner' ? 'owner' : (uRole === 'admin' ? 'admin' : (uRole === 'member' ? 'member' : 'user')));
+        var badge = document.createElement('div'); badge.className = 'prof-badge ' + (uRole === 'owner' ? 'owner' : (uRole === 'manager' ? 'manager' : (uRole === 'admin' ? 'admin' : (uRole === 'member' ? 'member' : 'user'))));
         badge.textContent = roleLabel(uRole);
         var acts = document.createElement('div'); acts.className = 'prof-actions';
         if (me && me !== username) {

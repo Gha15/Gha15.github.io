@@ -42,6 +42,19 @@ let roomId = '';
 let ROOM = '';
 let joinMode = ''; 
 let activityCheckInterval = null;
+let posInterval = null;
+let canKick = false;
+let matixUser = null;
+let kicked = false;
+let kickUntil = 0;
+let prevPlayerAlive = {}; // tracks last-known alive state per player key for death detection
+let bans = {}; // room-level ban list. banned keys are filtered out of the local `players` object
+let banSweepInterval = null; // periodic .remove() sweep for banned player nodes
+// Smooth-movement interpolation state: for each REMOTE player we track a locally
+// drawn (x,y) that lerps toward the latest server-reported position every frame,
+// so remote players glide instead of teleporting between 40 ms network updates.
+let remoteInterp = {};
+let lastPushX = null, lastPushY = null, lastPushTime = 0;
 
 // Bot State
 let botKey = null;
@@ -293,6 +306,9 @@ function setupJoinFlow() {
     joinMode = 'public';
     roomId = PUBLIC_ROOM;
     ROOM = `${ROOM_ROOT}/${roomId}`;
+    // Public server plays with ALL four operations (+ - × ÷). Set/refresh the
+    // config before startGame reads it so mkQuestion runs in 'mixed' mode.
+    await db.ref(`${ROOM}/config/operation`).set('mixed');
     if (await isNameTaken(name)) {
       showJoinError('That username is already in the public server. Try another!');
       showStep('details');
@@ -301,6 +317,15 @@ function setupJoinFlow() {
     }
     me = name;
     myKey = getPlayerKey();
+
+    const kickSnap = await db.ref(`${ROOM}/kicks/${myKey}`).once('value');
+    const kk = kickSnap.val();
+    if (kk && kk.at && (Date.now() - kk.at) < 3000) {
+      const wait = Math.ceil((3000 - (Date.now() - kk.at)) / 1000);
+      showJoinError('You were kicked. Please wait ' + wait + 's before rejoining.');
+      return;
+    }
+
     myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
     deviceMode = getSelectedDeviceMode();
     history.replaceState({}, '', '/games/mathfight/');
@@ -358,6 +383,14 @@ function setupJoinFlow() {
       ]);
       const cfg = cfgSnap.val() || {};
       const count = Object.keys(playersSnap.val() || {}).length;
+      // A room only "exists" once it has been created (config written) or has
+      // live players in it. Block joining rooms that were never made.
+      const roomExists = !!cfgSnap.val() || count > 0;
+      if (!roomExists) {
+        showJoinError("That room doesn't exist. Ask the host for a valid ID, or create your own room.");
+        shake(roomIdInput);
+        return;
+      }
       if (cfg.maxPlayers && count >= cfg.maxPlayers) {
         showJoinError(`Room is full (${count}/${cfg.maxPlayers}).`);
         return;
@@ -381,6 +414,15 @@ function setupJoinFlow() {
 
     me = name;
     myKey = getPlayerKey();
+
+    const kickSnap = await db.ref(`${ROOM}/kicks/${myKey}`).once('value');
+    const kk = kickSnap.val();
+    if (kk && kk.at && (Date.now() - kk.at) < 3000) {
+      const wait = Math.ceil((3000 - (Date.now() - kk.at)) / 1000);
+      showJoinError('You were kicked. Please wait ' + wait + 's before rejoining.');
+      return;
+    }
+
     myColor = joinColorInput.value || COLORS[Math.floor(Math.random() * COLORS.length)];
     deviceMode = getSelectedDeviceMode();
     history.replaceState({}, '', `/games/mathfight/room?id=${roomId}`);
@@ -431,7 +473,12 @@ function startGame() {
           lives: 3, alive: true, color: '#94a3b8', name: 'MathBot 🤖', lastActivity: Date.now()
       });
       roomRef(`players/${botKey}`).onDisconnect().remove();
+      // Slow tick: bot turn-action logic (challenges, answers). Fine at 1 Hz.
       setInterval(updateBotLoop, 1000);
+      // Fast tick: bot MOVEMENT only. Runs at ~20 Hz so combined with the
+      // remote-player interpolation the bot glides naturally instead of
+      // teleporting once per second.
+      setInterval(updateBotMovement, 50);
   }
 
   roomRef('game').once('value').then(s => {
@@ -452,14 +499,49 @@ function startGame() {
   myStreak = 0;
   updateStreakBadge();
   requestAnimationFrame(loop);
-  setInterval(pushPos, 90);
+  // Push local position at ~25 Hz (40 ms). Combined with per-frame client-side
+  // interpolation on remote players, this produces smooth, delay-free motion
+  // for everyone without flooding Firebase.
+  posInterval = setInterval(pushPos, 40);
   startActivityMonitoring();
+  detectKickPrivileges();
+  listenKicks();
+  listenBans();
 }
 
 // ── Firebase listeners ────────────────────────────────────
 function listenPlayers() {
   roomRef('players').on('value', s => {
-    players = s.val() || {};
+    // Filter out banned players entirely — handles the case where a stale/old
+    // client (or a truly "stuck" ghost entry) keeps re-writing their /players
+    // node. Even if the ghost's writes keep landing, every up-to-date client
+    // treats the room as if they aren't there.
+    const raw = s.val() || {};
+    const filtered = {};
+    Object.keys(raw).forEach(k => { if (!bans[k]) filtered[k] = raw[k]; });
+    players = filtered;
+    // If the server has flagged our own node as kicked, self-handle immediately.
+    // This fires faster than listenKicks because it uses the same /players listener
+    // we already have open, closing the race with pushPos.
+    if (!kicked && players[myKey] && players[myKey].kicked) {
+      handleBeingKicked({ at: Date.now() });
+      return;
+    }
+    // Detect newly-dead players and notify owner/manager so they can restore.
+    if (canKick) {
+      Object.entries(players).forEach(([k, p]) => {
+        if (!p || k === myKey) return;
+        const wasAlive = prevPlayerAlive[k];
+        const nowDead  = p.alive === false || p.alive === 'false';
+        if (wasAlive && nowDead) {
+          showDeathNotif(k, p.name || k);
+        }
+      });
+    }
+    // Snapshot current alive states for next comparison.
+    Object.entries(players).forEach(([k, p]) => {
+      prevPlayerAlive[k] = p ? (p.alive !== false && p.alive !== 'false') : false;
+    });
     renderHud();
     tryStartTurn();
     checkWin();
@@ -493,13 +575,27 @@ function listenChat() {
 }
 
 function pushPos() {
-  if (myKey) {
-    roomRef(`players/${myKey}`).update({
-      x: Math.round(myX),
-      y: Math.round(myY),
-      lastActivity: Date.now()
-    });
+  if (kicked) return;
+  // Secondary guard: catches the window between the server writing kicked:true
+  // and handleBeingKicked being called via listenPlayers.
+  if (players[myKey] && players[myKey].kicked) {
+    handleBeingKicked({ at: Date.now() });
+    return;
   }
+  if (!myKey) return;
+  const now = Date.now();
+  const rx = Math.round(myX), ry = Math.round(myY);
+  // Skip the network write when we haven't actually moved, so the 40 ms tick
+  // rate doesn't burn Firebase quota while standing still. Send a heartbeat
+  // every 500 ms to keep lastActivity fresh for the idle-kick watcher.
+  const moved = (rx !== lastPushX) || (ry !== lastPushY);
+  if (!moved && (now - lastPushTime) < 500) return;
+  lastPushX = rx; lastPushY = ry; lastPushTime = now;
+  roomRef(`players/${myKey}`).update({
+    x: rx,
+    y: ry,
+    lastActivity: now
+  });
 }
 
 // ── Game state machine ────────────────────────────────────
@@ -712,17 +808,44 @@ function resolveAnswer(userAns) {
 }
 
 // ── Bot Logic Engine ──────────────────────────────────────
+// Bot wander target — the bot walks toward this point in small steps and picks
+// a new one whenever it gets close or after a random idle interval. Produces
+// natural-looking motion instead of the old 1-Hz teleport.
+let botTargetX = null, botTargetY = null, botNextRetarget = 0;
+let botLocalX = null, botLocalY = null; // authoritative local copy
+const BOT_SPEED = 3.6; // px per 50 ms tick → ~72 px/s, similar to a real player
+
+function updateBotMovement() {
+  if (joinMode !== 'bot' || !botKey || !players[botKey] || !players[botKey].alive) return;
+  if (botLocalX === null) botLocalX = players[botKey].x || WORLD_W / 2;
+  if (botLocalY === null) botLocalY = players[botKey].y || WORLD_H / 2;
+  const now = Date.now();
+  const needsNewTarget = botTargetX === null || botTargetY === null || now >= botNextRetarget
+    || (Math.hypot(botTargetX - botLocalX, botTargetY - botLocalY) < 20);
+  if (needsNewTarget) {
+    botTargetX = P_RADIUS + Math.random() * (WORLD_W - 2 * P_RADIUS);
+    botTargetY = P_RADIUS + Math.random() * (WORLD_H - 2 * P_RADIUS);
+    botNextRetarget = now + 1200 + Math.random() * 2000;
+  }
+  const dx = botTargetX - botLocalX;
+  const dy = botTargetY - botLocalY;
+  const dist = Math.hypot(dx, dy) || 1;
+  const step = Math.min(BOT_SPEED, dist);
+  botLocalX += (dx / dist) * step;
+  botLocalY += (dy / dist) * step;
+  botLocalX = Math.max(P_RADIUS, Math.min(WORLD_W - P_RADIUS, botLocalX));
+  botLocalY = Math.max(P_RADIUS, Math.min(WORLD_H - P_RADIUS, botLocalY));
+  roomRef(`players/${botKey}`).update({
+    x: Math.round(botLocalX),
+    y: Math.round(botLocalY),
+    lastActivity: now,
+  });
+}
+
 function updateBotLoop() {
   if (joinMode !== 'bot' || !botKey || !players[botKey] || !players[botKey].alive) return;
 
-  // 1. Bot Movement
-  let bx = players[botKey].x + (Math.random() - 0.5) * 200;
-  let by = players[botKey].y + (Math.random() - 0.5) * 200;
-  bx = Math.max(P_RADIUS, Math.min(WORLD_W - P_RADIUS, bx));
-  by = Math.max(P_RADIUS, Math.min(WORLD_H - P_RADIUS, by));
-  roomRef(`players/${botKey}`).update({ x: Math.round(bx), y: Math.round(by), lastActivity: Date.now() });
-
-  // 2. Bot Turn Actions
+  // Bot Turn Actions
   const { turn, turnPhase, challenged, correctAnswer } = gameState;
 
   // Bot Initiates a Challenge
@@ -782,10 +905,13 @@ function resolveBotAnswer(botAns) {
   writeGame({ turnPhase: 'result', resultMsg, lostLife: loserKey });
 }
 
-// ── Win check ─────────────────────────────────────────────
+// ── Win check ──────────��─────���────────────────────────────
 function checkWin() {
   const alive = getAlive();
-  const total = Object.keys(players).length;
+  // Ignore players currently being kicked — they must not count towards the
+  // total, otherwise kicking the second-to-last player would spuriously
+  // trigger a game-over during the 600 ms cleanup window.
+  const total = Object.keys(players).filter(k => players[k] && !players[k].kicked).length;
   if (total > 1 && alive.length === 1) {
     if (!gameEnded) {
       gameEnded = true;
@@ -814,6 +940,9 @@ function showGameOver(winnerKey) {
       : `${playerLabel(winnerKey)} wins the match!`;
   }
   ov.classList.remove('hidden');
+  // Game is now over — refresh HUD so any dead player's waiting box
+  // switches to the active Revive button.
+  renderHud();
 }
 
 function hideGameOver() {
@@ -875,8 +1004,8 @@ function setupExtras() {
 function renderHud() {
   playerListEl.innerHTML = '';
   Object.entries(players).sort((a, b) => a[0].localeCompare(b[0])).forEach(([name, p]) => {
-    if (!p) {
-      return;
+    if (!p || p.kicked) {
+      return; // hide players mid-kick so they vanish from everyone's list immediately
     }
     const div = document.createElement('div');
     const isTurn = gameState.turn === name;
@@ -891,6 +1020,20 @@ function renderHud() {
     hts.textContent = hearts;
     div.appendChild(nm);
     div.appendChild(hts);
+    if (canKick && name !== myKey && !String(name).startsWith('bot_')) {
+      const kb = document.createElement('button');
+      kb.className = 'kick-btn';
+      kb.title = 'Kick from room';
+      kb.textContent = '🚫';
+      kb.addEventListener('click', ev => { ev.stopPropagation(); kickPlayer(name); });
+      div.appendChild(kb);
+      const dl = document.createElement('button');
+      dl.className = 'kill-btn';
+      dl.title = 'Kill (eliminate this round)';
+      dl.textContent = '💀';
+      dl.addEventListener('click', ev => { ev.stopPropagation(); killPlayer(name); });
+      div.appendChild(dl);
+    }
     playerListEl.appendChild(div);
   });
 
@@ -1111,30 +1254,325 @@ function revivePlayer() {
   if (!myKey || !players[myKey]) {
     return;
   }
-  const myRef = roomRef(`players/${myKey}`);
-  myRef.update({ lives: 3, alive: true });
+  roomRef(`players/${myKey}`).update({ lives: 3, alive: true });
   flash('💫 You revived with 3 lives!', '#10b981');
+  hideReviveButton();
 }
 
 function showReviveButton() {
   if (!players[myKey] || players[myKey].alive) {
     return;
   }
-  const btn = document.createElement('button');
-  btn.id = 'revive-btn';
-  btn.textContent = '💫 Revive';
-  btn.className = 'revive-btn';
-  btn.addEventListener('click', revivePlayer);
-  if (!document.getElementById('revive-btn')) {
-    notifEl.parentElement.appendChild(btn);
+  // Remove whatever state was there before so we can re-render correctly.
+  hideReviveButton();
+  const area = document.createElement('div');
+  area.id = 'revive-btn';
+  if (gameEnded) {
+    // Game is over — show the active revive button.
+    area.className = 'revive-btn';
+    area.textContent = '\uD83D\uDCAB Revive';
+    area.addEventListener('click', revivePlayer);
+  } else {
+    // Game still going — show the waiting message instead.
+    area.className = 'revive-waiting';
+    area.textContent = '\u23F3 Waiting till end of round to revive\u2026';
   }
+  notifEl.parentElement.appendChild(area);
 }
 
 function hideReviveButton() {
-  const btn = document.getElementById('revive-btn');
-  if (btn) {
-    btn.remove();
+  const el = document.getElementById('revive-btn');
+  if (el) el.remove();
+}
+
+// ── Owner death notification ──────────────────────────────
+function showDeathNotif(key, nm) {
+  // Remove any existing death notif so we don't stack them.
+  const old = document.getElementById('death-notif');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'death-notif';
+  overlay.className = 'death-notif-overlay';
+
+  const card = document.createElement('div');
+  card.className = 'death-notif-card';
+
+  const title = document.createElement('div');
+  title.className = 'death-notif-title';
+  title.textContent = '\uD83D\uDC80 ' + nm + ' was eliminated';
+
+  const sub = document.createElement('div');
+  sub.className = 'death-notif-sub';
+  sub.textContent = 'Do you want to restore them?';
+
+  const btns = document.createElement('div');
+  btns.className = 'death-notif-btns';
+
+  const regret = document.createElement('button');
+  regret.className = 'death-notif-regret';
+  regret.textContent = '\u21A9\uFE0F Regret — Restore';
+  regret.addEventListener('click', () => {
+    roomRef('players/' + key).update({ alive: true, lives: 3 });
+    roomRef('chat').push({ user: 'System', text: '\uD83D\uDC9A ' + nm + ' was restored by a moderator.', t: Date.now() });
+    overlay.remove();
+  });
+
+  const keep = document.createElement('button');
+  keep.className = 'death-notif-keep';
+  keep.textContent = 'Keep killed';
+  keep.addEventListener('click', () => overlay.remove());
+
+  btns.appendChild(regret);
+  btns.appendChild(keep);
+  card.appendChild(title);
+  card.appendChild(sub);
+  card.appendChild(btns);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  // Auto-dismiss after 12 s so it doesn't linger forever.
+  setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 12000);
+}
+
+// ── Moderator kick (owner / manager only) ────────────────
+let kickAuthWatchInit = false;
+function detectKickPrivileges() {
+  if (!kickAuthWatchInit) {
+    kickAuthWatchInit = true;
+    // Keep the kick button in sync with the real, live Matix sign-in state
+    // instead of only checking once when the game starts — signing in or
+    // out mid-session (or the account's role changing) now updates it
+    // immediately.
+    window.addEventListener('mx-auth-changed', () => detectKickPrivileges());
+    try {
+      if (window.MatixAuth && typeof window.MatixAuth.onChange === 'function') {
+        window.MatixAuth.onChange(() => detectKickPrivileges());
+      }
+    } catch (e) {}
   }
+  try {
+    matixUser = (window.MatixAuth && window.MatixAuth.getUser && window.MatixAuth.getUser())
+      || sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null;
+  } catch (e) {
+    matixUser = null;
+  }
+  if (!matixUser) {
+    canKick = false;
+    renderHud();
+    return;
+  }
+  const clean = String(matixUser).toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const norm = (clean === 'matix' || clean === 'ghadimatix') ? 'ghadi' : clean;
+  if (norm === 'ghadi') {
+    canKick = true;
+    renderHud();
+    return;
+  }
+  db.ref('roles/' + encodeURIComponent(norm)).once('value').then(s => {
+    const role = s.val();
+    canKick = (role === 'owner' || role === 'manager');
+    renderHud();
+  }).catch(() => { canKick = false; renderHud(); });
+}
+
+function listenKicks() {
+  roomRef('kicks').on('value', s => {
+    const all = s.val() || {};
+    const mine = all[myKey];
+    if (mine && mine.at && (Date.now() - mine.at) < 3000) {
+      handleBeingKicked(mine);
+    }
+  });
+}
+
+function listenBans() {
+  roomRef('bans').on('value', s => {
+    bans = s.val() || {};
+    // If we've been banned, self-eject the same way as a kick.
+    if (myKey && bans[myKey] && !kicked) {
+      kickUntil = Date.now() + 3000;
+      handleBeingKicked({ at: Date.now() });
+      return;
+    }
+    // Re-render so any banned player disappears from the HUD immediately, and
+    // start a background sweep that repeatedly deletes banned /players entries
+    // in case a stale ghost client keeps re-writing them.
+    renderHud();
+    if (Object.keys(bans).length > 0) {
+      if (!banSweepInterval) {
+        banSweepInterval = setInterval(() => {
+          if (!canKick) return; // only moderators sweep, saves quota
+          Object.keys(bans).forEach(k => roomRef('players/' + k).remove());
+        }, 800);
+      }
+    } else if (banSweepInterval) {
+      clearInterval(banSweepInterval);
+      banSweepInterval = null;
+    }
+  });
+}
+
+async function kickPlayer(targetKey) {
+  if (!canKick || !targetKey || targetKey === myKey) {
+    return;
+  }
+  const target = players[targetKey];
+  const nm = (target && target.name) ? target.name : 'that player';
+  const ok = await showConfirm('Kick ' + nm + ' from the room?', {
+    detail: 'They will be locked out for 3 seconds and must completely rejoin.',
+    okLabel: '\uD83D\uDEAB Kick',
+    kind: 'danger',
+  });
+  if (!ok) return;
+  // Write kicked:true onto the player node FIRST.
+  // The kicked client is already listening to /players via listenPlayers, so
+  // this triggers their handleBeingKicked immediately — stopping pushPos before
+  // it can recreate the node. A plain .remove() was always lost to the 90ms
+  // pushPos race; this approach closes that race at the source.
+  const kickAt = Date.now();
+  // Persist the ban server-side too. This survives stale/ghost clients that
+  // keep recreating their /players node — every up-to-date client filters them out.
+  roomRef('bans/' + targetKey).set(true);
+  roomRef('players/' + targetKey).update({ kicked: true });
+  roomRef('kicks/' + targetKey).set({ at: kickAt, by: matixUser || 'a moderator' });
+  // Give the kicked client ~600 ms to self-remove, then hard-delete regardless.
+  setTimeout(() => roomRef('players/' + targetKey).remove(), 600);
+  roomRef('chat').push({ user: 'System', text: '🚫 ' + nm + ' was kicked by ' + (matixUser || 'a moderator') + '.', t: kickAt });
+}
+
+async function killPlayer(targetKey) {
+  if (!canKick || !targetKey || targetKey === myKey) {
+    return;
+  }
+  const target = players[targetKey];
+  const nm = (target && target.name) ? target.name : 'that player';
+  const ok = await showConfirm('Kill ' + nm + ' this round?', {
+    detail: 'They stay in the room but are eliminated.',
+    okLabel: '\uD83D\uDC80 Kill',
+    kind: 'danger',
+  });
+  if (!ok) return;
+  roomRef('players/' + targetKey).update({ alive: false, lives: 0 });
+  roomRef('chat').push({ user: 'System', text: '\uD83D\uDC80 ' + nm + ' was eliminated by ' + (matixUser || 'a moderator') + '.', t: Date.now() });
+}
+
+// ── Custom modal alerts / confirms ──────���─────────────────────
+function showConfirm(message, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    const old = document.getElementById('mx-confirm-overlay');
+    if (old) old.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'mx-confirm-overlay';
+    overlay.className = 'mx-confirm-overlay';
+    const card = document.createElement('div');
+    card.className = 'mx-confirm-card' + (opts.kind === 'danger' ? ' danger' : '');
+    const title = document.createElement('div');
+    title.className = 'mx-confirm-title';
+    title.textContent = message;
+    card.appendChild(title);
+    if (opts.detail) {
+      const detail = document.createElement('div');
+      detail.className = 'mx-confirm-detail';
+      detail.textContent = opts.detail;
+      card.appendChild(detail);
+    }
+    const btns = document.createElement('div');
+    btns.className = 'mx-confirm-btns';
+    const cancel = document.createElement('button');
+    cancel.className = 'mx-confirm-cancel';
+    cancel.textContent = opts.cancelLabel || 'Cancel';
+    cancel.addEventListener('click', () => { overlay.remove(); resolve(false); });
+    const ok = document.createElement('button');
+    ok.className = 'mx-confirm-ok' + (opts.kind === 'danger' ? ' danger' : '');
+    ok.textContent = opts.okLabel || 'OK';
+    ok.addEventListener('click', () => { overlay.remove(); resolve(true); });
+    btns.appendChild(cancel);
+    btns.appendChild(ok);
+    card.appendChild(btns);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    // Focus the OK button so keyboard users can just press Enter.
+    setTimeout(() => { try { ok.focus(); } catch (e) {} }, 20);
+  });
+}
+
+function showAlert(message, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    const old = document.getElementById('mx-confirm-overlay');
+    if (old) old.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'mx-confirm-overlay';
+    overlay.className = 'mx-confirm-overlay';
+    const card = document.createElement('div');
+    card.className = 'mx-confirm-card' + (opts.kind === 'danger' ? ' danger' : '');
+    const title = document.createElement('div');
+    title.className = 'mx-confirm-title';
+    title.textContent = message;
+    card.appendChild(title);
+    if (opts.detail) {
+      const detail = document.createElement('div');
+      detail.className = 'mx-confirm-detail';
+      detail.textContent = opts.detail;
+      card.appendChild(detail);
+    }
+    const btns = document.createElement('div');
+    btns.className = 'mx-confirm-btns';
+    const ok = document.createElement('button');
+    ok.className = 'mx-confirm-ok';
+    ok.textContent = opts.okLabel || 'OK';
+    ok.addEventListener('click', () => { overlay.remove(); resolve(true); });
+    btns.appendChild(ok);
+    card.appendChild(btns);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    setTimeout(() => { try { ok.focus(); } catch (e) {} }, 20);
+  });
+}
+
+function handleBeingKicked(kick) {
+  if (kicked) {
+    return;
+  }
+  kicked = true;
+  kickUntil = (kick && kick.at ? kick.at : Date.now()) + 3000;
+  if (posInterval) { clearInterval(posInterval); posInterval = null; }
+  if (activityCheckInterval) { clearInterval(activityCheckInterval); activityCheckInterval = null; }
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  if (myKey) {
+    roomRef('players/' + myKey).remove();
+  }
+  showKickOverlay();
+}
+
+function showKickOverlay() {
+  let overlay = document.getElementById('kick-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'kick-overlay';
+    overlay.className = 'kick-overlay';
+    overlay.innerHTML = '<div class="kick-card"><div class="kick-emoji">🚫</div><h2>You were kicked</h2><p>A manager removed you from this room.</p><div class="kick-count" id="kick-count">3</div><p class="kick-sub">You must completely rejoin.</p></div>';
+    document.body.appendChild(overlay);
+  }
+  overlay.classList.remove('hidden');
+  let kickTimer = null;
+  const tick = () => {
+    const remain = Math.max(0, Math.ceil((kickUntil - Date.now()) / 1000));
+    const countEl = document.getElementById('kick-count');
+    if (countEl) countEl.textContent = remain;
+    if (Date.now() >= kickUntil) {
+      if (kickTimer) clearInterval(kickTimer);
+      if (myKey) roomRef('kicks/' + myKey).remove();
+      // Do NOT send them back to the same room — that would let them auto-rejoin.
+      // Wipe their persistent player key too so they land as a fresh identity.
+      try { localStorage.removeItem('mathfightPlayerKey'); } catch (e) {}
+      location.href = '/games/mathfight/';
+    }
+  };
+  tick();
+  kickTimer = setInterval(tick, 200);
 }
 
 // ── Chat ──────────────────────────────────────────────────
@@ -1151,14 +1589,26 @@ function setupChat() {
   });
 }
 
-// ── Render loop ───────────────────────────────────────────
-function loop() {
+// ── Render loop ─��─────────────────────────────────────────
+// Render loop locked to a steady 60 FPS. requestAnimationFrame alone runs at
+// the display's native rate (120/144 Hz on many devices), which also made
+// movement speed device-dependent. Throttling to a fixed 60 FPS timestep keeps
+// motion smooth AND identical for everyone.
+let _lastFrameTs = 0;
+const TARGET_FPS = 60;
+const FRAME_INTERVAL = 1000 / TARGET_FPS;
+function loop(ts) {
+  requestAnimationFrame(loop);
+  if (ts === undefined) ts = performance.now();
+  const elapsed = ts - _lastFrameTs;
+  if (elapsed < FRAME_INTERVAL - 1) return; // too soon — skip this repaint
+  // Keep cadence stable without drifting.
+  _lastFrameTs = ts - (elapsed % FRAME_INTERVAL);
   updateMovement();
   camX = myX - canvas.width / 2;
   camY = myY - canvas.height / 2;
   drawBg();
   drawPlayers();
-  requestAnimationFrame(loop);
 }
 
 function drawBg() {
@@ -1198,8 +1648,31 @@ function drawPlayers() {
       continue;
     }
 
-    const sx = (name === myKey ? myX : p.x) - camX;
-    const sy = (name === myKey ? myY : p.y) - camY;
+    // Smoothly interpolate remote players toward their latest reported x,y each
+    // frame. Factor 0.28 catches up ~90% within ~120 ms (well below perception).
+    // Snap immediately if the delta is huge (respawn, teleport, first-seen).
+    let drawX, drawY;
+    if (name === myKey) {
+      drawX = myX; drawY = myY;
+    } else {
+      let interp = remoteInterp[name];
+      const targetX = (typeof p.x === 'number') ? p.x : 0;
+      const targetY = (typeof p.y === 'number') ? p.y : 0;
+      if (!interp) {
+        interp = { x: targetX, y: targetY };
+        remoteInterp[name] = interp;
+      }
+      const ddx = targetX - interp.x, ddy = targetY - interp.y;
+      if (Math.abs(ddx) > 260 || Math.abs(ddy) > 260) {
+        interp.x = targetX; interp.y = targetY;
+      } else {
+        interp.x += ddx * 0.28;
+        interp.y += ddy * 0.28;
+      }
+      drawX = interp.x; drawY = interp.y;
+    }
+    const sx = drawX - camX;
+    const sy = drawY - camY;
 
     ctx.save();
     if (!p.alive) {
@@ -1254,7 +1727,7 @@ function drawPlayers() {
 
 // ── Helpers ───────────────────────────────────────────────
 function getAlive() {
-  return Object.keys(players).filter(p => players[p] && players[p].alive);
+  return Object.keys(players).filter(p => players[p] && players[p].alive && !players[p].kicked);
 }
 
 function imFirst(alive) {
@@ -1289,6 +1762,116 @@ function getStickmanImage(color) {
   return img;
 }
 
+// ── Lobby room admin (owner / manager only) ───────────────
+// Live list of every active room on the main screen. Owners & managers can
+// delete any room; a deletion notification is sent (see pushRoomDeleteNotif).
+let lobbyCanManage = false;
+let roomAdminInit = false;
+
+function initRoomAdmin() {
+  const panel = document.getElementById('admin-rooms-panel');
+  if (!panel) return; // only present on the lobby page
+
+  // Resolve the current Matix user & role, then show/hide the panel.
+  function resolveRole() {
+    let user = null;
+    try {
+      user = (window.MatixAuth && window.MatixAuth.getUser && window.MatixAuth.getUser())
+        || sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null;
+    } catch (e) { user = null; }
+    if (!user) { lobbyCanManage = false; panel.classList.add('hidden'); return; }
+    const clean = String(user).toLowerCase().replace(/[^a-z0-9_]/g, '');
+    const norm = (clean === 'matix' || clean === 'ghadimatix') ? 'ghadi' : clean;
+    window.mxLobbyUser = norm;
+    if (norm === 'ghadi') {
+      lobbyCanManage = true; panel.classList.remove('hidden'); startRoomListListener(); return;
+    }
+    db.ref('roles/' + encodeURIComponent(norm)).once('value').then(s => {
+      const role = s.val();
+      lobbyCanManage = (role === 'owner' || role === 'manager');
+      if (lobbyCanManage) { panel.classList.remove('hidden'); startRoomListListener(); }
+      else panel.classList.add('hidden');
+    }).catch(() => { lobbyCanManage = false; panel.classList.add('hidden'); });
+  }
+
+  if (!roomAdminInit) {
+    roomAdminInit = true;
+    window.addEventListener('mx-auth-changed', resolveRole);
+    try {
+      if (window.MatixAuth && typeof window.MatixAuth.onChange === 'function') {
+        window.MatixAuth.onChange(resolveRole);
+      }
+    } catch (e) {}
+  }
+  resolveRole();
+}
+
+let roomListListenerOn = false;
+function startRoomListListener() {
+  if (roomListListenerOn) return;
+  roomListListenerOn = true;
+  db.ref(ROOM_ROOT).on('value', s => renderRoomList(s.val() || {}));
+}
+
+function renderRoomList(rooms) {
+  const listEl = document.getElementById('admin-rooms-list');
+  if (!listEl) return;
+  const ids = Object.keys(rooms);
+  if (ids.length === 0) {
+    listEl.innerHTML = '<div class="admin-room-empty">No active rooms right now.</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  ids.sort().forEach(id => {
+    const r = rooms[id] || {};
+    const count = r.players ? Object.keys(r.players).length : 0;
+    const op = (r.config && r.config.operation) ? r.config.operation : '—';
+    const row = document.createElement('div');
+    row.className = 'admin-room-row';
+    const info = document.createElement('div');
+    info.className = 'admin-room-info';
+    const label = (id === PUBLIC_ROOM) ? '🌐 Public Server' : (id.startsWith('bot_room_') ? '🤖 ' + id : '🔒 ' + id);
+    info.innerHTML = '<span class="admin-room-name">' + label + '</span>' +
+      '<span class="admin-room-meta">' + count + ' player' + (count === 1 ? '' : 's') + ' · ' + op + '</span>';
+    const del = document.createElement('button');
+    del.className = 'admin-room-del';
+    del.textContent = '🗑️ Delete';
+    del.addEventListener('click', () => deleteRoom(id, count));
+    row.appendChild(info);
+    row.appendChild(del);
+    listEl.appendChild(row);
+  });
+}
+
+async function deleteRoom(id, count) {
+  if (!lobbyCanManage) return;
+  const ok = await showConfirm('Delete this room?', {
+    detail: (id === PUBLIC_ROOM ? 'This is the PUBLIC server. ' : '') +
+      count + ' player' + (count === 1 ? '' : 's') + ' will be removed immediately.',
+    okLabel: '🗑️ Delete',
+    kind: 'danger',
+  });
+  if (!ok) return;
+  const by = window.mxLobbyUser || 'a moderator';
+  await db.ref(`${ROOM_ROOT}/${id}`).remove();
+  pushRoomDeleteNotif(id, by, count);
+}
+
+// Sends a notification to the owner (ghadi) when a room is deleted, so it shows
+// up in the site's messages page. Matches that page's schema exactly: entries
+// live under Firebase `notifications/<user>` with { type, at, title, body }.
+// The 'game' type renders with a 🎮 icon and its own "Math Fight" filter.
+function pushRoomDeleteNotif(id, by, count) {
+  const label = (id === PUBLIC_ROOM) ? 'the Public Server' : ('room “' + id + '”');
+  const payload = {
+    type: 'game',
+    at: Date.now(),
+    title: '🗑️ Math Fight room deleted',
+    body: '@' + by + ' deleted ' + label + ' — ' + count + ' player' + (count === 1 ? '' : 's') + ' removed.',
+  };
+  try { db.ref('notifications/ghadi').push(payload); } catch (e) {}
+}
+
 //gets current total(rooms+ online server) num of players in any and puts it into main page stats section
 function updatePlayerCount() {
   db.ref(ROOM_ROOT).once('value').then(s => {
@@ -1305,3 +1888,4 @@ function updatePlayerCount() {
 }
 updatePlayerCount();
 setInterval(updatePlayerCount, 60000);
+initRoomAdmin();

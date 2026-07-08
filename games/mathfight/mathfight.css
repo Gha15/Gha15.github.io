@@ -709,7 +709,7 @@ body.game-active {
 /* ─── Notification ────────────────────────────────────────── */
 .notif {
     position: fixed;
-    top: 14px; left: 14px;
+    top: 74px; left: 14px;
     background: rgba(7,15,35,0.94);
     border: 1.5px solid #818cf8;
     border-radius: 12px;
@@ -729,7 +729,7 @@ body.game-active {
 /* ─── Player List ─────────────────────────────────────────── */
 .player-list {
     position: fixed;
-    top: 14px; right: 14px;
+    top: 74px; right: 70px;
     background: rgba(7,15,35,0.94);
     border: 1px solid rgba(129,140,248,0.28);
     border-radius: 14px;
@@ -758,6 +758,257 @@ body.game-active {
     border-bottom-color: transparent;
     box-shadow: inset 0 0 0 1px rgba(129,140,248,0.4);
 }
+
+/* ─── Moderator kick button + overlay ──────────────── */
+.kick-btn {
+    background: rgba(248,113,113,0.14);
+    color: #fca5a5;
+    border: 1px solid rgba(248,113,113,0.4);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 3px 7px;
+    margin-left: 6px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+.kick-btn:hover {
+    background: rgba(248,113,113,0.38);
+    border-color: rgba(248,113,113,0.75);
+    color: #fff;
+}
+.kick-btn:active { opacity: 0.7; }
+
+.kill-btn {
+    background: rgba(167,139,250,0.14);
+    color: #c4b5fd;
+    border: 1px solid rgba(167,139,250,0.4);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 2px 5px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.kill-btn:hover {
+    background: rgba(167,139,250,0.3);
+    border-color: rgba(167,139,250,0.75);
+    color: #fff;
+}
+.kill-btn:active { opacity: 0.7; }
+
+/* ─── Revive waiting state ────────────────────────────────── */
+.revive-waiting {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    background: rgba(7,15,35,0.92);
+    border: 1.5px solid rgba(129,140,248,0.35);
+    border-radius: 14px;
+    color: #94a3b8;
+    font-family: 'Vibur', cursive;
+    font-size: 1.15rem;
+    text-align: center;
+    z-index: 200;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    white-space: nowrap;
+}
+
+/* ─── Owner death notification ────────────────────────────── */
+.death-notif-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 8000;
+    pointer-events: none;
+}
+.death-notif-card {
+    pointer-events: all;
+    background: rgba(7,15,35,0.97);
+    border: 1.5px solid rgba(248,113,113,0.55);
+    border-radius: 18px;
+    padding: 28px 36px;
+    text-align: center;
+    box-shadow: 0 8px 40px rgba(248,113,113,0.22);
+    backdrop-filter: blur(14px);
+    animation: deathNotifIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    max-width: 340px;
+    width: 90vw;
+}
+@keyframes deathNotifIn {
+    0% { transform: scale(0.72); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.death-notif-title {
+    font-family: 'Vibur', cursive;
+    font-size: 1.35rem;
+    color: #fca5a5;
+    margin-bottom: 8px;
+}
+.death-notif-sub {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    margin-bottom: 20px;
+}
+.death-notif-btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+.death-notif-regret {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 18px;
+    font-family: 'Vibur', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+.death-notif-regret:hover { opacity: 0.88; }
+.death-notif-keep {
+    background: rgba(51,65,85,0.8);
+    color: #94a3b8;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 9px 18px;
+    font-family: 'Vibur', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+.death-notif-keep:hover { opacity: 0.75; }
+
+/* ─── Custom confirm/alert modal ─────────────────────── */
+.mx-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2,7,18,0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9500;
+    backdrop-filter: blur(6px);
+    animation: mxConfirmFade 0.18s ease;
+}
+@keyframes mxConfirmFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+.mx-confirm-card {
+    background: rgba(7,15,35,0.98);
+    border: 1.5px solid rgba(129,140,248,0.55);
+    border-radius: 18px;
+    padding: 26px 30px 22px;
+    text-align: center;
+    box-shadow: 0 10px 44px rgba(99,102,241,0.32);
+    max-width: 360px;
+    width: 90vw;
+    animation: mxConfirmIn 0.24s cubic-bezier(0.34,1.56,0.64,1);
+}
+.mx-confirm-card.danger {
+    border-color: rgba(248,113,113,0.6);
+    box-shadow: 0 10px 44px rgba(248,113,113,0.28);
+}
+@keyframes mxConfirmIn {
+    0%   { transform: scale(0.78); opacity: 0; }
+    100% { transform: scale(1);    opacity: 1; }
+}
+.mx-confirm-title {
+    font-family: 'Vibur', cursive;
+    font-size: 1.3rem;
+    color: #f8fafc;
+    margin-bottom: 8px;
+    line-height: 1.25;
+}
+.mx-confirm-card.danger .mx-confirm-title { color: #fca5a5; }
+.mx-confirm-detail {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    margin-bottom: 18px;
+    line-height: 1.4;
+}
+.mx-confirm-btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.mx-confirm-cancel,
+.mx-confirm-ok {
+    font-family: 'Vibur', cursive;
+    font-size: 1rem;
+    padding: 9px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    border: 1px solid transparent;
+    min-width: 90px;
+}
+.mx-confirm-cancel {
+    background: rgba(51,65,85,0.85);
+    color: #cbd5e1;
+    border-color: rgba(255,255,255,0.08);
+}
+.mx-confirm-ok {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
+}
+.mx-confirm-ok.danger {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+.mx-confirm-cancel:hover,
+.mx-confirm-ok:hover { opacity: 0.88; }
+.mx-confirm-cancel:active,
+.mx-confirm-ok:active { transform: scale(0.96); }
+.mx-confirm-ok:focus { outline: 2px solid rgba(255,255,255,0.4); outline-offset: 2px; }
+
+.kick-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2,7,18,0.94);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+.kick-overlay.hidden { display: none; }
+.kick-card {
+    text-align: center;
+    background: linear-gradient(160deg, rgba(30,41,59,0.95), rgba(15,23,42,0.95));
+    border: 1px solid rgba(248,113,113,0.4);
+    border-radius: 18px;
+    padding: 34px 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    max-width: 90vw;
+}
+.kick-card h2 {
+    margin: 8px 0 6px;
+    color: #f87171;
+    font-size: 1.6rem;
+}
+.kick-card p {
+    margin: 4px 0;
+    color: #cbd5e1;
+    font-size: 1rem;
+}
+.kick-card .kick-emoji { font-size: 3rem; }
+.kick-card .kick-count {
+    font-size: 3.4rem;
+    font-weight: 800;
+    color: #fca5a5;
+    margin: 12px 0;
+    font-variant-numeric: tabular-nums;
+}
+.kick-card .kick-sub { color: #94a3b8; font-size: 0.9rem; }
 
 /* ─── Challenge Overlay ───────────────────────────────────── */
 .overlay {
