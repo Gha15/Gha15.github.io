@@ -868,6 +868,15 @@
     usersPanel.id = 'mxp-users';
     getPortal().appendChild(usersPanel);
     allPanels.push(usersPanel);
+    function ensureAdminCss() {
+        if (document.getElementById('mx-admin-css')) return;
+        var st = document.createElement('style'); st.id = 'mx-admin-css';
+        st.textContent = [
+            '.mx-rooms-bar{margin-bottom:10px}',
+            '.mx-room-delall{width:100%;background:rgba(239,68,68,.16);border:1px solid rgba(239,68,68,.5);color:#fca5a5;border-radius:9px;padding:8px 12px;font-size:.82rem;font-weight:700;cursor:pointer}'
+        ].join('');
+        (document.head || document.documentElement).appendChild(st);
+    }
     function renderUsers() {
         usersPanel.innerHTML = '';
         var w = mk('div', 'mx-pf');
@@ -916,6 +925,184 @@
     }
     authListeners.push(refreshUsersBtn);
     refreshUsersBtn();
+
+    /* Owner + Manager: Math Fight rooms manager — delete any active room.
+       (Unlike Users above, this is visible to managers too, NOT just the owner.) */
+    var roomsBtn = mk('a', 'mx-nb mx-rooms-btn');
+    roomsBtn.href = '#';
+    roomsBtn.style.display = 'none';
+    roomsBtn.innerHTML = '\ud83c\udfae Rooms';
+    right.appendChild(roomsBtn);
+    var roomsPanel = mk('div', 'mx-panel mx-p-rooms');
+    roomsPanel.id = 'mxp-rooms';
+    getPortal().appendChild(roomsPanel);
+    allPanels.push(roomsPanel);
+    var MF_ROOMS_PATH = 'mathfight/rooms';
+    var MF_PUBLIC_ID = 'public-server';
+    function mfRoomLabel(id) {
+        if (id === MF_PUBLIC_ID) return '\ud83c\udf10 Public Server';
+        if (id.indexOf('bot_room_') === 0) return '\ud83e\udd16 ' + id;
+        return '\ud83d\udd12 ' + id;
+    }
+    function deleteAllRooms(ids, btn) {
+        mxConfirm({
+            title: '\ud83d\uddd1\ufe0f Delete ALL rooms?',
+            body: 'This removes all ' + ids.length + ' active room' + (ids.length === 1 ? '' : 's') + ' and kicks everyone in them. This can\u2019t be undone.',
+            okLabel: '\ud83d\uddd1\ufe0f Delete all',
+            cancelLabel: 'Cancel',
+            danger: true
+        }).then(function (res) {
+            if (!res || !res.ok) return;
+            btn.disabled = true; btn.textContent = 'Deleting\u2026';
+            var by = normUser(getUser()) || 'a moderator';
+            Promise.all(ids.map(function (id) {
+                return fetch(FIREBASE_URL + '/' + MF_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'DELETE' }).catch(function () {});
+            })).then(function () {
+                fetch(FIREBASE_URL + '/notifications/ghadi.json', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'game', at: Date.now(), title: '\ud83d\uddd1\ufe0f All Math Fight rooms deleted', body: '@' + by + ' deleted all ' + ids.length + ' active room' + (ids.length === 1 ? '' : 's') + '.' })
+                }).catch(function () {});
+                renderRooms();
+            });
+        });
+    }
+    function renderRooms() {
+        ensureAdminCss();
+        roomsPanel.innerHTML = '';
+        var w = mk('div', 'mx-pf');
+        var h4 = mk('h4'); h4.textContent = '\ud83c\udfae Math Fight rooms'; w.appendChild(h4);
+        var sub = mk('div', 'mx-pf-sub'); sub.textContent = 'Owners & managers \u2014 delete any active room.'; w.appendChild(sub);
+        var listWrap = mk('div', 'mx-users-list'); listWrap.innerHTML = '<div class="mx-notif-empty">Loading\u2026</div>'; w.appendChild(listWrap);
+        roomsPanel.appendChild(w);
+        grabJson(FIREBASE_URL + '/' + MF_ROOMS_PATH + '.json').then(function (rooms) {
+            rooms = rooms || {};
+            var ids = Object.keys(rooms).sort();
+            listWrap.innerHTML = '';
+            if (!ids.length) { listWrap.innerHTML = '<div class="mx-notif-empty">No active rooms right now.</div>'; return; }
+            var bar = mk('div', 'mx-rooms-bar');
+            var delAll = mk('button', 'mx-room-delall'); delAll.type = 'button'; delAll.textContent = '\ud83d\uddd1\ufe0f Delete all rooms (' + ids.length + ')';
+            delAll.addEventListener('click', function () { deleteAllRooms(ids, delAll); });
+            bar.appendChild(delAll); listWrap.appendChild(bar);
+            ids.forEach(function (id) {
+                var r = rooms[id] || {};
+                var count = r.players ? Object.keys(r.players).length : 0;
+                var op = (r.config && r.config.operation) ? r.config.operation : '\u2014';
+                var row = mk('div', 'mx-user-row');
+                var top = mk('div', 'mx-user-row-top');
+                var nm = mk('span', 'mx-user-row-name'); nm.textContent = mfRoomLabel(id); top.appendChild(nm);
+                var rl = mk('span', 'mx-user-row-role'); rl.textContent = count + ' player' + (count === 1 ? '' : 's') + ' \u00b7 ' + op; top.appendChild(rl);
+                row.appendChild(top);
+                var del = mk('button', 'mx-room-del'); del.textContent = '\ud83d\uddd1 Delete';
+                del.style.cssText = 'margin-top:8px;background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.45);color:#fca5a5;border-radius:8px;padding:5px 12px;font-size:.8rem;cursor:pointer;';
+                del.addEventListener('click', function () { deleteRoom(id, count, del); });
+                row.appendChild(del);
+                listWrap.appendChild(row);
+            });
+        });
+    }
+    /* Reusable custom confirm modal. Returns a Promise<{ok, dontAsk}>.
+       opts: { title, body, okLabel, cancelLabel, danger, dontAsk } */
+    function ensureConfirmCss() {
+        if (document.getElementById('mx-cfm-css')) return;
+        var st = document.createElement('style'); st.id = 'mx-cfm-css';
+        st.textContent = [
+            '.mx-cfm-overlay{position:fixed;inset:0;z-index:100002;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;background:rgba(2,7,22,.74);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .16s ease}',
+            '.mx-cfm-overlay.open{opacity:1}',
+            '.mx-cfm-card{width:min(420px,94vw);background:#0b1730;border:1px solid rgba(147,197,253,.28);border-top:4px solid #3b82f6;border-radius:18px;box-shadow:0 40px 90px -25px rgba(0,0,0,.85);padding:22px 22px 18px;transform:translateY(10px) scale(.97);transition:transform .18s cubic-bezier(.22,1,.36,1);font-family:"Trebuchet MS",Arial,sans-serif}',
+            '.mx-cfm-card.danger{border-top-color:#f87171}',
+            '.mx-cfm-overlay.open .mx-cfm-card{transform:translateY(0) scale(1)}',
+            '.mx-cfm-title{font-size:1.12rem;font-weight:700;color:#f1f5f9;margin:0 0 8px;line-height:1.3}',
+            '.mx-cfm-body{font-size:.92rem;color:#94a3b8;line-height:1.5;margin:0 0 14px}',
+            '.mx-cfm-dna{display:flex;align-items:center;gap:8px;font-size:.86rem;color:#cbd5e1;cursor:pointer;margin:0 0 16px;user-select:none}',
+            '.mx-cfm-dna input{width:16px;height:16px;accent-color:#3b82f6;cursor:pointer;flex-shrink:0}',
+            '.mx-cfm-btns{display:flex;gap:10px;justify-content:flex-end}',
+            '.mx-cfm-btns button{font-family:inherit;font-size:.9rem;font-weight:600;padding:9px 16px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:opacity .15s,transform .1s}',
+            '.mx-cfm-btns button:active{transform:scale(.96)}',
+            '.mx-cfm-cancel{background:rgba(148,163,184,.14);border-color:rgba(148,163,184,.3)!important;color:#e2e8f0}',
+            '.mx-cfm-ok{background:#3b82f6;color:#fff}',
+            '.mx-cfm-ok.danger{background:#ef4444}',
+            '.mx-cfm-btns button:hover{opacity:.88}'
+        ].join('');
+        (document.head || document.documentElement).appendChild(st);
+    }
+    function mxConfirm(opts) {
+        opts = opts || {};
+        ensureConfirmCss();
+        return new Promise(function (resolve) {
+            var ov = mk('div', 'mx-cfm-overlay');
+            var card = mk('div', 'mx-cfm-card' + (opts.danger ? ' danger' : ''));
+            var h = mk('div', 'mx-cfm-title'); h.textContent = opts.title || 'Are you sure?'; card.appendChild(h);
+            if (opts.body) { var bd = mk('div', 'mx-cfm-body'); bd.textContent = opts.body; card.appendChild(bd); }
+            var chk = null;
+            if (opts.dontAsk) {
+                var lbl = mk('label', 'mx-cfm-dna');
+                chk = mk('input'); chk.type = 'checkbox';
+                var sp = mk('span'); sp.textContent = 'Don\u2019t show me this again';
+                lbl.appendChild(chk); lbl.appendChild(sp); card.appendChild(lbl);
+            }
+            var btns = mk('div', 'mx-cfm-btns');
+            var cancel = mk('button', 'mx-cfm-cancel'); cancel.type = 'button'; cancel.textContent = opts.cancelLabel || 'Cancel';
+            var ok = mk('button', 'mx-cfm-ok' + (opts.danger ? ' danger' : '')); ok.type = 'button'; ok.textContent = opts.okLabel || 'OK';
+            btns.appendChild(cancel); btns.appendChild(ok); card.appendChild(btns);
+            ov.appendChild(card);
+            getPortal().appendChild(ov);
+            requestAnimationFrame(function () { ov.classList.add('open'); });
+            var onKey;
+            function close(result) {
+                document.removeEventListener('keydown', onKey);
+                ov.classList.remove('open');
+                setTimeout(function () { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 200);
+                resolve(result);
+            }
+            onKey = function (e) { if (e.key === 'Escape') close({ ok: false, dontAsk: false }); };
+            cancel.addEventListener('click', function () { close({ ok: false, dontAsk: false }); });
+            ok.addEventListener('click', function () { close({ ok: true, dontAsk: chk ? chk.checked : false }); });
+            ov.addEventListener('click', function (e) { if (e.target === ov) close({ ok: false, dontAsk: false }); });
+            document.addEventListener('keydown', onKey);
+        });
+    }
+
+    var MF_SKIP_CONFIRM_KEY = 'mx_skip_room_delete_confirm';
+    function deleteRoom(id, count, btn) {
+        var label = (id === MF_PUBLIC_ID) ? 'the Public Server' : ('room \u201c' + id + '\u201d');
+        function doDelete() {
+            btn.disabled = true; btn.textContent = 'Deleting\u2026';
+            var by = normUser(getUser()) || 'a moderator';
+            fetch(FIREBASE_URL + '/' + MF_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'DELETE' })
+                .then(function () {
+                    fetch(FIREBASE_URL + '/notifications/ghadi.json', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'game', at: Date.now(), title: '\ud83d\uddd1\ufe0f Math Fight room deleted', body: '@' + by + ' deleted ' + label + ' \u2014 ' + count + ' player' + (count === 1 ? '' : 's') + ' removed.' })
+                    }).catch(function () {});
+                    renderRooms();
+                })
+                .catch(function () { btn.disabled = false; btn.textContent = '\ud83d\uddd1 Delete'; });
+        }
+        var skip = false;
+        try { skip = localStorage.getItem(MF_SKIP_CONFIRM_KEY) === '1'; } catch (e) {}
+        if (skip) { doDelete(); return; }
+        mxConfirm({
+            title: '\ud83d\uddd1\ufe0f Delete ' + label + '?',
+            body: count + ' player' + (count === 1 ? '' : 's') + ' will be removed immediately. This can\u2019t be undone.',
+            okLabel: '\ud83d\uddd1\ufe0f Delete',
+            cancelLabel: 'Cancel',
+            danger: true,
+            dontAsk: true
+        }).then(function (res) {
+            if (!res || !res.ok) return;
+            if (res.dontAsk) { try { localStorage.setItem(MF_SKIP_CONFIRM_KEY, '1'); } catch (e) {} }
+            doDelete();
+        });
+    }
+    wirePanel('rooms', roomsPanel, roomsBtn, 340, renderRooms);
+    function refreshRoomsBtn() {
+        var u = getUser();
+        if (!u) { roomsBtn.style.display = 'none'; return; }
+        if (normUser(u) === 'ghadi') { roomsBtn.style.display = ''; return; }
+        grabJson(FIREBASE_URL + '/roles/' + encodeURIComponent(normUser(u)) + '.json').then(function (r) { roomsBtn.style.display = (r === 'owner' || r === 'manager') ? '' : 'none'; });
+    }
+    authListeners.push(refreshRoomsBtn);
+    refreshRoomsBtn();
 
     var lessonsPanel = mk('div', 'mx-panel mx-p-lessons');
     lessonsPanel.id = 'mxp-lessons';
