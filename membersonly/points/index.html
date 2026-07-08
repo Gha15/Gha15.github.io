@@ -251,6 +251,15 @@
         .user-score-label{color:#64748b;text-transform:uppercase;letter-spacing:2px;font-size:.85rem;margin-bottom:26px}
         .user-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
         .readonly-note{color:#64748b;font-size:1.05rem;margin-top:10px;font-style:italic}
+        .member-entry{display:flex;flex-direction:column;position:relative}
+        .member-entry.dragging{z-index:999999999999;opacity:.92;box-shadow:0 18px 40px rgba(0,0,0,.55);border-radius:12px}
+        .member-admin{display:flex;align-items:center;gap:8px;margin:-4px 0 12px;padding:0 4px;flex-wrap:wrap;position:relative;z-index:999999999999}
+        .mdrag{position:relative;z-index:999999999999;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid rgba(129,140,248,.4);background:rgba(129,140,248,.14);color:#c7d2fe;font-size:1.05rem;cursor:grab;line-height:1;padding:0;touch-action:none;user-select:none;flex-shrink:0}
+        .mdrag:active{cursor:grabbing;background:rgba(129,140,248,.28)}
+        .mnote-input{flex:1;min-width:120px;background:#0b1220;border:1px solid rgba(129,140,248,.28);border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:.85rem;font-family:inherit}
+        .mnote-input::placeholder{color:#64748b}
+        .mnote-save{background:#10b981;color:#04210f;border:none;border-radius:8px;padding:7px 12px;font-size:.82rem;font-weight:700;cursor:pointer}
+        .mnote-status{font-size:.75rem;color:#34d399;min-width:52px}
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -269,7 +278,7 @@
 
         const VALID_MEMBERS = ['ghadi', 'dahlia', 'yara', 'jad', 'marwan', 'mak', 'hicham'];
         const DISPLAY_NAMES = { ghadi: 'Ghadi', dahlia: 'Dahlia', marwan: 'Marwan', yara: 'Yara', hicham: 'Hicham', mak: 'Mohammad-ali', jad: 'Jad' };
-        let ROLES = {}, POINTS = {}, PROFILES = {};
+        let ROLES = {}, POINTS = {}, PROFILES = {}, NOTES = {}, ORDER = [];
 
         function getActiveUser() { return sessionStorage.getItem("matix_auth_user") || sessionStorage.getItem("mx_user") || null; }
         function roleOfLocal(u) {
@@ -288,7 +297,11 @@
             VALID_MEMBERS.forEach(function (u) { set[u] = 1; });
             Object.keys(POINTS).forEach(function (u) { if (isMemberUser(u)) set[u] = 1; });
             Object.keys(ROLES).forEach(function (u) { const r = ROLES[u]; if (r === 'member' || r === 'admin' || r === 'manager' || r === 'owner') set[u] = 1; });
-            return Object.keys(set).sort(function (a, b) { if (a === 'ghadi') return -1; if (b === 'ghadi') return 1; return a < b ? -1 : (a > b ? 1 : 0); });
+            return Object.keys(set).sort(function (a, b) {
+                var ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
+                if (ia !== -1 || ib !== -1) { if (ia === -1) return 1; if (ib === -1) return -1; return ia - ib; }
+                if (a === 'ghadi') return -1; if (b === 'ghadi') return 1; return a < b ? -1 : (a > b ? 1 : 0);
+            });
         }
 
         function mkBtn(label, cls, extraStyle, fn) {
@@ -300,24 +313,93 @@
             return b;
         }
 
+        // Owner-only: save a private note about a member.
+        function saveMemberNote(user, val, statusEl) {
+            var v = (val || '').trim();
+            var ref = db.ref('member_notes/' + user);
+            if (statusEl) statusEl.textContent = 'Saving…';
+            var p = v ? ref.set(v) : ref.remove();
+            p.then(function () { if (statusEl) { statusEl.textContent = 'Saved ✓'; setTimeout(function () { statusEl.textContent = ''; }, 1500); } })
+                .catch(function () { if (statusEl) statusEl.textContent = 'Failed'; });
+        }
+        // Owner-only: read the current DOM order of member rows and persist it.
+        function persistMemberOrder(wrap) {
+            var order = Array.prototype.slice.call(wrap.querySelectorAll('.member-entry'))
+                .map(function (el) { return el.getAttribute('data-user'); })
+                .filter(Boolean);
+            db.ref('member_order').set(order);
+        }
+        // Owner-only: hold the drag handle and move a member row vertically to reorder.
+        function attachMemberDrag(handle, entry) {
+            handle.addEventListener('pointerdown', function (e) {
+                e.preventDefault();
+                var wrap = entry.parentNode;
+                if (!wrap) return;
+                entry.classList.add('dragging');
+                try { handle.setPointerCapture(e.pointerId); } catch (err) { }
+                function onMove(ev) {
+                    var y = ev.clientY;
+                    var sibs = Array.prototype.slice.call(wrap.querySelectorAll('.member-entry')).filter(function (el) { return el !== entry; });
+                    var next = null;
+                    for (var i = 0; i < sibs.length; i++) {
+                        var rect = sibs[i].getBoundingClientRect();
+                        if (y < rect.top + rect.height / 2) { next = sibs[i]; break; }
+                    }
+                    if (next) { if (entry.nextElementSibling !== next) wrap.insertBefore(entry, next); }
+                    else if (wrap.lastElementChild !== entry) { wrap.appendChild(entry); }
+                }
+                function onUp() {
+                    entry.classList.remove('dragging');
+                    document.removeEventListener('pointermove', onMove);
+                    document.removeEventListener('pointerup', onUp);
+                    document.removeEventListener('pointercancel', onUp);
+                    try { handle.releasePointerCapture(e.pointerId); } catch (err) { }
+                    persistMemberOrder(wrap);
+                }
+                document.addEventListener('pointermove', onMove);
+                document.addEventListener('pointerup', onUp);
+                document.addEventListener('pointercancel', onUp);
+            });
+        }
+
         function renderLedger() {
             activeView = 'ledger'; activeViewUser = null;
             const wrap = document.getElementById('ledger-rows');
             if (!wrap) return;
             wrap.innerHTML = '';
-            memberList().forEach(function (user) {
+            const viewer = getActiveUser();
+            const canManage = viewer === 'ghadi' || roleOfLocal(viewer) === 'owner';
+            const ordered = memberList();
+            ordered.forEach(function (user, idx) {
                 const isOwn = user === 'ghadi' || roleOfLocal(user) === 'owner';
                 const isMgr = roleOfLocal(user) === 'manager';
                 const isAdm = roleOfLocal(user) === 'admin';
+                const entry = document.createElement('div'); entry.className = 'member-entry';
                 const row = document.createElement('button'); row.className = 'member-link'; row.type = 'button';
                 const nm = document.createElement('span'); nm.className = 'name'; nm.textContent = displayNameFor(user);
                 row.appendChild(nm);
                 if (isOwn) { const tag = document.createElement('span'); tag.className = 'admin-tag'; tag.textContent = '(owner)'; row.appendChild(tag); }
                 else if (isMgr) { const tag = document.createElement('span'); tag.className = 'manager-tag'; tag.textContent = '(manager)'; row.appendChild(tag); }
                 else if (isAdm) { const tag = document.createElement('span'); tag.className = 'admin-tag'; tag.textContent = '(admin)'; row.appendChild(tag); }
+                if (canManage && NOTES[user]) { const nt = document.createElement('span'); nt.className = 'admin-tag'; nt.style.background = 'rgba(129,140,248,.18)'; nt.style.color = '#c7d2fe'; nt.textContent = '📝'; nt.title = NOTES[user]; row.appendChild(nt); }
                 const chev = document.createElement('span'); chev.className = 'chev'; chev.textContent = '›'; row.appendChild(chev);
                 row.onclick = function () { navigateToUser(user); };
-                wrap.appendChild(row);
+                entry.setAttribute('data-user', user);
+                entry.appendChild(row);
+                if (canManage) {
+                    const ctl = document.createElement('div'); ctl.className = 'member-admin';
+                    const drag = document.createElement('button'); drag.type = 'button'; drag.className = 'mdrag'; drag.textContent = '☰'; drag.title = 'Hold and drag to reorder'; drag.setAttribute('aria-label', 'Drag to reorder');
+                    attachMemberDrag(drag, entry);
+                    ctl.appendChild(drag);
+                    const ta = document.createElement('input'); ta.type = 'text'; ta.className = 'mnote-input'; ta.placeholder = 'Add a note about ' + displayNameFor(user) + '…'; ta.value = (NOTES[user] != null ? NOTES[user] : '');
+                    const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'mnote-save'; sv.textContent = 'Save';
+                    const st = document.createElement('span'); st.className = 'mnote-status';
+                    sv.onclick = function () { saveMemberNote(user, ta.value, st); };
+                    ta.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); saveMemberNote(user, ta.value, st); } });
+                    ctl.appendChild(ta); ctl.appendChild(sv); ctl.appendChild(st);
+                    entry.appendChild(ctl);
+                }
+                wrap.appendChild(entry);
             });
         }
 
@@ -325,19 +407,19 @@
         const POINTS_BASE = '/membersonly/points/';
         let activeView = 'ledger', activeViewUser = null;
 
+        // Read the target user from a real query string (?u=<username>) so the URL
+        // survives a hard reload on static hosting (no server rewrites, no 404s).
         function routeUserFromPath() {
-            let p = location.pathname;
-            try { p = decodeURIComponent(p); } catch (e) { }
-            if (p.indexOf(POINTS_BASE) !== 0) return null;
-            let rest = p.slice(POINTS_BASE.length).replace(/\/+$/, '');
-            if (!rest || rest === 'index.html') return null;
-            if (rest.indexOf('/') > -1) return null;
-            if (rest === 'how-to-get' || rest === 'use-points') return null;
-            return rest.toLowerCase();
+            var u = null;
+            try { u = new URLSearchParams(location.search).get('u'); } catch (e) { }
+            if (!u) return null;
+            u = String(u).trim().toLowerCase();
+            if (!u || u === 'how-to-get' || u === 'use-points') return null;
+            return u;
         }
 
         function navigateToUser(user) {
-            history.pushState({ mxUser: user }, '', POINTS_BASE + encodeURIComponent(user));
+            history.pushState({ mxUser: user }, '', location.pathname + '?u=' + encodeURIComponent(user));
             showUserPage(user);
         }
 
@@ -377,7 +459,7 @@
             const targetIsAdmin = targetRole === 'admin';
             uv.innerHTML = '';
 
-            uv.appendChild(mkBtn('‹ Back to members', 'btn-back', '', function () { history.pushState({}, '', POINTS_BASE); showLedgerView(); }));
+            uv.appendChild(mkBtn('‹ Back to members', 'btn-back', '', function () { history.pushState({}, '', location.pathname); showLedgerView(); }));
 
             const hd = document.createElement('div'); hd.className = 'user-hd';
             const hn = document.createElement('span'); hn.textContent = displayNameFor(user); hd.appendChild(hn);
@@ -476,6 +558,8 @@
 
         // REALTIME LISTENERS (data-driven so promoted members appear automatically)
         db.ref('points').on('value', function (snapshot) { POINTS = snapshot.val() || {}; refreshViews(); });
+        db.ref('member_notes').on('value', function (s) { NOTES = s.val() || {}; if (activeView === 'ledger') renderLedger(); });
+        db.ref('member_order').on('value', function (s) { var v = s.val(); ORDER = Array.isArray(v) ? v.filter(Boolean) : (v ? Object.keys(v).map(function (k) { return v[k]; }) : []); if (activeView === 'ledger') renderLedger(); });
         db.ref('roles').on('value', function (snapshot) { ROLES = snapshot.val() || {}; refreshViews(); });
         db.ref('profiles').on('value', function (snapshot) {
             PROFILES = snapshot.val() || {};
