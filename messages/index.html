@@ -72,9 +72,9 @@
       manager_points: { icon: '\u2B50', color: '#34d399', label: 'Manager point changes (revertable)' },
       manager_role_change: { icon: '\uD83C\uDF96', color: '#34d399', label: 'Manager role changes (revertable)' },
       manager_delete_comment: { icon: '\uD83D\uDDD1', color: '#f87171', label: 'Manager comment deletions (revertable)' },
-      game: { icon: '\uD83C\uDFAE', color: '#818cf8', label: 'Math Fight room deleted' }
+      room_delete: { icon: '\uD83D\uDDD1', color: '#f87171', label: 'Math Fight room deletions (revertable)' }
     };
-    var NOTIF_ORDER = ['follower', 'joined', 'role', 'changelog', 'comment', 'reply', 'mention', 'points', 'redeem', 'meme', 'lesson', 'deleted', 'points_request', 'approval_request', 'manager_points', 'manager_role_change', 'manager_delete_comment', 'game'];
+    var NOTIF_ORDER = ['follower', 'joined', 'role', 'changelog', 'comment', 'reply', 'mention', 'points', 'redeem', 'meme', 'lesson', 'deleted', 'points_request', 'approval_request', 'manager_points', 'manager_role_change', 'manager_delete_comment', 'room_delete'];
     var CHIPS = [
       { id: 'all', label: 'All', types: null },
       { id: 'follower', label: 'Follows', types: ['follower'] },
@@ -84,9 +84,8 @@
       { id: 'points', label: 'Points', types: ['points', 'redeem', 'points_request', 'manager_points'] },
       { id: 'meme', label: '\uD83D\uDE02 Jokes & Memes', types: ['meme'] },
       { id: 'lesson', label: '\uD83D\uDCDA Lessons', types: ['lesson'] },
-      { id: 'deleted', label: '\uD83D\uDDD1 Removed', types: ['deleted', 'manager_delete_comment'] },
-      { id: 'changelog', label: 'Updates', types: ['changelog'] },
-      { id: 'game', label: '\uD83C\uDFAE Math Fight', types: ['game'] }
+      { id: 'deleted', label: '\uD83D\uDDD1 Removed', types: ['deleted', 'manager_delete_comment', 'room_delete'] },
+      { id: 'changelog', label: 'Updates', types: ['changelog'] }
     ];
 
     function getUser() { return sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null; }
@@ -184,6 +183,8 @@
           if (s.prevValue !== undefined) ev.prevValue = s.prevValue;
           if (s.newValue !== undefined) ev.newValue = s.newValue;
           if (s.prevRole) ev.prevRole = s.prevRole;
+          if (s.roomId) ev.roomId = s.roomId;
+          if (s.roomIds) ev.roomIds = s.roomIds;
           allEvents.push(ev);
         });
         Object.keys(changelog).forEach(function (k) {
@@ -341,6 +342,12 @@
           rvc.addEventListener('click', function () { revertCommentDeletion(e, rvc); });
           body.appendChild(rvc);
         }
+        if (e.type === 'room_delete' && isOwner && (e.roomId || e.roomIds)) {
+          var rvrm = document.createElement('button'); rvrm.textContent = '\u21A9 Restore room' + (e.roomIds && e.roomIds.length > 1 ? 's' : '');
+          rvrm.style.cssText = 'margin-top:8px;background:linear-gradient(90deg,#f87171,#ef4444);color:#fff;border:none;border-radius:9px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer';
+          rvrm.addEventListener('click', function () { revertRoomDeletion(e, rvrm); });
+          body.appendChild(rvrm);
+        }
         item.appendChild(body);
         list.appendChild(item);
       });
@@ -453,6 +460,20 @@
       });
     }
 
+    function revertRoomDeletion(e, btn) {
+      if (!isOwner) { alert('Only the owner can revert this.'); return; }
+      var ids = (e.roomIds && e.roomIds.length) ? e.roomIds : (e.roomId ? [e.roomId] : []);
+      if (!ids.length) { alert('No room to restore.'); return; }
+      btn.disabled = true; btn.textContent = 'Restoring\u2026';
+      Promise.all(ids.map(function (id) {
+        return fetchJson(FB + '/mathfight/room_backups/' + encodeURIComponent(id) + '.json').then(function (b) {
+          if (b === null || b === undefined) return null;
+          return fbPut(FB + '/mathfight/rooms/' + encodeURIComponent(id) + '.json', b).then(function () { return fbDel(FB + '/mathfight/room_backups/' + encodeURIComponent(id) + '.json'); });
+        });
+      })).then(function () {
+        fbDel(FB + '/notifications/ghadi/' + encodeURIComponent(e.notifKey) + '.json').then(function () { alert('Restored ' + ids.length + ' room' + (ids.length === 1 ? '' : 's') + '.'); render(); });
+      });
+    }
     function revertCommentDeletion(e, btn) {
       if (!isOwner) { alert('Only the owner can revert this.'); return; }
       btn.disabled = true; btn.textContent = 'Restoring\u2026';

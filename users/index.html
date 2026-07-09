@@ -642,11 +642,11 @@
         fetch(FB + '/members/' + encodeURIComponent(u) + '.json', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testUser: true }) }).catch(function () { });
       }
       if (newRole === 'manager') {
-        // Manager promotion bonus: always award 200 points
+        // Manager promotion bonus: always award 25 points
         fetch(FB + '/points/' + encodeURIComponent(u) + '.json').then(function (r) { return r.json(); }).then(function (p) {
           var cur = typeof p === 'number' ? p : 0;
-          fetch(FB + '/points/' + encodeURIComponent(u) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cur + 200) });
-          pushNotification(u, 'points', '\uD83C\uDF89 Manager bonus', 'You were promoted to Matix Manager and got 200 bonus points!');
+          fetch(FB + '/points/' + encodeURIComponent(u) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cur + 25) });
+          pushNotification(u, 'points', '\uD83C\uDF89 Manager bonus', 'You were promoted to Matix Manager and got 25 bonus points!');
         }).catch(function () { });
       }
       else if (newRole === 'member' || newRole === 'admin' || newRole === 'owner') {

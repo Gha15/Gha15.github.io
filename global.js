@@ -171,11 +171,11 @@ function initListeners() {
 initListeners();
 
 // gets data from /alldailypuzzles.js and puts them as current daily challenge
-const dailyChallenges = puzzles;
+const dailyChallenges = (typeof puzzles !== 'undefined') ? puzzles : (window.puzzles || {});
 
 function checkifdailyanswerisnotpasted() {
     // checks if the user pasted the answer into the input box, if so, it will alert the user and clear the input box
-    const input = document.getElementById('user-answer');
+    const input = document.getElementById('answer-input') || document.getElementById('user-answer');
     if (input) {
         input.addEventListener('paste', (event) => {
             event.preventDefault();
@@ -194,9 +194,9 @@ const difficultyBox = document.getElementById('difficultyBox');
 const problemDisplay = document.getElementById('problem-display');
 const streakCount = document.getElementById('streak-count');
 const countdownEl = document.getElementById('countdown');
-const userAnswerInput = document.getElementById('user-answer');
-const submitBtn = document.getElementById('submit-btn');
-const feedbackMsg = document.getElementById('feedback-msg');
+const userAnswerInput = document.getElementById('answer-input') || document.getElementById('user-answer');
+const submitBtn = document.getElementById('submit-button') || document.getElementById('submit-btn');
+const feedbackMsg = document.getElementById('feedback') || document.getElementById('feedback-msg');
 
 // Get current date string formatted as YYYY-MM-DD
 function getTodayString() {
@@ -213,7 +213,7 @@ const currentChallenge = dailyChallenges[todayStr] || { question: "-- = ?", answ
 function initChallenge() {
     if (difficultyBox) difficultyBox.textContent = currentChallenge.difficulty || "--";
     if (problemDisplay) problemDisplay.textContent = currentChallenge.question;
-    if (streakCount) streakCount.textContent = streak;
+    if (streakCount) streakCount.textContent = 'Streak 🔥: ' + streak;
 
     // Check completion status instantly
     if (lastCompletedDate === todayStr) {
@@ -247,7 +247,7 @@ function handleCorrectAnswer() {
         streak++;
         localStorage.setItem('math_streak', streak);
         localStorage.setItem('math_last_completed', todayStr);
-        if (streakCount) streakCount.textContent = streak;
+        if (streakCount) streakCount.textContent = 'Streak 🔥: ' + streak;
     }
     lockChallenge("Correct! Streak updated. 🎉", "success");
 }

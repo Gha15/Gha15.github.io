@@ -439,7 +439,7 @@
         '.mx-p-iframe{width:660px;height:auto;display:flex;flex-direction:column;overflow:hidden}',
         '.mx-ifr-view{position:relative;overflow:hidden;flex:0 0 auto}',
         '.mx-p-iframe iframe{position:absolute;top:0;left:0;width:1320px;height:860px;transform-origin:0 0;border:none;pointer-events:none;display:block;background:#030d1e}',
-        '.mx-ifr-hit{position:absolute;top:0;left:0;right:0;bottom:0;z-index:2;cursor:pointer;display:block}',
+        '.mx-ifr-hit{position:absolute;top:0;left:0;right:0;bottom:0;z-index:10000000000000000000000000000000;cursor:pointer;display:block}',
         '.mx-ifr-foot{position:relative;flex-shrink:0;padding:9px 14px;background:linear-gradient(to top,rgba(2,7,22,.98) 55%,transparent);display:flex;align-items:flex-end;justify-content:space-between;z-index:3}',
         '.mx-ifr-label{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.70rem;color:#93c5fd;pointer-events:none}',
         '.mx-ifr-open{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.70rem;color:#f59e0b;text-decoration:none;background:rgba(2,7,22,.8);padding:3px 9px;border-radius:4px;border:1px solid rgba(245,158,11,.4)}',
@@ -944,10 +944,11 @@
         if (id.indexOf('bot_room_') === 0) return '\ud83e\udd16 ' + id;
         return '\ud83d\udd12 ' + id;
     }
-    function deleteAllRooms(ids, btn) {
+    function isDeletableRoom(id) { return id !== MF_PUBLIC_ID && id.indexOf('bot_room_') !== 0; }
+    function deleteAllRooms(ids, rooms, btn) {
         mxConfirm({
             title: '\ud83d\uddd1\ufe0f Delete ALL rooms?',
-            body: 'This removes all ' + ids.length + ' active room' + (ids.length === 1 ? '' : 's') + ' and kicks everyone in them. This can\u2019t be undone.',
+            body: 'This removes all ' + ids.length + ' deletable room' + (ids.length === 1 ? '' : 's') + ' and kicks everyone in them. Bot rooms and the Public Server are kept. The owner can revert this.',
             okLabel: '\ud83d\uddd1\ufe0f Delete all',
             cancelLabel: 'Cancel',
             danger: true
@@ -956,11 +957,12 @@
             btn.disabled = true; btn.textContent = 'Deleting\u2026';
             var by = normUser(getUser()) || 'a moderator';
             Promise.all(ids.map(function (id) {
-                return fetch(FIREBASE_URL + '/' + MF_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'DELETE' }).catch(function () {});
+                var data = (rooms && rooms[id]) ? rooms[id] : true;
+                return fetch(FIREBASE_URL + '/mathfight/room_backups/' + encodeURIComponent(id) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(function () {}).then(function () { return fetch(FIREBASE_URL + '/' + MF_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'DELETE' }).catch(function () {}); });
             })).then(function () {
                 fetch(FIREBASE_URL + '/notifications/ghadi.json', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'game', at: Date.now(), title: '\ud83d\uddd1\ufe0f All Math Fight rooms deleted', body: '@' + by + ' deleted all ' + ids.length + ' active room' + (ids.length === 1 ? '' : 's') + '.' })
+                    body: JSON.stringify({ type: 'room_delete', at: Date.now(), title: '\ud83d\uddd1\ufe0f All Math Fight rooms deleted', body: '@' + by + ' deleted all ' + ids.length + ' active room' + (ids.length === 1 ? '' : 's') + '.', roomIds: ids })
                 }).catch(function () {});
                 renderRooms();
             });
@@ -979,10 +981,13 @@
             var ids = Object.keys(rooms).sort();
             listWrap.innerHTML = '';
             if (!ids.length) { listWrap.innerHTML = '<div class="mx-notif-empty">No active rooms right now.</div>'; return; }
-            var bar = mk('div', 'mx-rooms-bar');
-            var delAll = mk('button', 'mx-room-delall'); delAll.type = 'button'; delAll.textContent = '\ud83d\uddd1\ufe0f Delete all rooms (' + ids.length + ')';
-            delAll.addEventListener('click', function () { deleteAllRooms(ids, delAll); });
-            bar.appendChild(delAll); listWrap.appendChild(bar);
+            var delIds = ids.filter(isDeletableRoom);
+            if (delIds.length) {
+                var bar = mk('div', 'mx-rooms-bar');
+                var delAll = mk('button', 'mx-room-delall'); delAll.type = 'button'; delAll.textContent = '\ud83d\uddd1\ufe0f Delete all rooms (' + delIds.length + ')';
+                delAll.addEventListener('click', function () { deleteAllRooms(delIds, rooms, delAll); });
+                bar.appendChild(delAll); listWrap.appendChild(bar);
+            }
             ids.forEach(function (id) {
                 var r = rooms[id] || {};
                 var count = r.players ? Object.keys(r.players).length : 0;
@@ -992,10 +997,16 @@
                 var nm = mk('span', 'mx-user-row-name'); nm.textContent = mfRoomLabel(id); top.appendChild(nm);
                 var rl = mk('span', 'mx-user-row-role'); rl.textContent = count + ' player' + (count === 1 ? '' : 's') + ' \u00b7 ' + op; top.appendChild(rl);
                 row.appendChild(top);
-                var del = mk('button', 'mx-room-del'); del.textContent = '\ud83d\uddd1 Delete';
-                del.style.cssText = 'margin-top:8px;background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.45);color:#fca5a5;border-radius:8px;padding:5px 12px;font-size:.8rem;cursor:pointer;';
-                del.addEventListener('click', function () { deleteRoom(id, count, del); });
-                row.appendChild(del);
+                if (isDeletableRoom(id)) {
+                    var del = mk('button', 'mx-room-del'); del.textContent = '\ud83d\uddd1 Delete';
+                    del.style.cssText = 'margin-top:8px;background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.45);color:#fca5a5;border-radius:8px;padding:5px 12px;font-size:.8rem;cursor:pointer;';
+                    del.addEventListener('click', function () { deleteRoom(id, count, del); });
+                    row.appendChild(del);
+                } else {
+                    var prot = mk('div'); prot.textContent = (id === MF_PUBLIC_ID) ? '\ud83d\udd12 Public Server \u2014 protected' : '\ud83e\udd16 Bot room \u2014 protected';
+                    prot.style.cssText = 'margin-top:8px;font-size:.74rem;color:#64748b;';
+                    row.appendChild(prot);
+                }
                 listWrap.appendChild(row);
             });
         });
@@ -1068,11 +1079,15 @@
         function doDelete() {
             btn.disabled = true; btn.textContent = 'Deleting\u2026';
             var by = normUser(getUser()) || 'a moderator';
-            fetch(FIREBASE_URL + '/' + MF_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'DELETE' })
+            grabJson(FIREBASE_URL + '/' + MF_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json').then(function (data) {
+                return fetch(FIREBASE_URL + '/mathfight/room_backups/' + encodeURIComponent(id) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data || true) }).catch(function () {});
+            }).then(function () {
+                return fetch(FIREBASE_URL + '/' + MF_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'DELETE' });
+            })
                 .then(function () {
                     fetch(FIREBASE_URL + '/notifications/ghadi.json', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ type: 'game', at: Date.now(), title: '\ud83d\uddd1\ufe0f Math Fight room deleted', body: '@' + by + ' deleted ' + label + ' \u2014 ' + count + ' player' + (count === 1 ? '' : 's') + ' removed.' })
+                        body: JSON.stringify({ type: 'room_delete', at: Date.now(), title: '\ud83d\uddd1\ufe0f Math Fight room deleted', body: '@' + by + ' deleted ' + label + ' \u2014 ' + count + ' player' + (count === 1 ? '' : 's') + ' removed.', roomId: id })
                     }).catch(function () {});
                     renderRooms();
                 })

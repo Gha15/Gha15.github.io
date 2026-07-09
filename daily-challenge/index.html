@@ -7,51 +7,108 @@
     <link rel="stylesheet" href="../global.css">
     <link rel="icon" href="../favicon.svg" type="image/x-icon">
     <style>
+        /* Page-scoped fixes so the shared global.css light-theme rules don't leak in */
         body {
-            background-color: #f0f4f8 !important;
-            font-family: 'Arial', sans-serif !important;
-            display: flex !important;
-            justify-content: center !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            /* makes page scrollable if possible*/
-            overflow-y: auto !important;
-            background-color: #042444 !important;
-            width: 100% !important;
             background: #042444 !important;
+            min-height: 100vh !important;
+            margin: 0 !important;
         }
+        .challenge-container-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            width: 100%;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        .challenge-card h1 {
+            color: #f8fafc;
+            margin-bottom: 8px;
+        }
+        .header-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin: 18px 0;
+        }
+        /* id selectors beat the generic global input/button element rules */
+        #answer-input {
+            flex: 1;
+            width: auto;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #answer-input:focus { border-color: #38bdf8; }
+        #submit-button {
+            width: auto;
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        #submit-button:hover { opacity: 0.9; }
+        #submit-button:active { transform: scale(0.98); }
+        #submit-button:disabled { cursor: not-allowed; }
+        .timer-box {
+            margin-top: 18px;
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        #countdown { color: #38bdf8; font-weight: bold; }
+        #streak-count {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        .feedback { min-height: 1.5rem; }
     </style>
 </head>
 <body>
-    <h1 class="feedback" id="feedback"></h1>
-    <div class="vertical-spacer"></div>
-    <div class="challenge-card">  
-        <h1>Welcome to the Daily Challenge!</h1>
+    <div class="challenge-container-view">
         <div class="challenge-card">
-            <h4>Test your math skills with a new challenge every day!</h4>  
-            <p>today's challenge:</p>
-        <div class="challenge-card">
-        <div id="problem-display" class="problem-box">Loading today's challenge...</div>
-        <p>difficulty:</p>
-        <div id="difficultyBox" class="difficulty-box"></div>
-        <div id="input-group" class="input-group">
-            <input type="text" id="answer-input" placeholder="Enter your answer" />
-            <button id="submit-button">Submit</button>
-    </div>
-    <div class="challenge-card">
-        <div class="timer-box">
-            <div class="countdown">Next challenge in:</div>
-            <div id="countdown" class="countdown">Next challenge in: --:--:--</div>
+            <h1>Welcome to the Daily Challenge!</h1>
+            <p class="sub-text">Test your math skills with a new challenge every day!</p>
+
+            <div class="header-stats">
+                <span id="streak-count">Streak 🔥: 0</span>
+                <span class="timer-badge">⏳ <span id="countdown">--:--:--</span></span>
+            </div>
+
+            <p class="sub-text">Today's challenge:</p>
+            <div id="problem-display" class="problem-box">Loading today's challenge...</div>
+
+            <p class="sub-text">Difficulty:</p>
+            <div id="difficultyBox" class="difficulty-box">--</div>
+
+            <div id="input-group" class="input-group">
+                <input type="text" id="answer-input" placeholder="Enter your answer" autocomplete="off" />
+                <button id="submit-button">Submit</button>
+            </div>
+
+            <h1 class="feedback" id="feedback"></h1>
         </div>
-    </div>
-    <div class="vertical-spacer"></div>
-    <div class="challenge-card">
-        <streak-count>Streak 🔥:</streak-count>
-        <streak-count id="streak-count">Streak 🔥: 0</streak-count>
     </div>
 
     <script src="../alldailypuzzles.js"></script>
-    <script src="../global.js"></script>
-<script src="/nav.js" defer></script>
+    <script src="../global.js" type="module"></script>
+    <script src="/nav.js" defer></script>
 </body>
 </html>

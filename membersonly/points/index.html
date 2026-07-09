@@ -251,6 +251,9 @@
         .user-score-label{color:#64748b;text-transform:uppercase;letter-spacing:2px;font-size:.85rem;margin-bottom:26px}
         .user-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
         .readonly-note{color:#64748b;font-size:1.05rem;margin-top:10px;font-style:italic}
+        .user-note-box{background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.3);border-radius:12px;padding:14px 16px;margin:0 auto 22px;text-align:left;max-width:520px}
+        .user-note-label{font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:#818cf8;font-weight:700;margin-bottom:6px}
+        .user-note-body{color:#e2e8f0;font-size:1rem;line-height:1.5;white-space:pre-wrap}
         .member-entry{display:flex;flex-direction:column;position:relative}
         .member-entry.dragging{z-index:999999999999;opacity:.92;box-shadow:0 18px 40px rgba(0,0,0,.55);border-radius:12px}
         .member-admin{display:flex;align-items:center;gap:8px;margin:-4px 0 12px;padding:0 4px;flex-wrap:wrap;position:relative;z-index:999999999999}
@@ -288,9 +291,41 @@
             if (VALID_MEMBERS.indexOf(u) > -1) return 'member';
             return 'user';
         }
-        function isMemberUser(u) { const r = roleOfLocal(u); return r === 'member' || r === 'admin' || r === 'owner'; }
+        function isMemberUser(u) { const r = roleOfLocal(u); return r === 'member' || r === 'admin' || r === 'owner' || r === 'manager'; }
         function isAdminUser(u) { const r = roleOfLocal(u); return r === 'admin' || r === 'manager' || r === 'owner' || (PROFILES[u] && PROFILES[u].isAdmin); }
         function displayNameFor(u) { return DISPLAY_NAMES[u] || (u.charAt(0).toUpperCase() + u.slice(1)); }
+        function mxAlert(message, opts) {
+            opts = opts || {};
+            var msg = String(message == null ? '' : message);
+            var title = opts.title, danger = opts.danger, success = opts.success;
+            if (title === undefined) {
+                if (/^ERROR[:\s]*/i.test(msg)) { danger = true; title = 'Invalid action'; msg = msg.replace(/^ERROR[:\s]*/i, ''); }
+                else if (/^REQUEST_DENIED[:\s]*/i.test(msg)) { danger = true; title = 'Request denied'; msg = msg.replace(/^REQUEST_DENIED[:\s]*/i, '') || 'The request was denied.'; }
+                else if (/^REQUEST_SENT[:\s]*/i.test(msg)) { success = true; title = 'Request sent'; msg = msg.replace(/^REQUEST_SENT[:\s]*/i, ''); }
+                else if (/^APPROVED[:\s]*/i.test(msg)) { success = true; title = 'Approved'; msg = msg.replace(/^APPROVED[:\s]*/i, ''); }
+                else { title = 'Notice'; }
+            }
+            var accent = danger ? '#f87171' : (success ? '#34d399' : '#f59e0b');
+            var old = document.getElementById('mxa-ui'); if (old && old.parentNode) old.parentNode.removeChild(old);
+            var ov = document.createElement('div'); ov.id = 'mxa-ui';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:100050;display:flex;align-items:center;justify-content:center;background:rgba(2,7,22,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:20px;box-sizing:border-box;font-family:"Trebuchet MS",Arial,sans-serif';
+            var box = document.createElement('div');
+            box.style.cssText = 'max-width:430px;width:100%;background:rgba(10,15,30,.99);border:1px solid rgba(59,130,246,.45);border-top:4px solid ' + accent + ';border-radius:14px;box-shadow:0 32px 80px rgba(0,0,0,.9);padding:20px;box-sizing:border-box';
+            var h = document.createElement('h3'); h.textContent = title; h.style.cssText = 'color:' + accent + ';font-size:1.12rem;font-weight:800;margin:0 0 10px';
+            var p = document.createElement('p'); p.textContent = msg; p.style.cssText = 'color:#cbd5e1;font-size:.9rem;line-height:1.55;margin:0 0 14px;white-space:pre-wrap';
+            var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+            var ok = document.createElement('button'); ok.type = 'button'; ok.textContent = opts.okLabel || 'OK';
+            ok.style.cssText = 'background:linear-gradient(90deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:9px;padding:8px 22px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit';
+            row.appendChild(ok); box.appendChild(h); box.appendChild(p); box.appendChild(row);
+            ov.appendChild(box); document.body.appendChild(ov);
+            function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); document.removeEventListener('keydown', onKey); }
+            function onKey(e) { if (e.key === 'Escape' || e.key === 'Enter') close(); }
+            ok.addEventListener('click', close);
+            ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+            document.addEventListener('keydown', onKey);
+            ok.focus();
+            return close;
+        }
 
         function memberList() {
             const set = {};
@@ -381,7 +416,7 @@
                 if (isOwn) { const tag = document.createElement('span'); tag.className = 'admin-tag'; tag.textContent = '(owner)'; row.appendChild(tag); }
                 else if (isMgr) { const tag = document.createElement('span'); tag.className = 'manager-tag'; tag.textContent = '(manager)'; row.appendChild(tag); }
                 else if (isAdm) { const tag = document.createElement('span'); tag.className = 'admin-tag'; tag.textContent = '(admin)'; row.appendChild(tag); }
-                if (canManage && NOTES[user]) { const nt = document.createElement('span'); nt.className = 'admin-tag'; nt.style.background = 'rgba(129,140,248,.18)'; nt.style.color = '#c7d2fe'; nt.textContent = '📝'; nt.title = NOTES[user]; row.appendChild(nt); }
+                if (NOTES[user] && (canManage || user === viewer)) { const nt = document.createElement('span'); nt.className = 'admin-tag'; nt.style.background = 'rgba(129,140,248,.18)'; nt.style.color = '#c7d2fe'; nt.textContent = '📝'; nt.title = NOTES[user]; row.appendChild(nt); }
                 const chev = document.createElement('span'); chev.className = 'chev'; chev.textContent = '›'; row.appendChild(chev);
                 row.onclick = function () { navigateToUser(user); };
                 entry.setAttribute('data-user', user);
@@ -471,6 +506,15 @@
             const sc = document.createElement('div'); sc.className = 'user-score'; sc.textContent = pts; uv.appendChild(sc);
             const scl = document.createElement('div'); scl.className = 'user-score-label'; scl.textContent = 'points'; uv.appendChild(scl);
 
+            const viewerIsOwnerN = viewer === 'ghadi' || roleOfLocal(viewer) === 'owner';
+            if (NOTES[user] && (viewer === user || viewerIsOwnerN)) {
+                const noteBox = document.createElement('div'); noteBox.className = 'user-note-box';
+                const nlab = document.createElement('div'); nlab.className = 'user-note-label';
+                nlab.textContent = (viewerIsOwnerN && viewer !== user) ? ('📝 Note — only ' + displayNameFor(user) + ' can see this') : '📝 A note for you';
+                const nbody = document.createElement('div'); nbody.className = 'user-note-body'; nbody.textContent = NOTES[user];
+                noteBox.appendChild(nlab); noteBox.appendChild(nbody); uv.appendChild(noteBox);
+            }
+
             if (canEdit) {
                 const ctrls = document.createElement('div'); ctrls.className = 'controls user-controls';
                 ctrls.appendChild(mkBtn('+10', 'btn', '', function () { addPoints(user, 10); }));
@@ -558,8 +602,8 @@
 
         // REALTIME LISTENERS (data-driven so promoted members appear automatically)
         db.ref('points').on('value', function (snapshot) { POINTS = snapshot.val() || {}; refreshViews(); });
-        db.ref('member_notes').on('value', function (s) { NOTES = s.val() || {}; if (activeView === 'ledger') renderLedger(); });
-        db.ref('member_order').on('value', function (s) { var v = s.val(); ORDER = Array.isArray(v) ? v.filter(Boolean) : (v ? Object.keys(v).map(function (k) { return v[k]; }) : []); if (activeView === 'ledger') renderLedger(); });
+        db.ref('member_notes').on('value', function (s) { NOTES = s.val() || {}; refreshViews(); });
+        db.ref('member_order').on('value', function (s) { var v = s.val(); ORDER = Array.isArray(v) ? v.filter(Boolean) : (v ? Object.keys(v).map(function (k) { return v[k]; }) : []); refreshViews(); });
         db.ref('roles').on('value', function (snapshot) { ROLES = snapshot.val() || {}; refreshViews(); });
         db.ref('profiles').on('value', function (snapshot) {
             PROFILES = snapshot.val() || {};
@@ -571,7 +615,7 @@
 
         // UPDATE LOGIC
         function addPoints(name, amount) {
-            const activeUser = sessionStorage.getItem("matix_auth_user");
+            const activeUser = getActiveUser();
             const isGhadi = activeUser === 'ghadi';
             const isMgr = roleOfLocal(activeUser) === 'manager';
 
@@ -599,13 +643,13 @@
                 });
                 reqRef.then(() => {
                     pushNotif('ghadi', 'points_request', '📊 Point change request', displayNameFor(activeUser) + ' wants to ' + (amount > 0 ? 'add ' : 'remove ') + Math.abs(amount) + ' points for ' + displayNameFor(name) + '.', { requestId: reqRef.key, requestedBy: activeUser, targetUser: name, amount: amount });
-                    alert(`REQUEST_SENT: ${activeUser.toUpperCase()} asked to ${amount > 0 ? 'add' : 'remove'} ${Math.abs(amount)} points for ${name.toUpperCase()}`);
+                    mxAlert(`REQUEST_SENT: ${activeUser.toUpperCase()} asked to ${amount > 0 ? 'add' : 'remove'} ${Math.abs(amount)} points for ${name.toUpperCase()}`);
                 });
             }
         }
 
         function resetPerson(name) {
-            const activeUser = sessionStorage.getItem("matix_auth_user");
+            const activeUser = getActiveUser();
             const isMgr = roleOfLocal(activeUser) === 'manager';
 
             if (activeUser === 'ghadi' || isMgr) {
@@ -632,7 +676,7 @@
                     });
                     reqRef.then(() => {
                         pushNotif('ghadi', 'points_request', '📊 Point reset request', displayNameFor(activeUser) + ' wants to reset ' + displayNameFor(name) + "'s points.", { requestId: reqRef.key, requestedBy: activeUser, targetUser: name, amount: 'reset' });
-                        alert(`REQUEST_SENT: Point reset request for ${name} sent to admin for approval`);
+                        mxAlert(`REQUEST_SENT: Point reset request for ${name} sent to admin for approval`);
                     });
                 }
             }
@@ -645,14 +689,14 @@
             
             const pointsToAdd = parseInt(amount);
             if (isNaN(pointsToAdd) || pointsToAdd <= 0) {
-                alert('ERROR: Please enter a valid positive number');
+                mxAlert('ERROR: Please enter a valid positive number');
                 return;
             }
             
-            const activeUser = sessionStorage.getItem("matix_auth_user");
+            const activeUser = getActiveUser();
             
-            if (activeUser === 'ghadi') {
-                // Ghadi can add directly
+            if (activeUser === 'ghadi' || roleOfLocal(activeUser) === 'manager') {
+                // Ghadi and managers can add directly
                 if (confirm(`ADD ${pointsToAdd} points to ${name.toUpperCase()}?`)) {
                     addPoints(name, pointsToAdd);
                 }
@@ -671,14 +715,14 @@
             
             const pointsToRemove = parseInt(amount);
             if (isNaN(pointsToRemove) || pointsToRemove <= 0) {
-                alert('ERROR: Please enter a valid positive number');
+                mxAlert('ERROR: Please enter a valid positive number');
                 return;
             }
             
-            const activeUser = sessionStorage.getItem("matix_auth_user");
+            const activeUser = getActiveUser();
             
-            if (activeUser === 'ghadi') {
-                // Ghadi can remove directly
+            if (activeUser === 'ghadi' || roleOfLocal(activeUser) === 'manager') {
+                // Ghadi and managers can remove directly
                 if (confirm(`REMOVE ${pointsToRemove} points from ${name.toUpperCase()}?`)) {
                     addPoints(name, -pointsToRemove);
                 }
@@ -778,7 +822,7 @@
                     approvedBy: 'ghadi',
                     approvedAt: Date.now()
                 }).then(() => {
-                    alert(`APPROVED: ${cost} points deducted from ${user}`); pushNotif(user, 'redeem', '🎁 Redemption approved', 'Your request to redeem ' + cost + ' points for ' + (reward || 'a reward') + ' was approved!');
+                    mxAlert(`APPROVED: ${cost} points deducted from ${user}`); pushNotif(user, 'redeem', '🎁 Redemption approved', 'Your request to redeem ' + cost + ' points for ' + (reward || 'a reward') + ' was approved!');
                 });
             });
         }
@@ -793,7 +837,7 @@
                 deniedBy: 'ghadi',
                 deniedAt: Date.now()
             }).then(() => {
-                alert('REQUEST_DENIED'); pushNotif(user, 'redeem', '🎁 Redemption declined', 'Your request to redeem ' + (reward || 'a reward') + ' was declined.');
+                mxAlert('REQUEST_DENIED'); pushNotif(user, 'redeem', '🎁 Redemption declined', 'Your request to redeem ' + (reward || 'a reward') + ' was declined.');
             });
         }
         
@@ -811,7 +855,7 @@
                         approvedBy: 'ghadi',
                         approvedAt: Date.now()
                     }).then(() => {
-                        alert(`APPROVED: ${targetUser}'s points have been reset`); pushNotif(targetUser, 'points', '⭐ Points reset', 'Your points were reset to 0 by the admin.');
+                        mxAlert(`APPROVED: ${targetUser}'s points have been reset`); pushNotif(targetUser, 'points', '⭐ Points reset', 'Your points were reset to 0 by the admin.');
                     });
                 });
                 return;
@@ -833,7 +877,7 @@
                     approvedBy: 'ghadi',
                     approvedAt: Date.now()
                 }).then(() => {
-                    alert(`APPROVED: Points updated for ${targetUser}`); pushNotif(targetUser, 'points', '⭐ Points updated', 'Your points were updated by the admin.');
+                    mxAlert(`APPROVED: Points updated for ${targetUser}`); pushNotif(targetUser, 'points', '⭐ Points updated', 'Your points were updated by the admin.');
                 });
             });
         }
@@ -849,7 +893,7 @@
                 deniedBy: 'ghadi',
                 deniedAt: Date.now()
             }).then(() => {
-                alert('REQUEST_DENIED');
+                mxAlert('REQUEST_DENIED');
             });
         }
         
@@ -863,7 +907,7 @@
                 db.ref('profiles/' + user + '/isAdmin').set(true);
                 db.ref('members/' + user + '/testUser').set(true); // Admins are obliged to be included as test users
                 pushNotif(user, 'role', '⬆ You were promoted', 'You are now a Matix Admin!');
-                alert(displayNameFor(user) + ' is now an admin across all of Matix.');
+                mxAlert(displayNameFor(user) + ' is now an admin across all of Matix.');
             });
         }
         
@@ -878,7 +922,7 @@
                 if (activeUser !== 'ghadi') {
                     pushNotif('ghadi', 'manager_role_change', '⬇ Manager removed admin', displayNameFor(activeUser) + ' removed admin privileges from ' + displayNameFor(user) + '.', { targetUser: user, prevRole: 'admin', newRole: 'member' });
                 }
-                alert(displayNameFor(user) + ' is no longer an admin.');
+                mxAlert(displayNameFor(user) + ' is no longer an admin.');
             });
         }
 
@@ -892,7 +936,7 @@
                 db.ref('members/' + user + '/testUser').set(true); // Managers are obliged to be included as test users
                 db.ref('points/' + user).transaction((current) => (current || 0) + 200);
                 pushNotif(user, 'role', '⬆ You were promoted', 'You are now a Matix Manager and got 200 bonus points!');
-                alert(displayNameFor(user) + ' is now a manager across all of Matix.');
+                mxAlert(displayNameFor(user) + ' is now a manager across all of Matix.');
             });
         }
 
@@ -906,7 +950,7 @@
                 if (activeUser !== 'ghadi') {
                     pushNotif('ghadi', 'manager_role_change', '⬇ Manager removed manager', displayNameFor(activeUser) + ' removed manager privileges from ' + displayNameFor(user) + '.', { targetUser: user, prevRole: 'manager', newRole: 'admin' });
                 }
-                alert(displayNameFor(user) + ' is no longer a manager.');
+                mxAlert(displayNameFor(user) + ' is no longer a manager.');
             });
         }
         
