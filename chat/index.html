@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Chat - MATIX The Math Club</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --wa-teal: #00a884;
+        --wa-panel: #111b21;
+        --wa-panel-header: #202c33;
+        --wa-chat-bg: #0b141a;
+        --wa-in: #202c33;
+        --wa-out: #005c4b;
+        --wa-text: #e9edef;
+        --wa-muted: #8696a0;
+        --wa-border: #2a3942;
+        --wa-hover: #202c33;
+    }
+    html, body { height: 100%; }
+    body {
+        font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+        background: #0a0f14;
+        color: var(--wa-text);
+        padding-top: 60px !important;
+        box-sizing: border-box;
+    }
+    .wa-app {
+        display: flex;
+        height: calc(100vh - 60px);
+        width: 100%;
+        background: var(--wa-panel);
+        overflow: hidden;
+    }
+
+    /* ===== Sidebar ===== */
+    .wa-sidebar {
+        width: 34%;
+        min-width: 300px;
+        max-width: 460px;
+        border-right: 1px solid var(--wa-border);
+        display: flex;
+        flex-direction: column;
+        background: var(--wa-panel);
+    }
+    .wa-side-header {
+        background: var(--wa-panel-header);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    .wa-me { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+    .wa-avatar {
+        width: 40px; height: 40px; border-radius: 50%;
+        background: var(--wa-teal); color: #04231d;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 1.1rem; flex-shrink: 0; text-transform: uppercase;
+    }
+    .wa-me-name { font-weight: 600; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wa-side-actions { color: var(--wa-muted); font-size: 1.3rem; }
+    .wa-search-wrap { padding: 8px 12px; background: var(--wa-panel); }
+    .wa-search {
+        width: 100%; background: var(--wa-panel-header); border: none; outline: none;
+        color: var(--wa-text); padding: 9px 14px; border-radius: 9px; font-size: .92rem;
+    }
+    .wa-chats { flex: 1; overflow-y: auto; }
+    .wa-chat-item {
+        display: flex; align-items: center; gap: 12px; padding: 11px 16px;
+        cursor: pointer; border-bottom: 1px solid rgba(42,57,66,.5);
+    }
+    .wa-chat-item:hover { background: var(--wa-hover); }
+    .wa-chat-item.active { background: var(--wa-hover); }
+    .wa-ci-body { flex: 1; min-width: 0; }
+    .wa-ci-top { display: flex; justify-content: space-between; align-items: baseline; }
+    .wa-ci-name { font-weight: 600; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wa-ci-time { font-size: .72rem; color: var(--wa-muted); flex-shrink: 0; margin-left: 8px; }
+    .wa-ci-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 3px; }
+    .wa-ci-preview { font-size: .85rem; color: var(--wa-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 85%; }
+    .wa-badge {
+        background: var(--wa-teal); color: #04231d; font-size: .7rem; font-weight: 700;
+        min-width: 20px; height: 20px; border-radius: 10px; display: none;
+        align-items: center; justify-content: center; padding: 0 6px; flex-shrink: 0;
+    }
+    .wa-badge.show { display: flex; }
+    .wa-dot-online { width: 9px; height: 9px; border-radius: 50%; background: var(--wa-teal); display: inline-block; margin-left: 6px; }
+    .wa-ci-role { margin-top: 3px; }
+    .wa-role { display: inline-block; font-size: .64rem; font-weight: 700; padding: 1px 7px; border-radius: 8px; border: 1px solid; background: rgba(255,255,255,.04); white-space: nowrap; }
+    #c-badge { margin-top: 2px; }
+
+    /* ===== Conversation ===== */
+    .wa-conv { flex: 1; display: flex; flex-direction: column; background: var(--wa-chat-bg);
+        background-image: radial-gradient(rgba(255,255,255,.02) 1px, transparent 1px);
+        background-size: 22px 22px; position: relative; }
+    .wa-conv-header {
+        background: var(--wa-panel-header); padding: 9px 16px; display: flex;
+        align-items: center; gap: 12px; border-left: 1px solid var(--wa-border); z-index: 5;
+    }
+    .wa-back { display: none; color: var(--wa-text); font-size: 1.4rem; cursor: pointer; }
+    .wa-conv-info { flex: 1; min-width: 0; }
+    .wa-conv-name { font-weight: 600; font-size: 1.02rem; }
+    .wa-conv-status { font-size: .78rem; color: var(--wa-muted); }
+    .wa-conv-status.online { color: var(--wa-teal); }
+    .wa-messages { flex: 1; overflow-y: auto; padding: 18px 8% 10px; display: flex; flex-direction: column; gap: 3px; }
+    .wa-day { align-self: center; background: var(--wa-panel-header); color: var(--wa-muted);
+        font-size: .72rem; padding: 5px 12px; border-radius: 8px; margin: 12px 0; text-transform: uppercase; }
+    .wa-enc { align-self: center; background: rgba(30,42,49,.7); color: #ffd279; font-size: .74rem;
+        padding: 7px 14px; border-radius: 8px; margin: 6px 0 14px; text-align: center; max-width: 90%; }
+    .wa-msg { max-width: 70%; padding: 7px 10px 8px; border-radius: 9px; position: relative;
+        font-size: .95rem; line-height: 1.4; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,.2); }
+    .wa-msg.in { align-self: flex-start; background: var(--wa-in); border-top-left-radius: 2px; }
+    .wa-msg.out { align-self: flex-end; background: var(--wa-out); border-top-right-radius: 2px; }
+    .wa-msg.sticker { background: transparent !important; box-shadow: none; font-size: 4.4rem; line-height: 1; padding: 4px 8px; }
+    .wa-msg-text .katex { font-size: 1.05em; }
+    .wa-meta { display: flex; align-items: center; gap: 4px; justify-content: flex-end;
+        font-size: .66rem; color: var(--wa-muted); margin-top: 2px; }
+    .wa-msg.out .wa-meta { color: rgba(233,237,239,.6); }
+    .wa-check.read { color: #53bdeb; }
+    .wa-del { cursor: pointer; opacity: 0; transition: .15s; margin-left: 6px; }
+    .wa-msg:hover .wa-del { opacity: .7; }
+    .wa-typing { align-self: flex-start; background: var(--wa-in); border-radius: 9px; padding: 8px 14px;
+        font-size: .85rem; color: var(--wa-muted); display: none; }
+    .wa-typing.show { display: block; }
+
+    /* ===== Composer ===== */
+    .wa-composer { background: var(--wa-panel-header); padding: 8px 14px; display: flex;
+        align-items: flex-end; gap: 10px; z-index: 5; }
+    .wa-tool { background: none; border: none; color: var(--wa-muted); font-size: 1.5rem;
+        cursor: pointer; padding: 4px; line-height: 1; }
+    .wa-tool:hover { color: var(--wa-text); }
+    .wa-input {
+        flex: 1; background: var(--wa-panel); border: none; outline: none; color: var(--wa-text);
+        padding: 11px 14px; border-radius: 9px; font-size: .95rem; resize: none; max-height: 120px;
+        font-family: inherit; line-height: 1.4;
+    }
+    .wa-send { background: var(--wa-teal); color: #04231d; border: none; width: 46px; height: 46px;
+        border-radius: 50%; font-size: 1.4rem; cursor: pointer; flex-shrink: 0; display: flex;
+        align-items: center; justify-content: center; }
+    .wa-send:hover { filter: brightness(1.08); }
+
+    /* Pickers */
+    .wa-picker { position: absolute; bottom: 70px; left: 14px; right: 14px; max-width: 380px;
+        background: var(--wa-panel-header); border: 1px solid var(--wa-border); border-radius: 12px;
+        padding: 12px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,.5); z-index: 20; }
+    .wa-picker.show { display: block; }
+    .wa-picker h4 { font-size: .78rem; color: var(--wa-muted); margin-bottom: 8px; text-transform: uppercase; }
+    .wa-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; max-height: 200px; overflow-y: auto; }
+    .wa-grid button { background: var(--wa-panel); border: 1px solid transparent; border-radius: 9px;
+        font-size: 1.7rem; padding: 6px 0; cursor: pointer; transition: .12s; }
+    .wa-grid button:hover { background: var(--wa-hover); border-color: var(--wa-teal); transform: scale(1.08); }
+    .wa-math-preview { min-height: 44px; background: var(--wa-panel); border-radius: 9px; padding: 10px;
+        margin: 8px 0; display: flex; align-items: center; justify-content: center; color: var(--wa-text); }
+    .wa-math-row { display: flex; gap: 8px; }
+    .wa-math-row input { flex: 1; background: var(--wa-panel); border: 1px solid var(--wa-border);
+        border-radius: 8px; color: var(--wa-text); padding: 9px; outline: none; font-family: monospace; }
+    .wa-math-row button { background: var(--wa-teal); color: #04231d; border: none; border-radius: 8px;
+        padding: 0 16px; font-weight: 700; cursor: pointer; }
+    .wa-math-hint { font-size: .72rem; color: var(--wa-muted); margin-top: 6px; }
+
+    /* Empty state */
+    .wa-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        color: var(--wa-muted); text-align: center; padding: 20px; background: var(--wa-chat-bg); }
+    .wa-empty h2 { color: var(--wa-text); font-weight: 300; margin-bottom: 10px; font-size: 1.8rem; }
+    .wa-empty .big { font-size: 5rem; margin-bottom: 16px; }
+
+    /* Gate */
+    .wa-gate { display: none; flex-direction: column; align-items: center; justify-content: center;
+        height: calc(100vh - 60px); text-align: center; padding: 24px; }
+    .wa-gate .box { background: var(--wa-panel-header); border: 1px solid var(--wa-border);
+        border-top: 4px solid var(--wa-teal); border-radius: 14px; padding: 34px; max-width: 440px; }
+    .wa-gate h1 { color: var(--wa-teal); font-size: 1.6rem; margin-bottom: 12px; }
+    .wa-gate p { color: var(--wa-muted); line-height: 1.6; margin-bottom: 20px; }
+    .wa-gate a { display: inline-block; background: var(--wa-teal); color: #04231d; text-decoration: none;
+        font-weight: 700; padding: 11px 26px; border-radius: 9px; }
+
+    @media (max-width: 780px) {
+        .wa-sidebar { width: 100%; max-width: none; }
+        .wa-conv { display: none; position: absolute; inset: 0; }
+        .wa-app.show-conv .wa-sidebar { display: none; }
+        .wa-app.show-conv .wa-conv { display: flex; }
+        .wa-back { display: block; }
+        .wa-messages { padding: 14px 4% 10px; }
+        .wa-msg { max-width: 82%; }
+    }
+</style>
+</head>
+<body>
+
+<!-- Sign-in gate -->
+<div class="wa-gate" id="gate">
+    <div class="box">
+        <h1>🔐 Sign in to Math Chat</h1>
+        <p id="gate-msg">Private math chat is for signed-in Matix members. Sign in from the menu, then come back here.</p>
+        <a href="/">← Back to Homepage</a>
+    </div>
+</div>
+
+<!-- App -->
+<div class="wa-app" id="app" style="display:none">
+    <aside class="wa-sidebar">
+        <div class="wa-side-header">
+            <div class="wa-me">
+                <div class="wa-avatar" id="me-avatar">?</div>
+                <div class="wa-me-name" id="me-name">Me</div>
+            </div>
+            <div class="wa-side-actions">🧮</div>
+        </div>
+        <div class="wa-search-wrap">
+            <input class="wa-search" id="search" placeholder="Search members">
+        </div>
+        <div class="wa-chats" id="chats"></div>
+    </aside>
+
+    <main class="wa-conv" id="conv">
+        <div class="wa-empty" id="empty">
+            <div class="big">🧮💬</div>
+            <h2>MATIX Math Chat</h2>
+            <p>Pick a member on the left to start a private math conversation.<br>Send stickers, emoji, and real math equations — just like WhatsApp.</p>
+        </div>
+
+        <div id="conv-view" style="display:none; flex-direction:column; height:100%;">
+            <div class="wa-conv-header">
+                <span class="wa-back" id="back">←</span>
+                <div class="wa-avatar" id="c-avatar">?</div>
+                <div class="wa-conv-info">
+                    <div class="wa-conv-name" id="c-name">Name</div>
+                    <div id="c-badge"></div>
+                    <div class="wa-conv-status" id="c-status">offline</div>
+                </div>
+            </div>
+
+            <div class="wa-messages" id="messages"></div>
+            <div class="wa-typing" id="typing-ind">typing…</div>
+
+            <!-- Emoji picker -->
+            <div class="wa-picker" id="emoji-picker">
+                <h4>Emoji</h4>
+                <div class="wa-grid" id="emoji-grid"></div>
+            </div>
+            <!-- Sticker picker -->
+            <div class="wa-picker" id="sticker-picker">
+                <h4>Math stickers</h4>
+                <div class="wa-grid" id="sticker-grid"></div>
+            </div>
+            <!-- Math picker -->
+            <div class="wa-picker" id="math-picker">
+                <h4>Write an equation (LaTeX)</h4>
+                <div class="wa-math-preview" id="math-preview">Preview appears here</div>
+                <div class="wa-math-row">
+                    <input id="math-input" placeholder="e.g. x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}">
+                    <button id="math-send">Send</button>
+                </div>
+                <div class="wa-math-hint">Tip: use LaTeX like \\frac{a}{b}, \\sqrt{x}, x^2, \\pi, \\int, \\sum</div>
+            </div>
+
+            <div class="wa-composer">
+                <button class="wa-tool" id="btn-emoji" title="Emoji">😀</button>
+                <button class="wa-tool" id="btn-sticker" title="Math stickers">🧮</button>
+                <button class="wa-tool" id="btn-math" title="Equation">∑</button>
+                <textarea class="wa-input" id="input" rows="1" placeholder="Type a message"></textarea>
+                <button class="wa-send" id="send">➤</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script>
+(function () {
+    const firebaseConfig = {
+        apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
+        authDomain: "matix-1d538.firebaseapp.com",
+        databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
+        projectId: "matix-1d538",
+        storageBucket: "matix-1d538.firebasestorage.app"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const TS = firebase.database.ServerValue.TIMESTAMP;
+
+    const CORE = ['ghadi','dahlia','yara','jad','marwan','mak','hicham'];
+    const DISPLAY = { ghadi:'Ghadi', dahlia:'Dahlia', yara:'Yara', jad:'Jad', marwan:'Marwan', mak:'Mohammad-ali', hicham:'Hicham' };
+    let ROLES = {}, USERS_DB = {}, DELETED = {};
+    function normU(u) { return String(u || '').toLowerCase().replace(/[^a-z0-9_]/g, ''); }
+    function roleOf(u) { var r = (ROLES[u] || '').toString().toLowerCase(); if (r) return r; return CORE.indexOf(u) > -1 ? 'member' : 'user'; }
+    function badgeInfo(role) {
+        switch (role) {
+            case 'owner': return { icon: '👑', label: 'Owner', color: '#f59e0b' };
+            case 'manager': return { icon: '🛡️', label: 'Manager', color: '#a78bfa' };
+            case 'admin': return { icon: '⭐', label: 'Admin', color: '#38bdf8' };
+            case 'member': return { icon: '🎓', label: 'Member', color: '#00a884' };
+            default: return { icon: '🙂', label: 'User', color: '#8696a0' };
+        }
+    }
+    function badgeHtml(u) { var b = badgeInfo(roleOf(u)); return '<span class="wa-role" style="color:' + b.color + ';border-color:' + b.color + '55">' + b.icon + ' ' + b.label + '</span>'; }
+    const STICKERS = ['π','∞','√','∑','∫','���','θ','Δ','λ','φ','≠','≈','≤','≥','±','÷','×','∈','∀','∃','🧮','📐','📏','📊','📈','🤓','💯','➕','➖','🟰'];
+    const EMOJI = ['😀','😂','😍','👍','🎉','🔥','😎','🤔','😭','🙌','❤️','😅','🤯','👏','🥳','😴','🤝','🙏','💪','✅','🙋','🙄','🙊','🙃'];
+
+    function displayName(u) { return DISPLAY[u] || (u.charAt(0).toUpperCase() + u.slice(1)); }
+    function getMe() { return sessionStorage.getItem('matix_auth_user') || sessionStorage.getItem('mx_user') || null; }
+    function chatIdOf(a, b) { return [a, b].sort().join('__'); }
+    function esc(s) { return String(s).replace(/[&<>\"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]); }); }
+    function fmtTime(ms) { if (!ms) return ''; const d = new Date(ms); let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + ':' + (m < 10 ? '0' + m : m) + ' ' + ap; }
+    function dayLabel(ms) {
+        const d = new Date(ms), now = new Date();
+        const strip = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+        const diff = (strip(now) - strip(d)) / 86400000;
+        if (diff === 0) return 'Today';
+        if (diff === 1) return 'Yesterday';
+        return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+    }
+    function timeAgo(ms) { if (!ms) return 'a while ago'; const s = Math.floor((Date.now() - ms) / 1000); if (s < 60) return 'just now'; const m = Math.floor(s / 60); if (m < 60) return m + 'm ago'; const h = Math.floor(m / 60); if (h < 24) return h + 'h ago'; return fmtTime(ms) + ', ' + new Date(ms).toLocaleDateString(); }
+
+    const me = getMe();
+    if (!me) { document.getElementById('gate').style.display = 'flex'; return; }
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('me-name').textContent = displayName(me);
+    document.getElementById('me-avatar').textContent = displayName(me).charAt(0);
+
+    // Presence
+    const meP = db.ref('presence/' + me);
+    meP.onDisconnect().set({ online: false, lastSeen: TS });
+    meP.set({ online: true, lastSeen: TS });
+    window.addEventListener('beforeunload', function () { meP.set({ online: false, lastSeen: Date.now() }); });
+
+    // State
+    let active = null, activeChatId = null;
+    let msgListener = null, msgRef = null, typingListenerRef = null, presListenerRef = null, otherReadRef = null;
+    let otherReadTs = 0;
+    const contactEls = {};
+
+    // ===== Contacts =====
+    const chatsEl = document.getElementById('chats');
+    function userList() {
+        var set = {};
+        CORE.forEach(function (u) { set[u] = 1; });
+        Object.keys(USERS_DB || {}).forEach(function (u) { var n = normU(u); if (n) set[n] = 1; });
+        Object.keys(ROLES || {}).forEach(function (u) { var n = normU(u); if (n) set[n] = 1; });
+        return Object.keys(set).filter(function (u) { return u && u !== me && !DELETED[u]; }).sort(function (a, b) {
+            var ord = { owner: 0, manager: 1, admin: 2, member: 3, user: 4 };
+            var d = (ord[roleOf(a)] === undefined ? 5 : ord[roleOf(a)]) - (ord[roleOf(b)] === undefined ? 5 : ord[roleOf(b)]);
+            return d !== 0 ? d : displayName(a).localeCompare(displayName(b));
+        });
+    }
+    function makeRow(u) {
+        const item = document.createElement('div');
+        item.className = 'wa-chat-item';
+        item.dataset.user = u;
+        item.innerHTML =
+            '<div class="wa-avatar">' + esc(displayName(u).charAt(0)) + '</div>' +
+            '<div class="wa-ci-body">' +
+                '<div class="wa-ci-top"><span class="wa-ci-name">' + esc(displayName(u)) + ' <span class="wa-dot-online" style="display:none"></span></span><span class="wa-ci-time"></span></div>' +
+                '<div class="wa-ci-role">' + badgeHtml(u) + '</div>' +
+                '<div class="wa-ci-bottom"><span class="wa-ci-preview">Tap to chat</span><span class="wa-badge">0</span></div>' +
+            '</div>';
+        item.addEventListener('click', function () { openChat(u); });
+        contactEls[u] = item;
+        return item;
+    }
+    function buildContacts() {
+        var list = userList();
+        var listSet = {};
+        list.forEach(function (u) { listSet[u] = 1; });
+        // drop rows for users who are no longer valid (e.g. deleted/removed users)
+        Object.keys(contactEls).forEach(function (u) {
+            if (!listSet[u]) {
+                if (contactEls[u] && contactEls[u].parentNode) contactEls[u].parentNode.removeChild(contactEls[u]);
+                delete contactEls[u];
+                if (active === u) {
+                    active = null;
+                    document.getElementById('conv-view').style.display = 'none';
+                    document.getElementById('empty').style.display = 'flex';
+                    document.getElementById('app').classList.remove('show-conv');
+                }
+            }
+        });
+        list.forEach(function (u) {
+            if (!contactEls[u]) {
+                chatsEl.appendChild(makeRow(u));
+                watchContact(u);
+            } else {
+                var rc = contactEls[u].querySelector('.wa-ci-role');
+                if (rc) rc.innerHTML = badgeHtml(u);
+            }
+        });
+    }
+
+    function watchContact(u) {
+        const cid = chatIdOf(me, u);
+        // last message preview + unread count
+        db.ref('chats/' + cid + '/messages').limitToLast(40).on('value', function (snap) {
+            const msgs = snap.val() || {};
+            const arr = Object.keys(msgs).map(k => msgs[k]).sort((a, b) => (a.at || 0) - (b.at || 0));
+            const item = contactEls[u]; if (!item) return;
+            const prev = item.querySelector('.wa-ci-preview');
+            const timeEl = item.querySelector('.wa-ci-time');
+            const badge = item.querySelector('.wa-badge');
+            if (arr.length) {
+                const last = arr[arr.length - 1];
+                prev.textContent = (last.from === me ? 'You: ' : '') + previewText(last);
+                timeEl.textContent = fmtTime(last.at);
+            }
+            // unread = messages from them after my lastRead, only if not currently open
+            db.ref('chatMeta/' + cid + '/read/' + me).once('value').then(function (rs) {
+                const readTs = rs.val() || 0;
+                let unread = 0;
+                arr.forEach(function (m) { if (m.from === u && (m.at || 0) > readTs) unread++; });
+                if (active === u) unread = 0;
+                badge.textContent = unread;
+                badge.classList.toggle('show', unread > 0);
+            });
+        });
+        // online dot
+        db.ref('presence/' + u).on('value', function (s) {
+            const p = s.val() || {};
+            const dot = contactEls[u] && contactEls[u].querySelector('.wa-dot-online');
+            if (dot) dot.style.display = p.online ? 'inline-block' : 'none';
+        });
+    }
+
+    function previewText(m) {
+        if (m.type === 'sticker') return m.text + ' sticker';
+        if (m.type === 'math') return '📐 equation';
+        return m.text || '';
+    }
+
+    // ===== Open a chat =====
+    const msgsEl = document.getElementById('messages');
+    function openChat(u) {
+        active = u;
+        activeChatId = chatIdOf(me, u);
+        Object.values(contactEls).forEach(el => el.classList.remove('active'));
+        if (contactEls[u]) contactEls[u].classList.add('active');
+        document.getElementById('empty').style.display = 'none';
+        document.getElementById('conv-view').style.display = 'flex';
+        document.getElementById('app').classList.add('show-conv');
+        document.getElementById('c-name').textContent = displayName(u);
+        document.getElementById('c-avatar').textContent = displayName(u).charAt(0);
+        document.getElementById('c-badge').innerHTML = badgeHtml(u);
+        closePickers();
+
+        // detach previous listeners
+        if (msgRef && msgListener) msgRef.off('value', msgListener);
+        if (presListenerRef) presListenerRef.ref.off('value', presListenerRef.cb);
+        if (typingListenerRef) typingListenerRef.ref.off('value', typingListenerRef.cb);
+        if (otherReadRef) otherReadRef.ref.off('value', otherReadRef.cb);
+
+        // presence/status of the other user
+        const pRef = db.ref('presence/' + u);
+        const pCb = pRef.on('value', function (s) {
+            const p = s.val() || {};
+            const st = document.getElementById('c-status');
+            if (p.online) { st.textContent = 'online'; st.classList.add('online'); }
+            else { st.textContent = 'last seen ' + timeAgo(p.lastSeen); st.classList.remove('online'); }
+        });
+        presListenerRef = { ref: pRef, cb: pCb };
+
+        // other user's read receipt timestamp
+        const orRef = db.ref('chatMeta/' + activeChatId + '/read/' + u);
+        const orCb = orRef.on('value', function (s) { otherReadTs = s.val() || 0; renderMessages(lastMsgs); });
+        otherReadRef = { ref: orRef, cb: orCb };
+
+        // typing indicator from the other user
+        const tRef = db.ref('chats/' + activeChatId + '/typing/' + u);
+        const tCb = tRef.on('value', function (s) {
+            const t = s.val() || 0;
+            const show = (Date.now() - t) < 4000;
+            document.getElementById('typing-ind').classList.toggle('show', show);
+            document.getElementById('c-status').textContent = show ? 'typing…' : document.getElementById('c-status').textContent;
+        });
+        typingListenerRef = { ref: tRef, cb: tCb };
+
+        // messages
+        msgRef = db.ref('chats/' + activeChatId + '/messages').limitToLast(200);
+        msgListener = msgRef.on('value', function (snap) {
+            const msgs = snap.val() || {};
+            lastMsgs = Object.keys(msgs).map(k => ({ id: k, ...msgs[k] })).sort((a, b) => (a.at || 0) - (b.at || 0));
+            renderMessages(lastMsgs);
+            markRead();
+            const badge = contactEls[u] && contactEls[u].querySelector('.wa-badge');
+            if (badge) { badge.classList.remove('show'); }
+        });
+    }
+    let lastMsgs = [];
+
+    function markRead() { db.ref('chatMeta/' + activeChatId + '/read/' + me).set(Date.now()); }
+
+    function renderMessages(arr) {
+        msgsEl.innerHTML = '';
+        const enc = document.createElement('div');
+        enc.className = 'wa-enc';
+        enc.textContent = '🔒 Messages here are private between you and ' + displayName(active) + '.';
+        msgsEl.appendChild(enc);
+        let lastDay = '';
+        arr.forEach(function (m) {
+            const dl = dayLabel(m.at || Date.now());
+            if (dl !== lastDay) {
+                lastDay = dl;
+                const d = document.createElement('div'); d.className = 'wa-day'; d.textContent = dl; msgsEl.appendChild(d);
+            }
+            const out = m.from === me;
+            const el = document.createElement('div');
+            el.className = 'wa-msg ' + (out ? 'out' : 'in') + (m.type === 'sticker' ? ' sticker' : '');
+            let inner = '';
+            if (m.type === 'sticker') {
+                inner = '<div class="wa-msg-text">' + esc(m.text) + '</div>';
+            } else if (m.type === 'math') {
+                let rendered = '';
+                try { rendered = katex.renderToString(m.text || '', { throwOnError: false, displayMode: true }); }
+                catch (e) { rendered = esc(m.text); }
+                inner = '<div class="wa-msg-text">' + rendered + '</div>';
+            } else {
+                inner = '<div class="wa-msg-text">' + esc(m.text).replace(/\n/g, '<br>') + '</div>';
+            }
+            let meta = '<span>' + fmtTime(m.at) + '</span>';
+            if (out) {
+                const read = otherReadTs >= (m.at || 0);
+                meta += '<span class="wa-check' + (read ? ' read' : '') + '">✓✓</span>';
+                meta += '<span class="wa-del" data-id="' + m.id + '" title="Delete">🗑</span>';
+            }
+            if (m.type !== 'sticker') { inner += '<div class="wa-meta">' + meta + '</div>'; }
+            else { inner += '<div class="wa-meta" style="justify-content:flex-end">' + meta + '</div>'; }
+            el.innerHTML = inner;
+            msgsEl.appendChild(el);
+        });
+        msgsEl.querySelectorAll('.wa-del').forEach(function (b) {
+            b.addEventListener('click', function () { db.ref('chats/' + activeChatId + '/messages/' + b.dataset.id).remove(); });
+        });
+        msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+
+    // ===== Sending =====
+    function sendMessage(type, text) {
+        if (!active) return;
+        if (type === 'text' && !text.trim()) return;
+        db.ref('chats/' + activeChatId + '/messages').push({ from: me, to: active, type: type, text: text, at: TS });
+        db.ref('chats/' + activeChatId + '/typing/' + me).set(0);
+        markRead();
+        notifyRecipient(active, type, text);
+    }
+    function notifyRecipient(to, type, text) {
+        const cid = chatIdOf(me, to);
+        db.ref('chatMeta/' + cid + '/read/' + to).once('value').then(function (rs) {
+            const readTs = rs.val() || 0;
+            const mine = lastMsgs.filter(function (m) { return m.from === me; });
+            const prevMine = mine.length ? (mine[mine.length - 1].at || 0) : 0;
+            // Only ping once per burst: skip if they haven't caught up to my previous message yet
+            if (readTs < prevMine) return;
+            var body = type === 'text' ? (text.length > 90 ? text.slice(0, 90) + '…' : text)
+                : type === 'sticker' ? (text + '  (sticker)')
+                : '📐 sent an equation';
+            db.ref('notifications/' + to).push({ type: 'chat', title: '💬 New message from ' + displayName(me), body: body, at: Date.now(), from: me, url: '/chat' });
+        });
+    }
+
+    const input = document.getElementById('input');
+    function sendText() { const v = input.value; if (!v.trim()) return; sendMessage('text', v); input.value = ''; input.style.height = 'auto'; }
+    document.getElementById('send').addEventListener('click', sendText);
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(); }
+    });
+    input.addEventListener('input', function () {
+        input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+        if (active) db.ref('chats/' + activeChatId + '/typing/' + me).set(Date.now());
+    });
+    // Block pasting the answer? Allow normal paste in chat. Keep it real.
+
+    // Back button (mobile)
+    document.getElementById('back').addEventListener('click', function () {
+        document.getElementById('app').classList.remove('show-conv');
+        active = null;
+    });
+
+    // ===== Pickers =====
+    function closePickers() {
+        document.getElementById('emoji-picker').classList.remove('show');
+        document.getElementById('sticker-picker').classList.remove('show');
+        document.getElementById('math-picker').classList.remove('show');
+    }
+    function togglePicker(id) {
+        const el = document.getElementById(id);
+        const wasOpen = el.classList.contains('show');
+        closePickers();
+        if (!wasOpen) el.classList.add('show');
+    }
+    document.getElementById('btn-emoji').addEventListener('click', function () { togglePicker('emoji-picker'); });
+    document.getElementById('btn-sticker').addEventListener('click', function () { togglePicker('sticker-picker'); });
+    document.getElementById('btn-math').addEventListener('click', function () { togglePicker('math-picker'); document.getElementById('math-input').focus(); });
+
+    // Fill emoji grid
+    const eg = document.getElementById('emoji-grid');
+    EMOJI.forEach(function (em) {
+        const b = document.createElement('button'); b.textContent = em;
+        b.addEventListener('click', function () { input.value += em; input.focus(); });
+        eg.appendChild(b);
+    });
+    // Fill sticker grid
+    const sg = document.getElementById('sticker-grid');
+    STICKERS.forEach(function (st) {
+        const b = document.createElement('button'); b.textContent = st;
+        b.addEventListener('click', function () { sendMessage('sticker', st); closePickers(); });
+        sg.appendChild(b);
+    });
+    // Math preview + send
+    const mathInput = document.getElementById('math-input');
+    const mathPrev = document.getElementById('math-preview');
+    mathInput.addEventListener('input', function () {
+        try { mathPrev.innerHTML = katex.renderToString(mathInput.value || '', { throwOnError: false, displayMode: true }); }
+        catch (e) { mathPrev.textContent = 'Invalid LaTeX'; }
+    });
+    function sendMath() { const v = mathInput.value.trim(); if (!v) return; sendMessage('math', v); mathInput.value = ''; mathPrev.textContent = 'Preview appears here'; closePickers(); }
+    document.getElementById('math-send').addEventListener('click', sendMath);
+    mathInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); sendMath(); } });
+
+    // Search filter
+    document.getElementById('search').addEventListener('input', function (e) {
+        const q = e.target.value.toLowerCase();
+        Object.keys(contactEls).forEach(function (u) {
+            const show = displayName(u).toLowerCase().indexOf(q) > -1;
+            contactEls[u].style.display = show ? 'flex' : 'none';
+        });
+    });
+
+    db.ref('roles').on('value', function (s) { ROLES = s.val() || {}; buildContacts(); });
+    db.ref('members').on('value', function (s) { USERS_DB = s.val() || {}; buildContacts(); });
+    db.ref('deletions').on('value', function (s) { var v = s.val() || {}; DELETED = {}; Object.keys(v).forEach(function (k) { DELETED[normU(k)] = 1; }); buildContacts(); });
+    buildContacts();
+})();
+</script>
+<script src="/nav.js" defer></script>
+</body>
+</html>

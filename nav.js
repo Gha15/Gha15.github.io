@@ -352,6 +352,11 @@
             iframe: true
         },
         {
+            href: '/chat',
+            label: '💬  Math Chat',
+            iframe: true
+        },
+        {
             href: '/membersonly',
             label: 'Members',
             subs: [{
@@ -439,7 +444,7 @@
         '.mx-p-iframe{width:660px;height:auto;display:flex;flex-direction:column;overflow:hidden}',
         '.mx-ifr-view{position:relative;overflow:hidden;flex:0 0 auto}',
         '.mx-p-iframe iframe{position:absolute;top:0;left:0;width:1320px;height:860px;transform-origin:0 0;border:none;pointer-events:none;display:block;background:#030d1e}',
-        '.mx-ifr-hit{position:absolute;top:0;left:0;right:0;bottom:0;z-index:10000000000000000000000000000000;cursor:pointer;display:block}',
+        '.mx-ifr-hit{position:absolute;top:0;left:0;right:0;bottom:0;z-index:2;cursor:pointer;display:block}',
         '.mx-ifr-foot{position:relative;flex-shrink:0;padding:9px 14px;background:linear-gradient(to top,rgba(2,7,22,.98) 55%,transparent);display:flex;align-items:flex-end;justify-content:space-between;z-index:3}',
         '.mx-ifr-label{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.70rem;color:#93c5fd;pointer-events:none}',
         '.mx-ifr-open{font-family:"Trebuchet MS",Arial,sans-serif;font-size:.70rem;color:#f59e0b;text-decoration:none;background:rgba(2,7,22,.8);padding:3px 9px;border-radius:4px;border:1px solid rgba(245,158,11,.4)}',

@@ -72,9 +72,10 @@
       manager_points: { icon: '\u2B50', color: '#34d399', label: 'Manager point changes (revertable)' },
       manager_role_change: { icon: '\uD83C\uDF96', color: '#34d399', label: 'Manager role changes (revertable)' },
       manager_delete_comment: { icon: '\uD83D\uDDD1', color: '#f87171', label: 'Manager comment deletions (revertable)' },
-      room_delete: { icon: '\uD83D\uDDD1', color: '#f87171', label: 'Math Fight room deletions (revertable)' }
+      room_delete: { icon: '\uD83D\uDDD1', color: '#f87171', label: 'Math Fight room deletions (revertable)' },
+      chat: { icon: '\uD83D\uDCAC', color: '#00a884', label: 'New chat messages' }
     };
-    var NOTIF_ORDER = ['follower', 'joined', 'role', 'changelog', 'comment', 'reply', 'mention', 'points', 'redeem', 'meme', 'lesson', 'deleted', 'points_request', 'approval_request', 'manager_points', 'manager_role_change', 'manager_delete_comment', 'room_delete'];
+    var NOTIF_ORDER = ['follower', 'joined', 'role', 'changelog', 'comment', 'reply', 'mention', 'points', 'redeem', 'meme', 'lesson', 'deleted', 'points_request', 'approval_request', 'manager_points', 'manager_role_change', 'manager_delete_comment', 'room_delete', 'chat'];
     var CHIPS = [
       { id: 'all', label: 'All', types: null },
       { id: 'follower', label: 'Follows', types: ['follower'] },
@@ -85,7 +86,8 @@
       { id: 'meme', label: '\uD83D\uDE02 Jokes & Memes', types: ['meme'] },
       { id: 'lesson', label: '\uD83D\uDCDA Lessons', types: ['lesson'] },
       { id: 'deleted', label: '\uD83D\uDDD1 Removed', types: ['deleted', 'manager_delete_comment', 'room_delete'] },
-      { id: 'changelog', label: 'Updates', types: ['changelog'] }
+      { id: 'changelog', label: 'Updates', types: ['changelog'] },
+      { id: 'chat', label: '\uD83D\uDCAC Chat', types: ['chat'] }
     ];
 
     function getUser() { return sessionStorage.getItem('mx_user') || sessionStorage.getItem('matix_auth_user') || null; }
@@ -293,6 +295,7 @@
         if (e.type === 'follower') { line.innerHTML = '<a href="/users/' + e.user + '">@' + escapeHtml(e.user) + '</a> started following you.'; }
         else if (e.type === 'joined') { line.innerHTML = '<a href="/users/' + e.user + '">@' + escapeHtml(e.user) + '</a> joined Matix.'; }
         else if (e.type === 'comment') { line.innerHTML = '<a href="/users/' + e.user + '">@' + escapeHtml(e.user) + '</a> commented on your profile.'; }
+        else if (e.type === 'chat') { line.innerHTML = escapeHtml(e.title || 'New message') + ' <a href="/chat" style="color:#00a884;font-weight:700">Open chat \u2192</a>'; }
         else { line.textContent = e.title || 'Notification'; }
         if (e.at > seen) { line.innerHTML += '<span class="nc-new">NEW</span>'; }
         body.appendChild(line);
