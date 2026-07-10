@@ -281,22 +281,27 @@
             label: 'Games',
             subs: [{
                     href: '/games/themathplanegame',
-                    label: '✈️  Math Plane Game',
+                    label: 'Math Plane Game',
                     iframe: true
                 },
                 {
                     href: '/games/mathfight',
-                    label: '⚔️  Math Fight',
+                    label: 'Math Fight',
+                    iframe: true
+                },
+                {
+                    href: '/games/mathwar',
+                    label: 'Math War',
                     iframe: true
                 },
                 {
                     href: '/games/treegrowinggame',
-                    label: '🌳  Tree Growing Game',
+                    label: 'Tree Growing Game',
                     iframe: true
                 },
                 {
                     href: '/games/minigames/virtualpetgame',
-                    label: '🐾  Virtual Pet Game',
+                    label: 'Virtual Pet Game',
                     iframe: true
                 }
             ]
@@ -316,32 +321,32 @@
             label: 'Tools',
             subs: [{
                     href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/calculator',
-                    label: '🔢  Calculator',
+                    label: 'Calculator',
                     iframe: true
                 },
                 {
                     href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/calendar',
-                    label: '📅  Calendar',
+                    label: 'Calendar',
                     iframe: true
                 },
                 {
                     href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/function-plotter',
-                    label: '📈  Function Plotter',
+                    label: 'Function Plotter',
                     iframe: true
                 },
                 {
                     href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/graphing-sandbox',
-                    label: '📊  Graphing Sandbox',
+                    label: 'Graphing Sandbox',
                     iframe: true
                 },
                 {
                     href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/stopwatch',
-                    label: '⏱️  Stopwatch',
+                    label: 'Stopwatch',
                     iframe: true
                 },
                 {
                     href: '/usefulotherstuffcauseicannotgetanotherdomain/tools/timer',
-                    label: '⏰  Timer',
+                    label: 'Timer',
                     iframe: true
                 }
             ]
@@ -353,7 +358,7 @@
         },
         {
             href: '/chat',
-            label: '💬  Math Chat',
+            label: 'Math Chat',
             iframe: true
         },
         {
@@ -361,27 +366,27 @@
             label: 'Members',
             subs: [{
                     href: '/membersonly',
-                    label: '🔐  Members Dashboard',
+                    label: 'Members Dashboard',
                     iframe: true
                 },
                 {
                     href: '/membersonly/points',
-                    label: '⭐  My Points',
+                    label: 'My Points',
                     iframe: true
                 },
                 {
                     href: '/membersonly/points/how-to-get',
-                    label: '📈  How to Earn Points',
+                    label: 'How to Earn Points',
                     iframe: true
                 },
                 {
                     href: '/membersonly/points/use-points',
-                    label: '🎁  Use Points',
+                    label: 'Use Points',
                     iframe: true
                 },
                 {
                     href: '/daily-challenge',
-                    label: '🏆  Daily Challenge',
+                    label: 'Daily Challenge',
                     iframe: true
                 }
             ]
@@ -944,6 +949,14 @@
     allPanels.push(roomsPanel);
     var MF_ROOMS_PATH = 'mathfight/rooms';
     var MF_PUBLIC_ID = 'public-server';
+    var MW_ROOMS_PATH = 'mathwar';
+    var MW_PUBLIC_ID = 'public';
+    var MW_BACKUP_PATH = 'mathwar_room_backups';
+    function mwRoomLabel(id) {
+        if (id === MW_PUBLIC_ID) return '\ud83c\udf10 Public Server';
+        return '\ud83d\udd12 ' + id.replace(/^priv_/, '');
+    }
+    function isDeletableMwRoom(id) { return id !== MW_PUBLIC_ID; }
     function mfRoomLabel(id) {
         if (id === MF_PUBLIC_ID) return '\ud83c\udf10 Public Server';
         if (id.indexOf('bot_room_') === 0) return '\ud83e\udd16 ' + id;
@@ -1014,6 +1027,94 @@
                 }
                 listWrap.appendChild(row);
             });
+        });
+        renderMwRooms();
+    }
+    function renderMwRooms() {
+        var w2 = mk('div', 'mx-pf');
+        w2.style.marginTop = '16px';
+        var h4b = mk('h4'); h4b.textContent = '\u2694\ufe0f Math War rooms'; w2.appendChild(h4b);
+        var subb = mk('div', 'mx-pf-sub'); subb.textContent = 'Owners & managers \u2014 delete any active Math War room.'; w2.appendChild(subb);
+        var lw = mk('div', 'mx-users-list'); lw.innerHTML = '<div class="mx-notif-empty">Loading\u2026</div>'; w2.appendChild(lw);
+        roomsPanel.appendChild(w2);
+        grabJson(FIREBASE_URL + '/' + MW_ROOMS_PATH + '.json').then(function (rooms) {
+            rooms = rooms || {};
+            var ids = Object.keys(rooms).filter(function (id) { return id !== 'room_backups'; }).sort();
+            lw.innerHTML = '';
+            if (!ids.length) { lw.innerHTML = '<div class="mx-notif-empty">No active Math War rooms right now.</div>'; return; }
+            var delIds = ids.filter(isDeletableMwRoom);
+            if (delIds.length) {
+                var bar = mk('div', 'mx-rooms-bar');
+                var delAll = mk('button', 'mx-room-delall'); delAll.type = 'button'; delAll.textContent = '\ud83d\uddd1\ufe0f Delete all rooms (' + delIds.length + ')';
+                delAll.addEventListener('click', function () { deleteAllMwRooms(delIds, rooms, delAll); });
+                bar.appendChild(delAll); lw.appendChild(bar);
+            }
+            ids.forEach(function (id) {
+                var r = rooms[id] || {};
+                var count = r.players ? Object.keys(r.players).length : 0;
+                var chal = (r.settings && r.settings.chal) ? r.settings.chal : 'mixed';
+                var row = mk('div', 'mx-user-row');
+                var top = mk('div', 'mx-user-row-top');
+                var nm = mk('span', 'mx-user-row-name'); nm.textContent = mwRoomLabel(id); top.appendChild(nm);
+                var rl = mk('span', 'mx-user-row-role'); rl.textContent = count + ' player' + (count === 1 ? '' : 's') + ' \u00b7 ' + chal; top.appendChild(rl);
+                row.appendChild(top);
+                if (isDeletableMwRoom(id)) {
+                    var del = mk('button', 'mx-room-del'); del.textContent = '\ud83d\uddd1 Delete';
+                    del.style.cssText = 'margin-top:8px;background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.45);color:#fca5a5;border-radius:8px;padding:5px 12px;font-size:.8rem;cursor:pointer;';
+                    del.addEventListener('click', function () { deleteMwRoom(id, count, del); });
+                    row.appendChild(del);
+                } else {
+                    var prot = mk('div'); prot.textContent = '\ud83c\udf10 Public Server \u2014 protected';
+                    prot.style.cssText = 'margin-top:8px;font-size:.74rem;color:#64748b;';
+                    row.appendChild(prot);
+                }
+                lw.appendChild(row);
+            });
+        });
+    }
+    function deleteAllMwRooms(ids, rooms, btn) {
+        mxConfirm({
+            title: '\ud83d\uddd1\ufe0f Delete ALL Math War rooms?',
+            body: 'This removes all ' + ids.length + ' room' + (ids.length === 1 ? '' : 's') + ' and kicks everyone in them. The Public Server is kept.',
+            okLabel: '\ud83d\uddd1\ufe0f Delete all', cancelLabel: 'Cancel', danger: true
+        }).then(function (res) {
+            if (!res || !res.ok) return;
+            btn.disabled = true; btn.textContent = 'Deleting\u2026';
+            var by = normUser(getUser()) || 'a moderator';
+            Promise.all(ids.map(function (id) {
+                var data = (rooms && rooms[id]) ? rooms[id] : true;
+                return fetch(FIREBASE_URL + '/' + MW_BACKUP_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(function () {}).then(function () { return fetch(FIREBASE_URL + '/' + MW_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'DELETE' }).catch(function () {}); });
+            })).then(function () {
+                fetch(FIREBASE_URL + '/notifications/ghadi.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'room_delete', at: Date.now(), title: '\ud83d\uddd1\ufe0f All Math War rooms deleted', body: '@' + by + ' deleted all ' + ids.length + ' Math War room' + (ids.length === 1 ? '' : 's') + '.', roomIds: ids }) }).catch(function () {});
+                renderRooms();
+            });
+        });
+    }
+    function deleteMwRoom(id, count, btn) {
+        var label = (id === MW_PUBLIC_ID) ? 'the Public Server' : ('room \u201c' + id.replace(/^priv_/, '') + '\u201d');
+        function doDelete() {
+            btn.disabled = true; btn.textContent = 'Deleting\u2026';
+            var by = normUser(getUser()) || 'a moderator';
+            grabJson(FIREBASE_URL + '/' + MW_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json').then(function (data) {
+                return fetch(FIREBASE_URL + '/' + MW_BACKUP_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data || true) }).catch(function () {});
+            }).then(function () {
+                return fetch(FIREBASE_URL + '/' + MW_ROOMS_PATH + '/' + encodeURIComponent(id) + '.json', { method: 'DELETE' });
+            }).then(function () {
+                fetch(FIREBASE_URL + '/notifications/ghadi.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'room_delete', at: Date.now(), title: '\ud83d\uddd1\ufe0f Math War room deleted', body: '@' + by + ' deleted ' + label + ' \u2014 ' + count + ' player' + (count === 1 ? '' : 's') + ' removed.', roomId: id }) }).catch(function () {});
+                renderMwRooms();
+            }).catch(function () { btn.disabled = false; btn.textContent = '\ud83d\uddd1 Delete'; });
+        }
+        var skip = false;
+        try { skip = localStorage.getItem(MF_SKIP_CONFIRM_KEY) === '1'; } catch (e) {}
+        if (skip) { doDelete(); return; }
+        mxConfirm({
+            title: '\ud83d\uddd1\ufe0f Delete ' + label + '?',
+            body: count + ' player' + (count === 1 ? '' : 's') + ' will be removed immediately. This can\u2019t be undone.',
+            okLabel: '\ud83d\uddd1\ufe0f Delete', cancelLabel: 'Cancel', danger: true, dontAsk: true
+        }).then(function (res) {
+            if (!res || !res.ok) return;
+            if (res.dontAsk) { try { localStorage.setItem(MF_SKIP_CONFIRM_KEY, '1'); } catch (e) {} }
+            doDelete();
         });
     }
     /* Reusable custom confirm modal. Returns a Promise<{ok, dontAsk}>.
@@ -1123,6 +1224,96 @@
     }
     authListeners.push(refreshRoomsBtn);
     refreshRoomsBtn();
+
+    /* Leaderboard - visible to everyone. Math War standings (Math Fight section TBD). */
+    var lbBtn = mk('a', 'mx-nb mx-lb-btn');
+    lbBtn.href = '#';
+    lbBtn.innerHTML = '\ud83c\udfc6 Leaderboard';
+    right.appendChild(lbBtn);
+    var lbPanel = mk('div', 'mx-panel mx-p-lb');
+    lbPanel.id = 'mxp-lb';
+    getPortal().appendChild(lbPanel);
+    allPanels.push(lbPanel);
+    var LB_WINDOWS = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
+    var lbWindow = 'daily';
+    function lbRoomLabel(room) { if (room === 'private') return 'private'; if (room === 'public') return 'public'; if (room === 'bot') return 'bot'; return '\u2014'; }
+    function ensureLbCss() {
+        if (document.getElementById('mx-lb-css')) return;
+        var st = document.createElement('style'); st.id = 'mx-lb-css';
+        st.textContent = [
+            '.mx-lb-tabs{display:flex;gap:6px;margin-bottom:12px}',
+            '.mx-lb-tab{flex:1;background:#0b1428;border:1px solid rgba(148,163,184,.25);color:#cbd5e1;border-radius:8px;padding:7px 4px;font-size:.78rem;font-weight:700;cursor:pointer;text-align:center}',
+            '.mx-lb-tab.active{background:rgba(168,85,247,.22);border-color:rgba(168,85,247,.6);color:#e6d8ff}',
+            '.mx-lb-sec{margin-bottom:16px}',
+            '.mx-lb-h{font-size:.9rem;font-weight:800;color:#fff;margin:0 0 8px}',
+            '.mx-lb-row{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:9px;background:#0b1428;border:1px solid rgba(148,163,184,.16);margin-bottom:6px}',
+            '.mx-lb-rank{font-weight:800;color:#c084fc;width:24px;text-align:center;flex:none}',
+            '.mx-lb-main{flex:1;min-width:0}',
+            '.mx-lb-name{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+            '.mx-lb-meta{font-size:.72rem;color:#94a3b8;margin-top:1px}',
+            '.mx-lb-val{font-weight:800;color:#fbbf24;font-size:.95rem;flex:none}',
+            '.mx-lb-empty{color:#94a3b8;font-size:.82rem;padding:6px 2px}',
+            '.mx-lb-room{display:inline-block;padding:1px 7px;border-radius:999px;background:rgba(168,85,247,.16);border:1px solid rgba(168,85,247,.35);color:#d6bcfa;font-size:.68rem;font-weight:700;margin-left:6px}'
+        ].join('');
+        (document.head || document.documentElement).appendChild(st);
+    }
+    function lbSection(title, list, unit) {
+        var sec = mk('div', 'mx-lb-sec');
+        var h = mk('div', 'mx-lb-h'); h.textContent = title; sec.appendChild(h);
+        if (!list.length) { var e = mk('div', 'mx-lb-empty'); e.textContent = 'No games in this period yet.'; sec.appendChild(e); return sec; }
+        list.slice(0, 20).forEach(function (r, i) {
+            var row = mk('div', 'mx-lb-row');
+            var rank = mk('span', 'mx-lb-rank'); rank.textContent = '#' + (i + 1); row.appendChild(rank);
+            var main = mk('div', 'mx-lb-main');
+            var nm = mk('div', 'mx-lb-name'); nm.textContent = '@' + r.user; main.appendChild(nm);
+            var meta = mk('div', 'mx-lb-meta');
+            meta.textContent = (r.bestTime != null) ? ('best ' + (r.bestTime / 1000).toFixed(1) + 's') : 'best \u2014';
+            var room = mk('span', 'mx-lb-room'); room.textContent = lbRoomLabel(r.room); meta.appendChild(room);
+            main.appendChild(meta); row.appendChild(main);
+            var val = mk('span', 'mx-lb-val'); val.textContent = r.val + ' ' + unit; row.appendChild(val);
+            sec.appendChild(row);
+        });
+        return sec;
+    }
+    function renderLeaderboard() {
+        ensureLbCss();
+        lbPanel.innerHTML = '';
+        var wrap = mk('div', 'mx-pf');
+        var h4 = mk('h4'); h4.innerHTML = '\u2694\ufe0f Math War Leaderboard'; wrap.appendChild(h4);
+        var sub = mk('div', 'mx-pf-sub'); sub.textContent = 'Ranked by best single game.'; wrap.appendChild(sub);
+        var tabs = mk('div', 'mx-lb-tabs');
+        [['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly']].forEach(function (t) {
+            var b = mk('button', 'mx-lb-tab' + (lbWindow === t[0] ? ' active' : '')); b.type = 'button'; b.textContent = t[1];
+            b.addEventListener('click', function () { lbWindow = t[0]; renderLeaderboard(); });
+            tabs.appendChild(b);
+        });
+        wrap.appendChild(tabs);
+        var body = mk('div');
+        var ld = mk('div', 'mx-lb-empty'); ld.textContent = 'Loading\u2026'; body.appendChild(ld);
+        wrap.appendChild(body);
+        lbPanel.appendChild(wrap);
+        grabJson(FIREBASE_URL + '/mathwar_scores.json').then(function (data) {
+            body.innerHTML = '';
+            var since = Date.now() - LB_WINDOWS[lbWindow];
+            var users = data || {};
+            var pointsList = [], winsList = [];
+            Object.keys(users).forEach(function (u) {
+                var games = users[u] || {}; var entries = [];
+                Object.keys(games).forEach(function (g) { var e = games[g]; if (e && typeof e.at === 'number' && e.at >= since) entries.push(e); });
+                if (!entries.length) return;
+                var best = entries[0]; entries.forEach(function (e) { if ((e.points || 0) > (best.points || 0)) best = e; });
+                pointsList.push({ user: u, val: best.points || 0, bestTime: best.bestTime, room: best.room });
+                var wins = 0, minTime = null, roomAtMin = null;
+                entries.forEach(function (e) { if (e.won) wins++; if (e.bestTime != null && (minTime === null || e.bestTime < minTime)) { minTime = e.bestTime; roomAtMin = e.room; } });
+                if (wins > 0) winsList.push({ user: u, val: wins, bestTime: minTime, room: roomAtMin });
+            });
+            pointsList.sort(function (a, b) { return b.val - a.val; });
+            winsList.sort(function (a, b) { return b.val - a.val; });
+            body.appendChild(lbSection('\ud83c\udfc5 Most points (one game)', pointsList, 'pts'));
+            body.appendChild(lbSection('\ud83d\udc51 Most games won', winsList, 'wins'));
+        });
+    }
+    wirePanel('lb', lbPanel, lbBtn, 380, renderLeaderboard);
 
     var lessonsPanel = mk('div', 'mx-panel mx-p-lessons');
     lessonsPanel.id = 'mxp-lessons';
