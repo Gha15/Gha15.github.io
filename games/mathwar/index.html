@@ -247,6 +247,10 @@
             <option value="division">Division (÷)</option>
           </select>
         </div>
+        <div class="mw-field hidden" id="priv-team-field">
+          <label for="priv-perteam">Players per team (2-10)</label>
+          <input id="priv-perteam" type="number" min="2" max="10" value="10">
+        </div>
         <button id="enter-room" class="mw-start">Enter Room</button>
       </div>
       <div id="lobby" class="hidden">
@@ -338,7 +342,7 @@
   var players=[],me=null,results={},roundNum=0,fighters=null,running=false,humanSide=null,rafId=null;
   var myName='You',myColor='#f59e0b';
   var finishOrder=[],myBestTime=null,gameRoomType='bot',breakTimer=null;
-  var challengeType='mixed',roomMode='public';
+  var challengeType='mixed',roomMode='public',roomTeamSize=10;
 
   /* ---------- firebase (servers only) ---------- */
   var db=null,fbOk=false;
@@ -685,7 +689,7 @@
     var banned=!!(bans&&bans.mathbot);
     var humans=humanKeys.length;
     // Fill up to at least 4 players and keep the count even.
-    var target=Math.max(4,humans+(humans%2));
+    var target=Math.max(4,2*roomTeamSize);
     var need=banned?0:(target-humans);
     if(need<0)need=0;
     var pl=db.ref('mathwar/'+curRoom+'/players');
@@ -726,8 +730,8 @@
     $('config-row').classList.add('hidden');
     $('lobby').classList.remove('hidden');
     $('lobby-room').textContent=label?('Room: '+label+(isPrivate?'  (share this ID)':'')):'';
-    if(roomMode==='create'){db.ref('mathwar/'+roomId+'/settings').set({chal:challengeType,by:myName,at:Date.now()});}
-    else if(isPrivate){db.ref('mathwar/'+roomId+'/settings').once('value').then(function(s){var st=s.val();if(st&&st.chal)challengeType=st.chal;});}
+    if(roomMode==='create'){db.ref('mathwar/'+roomId+'/settings').set({chal:challengeType,team:roomTeamSize,by:myName,at:Date.now()});}
+    else if(isPrivate){db.ref('mathwar/'+roomId+'/settings').once('value').then(function(s){var st=s.val();if(st){if(st.chal)challengeType=st.chal;if(st.team)roomTeamSize=st.team;}});}
     var pref=db.ref('mathwar/'+roomId+'/players/'+UID);
     pref.set({name:myName,color:myColor,bot:false,at:Date.now()});
     pref.onDisconnect().remove();
@@ -770,7 +774,7 @@
   $('back-details').addEventListener('click',function(){showPanel('details-panel');});
   $('m-bots').addEventListener('click',function(){challengeType=$('chal-type-bots').value;botsNote();showPanel('bots-panel');});
   $('m-public').addEventListener('click',function(){
-    isPrivate=false;roomMode='public';challengeType='mixed';
+    isPrivate=false;roomMode='public';challengeType='mixed';roomTeamSize=10;
     $('server-title').textContent='Public Server';
     $('config-row').classList.add('hidden');$('lobby').classList.add('hidden');$('server-err').textContent='';
     showPanel('server-panel');joinServer('public','public');
@@ -779,6 +783,7 @@
     isPrivate=true;roomMode='create';
     $('server-title').textContent='Create Private Room';
     $('chal-field').classList.remove('hidden');
+    $('priv-team-field').classList.remove('hidden');
     $('room-code').value='mw'+Math.random().toString(36).slice(2,7);
     $('enter-room').textContent='Create & Enter';
     $('lobby').classList.add('hidden');$('config-row').classList.remove('hidden');$('server-err').textContent='';
@@ -788,6 +793,7 @@
     isPrivate=true;roomMode='join';
     $('server-title').textContent='Join Private Room';
     $('chal-field').classList.add('hidden');
+    $('priv-team-field').classList.add('hidden');
     $('room-code').value='';
     $('enter-room').textContent='Join Room';
     $('lobby').classList.add('hidden');$('config-row').classList.remove('hidden');$('server-err').textContent='';
@@ -797,7 +803,7 @@
   $('enter-room').addEventListener('click',function(){
     var code=($('room-code').value||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');
     if(!code){$('server-err').textContent='Enter a room ID.';return;}
-    if(roomMode==='create')challengeType=$('chal-type').value;
+    if(roomMode==='create'){challengeType=$('chal-type').value;var pt=parseInt($('priv-perteam').value,10);if(isNaN(pt))pt=10;roomTeamSize=Math.max(2,Math.min(10,pt));}
     joinServer('priv_'+code,code);
   });
   $('back-mode1').addEventListener('click',function(){showPanel('mode-panel');});
