@@ -295,6 +295,11 @@
                     iframe: true
                 },
                 {
+                    href: '/games/mathescape',
+                    label: 'Math Escape Room',
+                    iframe: true
+                },
+                {
                     href: '/games/treegrowinggame',
                     label: 'Tree Growing Game',
                     iframe: true
@@ -1236,7 +1241,9 @@
     allPanels.push(lbPanel);
     var LB_WINDOWS = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
     var lbWindow = 'daily';
-    function lbRoomLabel(room) { if (room === 'private') return 'private'; if (room === 'public') return 'public'; if (room === 'bot') return 'bot'; return '\u2014'; }
+    var lbGame = 'mathwar';
+    var LB_GAMES = { mathwar: { path: '/mathwar_scores.json', title: '\u2694\ufe0f Math War Leaderboard', wins: '\ud83d\udc51 Most games won' }, mathescape: { path: '/mathescape_scores.json', title: '\ud83d\udd10 Math Escape Leaderboard', wins: '\ud83c\udfc3 Most escapes' } };
+    function lbRoomLabel(room) { if (!room) return '\u2014'; return String(room); }
     function ensureLbCss() {
         if (document.getElementById('mx-lb-css')) return;
         var st = document.createElement('style'); st.id = 'mx-lb-css';
@@ -1250,6 +1257,8 @@
             '.mx-lb-rank{font-weight:800;color:#c084fc;width:24px;text-align:center;flex:none}',
             '.mx-lb-main{flex:1;min-width:0}',
             '.mx-lb-name{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+            '.mx-lb-name a{color:#fff;text-decoration:none}',
+            '.mx-lb-name a:hover{text-decoration:underline}',
             '.mx-lb-meta{font-size:.72rem;color:#94a3b8;margin-top:1px}',
             '.mx-lb-val{font-weight:800;color:#fbbf24;font-size:.95rem;flex:none}',
             '.mx-lb-empty{color:#94a3b8;font-size:.82rem;padding:6px 2px}',
@@ -1265,7 +1274,7 @@
             var row = mk('div', 'mx-lb-row');
             var rank = mk('span', 'mx-lb-rank'); rank.textContent = '#' + (i + 1); row.appendChild(rank);
             var main = mk('div', 'mx-lb-main');
-            var nm = mk('div', 'mx-lb-name'); nm.textContent = '@' + r.user; main.appendChild(nm);
+            var nm = mk('div', 'mx-lb-name'); var na = mk('a'); na.href = '/users/' + encodeURIComponent(r.user); na.textContent = '@' + r.user; nm.appendChild(na); main.appendChild(nm);
             var meta = mk('div', 'mx-lb-meta');
             meta.textContent = (r.bestTime != null) ? ('best ' + (r.bestTime / 1000).toFixed(1) + 's') : 'best \u2014';
             var room = mk('span', 'mx-lb-room'); room.textContent = lbRoomLabel(r.room); meta.appendChild(room);
@@ -1278,9 +1287,17 @@
     function renderLeaderboard() {
         ensureLbCss();
         lbPanel.innerHTML = '';
+        var G = LB_GAMES[lbGame];
         var wrap = mk('div', 'mx-pf');
-        var h4 = mk('h4'); h4.innerHTML = '\u2694\ufe0f Math War Leaderboard'; wrap.appendChild(h4);
-        var sub = mk('div', 'mx-pf-sub'); sub.textContent = 'Ranked by best single game.'; wrap.appendChild(sub);
+        var h4 = mk('h4'); h4.innerHTML = G.title; wrap.appendChild(h4);
+        var sub = mk('div', 'mx-pf-sub'); sub.textContent = 'Ranked by total points.'; wrap.appendChild(sub);
+        var gtabs = mk('div', 'mx-lb-tabs');
+        [['mathwar', '\u2694\ufe0f Math War'], ['mathescape', '\ud83d\udd10 Math Escape']].forEach(function (t) {
+            var gb = mk('button', 'mx-lb-tab' + (lbGame === t[0] ? ' active' : '')); gb.type = 'button'; gb.innerHTML = t[1];
+            gb.addEventListener('click', function () { lbGame = t[0]; renderLeaderboard(); });
+            gtabs.appendChild(gb);
+        });
+        wrap.appendChild(gtabs);
         var tabs = mk('div', 'mx-lb-tabs');
         [['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly']].forEach(function (t) {
             var b = mk('button', 'mx-lb-tab' + (lbWindow === t[0] ? ' active' : '')); b.type = 'button'; b.textContent = t[1];
@@ -1292,7 +1309,7 @@
         var ld = mk('div', 'mx-lb-empty'); ld.textContent = 'Loading\u2026'; body.appendChild(ld);
         wrap.appendChild(body);
         lbPanel.appendChild(wrap);
-        grabJson(FIREBASE_URL + '/mathwar_scores.json').then(function (data) {
+        grabJson(FIREBASE_URL + G.path).then(function (data) {
             body.innerHTML = '';
             var since = Date.now() - LB_WINDOWS[lbWindow];
             var users = data || {};
@@ -1301,16 +1318,17 @@
                 var games = users[u] || {}; var entries = [];
                 Object.keys(games).forEach(function (g) { var e = games[g]; if (e && typeof e.at === 'number' && e.at >= since) entries.push(e); });
                 if (!entries.length) return;
-                var best = entries[0]; entries.forEach(function (e) { if ((e.points || 0) > (best.points || 0)) best = e; });
-                pointsList.push({ user: u, val: best.points || 0, bestTime: best.bestTime, room: best.room });
-                var wins = 0, minTime = null, roomAtMin = null;
-                entries.forEach(function (e) { if (e.won) wins++; if (e.bestTime != null && (minTime === null || e.bestTime < minTime)) { minTime = e.bestTime; roomAtMin = e.room; } });
+                var totalPts = 0, minTime = null, roomAtMin = null;
+                entries.forEach(function (e) { totalPts += (e.points || 0); if (e.bestTime != null && (minTime === null || e.bestTime < minTime)) { minTime = e.bestTime; roomAtMin = e.room; } });
+                pointsList.push({ user: u, val: totalPts, bestTime: minTime, room: roomAtMin });
+                var wins = 0;
+                entries.forEach(function (e) { if (e.won) wins++; });
                 if (wins > 0) winsList.push({ user: u, val: wins, bestTime: minTime, room: roomAtMin });
             });
             pointsList.sort(function (a, b) { return b.val - a.val; });
             winsList.sort(function (a, b) { return b.val - a.val; });
-            body.appendChild(lbSection('\ud83c\udfc5 Most points (one game)', pointsList, 'pts'));
-            body.appendChild(lbSection('\ud83d\udc51 Most games won', winsList, 'wins'));
+            body.appendChild(lbSection('\ud83c\udfc5 Most points', pointsList, 'pts'));
+            body.appendChild(lbSection(G.wins, winsList, 'wins'));
         });
     }
     wirePanel('lb', lbPanel, lbBtn, 380, renderLeaderboard);

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Escape Room - matix the math club</title>
+<link rel="stylesheet" href="/global.css">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+<style>
+:root{--grn:#22c55e;--pur:#a855f7;--card:#0f1c17;--line:#26414f;--txt:#e8f7ee;--mut:#9ec2b3;}
+*{box-sizing:border-box}
+#me-root,#me-root *{font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+#me-root{position:relative;min-height:100vh;background:radial-gradient(1200px 700px at 15% -10%,#0c2b1c,transparent),radial-gradient(1000px 700px at 90% 110%,#241238,transparent),linear-gradient(160deg,#04120b,#08231a 55%,#170a26);color:var(--txt);overflow-x:hidden}
+.hidden{display:none !important}
+.particles{position:fixed;inset:0;pointer-events:none;z-index:0}
+.particles span{position:absolute;bottom:-40px;width:12px;height:12px;border-radius:50%;background:rgba(34,197,94,.55);animation:rise linear infinite;box-shadow:0 0 12px rgba(34,197,94,.5)}
+.particles span:nth-child(2n){background:rgba(168,85,247,.55);box-shadow:0 0 12px rgba(168,85,247,.5)}
+.particles span:nth-child(1){left:5%;animation-duration:11s}
+.particles span:nth-child(2){left:15%;animation-duration:9s}
+.particles span:nth-child(3){left:26%;animation-duration:14s}
+.particles span:nth-child(4){left:37%;animation-duration:8s}
+.particles span:nth-child(5){left:48%;animation-duration:13s}
+.particles span:nth-child(6){left:59%;animation-duration:10s}
+.particles span:nth-child(7){left:68%;animation-duration:12s}
+.particles span:nth-child(8){left:78%;animation-duration:9.5s}
+.particles span:nth-child(9){left:88%;animation-duration:15s}
+.particles span:nth-child(10){left:96%;animation-duration:8.5s}
+@keyframes rise{to{transform:translateY(-115vh);opacity:.12}}
+.screen{position:relative;z-index:2;min-height:100vh;display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:center;padding:40px 18px}
+.me-panel{position:relative;width:380px;max-width:94vw;background:rgba(9,20,15,.82);border:1px solid var(--line);border-radius:20px;padding:30px 28px;backdrop-filter:blur(8px);box-shadow:0 20px 60px rgba(0,0,0,.55);overflow:hidden}
+.title-glow{position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:280px;height:180px;background:radial-gradient(circle,rgba(34,197,94,.5),transparent 65%);filter:blur(14px)}
+.me-panel h1{position:relative;margin:0 0 6px;text-align:center;font-family:'Vibur',cursive;font-size:3.3rem;line-height:1;letter-spacing:2px}
+.t-a{color:#fff;text-shadow:0 0 18px rgba(34,197,94,.85)}
+.t-b{color:var(--pur);text-shadow:0 0 22px rgba(168,85,247,.85)}
+.me-sub{position:relative;text-align:center;color:var(--mut);margin:0 0 18px}
+.rules-panel{max-width:320px;background:rgba(15,28,23,.72);border:1px solid var(--line);border-radius:18px;padding:22px 24px;backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.rules-panel h2{margin:0 0 12px;font-size:1.3rem;color:#fff}
+.rules-panel ul{margin:0;padding-left:18px;line-height:1.55;color:var(--mut);font-size:.9rem}
+.rules-panel li{margin-bottom:8px}
+.rules-panel strong{color:#fff}
+.me-field{margin-bottom:14px}
+.me-field label{display:block;font-size:.82rem;font-weight:700;color:var(--mut);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+.me-field input[type=text],.me-field input[type=number]{width:100%;padding:12px 14px;border-radius:11px;background:#08160f;border:1px solid var(--line);color:#fff;font-size:1rem}
+.me-field input:focus{outline:none;border-color:var(--grn);box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+.color-wrap{display:flex;align-items:center;gap:10px}
+.color-wrap input[type=color]{width:52px;height:40px;border:none;background:none;border-radius:10px;cursor:pointer}
+.room-row{display:flex;gap:8px}
+.room-row input{flex:1}
+.btn-sec{padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#123322;color:#fff;font-weight:700;cursor:pointer}
+.me-start{width:100%;padding:14px;border:none;border-radius:12px;font-size:1.05rem;font-weight:800;letter-spacing:1px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--grn),var(--pur));box-shadow:0 10px 30px rgba(34,197,94,.35);transition:transform .12s,box-shadow .12s}
+.me-start:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(168,85,247,.5)}
+.me-start:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.me-err{color:#fca5a5;font-size:.85rem;text-align:center;margin-top:8px;min-height:1em}
+.mode-list{display:flex;flex-direction:column;gap:12px;margin-bottom:8px}
+.mode-btn{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;border:1px solid var(--line);background:#0b1f16;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;text-align:left;transition:transform .1s,border-color .1s}
+.mode-btn:hover{transform:translateY(-2px);border-color:var(--grn)}
+.mode-btn .mi{font-size:1.6rem}
+.back-link{display:block;margin:14px auto 0;background:none;border:none;color:var(--mut);cursor:pointer;font-size:.9rem}
+.note{text-align:center;font-size:.9rem;color:#d3eee0;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);padding:8px 10px;border-radius:10px;margin:6px 0 16px}
+.lobby-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:240px;overflow:auto}
+.lobby-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#0b1f16;border:1px solid var(--line);font-weight:600}
+.lobby-row .ln{flex:1}
+.av{width:24px;height:24px;border-radius:50%;flex:none;font-size:.72rem;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+.lobby-count{text-align:center;color:var(--mut);font-size:.9rem;margin:0 0 12px}
+/* game */
+#game-screen{align-items:stretch;flex-direction:column;flex-wrap:nowrap;padding:16px;gap:14px}
+#hud{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#hud .brand{font-family:'Vibur',cursive;font-size:1.9rem;letter-spacing:2px}
+.hud-pill{font-weight:800;font-size:1rem;padding:8px 16px;border-radius:999px;background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.4);color:#c7f9dd}
+.hud-pill.pur{background:rgba(168,85,247,.16);border-color:rgba(168,85,247,.4);color:#e6d8ff}
+.hud-pill.red{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45);color:#fecaca}
+.game-wrap{display:flex;gap:16px;align-items:flex-start;flex:1;width:100%;max-width:1000px;margin:0 auto}
+#side{width:210px;flex:none;background:rgba(9,20,15,.7);border:1px solid var(--line);border-radius:16px;padding:14px}
+#side h3{margin:0 0 10px;font-size:.8rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mut)}
+.sd-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;font-size:.9rem;margin-bottom:4px}
+.sd-item.you{background:rgba(255,255,255,.07);font-weight:800}
+.sd-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.sd-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-pts{font-weight:800;color:#fbbf24}
+.stage{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px}
+#lvl-name{font-weight:800;font-size:1.2rem;color:#c7f9dd;text-align:center}
+.progress-track{width:100%;max-width:480px;height:14px;border-radius:999px;background:#0b1f16;border:1px solid var(--line);overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--grn),var(--pur));transition:width .3s}
+#q-text{font-size:3.4rem;font-weight:800;text-align:center;color:#fff;text-shadow:0 0 22px rgba(34,197,94,.35);min-height:1.2em;letter-spacing:1px}
+#ans-row{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px}
+#ans-input{width:100%;padding:18px;border-radius:14px;background:#08160f;border:2px solid var(--line);color:#fff;font-size:2.3rem;text-align:center;font-weight:800}
+#ans-input:focus{outline:none;border-color:var(--grn);box-shadow:0 0 0 4px rgba(34,197,94,.25)}
+#ans-submit{width:100%;padding:15px 22px;border:none;border-radius:14px;font-size:1.1rem;font-weight:800;letter-spacing:1px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--grn),var(--pur));box-shadow:0 10px 30px rgba(34,197,94,.35)}
+#ans-msg{min-height:1.2em;font-weight:700;text-align:center;color:var(--mut)}
+.shake{animation:shk .35s}
+@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.pop{animation:pop .3s}
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,10,7,.82);backdrop-filter:blur(5px)}
+.ov-card{width:440px;max-width:94vw;background:rgba(9,20,15,.96);border:1px solid var(--line);border-radius:20px;padding:30px 28px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.6);animation:pop .35s}
+.ov-card h2{margin:0 0 10px;font-size:2rem}
+.ov-card p{color:var(--mut);margin:0 0 8px}
+.ov-pts{font-weight:800;color:#fbbf24;font-size:1.1rem;margin:10px 0}
+.ov-btns{display:flex;gap:10px;margin-top:16px}
+.ov-btns button{flex:1;padding:13px;border:none;border-radius:12px;font-weight:800;cursor:pointer;color:#fff}
+#lc-next,#ov-again{background:linear-gradient(135deg,var(--grn),var(--pur))}
+#ov-menu,#lc-skip{background:#123322;border:1px solid var(--line)!important}
+</style>
+</head>
+<body>
+<div id="me-root">
+<div class="particles"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="screen">
+  <div class="rules-panel">
+    <h2>\ud83d\udd10 How to escape</h2>
+    <ul>
+      <li>Solve the question in the <strong>middle of the screen</strong>.</li>
+      <li>Answer <strong>1st \u2192 3 pts</strong>, 2nd \u2192 2, 3rd \u2192 1, 4th+ \u2192 0.</li>
+      <li><strong>Level 1:</strong> 5 correct \u00b7 Addition</li>
+      <li><strong>Level 2:</strong> 10 correct \u00b7 \u00d7 and \u00f7</li>
+      <li><strong>Level 3:</strong> 20 correct \u00b7 mixed + hard (\u221a, \u221b)</li>
+      <li>You get <strong>3 minutes</strong> per level. Beat the clock to escape!</li>
+    </ul>
+  </div>
+  <div class="me-panel">
+    <div class="title-glow"></div>
+    <h1><span class="t-a">MATH</span> <span class="t-b">ESCAPE</span></h1>
+    <p class="me-sub">Enter your details</p>
+    <div class="me-field">
+      <label for="join-name">Username</label>
+      <input id="join-name" type="text" placeholder="Any name \u2014 spaces OK!" autocomplete="nickname" spellcheck="false">
+    </div>
+    <div class="me-field">
+      <label>Your color</label>
+      <div class="color-wrap"><input id="join-color" type="color" value="#22c55e"><span style="color:var(--mut);font-size:.9rem">picks your marker</span></div>
+    </div>
+    <button id="to-mode" class="me-start">Continue \u2192</button>
+  </div>
+</div>
+
+<!-- MODE -->
+<div id="mode-screen" class="screen hidden">
+  <div class="me-panel">
+    <div class="title-glow"></div>
+    <p class="me-sub">Choose your run</p>
+    <div class="mode-list">
+      <button class="mode-btn" id="m-single"><span class="mi">\ud83e\uddcd</span><span>Single Player</span></button>
+      <button class="mode-btn" id="m-multi"><span class="mi">\ud83d\udc65</span><span>Multiplayer</span></button>
+    </div>
+    <button class="back-link" id="back-login">\u2190 Change details</button>
+  </div>
+</div>
+
+<!-- MULTIPLAYER OPTIONS -->
+<div id="multi-screen" class="screen hidden">
+  <div class="me-panel">
+    <div class="title-glow"></div>
+    <p class="me-sub">Multiplayer</p>
+    <div id="multi-menu" class="mode-list">
+      <button class="mode-btn" id="m-online"><span class="mi">\ud83c\udf10</span><span>Play with people online</span></button>
+      <button class="mode-btn" id="m-bots"><span class="mi">\ud83e\udd16</span><span>Play vs bots</span></button>
+      <button class="mode-btn" id="m-create"><span class="mi">\u2795</span><span>Create private room</span></button>
+      <button class="mode-btn" id="m-join"><span class="mi">\ud83d\udd11</span><span>Join private room</span></button>
+    </div>
+    <div id="bots-cfg" class="hidden">
+      <div class="me-field">
+        <label for="bot-count">Number of bots (1-19)</label>
+        <input id="bot-count" type="number" min="1" max="19" value="4">
+      </div>
+      <p id="bots-note" class="note"></p>
+      <button id="start-bots" class="me-start">Start</button>
+      <button class="back-link" id="back-multi1">\u2190 Back</button>
+    </div>
+    <div id="code-cfg" class="hidden">
+      <div class="me-field">
+        <label for="room-code" id="code-label">Room ID</label>
+        <div class="room-row">
+          <input id="room-code" type="text" placeholder="myroom123" autocomplete="off">
+          <button id="rand-code" type="button" class="btn-sec">Random</button>
+        </div>
+      </div>
+      <button id="code-go" class="me-start">Enter Room</button>
+      <button class="back-link" id="back-multi2">\u2190 Back</button>
+    </div>
+    <p id="multi-err" class="me-err"></p>
+    <button class="back-link" id="back-mode">\u2190 Back</button>
+  </div>
+</div>
+
+<!-- LOBBY -->
+<div id="lobby-screen" class="screen hidden">
+  <div class="me-panel">
+    <div class="title-glow"></div>
+    <p class="me-sub" id="lobby-title">Lobby</p>
+    <p id="lobby-room" class="lobby-count"></p>
+    <div id="lobby-list" class="lobby-list"></div>
+    <p id="lobby-count" class="lobby-count"></p>
+    <button id="lobby-start" class="me-start">Start Game</button>
+    <button class="back-link" id="back-lobby">\u2190 Leave</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game-screen" class="screen hidden">
+  <div id="hud">
+    <div class="brand">MATH ESCAPE</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="hud-pill" id="hud-progress">0 / 5</div>
+      <div class="hud-pill pur" id="hud-points">0 pts</div>
+      <div class="hud-pill red" id="hud-timer">3:00</div>
+    </div>
+  </div>
+  <div class="game-wrap">
+    <div id="side"><h3>Scores</h3><div id="sd-body"></div></div>
+    <div class="stage">
+      <div id="lvl-name">Level 1 \u00b7 Addition</div>
+      <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
+      <div id="q-text">\u2014</div>
+      <div id="ans-row">
+        <input id="ans-input" type="text" inputmode="numeric" autocomplete="off" placeholder="answer">
+        <button id="ans-submit">Submit</button>
+      </div>
+      <div id="ans-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LEVEL COMPLETE -->
+<div id="lc-overlay" class="overlay hidden">
+  <div class="ov-card">
+    <h2 id="lc-title">\ud83d\udd13 Level cleared!</h2>
+    <p id="lc-sub"></p>
+    <div class="ov-pts" id="lc-pts"></div>
+    <div class="ov-btns"><button id="lc-next">Next level \u2192</button></div>
+  </div>
+</div>
+
+<!-- GAME OVER / WIN -->
+<div id="ov-overlay" class="overlay hidden">
+  <div class="ov-card">
+    <h2 id="ov-title">\ud83c\udf89 You escaped!</h2>
+    <p id="ov-sub"></p>
+    <div class="ov-pts" id="ov-pts"></div>
+    <div class="ov-btns"><button id="ov-again">Play again</button><button id="ov-menu">Menu</button></div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script>
+(function(){
+  'use strict';
+  function $(id){return document.getElementById(id);}
+  function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+  function pick(a){return a[Math.floor(Math.random()*a.length)];}
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function initials(n){n=(n||'?').trim();var p=n.split(/\s+/);return ((p[0]||'?')[0]+(p[1]?p[1][0]:'')).toUpperCase();}
+  function randColor(){return pick(['#22c55e','#a855f7','#3b82f6','#ef4444','#f59e0b','#ec4899','#14b8a6','#eab308']);}
+
+  /* firebase (multiplayer + scores) */
+  var db=null,fbOk=false;
+  try{
+    if(window.firebase){
+      if(!firebase.apps.length)firebase.initializeApp({apiKey:'AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo',authDomain:'matix-1d538.firebaseapp.com',databaseURL:'https://matix-1d538-default-rtdb.firebaseio.com',projectId:'matix-1d538'});
+      db=firebase.database();fbOk=true;
+    }
+  }catch(e){fbOk=false;}
+  var UID=sessionStorage.getItem('me_uid');if(!UID){UID='u'+Math.random().toString(36).slice(2,9);sessionStorage.setItem('me_uid',UID);}
+
+  function currentSiteUser(){try{return sessionStorage.getItem('mx_user')||sessionStorage.getItem('matix_auth_user')||null;}catch(e){return null;}}
+
+  /* state */
+  var myName='You',myColor='#22c55e';
+  var roomType='single';        // single|online|bots|private
+  var players=[];               // {id,name,color,you,bot,skill,pts,correct}
+  var lvlIndex=0,correctCount=0,totalPoints=0,bestTime=null;
+  var qStart=0,levelDeadline=0,timerId=null,running=false;
+  var cur=null;                 // current question {text,ans}
+  var curRoom=null,roster={};
+
+  var LEVELS=[
+    {name:'Level 1 \u00b7 Addition',target:5,secs:180,gen:genAdd},
+    {name:'Level 2 \u00b7 \u00d7 and \u00f7',target:10,secs:180,gen:genMulDiv},
+    {name:'Level 3 \u00b7 Mixed & Hard',target:20,secs:180,gen:genHard}
+  ];
+
+  /* question generators */
+  function genAdd(){var a=rnd(5,60),b=rnd(5,60);return{text:a+' + '+b,ans:a+b};}
+  function genMulDiv(){
+    if(Math.random()<0.5){var a=rnd(2,12),b=rnd(2,12);return{text:a+' \u00d7 '+b,ans:a*b};}
+    var d=rnd(2,12),q=rnd(2,12);return{text:(d*q)+' \u00f7 '+d,ans:q};
+  }
+  function genHard(){
+    var t=rnd(0,7);
+    if(t===0){var n=pick([16,25,36,49,64,81,100,121,144,169,196,225]);return{text:'\u221a'+n,ans:Math.round(Math.sqrt(n))};}
+    if(t===1){var c=pick([8,27,64,125,216,343,512,729,1000]);return{text:'\u221b'+c,ans:Math.round(Math.cbrt(c))};}
+    if(t===2){var a=rnd(25,99),b=rnd(25,99);return{text:a+' + '+b,ans:a+b};}
+    if(t===3){var a=rnd(40,120),b=rnd(10,a);return{text:a+' \u2212 '+b,ans:a-b};}
+    if(t===4){var a=rnd(6,16),b=rnd(6,16);return{text:a+' \u00d7 '+b,ans:a*b};}
+    if(t===5){var d=rnd(3,12),q=rnd(3,12);return{text:(d*q)+' \u00f7 '+d,ans:q};}
+    if(t===6){var a=rnd(2,12),b=rnd(2,12),k=rnd(2,20);return{text:a+' \u00d7 '+b+' + '+k,ans:a*b+k};}
+    var s=pick([4,9,16,25,36,49,64]);var e=rnd(2,20);return{text:'\u221a'+s+' + '+e,ans:Math.round(Math.sqrt(s))+e};
+  }
+
+  /* screens */
+  function show(id){['login-screen','mode-screen','multi-screen','lobby-screen','game-screen'].forEach(function(s){$(s).classList.toggle('hidden',s!==id);});}
+
+  /* ---------- start / players ---------- */
+  function makeBots(n){var arr=[];for(var i=1;i<=n;i++)arr.push({id:'bot'+i,name:'MathBot '+i,color:randColor(),you:false,bot:true,skill:0.35+Math.random()*0.5,pts:0,correct:0});return arr;}
+  function startGame(opponents){
+    players=[{id:UID,name:myName,color:myColor,you:true,bot:false,skill:1,pts:0,correct:0}].concat(opponents||[]);
+    lvlIndex=0;totalPoints=0;bestTime=null;
+    show('game-screen');
+    $('ov-overlay').classList.add('hidden');$('lc-overlay').classList.add('hidden');
+    startLevel();
+  }
+  function startLevel(){
+    correctCount=0;
+    var L=LEVELS[lvlIndex];
+    $('lvl-name').textContent=L.name;
+    $('hud-progress').textContent='0 / '+L.target;
+    $('hud-points').textContent=totalPoints+' pts';
+    updateProgress();
+    levelDeadline=Date.now()+L.secs*1000;
+    running=true;
+    if(timerId)clearInterval(timerId);
+    timerId=setInterval(tick,250);
+    nextQuestion();
+    renderSide();
+  }
+  function tick(){
+    var left=Math.max(0,Math.ceil((levelDeadline-Date.now())/1000));
+    var m=Math.floor(left/60),s=left%60;
+    $('hud-timer').textContent=m+':'+(s<10?'0':'')+s;
+    if(left<=0){running=false;clearInterval(timerId);endGame(false);}
+  }
+  function updateProgress(){
+    var L=LEVELS[lvlIndex];
+    $('pfill').style.width=Math.min(100,(correctCount/L.target)*100)+'%';
+    $('hud-progress').textContent=correctCount+' / '+L.target;
+  }
+  function nextQuestion(){
+    cur=LEVELS[lvlIndex].gen();
+    qStart=Date.now();
+    var q=$('q-text');q.textContent=cur.text;q.classList.remove('pop');void q.offsetWidth;q.classList.add('pop');
+    $('ans-input').value='';$('ans-input').disabled=false;$('ans-submit').disabled=false;
+    $('ans-msg').textContent='';
+    $('ans-input').focus();
+  }
+  function renderSide(){
+    var body=$('sd-body');body.innerHTML='';
+    var sorted=players.slice().sort(function(a,b){return b.pts-a.pts;});
+    sorted.forEach(function(p){
+      var row=document.createElement('div');row.className='sd-item'+(p.you?' you':'');
+      row.innerHTML='<span class="sd-dot" style="background:'+p.color+'"></span><span class="sd-name">'+esc(p.name)+(p.you?' (you)':'')+'</span><span class="sd-pts">'+p.pts+'</span>';
+      body.appendChild(row);
+    });
+  }
+
+  /* ---------- answering ---------- */
+  function submitAnswer(){
+    if(!running||!cur)return;
+    var raw=($('ans-input').value||'').trim();
+    if(raw==='')return;
+    var val=Number(raw);
+    if(isNaN(val)){flashMsg('Numbers only',true);shakeInput();return;}
+    if(val!==cur.ans){flashMsg('Not quite \u2014 try again',true);shakeInput();$('ans-input').value='';$('ans-input').focus();return;}
+    // correct!
+    var elapsed=Date.now()-qStart;
+    if(bestTime===null||elapsed<bestTime)bestTime=elapsed;
+    // opponents that also got it right this round, with random times
+    var correctOpps=[];
+    players.forEach(function(p){if(p.you)return;if(Math.random()<p.skill){correctOpps.push({p:p,time:1200+Math.random()*7000});}});
+    // your placement among correct answerers
+    var faster=0;correctOpps.forEach(function(o){if(o.time<elapsed)faster++;});
+    var place=faster+1;
+    var pts=place===1?3:place===2?2:place===3?1:0;
+    var me=players[0];me.pts+=pts;me.correct++;
+    correctOpps.forEach(function(o){o.p.correct++;});
+    // award opponent points by their own order (flavor)
+    var ordered=correctOpps.slice().sort(function(a,b){return a.time-b.time;});
+    // recompute everyone's placement including you
+    var all=ordered.map(function(o){return {p:o.p,time:o.time};});
+    all.push({p:me,time:elapsed});
+    all.sort(function(a,b){return a.time-b.time;});
+    all.forEach(function(x,i){if(x.p!==me){x.p.pts+=(i===0?3:i===1?2:i===2?1:0);}});
+    totalPoints=me.pts;
+    correctCount++;
+    flashMsg('\u2705 +'+pts+' pts (#'+place+')',false);
+    $('hud-points').textContent=totalPoints+' pts';
+    updateProgress();renderSide();
+    var L=LEVELS[lvlIndex];
+    if(correctCount>=L.target){levelDone();}
+    else{setTimeout(nextQuestion,450);}
+  }
+  function flashMsg(t,bad){var m=$('ans-msg');m.textContent=t;m.style.color=bad?'#fca5a5':'#86efac';}
+  function shakeInput(){var i=$('ans-input');i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake');}
+
+  function levelDone(){
+    running=false;if(timerId)clearInterval(timerId);
+    if(lvlIndex>=LEVELS.length-1){endGame(true);return;}
+    $('lc-title').textContent='\ud83d\udd13 '+LEVELS[lvlIndex].name+' cleared!';
+    $('lc-sub').textContent='Next up: '+LEVELS[lvlIndex+1].name+' \u2014 '+LEVELS[lvlIndex+1].target+' correct in 3:00.';
+    $('lc-pts').textContent=totalPoints+' points so far';
+    $('lc-overlay').classList.remove('hidden');
+  }
+  $('lc-next').addEventListener('click',function(){$('lc-overlay').classList.add('hidden');lvlIndex++;startLevel();});
+
+  function endGame(won){
+    running=false;if(timerId)clearInterval(timerId);
+    var bt=(bestTime!=null)?(bestTime/1000).toFixed(1)+'s':'\u2014';
+    $('ov-title').textContent=won?'\ud83c\udf89 You escaped!':'\u23f0 Time\u2019s up!';
+    $('ov-sub').textContent=won?('You cleared all 3 levels. Fastest answer: '+bt+'.'):('You reached '+LEVELS[lvlIndex].name+'. Fastest answer: '+bt+'.');
+    var user=currentSiteUser();
+    if(user){$('ov-pts').textContent=totalPoints+' points earned \u00b7 saved to leaderboard';recordScore(won);}
+    else{$('ov-pts').textContent=totalPoints+' points \u00b7 sign in to save on the leaderboard';}
+    $('ov-overlay').classList.remove('hidden');
+    leaveRoom();
+  }
+  function recordScore(won){
+    if(!fbOk)return;
+    var user=currentSiteUser();if(!user)return;
+    var key=user.toLowerCase().replace(/\s+/g,'');
+    try{db.ref('mathescape_scores/'+key).push({points:totalPoints,won:!!won,level:lvlIndex+1,bestTime:(bestTime!=null?Math.round(bestTime):null),room:roomType,at:Date.now()});}catch(e){}
+  }
+
+  /* ---------- multiplayer lobby ---------- */
+  function joinRoom(roomId,label,title){
+    if(!fbOk){$('multi-err').textContent='Multiplayer needs an internet connection. Try Single Player or bots.';return;}
+    curRoom=roomId;roster={};
+    $('lobby-title').textContent=title||'Lobby';
+    $('lobby-room').textContent=label?('Room: '+label):'';
+    show('lobby-screen');
+    var pref=db.ref('mathescape/'+roomId+'/players/'+UID);
+    pref.set({name:myName,color:myColor,at:Date.now()});
+    pref.onDisconnect().remove();
+    db.ref('mathescape/'+roomId+'/players').on('value',function(s){roster=s.val()||{};renderLobby();});
+  }
+  function renderLobby(){
+    var body=$('lobby-list');body.innerHTML='';
+    var keys=Object.keys(roster);
+    keys.forEach(function(k){
+      var r=roster[k];
+      var row=document.createElement('div');row.className='lobby-row';
+      row.innerHTML='<span class="av" style="background:'+(r.color||'#888')+'">'+esc(initials(r.name||'?'))+'</span><span class="ln">'+esc(r.name||'Player')+(k===UID?' (you)':'')+'</span>';
+      body.appendChild(row);
+    });
+    var n=keys.length;
+    $('lobby-count').textContent=n+' player'+(n===1?'':'s')+' in the room';
+  }
+  function leaveRoom(){
+    if(curRoom&&fbOk){db.ref('mathescape/'+curRoom+'/players').off();db.ref('mathescape/'+curRoom+'/players/'+UID).remove();}
+    curRoom=null;roster={};
+  }
+  function startFromLobby(){
+    var opps=[];
+    Object.keys(roster).forEach(function(k){if(k===UID)return;var r=roster[k];opps.push({id:k,name:r.name||'Player',color:r.color||'#888',you:false,bot:false,skill:0.5,pts:0,correct:0});});
+    if(curRoom&&fbOk)db.ref('mathescape/'+curRoom+'/players').off();
+    startGame(opps);
+  }
+
+  /* ---------- events ---------- */
+  $('to-mode').addEventListener('click',function(){myName=($('join-name').value||'').trim()||'You';myColor=$('join-color').value||'#22c55e';show('mode-screen');});
+  $('join-name').addEventListener('keydown',function(e){if(e.key==='Enter')$('to-mode').click();});
+  $('back-login').addEventListener('click',function(){show('login-screen');});
+  $('m-single').addEventListener('click',function(){roomType='single';startGame([]);});
+  $('m-multi').addEventListener('click',function(){show('multi-screen');resetMulti();});
+  $('back-mode').addEventListener('click',function(){show('mode-screen');});
+
+  function resetMulti(){$('multi-menu').classList.remove('hidden');$('bots-cfg').classList.add('hidden');$('code-cfg').classList.add('hidden');$('multi-err').textContent='';}
+  function botsNote(){var k=parseInt($('bot-count').value,10);if(isNaN(k)||k<1)k=1;if(k>19)k=19;$('bots-note').textContent='You + '+k+' bot'+(k===1?'':'s')+' \u00b7 '+(k+1)+' players total.';}
+  $('m-bots').addEventListener('click',function(){roomType='bots';$('multi-menu').classList.add('hidden');$('bots-cfg').classList.remove('hidden');botsNote();});
+  $('bot-count').addEventListener('input',botsNote);
+  $('back-multi1').addEventListener('click',resetMulti);
+  $('start-bots').addEventListener('click',function(){var k=parseInt($('bot-count').value,10);if(isNaN(k))k=4;k=Math.max(1,Math.min(19,k));roomType='bots';startGame(makeBots(k));});
+  $('m-online').addEventListener('click',function(){roomType='online';joinRoom('public','public','Online Server');});
+  $('m-create').addEventListener('click',function(){roomType='private';$('multi-menu').classList.add('hidden');$('code-cfg').classList.remove('hidden');$('code-label').textContent='New room ID';$('room-code').value='me'+Math.random().toString(36).slice(2,7);$('code-go').textContent='Create & Enter';});
+  $('m-join').addEventListener('click',function(){roomType='private';$('multi-menu').classList.add('hidden');$('code-cfg').classList.remove('hidden');$('code-label').textContent='Room ID';$('room-code').value='';$('code-go').textContent='Join Room';});
+  $('rand-code').addEventListener('click',function(){$('room-code').value='me'+Math.random().toString(36).slice(2,7);});
+  $('back-multi2').addEventListener('click',resetMulti);
+  $('code-go').addEventListener('click',function(){var code=($('room-code').value||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');if(!code){$('multi-err').textContent='Enter a room ID.';return;}roomType='private';joinRoom('priv_'+code,code,'Private Room');});
+  $('lobby-start').addEventListener('click',startFromLobby);
+  $('back-lobby').addEventListener('click',function(){leaveRoom();show('multi-screen');resetMulti();});
+
+  $('ans-submit').addEventListener('click',submitAnswer);
+  $('ans-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitAnswer();}});
+
+  $('ov-again').addEventListener('click',function(){$('ov-overlay').classList.add('hidden');if(roomType==='single')startGame([]);else if(roomType==='bots')startGame(makeBots(players.length-1||4));else{show('multi-screen');resetMulti();}});
+  $('ov-menu').addEventListener('click',function(){$('ov-overlay').classList.add('hidden');show('mode-screen');});
+
+  /* prefill signed-in user */
+  var su=currentSiteUser();if(su)$('join-name').value=su;
+})();
+</script>
+<script src="/nav.js" defer></script>
+</body>
+</html>
