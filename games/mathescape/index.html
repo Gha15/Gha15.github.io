@@ -63,14 +63,13 @@
 .lobby-row .ln{flex:1}
 .av{width:24px;height:24px;border-radius:50%;flex:none;font-size:.72rem;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
 .lobby-count{text-align:center;color:var(--mut);font-size:.9rem;margin:0 0 12px}
-/* game */
 #game-screen{align-items:stretch;flex-direction:column;flex-wrap:nowrap;padding:16px;gap:14px}
 #hud{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 #hud .brand{font-family:'Vibur',cursive;font-size:1.9rem;letter-spacing:2px}
-.hud-pill{font-weight:800;font-size:1rem;padding:8px 16px;border-radius:999px;background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.4);color:#c7f9dd}
+.hud-pill{font-weight:800;font-size:.95rem;padding:8px 16px;border-radius:999px;background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.4);color:#c7f9dd}
 .hud-pill.pur{background:rgba(168,85,247,.16);border-color:rgba(168,85,247,.4);color:#e6d8ff}
 .hud-pill.red{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45);color:#fecaca}
-.game-wrap{display:flex;gap:16px;align-items:flex-start;flex:1;width:100%;max-width:1000px;margin:0 auto}
+.game-wrap{display:flex;gap:16px;align-items:flex-start;flex:1;width:100%;max-width:1100px;margin:0 auto}
 #side{width:210px;flex:none;background:rgba(9,20,15,.7);border:1px solid var(--line);border-radius:16px;padding:14px}
 #side h3{margin:0 0 10px;font-size:.8rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mut)}
 .sd-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;font-size:.9rem;margin-bottom:4px}
@@ -78,21 +77,42 @@
 .sd-dot{width:10px;height:10px;border-radius:50%;flex:none}
 .sd-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sd-pts{font-weight:800;color:#fbbf24}
-.stage{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px}
-#lvl-name{font-weight:800;font-size:1.2rem;color:#c7f9dd;text-align:center}
-.progress-track{width:100%;max-width:480px;height:14px;border-radius:999px;background:#0b1f16;border:1px solid var(--line);overflow:hidden}
-.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--grn),var(--pur));transition:width .3s}
-#q-text{font-size:3.4rem;font-weight:800;text-align:center;color:#fff;text-shadow:0 0 22px rgba(34,197,94,.35);min-height:1.2em;letter-spacing:1px}
-#ans-row{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px}
-#ans-input{width:100%;padding:18px;border-radius:14px;background:#08160f;border:2px solid var(--line);color:#fff;font-size:2.3rem;text-align:center;font-weight:800}
-#ans-input:focus{outline:none;border-color:var(--grn);box-shadow:0 0 0 4px rgba(34,197,94,.25)}
-#ans-submit{width:100%;padding:15px 22px;border:none;border-radius:14px;font-size:1.1rem;font-weight:800;letter-spacing:1px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--grn),var(--pur));box-shadow:0 10px 30px rgba(34,197,94,.35)}
-#ans-msg{min-height:1.2em;font-weight:700;text-align:center;color:var(--mut)}
+.stage{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:20px;padding:14px 8px}
+#rooms-strip{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;width:100%}
+.room-card{width:200px;background:rgba(11,31,22,.7);border:2px solid var(--line);border-radius:16px;padding:20px 16px;text-align:center;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.room-card:hover:not(.locked):not(.cleared){transform:translateY(-3px);border-color:var(--grn)}
+.room-card.active{border-color:var(--pur);box-shadow:0 0 0 3px rgba(168,85,247,.3)}
+.room-card.cleared{border-color:var(--grn);background:rgba(34,197,94,.18)}
+.room-card.locked{opacity:.45;cursor:not-allowed}
+.rc-num{font-family:'Vibur',cursive;font-size:1.9rem;color:#fff;letter-spacing:1px}
+.rc-name{color:var(--mut);margin:4px 0 10px;font-weight:700;font-size:.9rem}
+.rc-lock{font-size:2.8rem;line-height:1}
+#room-view{width:100%;max-width:660px;background:rgba(9,20,15,.75);border:1px solid var(--line);border-radius:16px;padding:22px}
+#rv-title{font-size:1.4rem;font-weight:800;color:#fff;text-align:center;margin-bottom:6px}
+#rv-hint{color:var(--mut);text-align:center;margin-bottom:14px;font-size:.9rem}
+#qlist{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.qrow{display:flex;align-items:center;gap:10px;background:#08160f;border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.qrow .qi{width:26px;height:26px;border-radius:50%;background:var(--pur);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;font-size:.85rem}
+.qrow .qt{flex:1;font-size:1.15rem;font-weight:700;color:#fff}
+.qrow .qa{width:90px;padding:7px 8px;border-radius:8px;background:#0b1f16;border:1px solid var(--line);color:#fff;font-size:1rem;text-align:center}
+.qrow .qa:focus{outline:none;border-color:var(--grn)}
+.qrow .qs{width:20px;text-align:center;font-weight:800}
+.qrow.ok .qs{color:#86efac}
+.qrow.bad .qs{color:#fca5a5}
+#lock-row{display:block}
+#lock-input{width:100%;padding:16px;border-radius:12px;background:#08160f;border:2px solid var(--pur);color:#fff;font-size:1.7rem;text-align:center;font-weight:800;letter-spacing:2px}
+#lock-input:focus{outline:none;box-shadow:0 0 0 3px rgba(168,85,247,.35)}
+#lock-actions{display:flex;gap:10px;margin-top:12px}
+#lock-submit{flex:1;padding:14px;border:none;border-radius:12px;font-weight:800;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--grn),var(--pur));font-size:1rem}
+#calc-btn{flex:1;padding:14px;border-radius:12px;border:1px solid var(--line);background:#123322;color:#fff;font-weight:700;cursor:pointer;font-size:1rem}
+#calc-btn:hover{background:#1a4630}
+.qtag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:800;color:#fff;margin-left:6px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qrow.solved .qa{opacity:.75}
+#rv-msg{min-height:1.2em;font-weight:700;text-align:center;color:var(--mut);margin-top:12px}
 .shake{animation:shk .35s}
 @keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
 .pop{animation:pop .3s}
 @keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
-/* overlays */
 .overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,10,7,.82);backdrop-filter:blur(5px)}
 .ov-card{width:440px;max-width:94vw;background:rgba(9,20,15,.96);border:1px solid var(--line);border-radius:20px;padding:30px 28px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.6);animation:pop .35s}
 .ov-card h2{margin:0 0 10px;font-size:2rem}
@@ -100,25 +120,32 @@
 .ov-pts{font-weight:800;color:#fbbf24;font-size:1.1rem;margin:10px 0}
 .ov-btns{display:flex;gap:10px;margin-top:16px}
 .ov-btns button{flex:1;padding:13px;border:none;border-radius:12px;font-weight:800;cursor:pointer;color:#fff}
-#lc-next,#ov-again{background:linear-gradient(135deg,var(--grn),var(--pur))}
-#ov-menu,#lc-skip{background:#123322;border:1px solid var(--line)!important}
+#ov-again{background:linear-gradient(135deg,var(--grn),var(--pur))}
+#ov-menu{background:#123322;border:1px solid var(--line)!important}
+.calc-card{width:320px;max-width:94vw}
+.calc-card h3{margin:0 0 12px;color:#fff}
+#calc-display{background:#0b1f16;border:1px solid var(--line);border-radius:10px;padding:16px;text-align:right;font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:14px;min-height:2.4em;word-break:break-all}
+#calc-keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+#calc-keys button{padding:14px;border-radius:10px;border:1px solid var(--line);background:#0b1f16;color:#fff;font-weight:800;font-size:1.1rem;cursor:pointer}
+#calc-keys button:hover{background:#123322}
+#calc-keys .ck-op{background:#1e3b2a;color:#c7f9dd}
+#calc-keys .ck-eq{background:linear-gradient(135deg,var(--grn),var(--pur));color:#fff}
+#calc-close{background:#123322;border:1px solid var(--line);padding:12px;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;width:100%}
 </style>
 </head>
 <body>
 <div id="me-root">
 <div class="particles"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
 
-<!-- LOGIN -->
 <div id="login-screen" class="screen">
   <div class="rules-panel">
-    <h2>\ud83d\udd10 How to escape</h2>
+    <h2>🔐 How to escape</h2>
     <ul>
-      <li>Solve the question in the <strong>middle of the screen</strong>.</li>
-      <li>Answer <strong>1st \u2192 3 pts</strong>, 2nd \u2192 2, 3rd \u2192 1, 4th+ \u2192 0.</li>
-      <li><strong>Level 1:</strong> 5 correct \u00b7 Addition</li>
-      <li><strong>Level 2:</strong> 10 correct \u00b7 \u00d7 and \u00f7</li>
-      <li><strong>Level 3:</strong> 20 correct \u00b7 mixed + hard (\u221a, \u221b)</li>
-      <li>You get <strong>3 minutes</strong> per level. Beat the clock to escape!</li>
+      <li>Escape <strong>3 locked rooms</strong> — one per level.</li>
+      <li>Each room has <strong>5 questions</strong>. The lock is set the moment you enter.</li>
+      <li><strong>Rooms 1 & 2:</strong> the lock code is the <strong>sum</strong> of the 5 answers.</li>
+      <li><strong>Room 3:</strong> the lock code is the <strong>product</strong> — a calculator is provided.</li>
+      <li><strong>3 minutes</strong> to crack each lock.</li>
     </ul>
   </div>
   <div class="me-panel">
@@ -127,66 +154,54 @@
     <p class="me-sub">Enter your details</p>
     <div class="me-field">
       <label for="join-name">Username</label>
-      <input id="join-name" type="text" placeholder="Any name \u2014 spaces OK!" autocomplete="nickname" spellcheck="false">
+      <input id="join-name" type="text" placeholder="Any name — spaces OK!" autocomplete="nickname" spellcheck="false">
     </div>
     <div class="me-field">
       <label>Your color</label>
       <div class="color-wrap"><input id="join-color" type="color" value="#22c55e"><span style="color:var(--mut);font-size:.9rem">picks your marker</span></div>
     </div>
-    <button id="to-mode" class="me-start">Continue \u2192</button>
+    <button id="to-mode" class="me-start">Continue →</button>
   </div>
 </div>
 
-<!-- MODE -->
 <div id="mode-screen" class="screen hidden">
   <div class="me-panel">
     <div class="title-glow"></div>
     <p class="me-sub">Choose your run</p>
     <div class="mode-list">
-      <button class="mode-btn" id="m-single"><span class="mi">\ud83e\uddcd</span><span>Single Player</span></button>
-      <button class="mode-btn" id="m-multi"><span class="mi">\ud83d\udc65</span><span>Multiplayer</span></button>
+      <button class="mode-btn" id="m-single"><span class="mi">🧍</span><span>Single Player</span></button>
+      <button class="mode-btn" id="m-multi"><span class="mi">👥</span><span>Play Together</span></button>
     </div>
-    <button class="back-link" id="back-login">\u2190 Change details</button>
+    <button class="back-link" id="back-login">← Change details</button>
   </div>
 </div>
 
-<!-- MULTIPLAYER OPTIONS -->
 <div id="multi-screen" class="screen hidden">
   <div class="me-panel">
     <div class="title-glow"></div>
-    <p class="me-sub">Multiplayer</p>
+    <p class="me-sub">Play Together</p>
     <div id="multi-menu" class="mode-list">
-      <button class="mode-btn" id="m-online"><span class="mi">\ud83c\udf10</span><span>Play with people online</span></button>
-      <button class="mode-btn" id="m-bots"><span class="mi">\ud83e\udd16</span><span>Play vs bots</span></button>
-      <button class="mode-btn" id="m-create"><span class="mi">\u2795</span><span>Create private room</span></button>
-      <button class="mode-btn" id="m-join"><span class="mi">\ud83d\udd11</span><span>Join private room</span></button>
+      <button class="mode-btn" id="m-online"><span class="mi">🌐</span><span>Play with people online</span></button>
+      <button class="mode-btn" id="m-bots"><span class="mi">🤖</span><span>Play with bots</span></button>
+      <button class="mode-btn" id="m-create"><span class="mi">➕</span><span>Create private room</span></button>
+      <button class="mode-btn" id="m-join"><span class="mi">🔑</span><span>Join private room</span></button>
     </div>
     <div id="bots-cfg" class="hidden">
-      <div class="me-field">
-        <label for="bot-count">Number of bots (1-19)</label>
-        <input id="bot-count" type="number" min="1" max="19" value="4">
-      </div>
+      <div class="me-field"><label for="bot-count">Number of bots (1-19)</label><input id="bot-count" type="number" min="1" max="19" value="4"></div>
       <p id="bots-note" class="note"></p>
       <button id="start-bots" class="me-start">Start</button>
-      <button class="back-link" id="back-multi1">\u2190 Back</button>
+      <button class="back-link" id="back-multi1">← Back</button>
     </div>
     <div id="code-cfg" class="hidden">
-      <div class="me-field">
-        <label for="room-code" id="code-label">Room ID</label>
-        <div class="room-row">
-          <input id="room-code" type="text" placeholder="myroom123" autocomplete="off">
-          <button id="rand-code" type="button" class="btn-sec">Random</button>
-        </div>
-      </div>
+      <div class="me-field"><label for="room-code" id="code-label">Room ID</label><div class="room-row"><input id="room-code" type="text" placeholder="myroom123" autocomplete="off"><button id="rand-code" type="button" class="btn-sec">Random</button></div></div>
       <button id="code-go" class="me-start">Enter Room</button>
-      <button class="back-link" id="back-multi2">\u2190 Back</button>
+      <button class="back-link" id="back-multi2">← Back</button>
     </div>
     <p id="multi-err" class="me-err"></p>
-    <button class="back-link" id="back-mode">\u2190 Back</button>
+    <button class="back-link" id="back-mode">← Back</button>
   </div>
 </div>
 
-<!-- LOBBY -->
 <div id="lobby-screen" class="screen hidden">
   <div class="me-panel">
     <div class="title-glow"></div>
@@ -195,57 +210,68 @@
     <div id="lobby-list" class="lobby-list"></div>
     <p id="lobby-count" class="lobby-count"></p>
     <button id="lobby-start" class="me-start">Start Game</button>
-    <button class="back-link" id="back-lobby">\u2190 Leave</button>
+    <button class="back-link" id="back-lobby">← Leave</button>
   </div>
 </div>
 
-<!-- GAME -->
 <div id="game-screen" class="screen hidden">
   <div id="hud">
     <div class="brand">MATH ESCAPE</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <div class="hud-pill" id="hud-progress">0 / 5</div>
+      <div class="hud-pill" id="hud-status">0 / 3 rooms escaped</div>
       <div class="hud-pill pur" id="hud-points">0 pts</div>
-      <div class="hud-pill red" id="hud-timer">3:00</div>
+      <div class="hud-pill red" id="hud-timer">—</div>
     </div>
   </div>
   <div class="game-wrap">
-    <div id="side"><h3>Scores</h3><div id="sd-body"></div></div>
+    <div id="side"><h3>Team</h3><div id="sd-body"></div></div>
     <div class="stage">
-      <div id="lvl-name">Level 1 \u00b7 Addition</div>
-      <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
-      <div id="q-text">\u2014</div>
-      <div id="ans-row">
-        <input id="ans-input" type="text" inputmode="numeric" autocomplete="off" placeholder="answer">
-        <button id="ans-submit">Submit</button>
+      <div id="rooms-strip">
+        <div class="room-card" data-i="0"><div class="rc-num">Room 1</div><div class="rc-name">Addition</div><div class="rc-lock">🔒</div></div>
+        <div class="room-card" data-i="1"><div class="rc-num">Room 2</div><div class="rc-name">× and ÷</div><div class="rc-lock">🔒</div></div>
+        <div class="room-card" data-i="2"><div class="rc-num">Room 3</div><div class="rc-name">Mixed & Hard</div><div class="rc-lock">🔒</div></div>
       </div>
-      <div id="ans-msg"></div>
+      <div id="room-view" class="hidden">
+        <div id="rv-title">Room 1</div>
+        <div id="rv-hint"></div>
+        <div id="qlist"></div>
+        <div id="lock-row">
+          <input id="lock-input" type="text" inputmode="numeric" placeholder="lock code" autocomplete="off">
+        </div>
+        <div id="lock-actions">
+          <button id="lock-submit">🔓 Unlock</button>
+          <button id="calc-btn" class="hidden">🧮 Calculator</button>
+        </div>
+        <div id="rv-msg"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- LEVEL COMPLETE -->
-<div id="lc-overlay" class="overlay hidden">
-  <div class="ov-card">
-    <h2 id="lc-title">\ud83d\udd13 Level cleared!</h2>
-    <p id="lc-sub"></p>
-    <div class="ov-pts" id="lc-pts"></div>
-    <div class="ov-btns"><button id="lc-next">Next level \u2192</button></div>
-  </div>
-</div>
-
-<!-- GAME OVER / WIN -->
 <div id="ov-overlay" class="overlay hidden">
   <div class="ov-card">
-    <h2 id="ov-title">\ud83c\udf89 You escaped!</h2>
+    <h2 id="ov-title">🎉 You escaped!</h2>
     <p id="ov-sub"></p>
     <div class="ov-pts" id="ov-pts"></div>
     <div class="ov-btns"><button id="ov-again">Play again</button><button id="ov-menu">Menu</button></div>
   </div>
 </div>
 
+<div id="calc-overlay" class="overlay hidden">
+  <div class="ov-card calc-card">
+    <h3>🧮 Calculator</h3>
+    <div id="calc-display">0</div>
+    <div id="calc-keys">
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="C" class="ck-op">C</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="×" class="ck-op">×</button>
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="B" class="ck-op">⌫</button>
+      <button data-k="0">0</button><button data-k=".">.</button><button data-k="=" class="ck-eq" style="grid-column:span 2">=</button>
+    </div>
+    <button id="calc-close">Close</button>
+  </div>
 </div>
 
+</div>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
@@ -258,7 +284,6 @@
   function initials(n){n=(n||'?').trim();var p=n.split(/\s+/);return ((p[0]||'?')[0]+(p[1]?p[1][0]:'')).toUpperCase();}
   function randColor(){return pick(['#22c55e','#a855f7','#3b82f6','#ef4444','#f59e0b','#ec4899','#14b8a6','#eab308']);}
 
-  /* firebase (multiplayer + scores) */
   var db=null,fbOk=false;
   try{
     if(window.firebase){
@@ -267,87 +292,222 @@
     }
   }catch(e){fbOk=false;}
   var UID=sessionStorage.getItem('me_uid');if(!UID){UID='u'+Math.random().toString(36).slice(2,9);sessionStorage.setItem('me_uid',UID);}
-
   function currentSiteUser(){try{return sessionStorage.getItem('mx_user')||sessionStorage.getItem('matix_auth_user')||null;}catch(e){return null;}}
 
-  /* state */
   var myName='You',myColor='#22c55e';
-  var roomType='single';        // single|online|bots|private
-  var players=[];               // {id,name,color,you,bot,skill,pts,correct}
-  var lvlIndex=0,correctCount=0,totalPoints=0,bestTime=null;
-  var qStart=0,levelDeadline=0,timerId=null,running=false;
-  var cur=null;                 // current question {text,ans}
+  var roomType='single';
+  var players=[];
+  var rooms=[];
+  var curRoomIdx=-1;
+  var totalPoints=0;
+  var bestTime=null;
+  var deadline=0;
+  var roomTimerId=null;
+  var botTimers=[];
+  var running=false;
   var curRoom=null,roster={};
 
-  var LEVELS=[
-    {name:'Level 1 \u00b7 Addition',target:5,secs:180,gen:genAdd},
-    {name:'Level 2 \u00b7 \u00d7 and \u00f7',target:10,secs:180,gen:genMulDiv},
-    {name:'Level 3 \u00b7 Mixed & Hard',target:20,secs:180,gen:genHard}
-  ];
-
-  /* question generators */
   function genAdd(){var a=rnd(5,60),b=rnd(5,60);return{text:a+' + '+b,ans:a+b};}
   function genMulDiv(){
-    if(Math.random()<0.5){var a=rnd(2,12),b=rnd(2,12);return{text:a+' \u00d7 '+b,ans:a*b};}
-    var d=rnd(2,12),q=rnd(2,12);return{text:(d*q)+' \u00f7 '+d,ans:q};
+    if(Math.random()<0.5){var a=rnd(2,12),b=rnd(2,12);return{text:a+' × '+b,ans:a*b};}
+    var d=rnd(2,12),q=rnd(2,12);return{text:(d*q)+' ÷ '+d,ans:q};
   }
   function genHard(){
     var t=rnd(0,7);
-    if(t===0){var n=pick([16,25,36,49,64,81,100,121,144,169,196,225]);return{text:'\u221a'+n,ans:Math.round(Math.sqrt(n))};}
-    if(t===1){var c=pick([8,27,64,125,216,343,512,729,1000]);return{text:'\u221b'+c,ans:Math.round(Math.cbrt(c))};}
-    if(t===2){var a=rnd(25,99),b=rnd(25,99);return{text:a+' + '+b,ans:a+b};}
-    if(t===3){var a=rnd(40,120),b=rnd(10,a);return{text:a+' \u2212 '+b,ans:a-b};}
-    if(t===4){var a=rnd(6,16),b=rnd(6,16);return{text:a+' \u00d7 '+b,ans:a*b};}
-    if(t===5){var d=rnd(3,12),q=rnd(3,12);return{text:(d*q)+' \u00f7 '+d,ans:q};}
-    if(t===6){var a=rnd(2,12),b=rnd(2,12),k=rnd(2,20);return{text:a+' \u00d7 '+b+' + '+k,ans:a*b+k};}
-    var s=pick([4,9,16,25,36,49,64]);var e=rnd(2,20);return{text:'\u221a'+s+' + '+e,ans:Math.round(Math.sqrt(s))+e};
+    if(t===0){var n=pick([16,25,36,49,64,81,100,121,144]);return{text:'√'+n,ans:Math.round(Math.sqrt(n))};}
+    if(t===1){var c=pick([8,27,64,125,216]);return{text:'∛'+c,ans:Math.round(Math.cbrt(c))};}
+    if(t===2){var a=rnd(15,40),b=rnd(15,40);return{text:a+' + '+b,ans:a+b};}
+    if(t===3){var a=rnd(30,80),b=rnd(10,a);return{text:a+' − '+b,ans:a-b};}
+    if(t===4){var a=rnd(3,12),b=rnd(3,12);return{text:a+' × '+b,ans:a*b};}
+    if(t===5){var d=rnd(3,9),q=rnd(3,9);return{text:(d*q)+' ÷ '+d,ans:q};}
+    if(t===6){var a=rnd(2,9),b=rnd(2,9),k=rnd(2,10);return{text:a+' × '+b+' + '+k,ans:a*b+k};}
+    var s=pick([4,9,16,25,36,49,64]);var e=rnd(2,10);return{text:'√'+s+' + '+e,ans:Math.round(Math.sqrt(s))+e};
   }
 
-  /* screens */
+  var ROOMS_CFG=[
+    {name:'Room 1 — Addition',gen:genAdd,op:'sum'},
+    {name:'Room 2 — × and ÷',gen:genMulDiv,op:'sum'},
+    {name:'Room 3 — Mixed & Hard',gen:genHard,op:'product'}
+  ];
+
   function show(id){['login-screen','mode-screen','multi-screen','lobby-screen','game-screen'].forEach(function(s){$(s).classList.toggle('hidden',s!==id);});}
 
-  /* ---------- start / players ---------- */
-  function makeBots(n){var arr=[];for(var i=1;i<=n;i++)arr.push({id:'bot'+i,name:'MathBot '+i,color:randColor(),you:false,bot:true,skill:0.35+Math.random()*0.5,pts:0,correct:0});return arr;}
+  function makeBots(n){var arr=[];for(var i=1;i<=n;i++)arr.push({id:'bot'+i,name:'MathBot '+i,color:randColor(),you:false,bot:true,skill:0.35+Math.random()*0.5,pts:0});return arr;}
+
+  function buildRooms(){
+    rooms=ROOMS_CFG.map(function(cfg){
+      var qs=[];for(var i=0;i<5;i++)qs.push(cfg.gen());
+      var code;
+      if(cfg.op==='sum')code=qs.reduce(function(s,q){return s+q.ans;},0);
+      else code=qs.reduce(function(s,q){return s*q.ans;},1);
+      return{name:cfg.name,op:cfg.op,qs:qs,code:code,cleared:false,attempts:0,startTs:null};
+    });
+  }
+
   function startGame(opponents){
-    players=[{id:UID,name:myName,color:myColor,you:true,bot:false,skill:1,pts:0,correct:0}].concat(opponents||[]);
-    lvlIndex=0;totalPoints=0;bestTime=null;
+    players=[{id:UID,name:myName,color:myColor,you:true,bot:false,skill:1,pts:0}].concat(opponents||[]);
+    buildRooms();
+    curRoomIdx=-1;totalPoints=0;bestTime=null;
     show('game-screen');
-    $('ov-overlay').classList.add('hidden');$('lc-overlay').classList.add('hidden');
-    startLevel();
-  }
-  function startLevel(){
-    correctCount=0;
-    var L=LEVELS[lvlIndex];
-    $('lvl-name').textContent=L.name;
-    $('hud-progress').textContent='0 / '+L.target;
-    $('hud-points').textContent=totalPoints+' pts';
-    updateProgress();
-    levelDeadline=Date.now()+L.secs*1000;
+    $('ov-overlay').classList.add('hidden');$('calc-overlay').classList.add('hidden');
+    $('room-view').classList.add('hidden');
     running=true;
-    if(timerId)clearInterval(timerId);
-    timerId=setInterval(tick,250);
-    nextQuestion();
-    renderSide();
+    renderStrip();renderSide();updateHud();
+    setTimeout(function(){enterRoom(0);},400);
   }
+
+  function renderStrip(){
+    var strip=$('rooms-strip');
+    for(var i=0;i<3;i++){
+      var card=strip.querySelector('.room-card[data-i="'+i+'"]');
+      card.classList.remove('active','cleared','locked');
+      var lock=card.querySelector('.rc-lock');
+      if(rooms[i].cleared){card.classList.add('cleared');lock.textContent='🔓';}
+      else{lock.textContent='🔒';if(i===curRoomIdx)card.classList.add('active');else if(i>0&&!rooms[i-1].cleared)card.classList.add('locked');}
+    }
+  }
+
+  function canEnter(i){if(i<0||i>2)return false;if(rooms[i].cleared)return false;if(i===0)return true;return rooms[i-1].cleared;}
+
+  function enterRoom(i){
+    if(!canEnter(i))return;
+    curRoomIdx=i;
+    var R=rooms[i];
+    R.startTs=Date.now();R.attempts=0;
+    // ensure a fresh solvedBy state per room (in case game restarts)
+    R.qs.forEach(function(q){q.solvedBy=null;});
+    deadline=Date.now()+180*1000;
+    if(roomTimerId)clearInterval(roomTimerId);
+    roomTimerId=setInterval(tick,250);
+    renderStrip();renderRoomView();updateHud();
+    startBots();
+  }
+
+  function stopBots(){botTimers.forEach(clearTimeout);botTimers=[];}
+  function startBots(){stopBots();players.forEach(function(p){if(p.bot)scheduleBot(p);});}
+  function scheduleBot(p){
+    if(!p||p.you||!p.bot)return;
+    var delay=2800+Math.random()*5500;
+    var t=setTimeout(function(){
+      if(!running||curRoomIdx<0){scheduleBot(p);return;}
+      var R=rooms[curRoomIdx];
+      if(!R||R.cleared)return;
+      var idxs=[];for(var i=0;i<R.qs.length;i++)if(!R.qs[i].solvedBy)idxs.push(i);
+      if(idxs.length===0)return;
+      if(Math.random()<p.skill){
+        var qi=idxs[Math.floor(Math.random()*idxs.length)];
+        solveQuestion(qi,p);
+      }
+      scheduleBot(p);
+    },delay);
+    botTimers.push(t);
+  }
+  function solveQuestion(qi,solver){
+    var R=rooms[curRoomIdx];if(!R||!R.qs[qi]||R.qs[qi].solvedBy)return;
+    R.qs[qi].solvedBy=solver.id;
+    solver.pts+=2;
+    if(solver.you){totalPoints=solver.pts;}
+    var list=$('qlist');
+    var row=list?list.children[qi]:null;
+    if(row){
+      row.classList.add('solved','ok');row.classList.remove('bad');
+      var inp=row.querySelector('input.qa');
+      if(inp){inp.value=R.qs[qi].ans;inp.disabled=true;}
+      var st=row.querySelector('.qs');if(st)st.textContent='✓';
+      var tag=row.querySelector('.qtag');
+      if(!tag){tag=document.createElement('span');tag.className='qtag';row.appendChild(tag);}
+      tag.textContent=solver.you?'You +2':(solver.name+' +2');
+      tag.style.background=solver.color;
+    }
+    renderSide();updateHud();
+  }
+
+  function renderRoomView(){
+    var R=rooms[curRoomIdx];
+    var rv=$('room-view');
+    rv.classList.remove('hidden');rv.classList.remove('pop');void rv.offsetWidth;rv.classList.add('pop');
+    $('rv-title').textContent=R.name;
+    $('rv-hint').textContent=R.op==='sum'?'Solve these 5 problems, then enter the SUM of their answers into the lock.':'Solve these 5 problems, then enter the PRODUCT of their answers. Tap the calculator if you need it.';
+    var list=$('qlist');list.innerHTML='';
+    R.qs.forEach(function(q,idx){
+      var row=document.createElement('div');row.className='qrow';
+      row.innerHTML='<span class="qi">'+(idx+1)+'</span><span class="qt">'+esc(q.text)+' = ?</span><input class="qa" type="text" inputmode="numeric" data-i="'+idx+'" autocomplete="off"><span class="qs"></span>';
+      list.appendChild(row);
+    });
+    list.querySelectorAll('input.qa').forEach(function(inp){
+      inp.addEventListener('input',function(){
+        var i=+this.getAttribute('data-i');
+        if(R.qs[i].solvedBy){this.value=R.qs[i].ans;return;}
+        var v=this.value.trim();
+        var row=this.parentElement;
+        var st=row.querySelector('.qs');
+        if(v===''){row.classList.remove('ok','bad');st.textContent='';return;}
+        var num=Number(v);
+        if(isNaN(num)){row.classList.remove('ok');row.classList.add('bad');st.textContent='✗';return;}
+        if(num===R.qs[i].ans){solveQuestion(i,players[0]);}
+        else{row.classList.remove('ok');row.classList.add('bad');st.textContent='✗';}
+      });
+    });
+    $('lock-input').value='';$('rv-msg').textContent='';$('rv-msg').style.color='var(--mut)';
+    if(R.op==='product')$('calc-btn').classList.remove('hidden');else $('calc-btn').classList.add('hidden');
+    setTimeout(function(){$('lock-input').focus();},60);
+  }
+
+  function submitLock(){
+    if(curRoomIdx<0||!running)return;
+    var raw=($('lock-input').value||'').trim();
+    if(raw==='')return;
+    var val=Number(raw);
+    var R=rooms[curRoomIdx];
+    if(isNaN(val)){flashRv('Numbers only',true);shakeLock();return;}
+    R.attempts++;
+    if(val===R.code){
+      R.cleared=true;
+      var elapsed=Date.now()-R.startTs;
+      if(bestTime===null||elapsed<bestTime)bestTime=elapsed;
+      var earned=10+(R.attempts===1?5:0);
+      players[0].pts+=earned;totalPoints=players[0].pts;
+      // every bot that helped solve at least one question earns a share of the unlock bonus
+      var helpers={};R.qs.forEach(function(q){if(q.solvedBy&&q.solvedBy!==players[0].id)helpers[q.solvedBy]=true;});
+      players.forEach(function(p){if(p.you)return;p.pts+=(helpers[p.id]?5:2);});
+      stopBots();
+      flashRv('🔓 Unlocked! +'+earned+' pts',false);
+      if(roomTimerId){clearInterval(roomTimerId);roomTimerId=null;}
+      renderStrip();renderSide();updateHud();
+      if(rooms.every(function(r){return r.cleared;})){setTimeout(function(){endGame(true);},800);}
+      else{
+        setTimeout(function(){
+          $('room-view').classList.add('hidden');
+          curRoomIdx=-1;renderStrip();
+          var next=-1;for(var k=0;k<3;k++){if(!rooms[k].cleared){next=k;break;}}
+          if(next>=0&&canEnter(next))enterRoom(next);
+          else updateHud();
+        },900);
+      }
+    }else{
+      flashRv('❌ Wrong code — try again',true);shakeLock();
+      $('lock-input').select();
+      players[0].pts=Math.max(0,players[0].pts-1);totalPoints=players[0].pts;
+      renderSide();updateHud();
+    }
+  }
+  function flashRv(t,bad){var m=$('rv-msg');m.textContent=t;m.style.color=bad?'#fca5a5':'#86efac';}
+  function shakeLock(){var i=$('lock-input');i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake');}
+
   function tick(){
-    var left=Math.max(0,Math.ceil((levelDeadline-Date.now())/1000));
+    var left=Math.max(0,Math.ceil((deadline-Date.now())/1000));
     var m=Math.floor(left/60),s=left%60;
     $('hud-timer').textContent=m+':'+(s<10?'0':'')+s;
-    if(left<=0){running=false;clearInterval(timerId);endGame(false);}
+    if(left<=0){running=false;clearInterval(roomTimerId);roomTimerId=null;endGame(false);}
   }
-  function updateProgress(){
-    var L=LEVELS[lvlIndex];
-    $('pfill').style.width=Math.min(100,(correctCount/L.target)*100)+'%';
-    $('hud-progress').textContent=correctCount+' / '+L.target;
+
+  function updateHud(){
+    $('hud-points').textContent=totalPoints+' pts';
+    var cleared=rooms.filter(function(r){return r.cleared;}).length;
+    $('hud-status').textContent=cleared+' / 3 rooms escaped';
+    if(curRoomIdx<0)$('hud-timer').textContent='—';
   }
-  function nextQuestion(){
-    cur=LEVELS[lvlIndex].gen();
-    qStart=Date.now();
-    var q=$('q-text');q.textContent=cur.text;q.classList.remove('pop');void q.offsetWidth;q.classList.add('pop');
-    $('ans-input').value='';$('ans-input').disabled=false;$('ans-submit').disabled=false;
-    $('ans-msg').textContent='';
-    $('ans-input').focus();
-  }
+
   function renderSide(){
     var body=$('sd-body');body.innerHTML='';
     var sorted=players.slice().sort(function(a,b){return b.pts-a.pts;});
@@ -358,76 +518,31 @@
     });
   }
 
-  /* ---------- answering ---------- */
-  function submitAnswer(){
-    if(!running||!cur)return;
-    var raw=($('ans-input').value||'').trim();
-    if(raw==='')return;
-    var val=Number(raw);
-    if(isNaN(val)){flashMsg('Numbers only',true);shakeInput();return;}
-    if(val!==cur.ans){flashMsg('Not quite \u2014 try again',true);shakeInput();$('ans-input').value='';$('ans-input').focus();return;}
-    // correct!
-    var elapsed=Date.now()-qStart;
-    if(bestTime===null||elapsed<bestTime)bestTime=elapsed;
-    // opponents that also got it right this round, with random times
-    var correctOpps=[];
-    players.forEach(function(p){if(p.you)return;if(Math.random()<p.skill){correctOpps.push({p:p,time:1200+Math.random()*7000});}});
-    // your placement among correct answerers
-    var faster=0;correctOpps.forEach(function(o){if(o.time<elapsed)faster++;});
-    var place=faster+1;
-    var pts=place===1?3:place===2?2:place===3?1:0;
-    var me=players[0];me.pts+=pts;me.correct++;
-    correctOpps.forEach(function(o){o.p.correct++;});
-    // award opponent points by their own order (flavor)
-    var ordered=correctOpps.slice().sort(function(a,b){return a.time-b.time;});
-    // recompute everyone's placement including you
-    var all=ordered.map(function(o){return {p:o.p,time:o.time};});
-    all.push({p:me,time:elapsed});
-    all.sort(function(a,b){return a.time-b.time;});
-    all.forEach(function(x,i){if(x.p!==me){x.p.pts+=(i===0?3:i===1?2:i===2?1:0);}});
-    totalPoints=me.pts;
-    correctCount++;
-    flashMsg('\u2705 +'+pts+' pts (#'+place+')',false);
-    $('hud-points').textContent=totalPoints+' pts';
-    updateProgress();renderSide();
-    var L=LEVELS[lvlIndex];
-    if(correctCount>=L.target){levelDone();}
-    else{setTimeout(nextQuestion,450);}
-  }
-  function flashMsg(t,bad){var m=$('ans-msg');m.textContent=t;m.style.color=bad?'#fca5a5':'#86efac';}
-  function shakeInput(){var i=$('ans-input');i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake');}
-
-  function levelDone(){
-    running=false;if(timerId)clearInterval(timerId);
-    if(lvlIndex>=LEVELS.length-1){endGame(true);return;}
-    $('lc-title').textContent='\ud83d\udd13 '+LEVELS[lvlIndex].name+' cleared!';
-    $('lc-sub').textContent='Next up: '+LEVELS[lvlIndex+1].name+' \u2014 '+LEVELS[lvlIndex+1].target+' correct in 3:00.';
-    $('lc-pts').textContent=totalPoints+' points so far';
-    $('lc-overlay').classList.remove('hidden');
-  }
-  $('lc-next').addEventListener('click',function(){$('lc-overlay').classList.add('hidden');lvlIndex++;startLevel();});
-
   function endGame(won){
-    running=false;if(timerId)clearInterval(timerId);
-    var bt=(bestTime!=null)?(bestTime/1000).toFixed(1)+'s':'\u2014';
-    $('ov-title').textContent=won?'\ud83c\udf89 You escaped!':'\u23f0 Time\u2019s up!';
-    $('ov-sub').textContent=won?('You cleared all 3 levels. Fastest answer: '+bt+'.'):('You reached '+LEVELS[lvlIndex].name+'. Fastest answer: '+bt+'.');
+    running=false;stopBots();
+    if(roomTimerId){clearInterval(roomTimerId);roomTimerId=null;}
+    if(won){players[0].pts+=20;totalPoints=players[0].pts;}
+    renderSide();
+    var cleared=rooms.filter(function(r){return r.cleared;}).length;
+    var bt=(bestTime!=null)?(bestTime/1000).toFixed(1)+'s':'—';
+    $('ov-title').textContent=won?'🎉 You escaped!':'⏰ Time\'s up!';
+    $('ov-sub').textContent=won?('Every lock cracked. Fastest room: '+bt+'.'):('You unlocked '+cleared+' / 3 rooms.');
     var user=currentSiteUser();
-    if(user){$('ov-pts').textContent=totalPoints+' points earned \u00b7 saved to leaderboard';recordScore(won);}
-    else{$('ov-pts').textContent=totalPoints+' points \u00b7 sign in to save on the leaderboard';}
+    if(user){$('ov-pts').textContent=totalPoints+' points earned · saved to leaderboard';recordScore(won,cleared);}
+    else{$('ov-pts').textContent=totalPoints+' points · sign in to save on the leaderboard';}
     $('ov-overlay').classList.remove('hidden');
     leaveRoom();
   }
-  function recordScore(won){
+
+  function recordScore(won,cleared){
     if(!fbOk)return;
     var user=currentSiteUser();if(!user)return;
     var key=user.toLowerCase().replace(/\s+/g,'');
-    try{db.ref('mathescape_scores/'+key).push({points:totalPoints,won:!!won,level:lvlIndex+1,bestTime:(bestTime!=null?Math.round(bestTime):null),room:roomType,at:Date.now()});}catch(e){}
+    try{db.ref('mathescape_scores/'+key).push({points:totalPoints,won:!!won,level:cleared,bestTime:(bestTime!=null?Math.round(bestTime):null),room:roomType,at:Date.now()});}catch(e){}
   }
 
-  /* ---------- multiplayer lobby ---------- */
   function joinRoom(roomId,label,title){
-    if(!fbOk){$('multi-err').textContent='Multiplayer needs an internet connection. Try Single Player or bots.';return;}
+    if(!fbOk){$('multi-err').textContent='Playing together needs an internet connection. Try Single Player or playing with bots.';return;}
     curRoom=roomId;roster={};
     $('lobby-title').textContent=title||'Lobby';
     $('lobby-room').textContent=label?('Room: '+label):'';
@@ -455,21 +570,44 @@
   }
   function startFromLobby(){
     var opps=[];
-    Object.keys(roster).forEach(function(k){if(k===UID)return;var r=roster[k];opps.push({id:k,name:r.name||'Player',color:r.color||'#888',you:false,bot:false,skill:0.5,pts:0,correct:0});});
+    Object.keys(roster).forEach(function(k){if(k===UID)return;var r=roster[k];opps.push({id:k,name:r.name||'Player',color:r.color||'#888',you:false,bot:false,skill:0.5,pts:0});});
     if(curRoom&&fbOk)db.ref('mathescape/'+curRoom+'/players').off();
     startGame(opps);
   }
 
-  /* ---------- events ---------- */
+  var calcExpr='0';
+  function calcOpen(){$('calc-overlay').classList.remove('hidden');calcExpr='0';$('calc-display').textContent=calcExpr;}
+  function calcClose(){$('calc-overlay').classList.add('hidden');}
+  function calcKey(k){
+    if(/^[0-9]$/.test(k)){
+      if(calcExpr==='0'||calcExpr==='Error')calcExpr=k;
+      else calcExpr+=k;
+    }else if(k==='.'){
+      var parts=calcExpr.split(/[×]/);var tail=parts[parts.length-1];
+      if(tail.indexOf('.')<0)calcExpr+='.';
+    }else if(k==='C'){calcExpr='0';}
+    else if(k==='B'){calcExpr=calcExpr.length>1?calcExpr.slice(0,-1):'0';}
+    else if(k==='×'){if(!/[×]$/.test(calcExpr)&&calcExpr!=='Error')calcExpr+='×';}
+    else if(k==='='){
+      try{
+        var js=calcExpr.replace(/×/g,'*');
+        if(!/^[0-9*. ]+$/.test(js))throw new Error('bad');
+        var r=Function('"use strict";return ('+js+')')();
+        if(!isFinite(r))throw new Error('inf');
+        calcExpr=String(r);
+      }catch(e){calcExpr='Error';}
+    }
+    $('calc-display').textContent=calcExpr;
+  }
+
   $('to-mode').addEventListener('click',function(){myName=($('join-name').value||'').trim()||'You';myColor=$('join-color').value||'#22c55e';show('mode-screen');});
   $('join-name').addEventListener('keydown',function(e){if(e.key==='Enter')$('to-mode').click();});
   $('back-login').addEventListener('click',function(){show('login-screen');});
   $('m-single').addEventListener('click',function(){roomType='single';startGame([]);});
   $('m-multi').addEventListener('click',function(){show('multi-screen');resetMulti();});
   $('back-mode').addEventListener('click',function(){show('mode-screen');});
-
   function resetMulti(){$('multi-menu').classList.remove('hidden');$('bots-cfg').classList.add('hidden');$('code-cfg').classList.add('hidden');$('multi-err').textContent='';}
-  function botsNote(){var k=parseInt($('bot-count').value,10);if(isNaN(k)||k<1)k=1;if(k>19)k=19;$('bots-note').textContent='You + '+k+' bot'+(k===1?'':'s')+' \u00b7 '+(k+1)+' players total.';}
+  function botsNote(){var k=parseInt($('bot-count').value,10);if(isNaN(k)||k<1)k=1;if(k>19)k=19;$('bots-note').textContent='You + '+k+' bot'+(k===1?'':'s')+' · '+(k+1)+' players total.';}
   $('m-bots').addEventListener('click',function(){roomType='bots';$('multi-menu').classList.add('hidden');$('bots-cfg').classList.remove('hidden');botsNote();});
   $('bot-count').addEventListener('input',botsNote);
   $('back-multi1').addEventListener('click',resetMulti);
@@ -483,13 +621,16 @@
   $('lobby-start').addEventListener('click',startFromLobby);
   $('back-lobby').addEventListener('click',function(){leaveRoom();show('multi-screen');resetMulti();});
 
-  $('ans-submit').addEventListener('click',submitAnswer);
-  $('ans-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitAnswer();}});
+  $('rooms-strip').addEventListener('click',function(e){var c=e.target.closest('.room-card');if(!c)return;var i=+c.getAttribute('data-i');enterRoom(i);});
+  $('lock-submit').addEventListener('click',submitLock);
+  $('lock-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitLock();}});
+  $('calc-btn').addEventListener('click',calcOpen);
+  $('calc-close').addEventListener('click',calcClose);
+  $('calc-keys').addEventListener('click',function(e){var b=e.target.closest('button[data-k]');if(!b)return;calcKey(b.getAttribute('data-k'));});
 
-  $('ov-again').addEventListener('click',function(){$('ov-overlay').classList.add('hidden');if(roomType==='single')startGame([]);else if(roomType==='bots')startGame(makeBots(players.length-1||4));else{show('multi-screen');resetMulti();}});
+  $('ov-again').addEventListener('click',function(){$('ov-overlay').classList.add('hidden');if(roomType==='single')startGame([]);else if(roomType==='bots')startGame(makeBots(Math.max(1,players.length-1)));else{show('mode-screen');}});
   $('ov-menu').addEventListener('click',function(){$('ov-overlay').classList.add('hidden');show('mode-screen');});
 
-  /* prefill signed-in user */
   var su=currentSiteUser();if(su)$('join-name').value=su;
 })();
 </script>
