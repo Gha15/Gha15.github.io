@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Plane - matix the math club</title>
+<link rel="stylesheet" href="/global.css">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f6f1e6;--ink:#1f2a4a;--blue:#2563eb;--red:#ef4444;--grn:#22c55e;--mut:#5a6a80}
+*{box-sizing:border-box}
+#mp-root,#mp-root *{font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+#mp-root{position:relative;min-height:100vh;background:linear-gradient(180deg,#4aa2f5 0%,#7ec8ff 42%,#c9e8ff 82%,#e6f4d8 100%);overflow-x:hidden;color:var(--ink)}
+.hidden{display:none !important}
+.cloud{position:absolute;background:#fff;border-radius:60px;box-shadow:0 8px 24px rgba(0,0,0,.08);opacity:.92;pointer-events:none;z-index:1}
+.cloud::before,.cloud::after{content:'';position:absolute;background:#fff;border-radius:50%}
+.cloud.c1{top:6%;width:180px;height:50px;left:-220px;animation:drift 44s linear infinite}
+.cloud.c1::before{width:80px;height:80px;top:-40px;left:30px}
+.cloud.c1::after{width:100px;height:100px;top:-56px;left:80px}
+.cloud.c2{top:22%;width:150px;height:44px;left:-220px;animation:drift 60s linear infinite;animation-delay:-14s}
+.cloud.c2::before{width:70px;height:70px;top:-34px;left:20px}
+.cloud.c2::after{width:88px;height:88px;top:-48px;left:65px}
+.cloud.c3{top:38%;width:200px;height:56px;left:-260px;animation:drift 72s linear infinite;animation-delay:-32s;opacity:.75}
+.cloud.c3::before{width:90px;height:90px;top:-46px;left:35px}
+.cloud.c3::after{width:110px;height:110px;top:-60px;left:95px}
+.cloud.c4{top:55%;width:130px;height:40px;left:-220px;animation:drift 52s linear infinite;animation-delay:-8s;opacity:.85}
+.cloud.c4::before{width:64px;height:64px;top:-32px;left:14px}
+.cloud.c4::after{width:80px;height:80px;top:-42px;left:55px}
+@keyframes drift{to{left:110vw}}
+.screen{position:relative;z-index:2;min-height:100vh;display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:center;padding:32px 18px}
+.mp-panel{position:relative;width:400px;max-width:94vw;background:rgba(255,255,255,.96);border:1px solid #cfd8e4;border-radius:20px;padding:30px 28px;box-shadow:0 20px 50px rgba(30,60,120,.25)}
+.mp-panel h1{margin:0 0 6px;text-align:center;font-family:'Vibur',cursive;font-size:3.2rem;line-height:1;letter-spacing:2px;color:#1f2a4a}
+.t-a{color:var(--blue);text-shadow:0 2px 6px rgba(59,130,246,.35)}
+.t-b{color:var(--red);text-shadow:0 2px 6px rgba(239,68,68,.35)}
+.mp-sub{text-align:center;color:var(--mut);margin:0 0 18px}
+.mp-field{margin-bottom:14px}
+.mp-field label{display:block;font-size:.82rem;font-weight:700;color:var(--mut);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+.mp-field input[type=text]{width:100%;padding:12px 14px;border-radius:11px;background:#f6f9ff;border:1px solid #d6dce8;color:#1f2a4a;font-size:1rem}
+.mp-field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.22)}
+.color-wrap{display:flex;align-items:center;gap:10px}
+.color-wrap input[type=color]{width:52px;height:40px;border:none;background:none;border-radius:10px;cursor:pointer}
+.mp-start{width:100%;padding:14px;border:none;border-radius:12px;font-size:1.05rem;font-weight:800;letter-spacing:1px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--blue),var(--red));box-shadow:0 10px 30px rgba(37,99,235,.3)}
+.mp-start:hover{filter:brightness(1.06)}
+.mp-err{color:var(--red);font-size:.85rem;text-align:center;margin-top:8px;min-height:1em}
+.rules{max-width:320px;background:rgba(255,255,255,.9);border:1px solid #cfd8e4;border-radius:18px;padding:22px 24px;box-shadow:0 18px 40px rgba(30,60,120,.2)}
+.rules h2{margin:0 0 12px;font-size:1.25rem;color:#1f2a4a}
+.rules ul{margin:0;padding-left:18px;line-height:1.55;color:var(--mut);font-size:.9rem}
+.rules li{margin-bottom:8px}
+.rules strong{color:#1f2a4a}
+#game-screen{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:18px;padding:16px}
+#hud{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:900px;margin:0 auto;width:100%}
+.hud-pill{background:rgba(255,255,255,.92);border:1px solid #cfd8e4;padding:8px 16px;border-radius:999px;font-weight:800;color:#1f2a4a}
+.brand-p{font-family:'Vibur',cursive;font-size:2rem;letter-spacing:2px;color:#fff;text-shadow:0 3px 6px rgba(0,0,0,.25)}
+.flight-track{position:relative;width:100%;max-width:900px;margin:0 auto;height:72px;background:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,.9));border-radius:36px;border:1px solid #cfd8e4;overflow:hidden}
+.flight-track::before{content:'';position:absolute;top:50%;left:6%;right:6%;height:0;border-top:3px dashed #a3b3c8}
+.plane{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:2.5rem;transition:left 1.1s cubic-bezier(.22,.9,.35,1.2);filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.q-card{max-width:640px;margin:0 auto;width:100%;background:var(--paper);border:1px solid #e5d9b8;border-radius:16px;padding:26px 28px;box-shadow:0 18px 50px rgba(30,60,120,.25);position:relative}
+.q-card::before,.q-card::after{content:'';position:absolute;left:12px;right:12px;height:2px;background:repeating-linear-gradient(90deg,#e5d9b8 0,#e5d9b8 8px,transparent 8px,transparent 16px)}
+.q-card::before{top:20px}
+.q-card::after{bottom:20px}
+.q-num{font-size:.85rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#8a6d3b;text-align:center;margin-bottom:6px}
+.q-text{font-size:1.6rem;font-weight:800;color:#1f2a4a;text-align:center;margin:14px 0;min-height:2.2em;display:flex;align-items:center;justify-content:center;padding:0 6px}
+.q-row{display:flex;flex-direction:column;gap:10px;max-width:340px;margin:0 auto}
+.q-ans{padding:14px;border-radius:12px;border:2px solid #d6dce8;background:#fff;color:#1f2a4a;font-size:1.3rem;font-weight:800;text-align:center;letter-spacing:1px}
+.q-ans:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.22)}
+.q-submit{padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--red));color:#fff;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 10px 26px rgba(37,99,235,.35)}
+.q-submit:hover{filter:brightness(1.06)}
+.q-msg{min-height:1.3em;text-align:center;margin-top:12px;font-weight:800}
+.q-msg.ok{color:var(--grn)}
+.q-msg.bad{color:var(--red)}
+.shake{animation:shk .35s}
+@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.end-card{max-width:440px;background:rgba(255,255,255,.98);border:1px solid #cfd8e4;border-radius:20px;padding:30px 28px;text-align:center;box-shadow:0 22px 60px rgba(30,60,120,.3)}
+.end-card h2{margin:0 0 6px;font-size:2rem;color:#1f2a4a}
+.end-card .score{font-family:'Vibur',cursive;font-size:5rem;line-height:1;color:var(--blue);margin:12px 0}
+.review{text-align:left;margin:16px 0;background:#f6f9ff;border:1px solid #d6dce8;border-radius:12px;padding:14px 16px}
+.review .r{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed #d6dce8;font-size:.88rem}
+.review .r:last-child{border-bottom:none}
+.review .rq{flex:1;color:#1f2a4a;font-weight:600}
+.review .ra{color:var(--mut);font-weight:800;white-space:nowrap}
+.review .r.wrong .ra{color:var(--red)}
+.review .r.right .ra{color:var(--grn)}
+.end-btns{display:flex;gap:10px;margin-top:16px}
+.end-btns button{flex:1;padding:13px;border:none;border-radius:12px;font-weight:800;cursor:pointer;color:#fff}
+#end-again{background:linear-gradient(135deg,var(--blue),var(--red))}
+#end-menu{background:var(--mut)}
+</style>
+</head>
+<body>
+<div id="mp-root">
+<div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div><div class="cloud c4"></div>
+
+<div id="login-screen" class="screen">
+  <div class="rules">
+    <h2>✈️ How it flies</h2>
+    <ul>
+      <li>You're the pilot of a <strong>paper plane</strong>.</li>
+      <li><strong>5 very hard</strong> questions along the flight.</li>
+      <li>Each answer sends the plane a little further.</li>
+      <li><strong>Score = number correct</strong> (5 correct = 5 pts, 4 = 4 pts, and so on).</li>
+      <li>Saved to the leaderboard if you're signed in.</li>
+    </ul>
+  </div>
+  <div class="mp-panel">
+    <h1><span class="t-a">MATH</span> <span class="t-b">PLANE</span></h1>
+    <p class="mp-sub">Get ready for takeoff</p>
+    <div class="mp-field"><label for="join-name">Username</label><input id="join-name" type="text" placeholder="Any name — spaces OK!" autocomplete="nickname" spellcheck="false"></div>
+    <div class="mp-field"><label>Marker color</label><div class="color-wrap"><input id="join-color" type="color" value="#2563eb"><span style="color:var(--mut);font-size:.9rem">your leaderboard tint</span></div></div>
+    <button id="start-btn" class="mp-start">Take off ✈️</button>
+    <p id="login-err" class="mp-err"></p>
+  </div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <div id="hud">
+    <div class="brand-p">MATH PLANE</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="hud-pill" id="hud-q">Question 1 / 5</div>
+      <div class="hud-pill" id="hud-score">Correct: 0</div>
+    </div>
+  </div>
+  <div class="flight-track"><div class="plane" id="plane" style="left:6%">✈️</div></div>
+  <div class="q-card">
+    <div class="q-num" id="q-num">Question 1 of 5</div>
+    <div class="q-text" id="q-text">Loading…</div>
+    <div class="q-row">
+      <input id="q-ans" class="q-ans" type="text" inputmode="numeric" placeholder="your answer" autocomplete="off">
+      <button id="q-submit" class="q-submit">Send answer</button>
+    </div>
+    <div class="q-msg" id="q-msg"></div>
+  </div>
+</div>
+
+<div id="end-screen" class="screen hidden">
+  <div class="end-card">
+    <h2 id="end-title">Landing!</h2>
+    <p id="end-sub" style="color:var(--mut);margin:0"></p>
+    <div class="score" id="end-score">0 pts</div>
+    <div class="review" id="end-review"></div>
+    <p id="end-save" style="color:var(--mut);font-size:.9rem;margin:0"></p>
+    <div class="end-btns"><button id="end-again">Fly again</button><button id="end-menu">Menu</button></div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script>
+(function(){
+  'use strict';
+  function $(id){return document.getElementById(id);}
+  function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+  function pick(a){return a[Math.floor(Math.random()*a.length)];}
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  var db=null,fbOk=false;
+  try{
+    if(window.firebase){
+      if(!firebase.apps.length)firebase.initializeApp({apiKey:'AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo',authDomain:'matix-1d538.firebaseapp.com',databaseURL:'https://matix-1d538-default-rtdb.firebaseio.com',projectId:'matix-1d538'});
+      db=firebase.database();fbOk=true;
+    }
+  }catch(e){fbOk=false;}
+  function currentSiteUser(){try{return sessionStorage.getItem('mx_user')||sessionStorage.getItem('matix_auth_user')||null;}catch(e){return null;}}
+
+  // Very hard question generators. Each returns {text, ans (integer)}.
+  var GEN=[
+    function(){var a=rnd(120,499),b=rnd(11,29);return{text:a+' × '+b+' = ?',ans:a*b};},
+    function(){var n=rnd(23,49);return{text:n+'² = ?',ans:n*n};},
+    function(){var n=rnd(6,15);return{text:'∛'+(n*n*n)+' = ?',ans:n};},
+    function(){var n=rnd(19,39);return{text:'√'+(n*n)+' = ?',ans:n};},
+    function(){var a=rnd(6,14),b=rnd(6,14),c=rnd(3,9),d=rnd(2,8);return{text:a+' × '+b+' − '+c+' × '+d+' = ?',ans:a*b-c*d};},
+    function(){var p=pick([10,15,20,25,40,50,75]);var m=pick([80,120,160,200,240,300,360,400,480,540,600,720]);return{text:p+'% of '+m+' = ?',ans:Math.round(m*p/100)};},
+    function(){var a=rnd(2,9),c=rnd(5,40),x=rnd(3,15);var rhs=a*x+c;return{text:'Solve for x: '+a+'x + '+c+' = '+rhs,ans:x};},
+    function(){var n=rnd(4,7);var v=1;for(var i=2;i<=n;i++)v*=i;return{text:n+'! = ?',ans:v};},
+    function(){var b=pick([2,3,4,5]);var e=(b===2)?rnd(6,10):(b===3)?rnd(4,6):(b===4)?rnd(3,5):rnd(3,4);return{text:b+'^'+e+' = ?',ans:Math.pow(b,e)};},
+    function(){var a=rnd(30,80),b=rnd(6,15),c=rnd(3,9),d=rnd(5,30);return{text:a+' + '+b+' × '+c+' − '+d+' = ?',ans:a+b*c-d};}
+  ];
+
+  var myName='Pilot',myColor='#2563eb';
+  var qs=[],idx=0,correct=0,answered=[];
+
+  function newQuestions(){
+    var pool=GEN.slice();var out=[];
+    while(out.length<5&&pool.length>0){
+      var i=Math.floor(Math.random()*pool.length);
+      out.push(pool.splice(i,1)[0]());
+    }
+    while(out.length<5)out.push(GEN[Math.floor(Math.random()*GEN.length)]());
+    return out;
+  }
+
+  function show(id){['login-screen','game-screen','end-screen'].forEach(function(s){$(s).classList.toggle('hidden',s!==id);});}
+
+  function startGame(){
+    qs=newQuestions();idx=0;correct=0;answered=[];
+    show('game-screen');
+    $('plane').style.left='6%';
+    renderQuestion();
+  }
+  function renderQuestion(){
+    var q=qs[idx];
+    $('q-num').textContent='Question '+(idx+1)+' of 5';
+    $('q-text').textContent=q.text;
+    $('hud-q').textContent='Question '+(idx+1)+' / 5';
+    $('hud-score').textContent='Correct: '+correct;
+    $('q-msg').textContent='';$('q-msg').className='q-msg';
+    var inp=$('q-ans');inp.value='';inp.disabled=false;
+    setTimeout(function(){inp.focus();},60);
+  }
+  function advancePlane(){
+    var pct=6+((idx+1)*88/5);
+    $('plane').style.left=pct+'%';
+  }
+  function submitAnswer(){
+    var inp=$('q-ans');
+    if(inp.disabled)return;
+    var raw=(inp.value||'').trim();
+    if(raw==='')return;
+    var val=Number(raw);
+    if(isNaN(val)){
+      $('q-msg').textContent='Numbers only';
+      $('q-msg').className='q-msg bad';
+      shake();return;
+    }
+    var q=qs[idx];
+    var right=(val===q.ans);
+    if(right)correct++;
+    answered.push({q:q.text,ans:q.ans,you:val,right:right});
+    inp.disabled=true;
+    $('q-msg').textContent=right?('✓ Correct! The plane sails onward.'):('✗ Not quite. It was '+q.ans+'.');
+    $('q-msg').className='q-msg '+(right?'ok':'bad');
+    $('hud-score').textContent='Correct: '+correct;
+    advancePlane();
+    setTimeout(function(){
+      idx++;
+      if(idx>=5)endGame();
+      else renderQuestion();
+    },1500);
+  }
+  function shake(){var i=$('q-ans');i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake');}
+
+  function endGame(){
+    show('end-screen');
+    var pts=correct;
+    $('end-title').textContent=pts===5?'✈️ Perfect landing!':pts>=3?'✈️ Nice flight!':pts>=1?'✈️ Landed.':'✈️ Ouch. Rough landing.';
+    $('end-sub').textContent=pts===5?'All 5 correct — max points!':(pts+' of 5 correct.');
+    $('end-score').textContent=pts+' pt'+(pts===1?'':'s');
+    var rev=$('end-review');rev.innerHTML='';
+    answered.forEach(function(a,i){
+      var row=document.createElement('div');row.className='r '+(a.right?'right':'wrong');
+      row.innerHTML='<span class="rq">'+esc((i+1)+'. '+a.q)+'</span><span class="ra">'+(a.right?('✓ '+a.ans):('✗ '+a.you+' — was '+a.ans))+'</span>';
+      rev.appendChild(row);
+    });
+    var user=currentSiteUser();
+    if(user){$('end-save').textContent='Saved to the leaderboard as @'+user;recordScore(pts);}
+    else{$('end-save').textContent='Sign in on the main site to save on the leaderboard.';}
+  }
+
+  function recordScore(pts){
+    if(!fbOk)return;
+    var user=currentSiteUser();if(!user)return;
+    var key=user.toLowerCase().replace(/\s+/g,'');
+    try{db.ref('mathplane_scores/'+key).push({points:pts,correct:pts,won:pts===5,color:myColor,at:Date.now()});}catch(e){}
+  }
+
+  $('start-btn').addEventListener('click',function(){
+    myName=($('join-name').value||'').trim()||'Pilot';
+    myColor=$('join-color').value||'#2563eb';
+    startGame();
+  });
+  $('join-name').addEventListener('keydown',function(e){if(e.key==='Enter')$('start-btn').click();});
+  $('q-submit').addEventListener('click',submitAnswer);
+  $('q-ans').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitAnswer();}});
+  $('end-again').addEventListener('click',startGame);
+  $('end-menu').addEventListener('click',function(){show('login-screen');});
+
+  var su=currentSiteUser();if(su)$('join-name').value=su;
+})();
+</script>
+<script src="/nav.js" defer></script>
+</body>
+</html>

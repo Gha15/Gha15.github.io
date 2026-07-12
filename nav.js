@@ -280,11 +280,6 @@
             href: '/games',
             label: 'Games',
             subs: [{
-                    href: '/games/themathplanegame',
-                    label: 'Math Plane Game',
-                    iframe: true
-                },
-                {
                     href: '/games/mathfight',
                     label: 'Math Fight',
                     iframe: true
@@ -300,13 +295,8 @@
                     iframe: true
                 },
                 {
-                    href: '/games/treegrowinggame',
-                    label: 'Tree Growing Game',
-                    iframe: true
-                },
-                {
-                    href: '/games/minigames/virtualpetgame',
-                    label: 'Virtual Pet Game',
+                    href: '/games/mathplane',
+                    label: 'Math Plane',
                     iframe: true
                 }
             ]
