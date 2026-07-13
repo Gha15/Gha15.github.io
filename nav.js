@@ -1232,7 +1232,7 @@
     var LB_WINDOWS = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
     var lbWindow = 'daily';
     var lbGame = 'mathwar';
-    var LB_GAMES = { mathwar: { path: '/mathwar_scores.json', title: '\u2694\ufe0f Math War Leaderboard', wins: '\ud83d\udc51 Most games won' }, mathescape: { path: '/mathescape_scores.json', title: '\ud83d\udd10 Math Escape Leaderboard', wins: '\ud83c\udfc3 Most escapes' } };
+    var LB_GAMES = { mathwar: { path: '/mathwar_scores.json', title: '\u2694\ufe0f Math War Leaderboard', wins: '\ud83d\udc51 Most games won' }, mathescape: { path: '/mathescape_scores.json', title: '\ud83d\udd10 Math Escape Leaderboard', wins: '\ud83c\udfc3 Most escapes' }, mathplane: { path: '/mathplane_scores.json', title: '\u2708\ufe0f Math Plane Leaderboard', wins: '\ud83c\udfc6 Perfect landings' } };
     function lbRoomLabel(room) { if (!room) return '\u2014'; return String(room); }
     function ensureLbCss() {
         if (document.getElementById('mx-lb-css')) return;
@@ -1282,7 +1282,7 @@
         var h4 = mk('h4'); h4.innerHTML = G.title; wrap.appendChild(h4);
         var sub = mk('div', 'mx-pf-sub'); sub.textContent = 'Ranked by total points.'; wrap.appendChild(sub);
         var gtabs = mk('div', 'mx-lb-tabs');
-        [['mathwar', '\u2694\ufe0f Math War'], ['mathescape', '\ud83d\udd10 Math Escape']].forEach(function (t) {
+        [['mathwar', '\u2694\ufe0f Math War'], ['mathescape', '\ud83d\udd10 Math Escape'], ['mathplane', '\u2708\ufe0f Math Plane']].forEach(function (t) {
             var gb = mk('button', 'mx-lb-tab' + (lbGame === t[0] ? ' active' : '')); gb.type = 'button'; gb.innerHTML = t[1];
             gb.addEventListener('click', function () { lbGame = t[0]; renderLeaderboard(); });
             gtabs.appendChild(gb);

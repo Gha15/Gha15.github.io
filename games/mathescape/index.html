@@ -131,6 +131,56 @@
 #calc-keys .ck-op{background:#1e3b2a;color:#c7f9dd}
 #calc-keys .ck-eq{background:linear-gradient(135deg,var(--grn),var(--pur));color:#fff}
 #calc-close{background:#123322;border:1px solid var(--line);padding:12px;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;width:100%}
+
+@media (max-width:720px){
+  .screen{padding:20px 12px;gap:14px}
+  .me-panel{padding:24px 20px;width:100%}
+  .me-panel h1{font-size:2.5rem}
+  .rules{max-width:100%;padding:18px 20px}
+  .mode-list{gap:10px}
+  .mode-btn{padding:12px 14px;font-size:.95rem;gap:10px}
+  .lobby-list{max-height:180px}
+  #game-screen{padding:10px;gap:10px}
+  #hud{gap:8px}
+  #hud .brand{font-size:1.3rem}
+  .hud-pill{padding:6px 10px;font-size:.78rem}
+  .game-wrap{flex-direction:column;gap:12px}
+  #side{width:100%;order:2;padding:10px 12px;max-height:200px;overflow:auto}
+  #side h3{margin:0 0 6px}
+  .sd-item{padding:4px 8px;font-size:.85rem;margin-bottom:2px}
+  .stage{order:1;padding:4px 2px;gap:12px;width:100%}
+  #rooms-strip{gap:8px;width:100%}
+  .room-card{width:calc((100% - 16px)/3);min-width:0;padding:10px 6px}
+  .rc-num{font-size:1.1rem}
+  .rc-name{font-size:.72rem;min-height:2.3em;margin:2px 0 6px}
+  .rc-lock{font-size:1.7rem}
+  #room-view{padding:14px 12px;max-width:100%}
+  #rv-title{font-size:1.15rem}
+  #rv-hint{font-size:.85rem;margin-bottom:10px}
+  #qlist{gap:6px;margin-bottom:12px}
+  .qrow{padding:7px 9px;gap:7px;flex-wrap:wrap}
+  .qrow .qi{width:22px;height:22px;font-size:.72rem}
+  .qrow .qt{font-size:.9rem;flex:1;min-width:120px}
+  .qrow input.qa{width:80px;padding:5px 8px;font-size:.9rem}
+  .qrow .qs{width:16px;font-size:.9rem}
+  .qtag{max-width:100%;font-size:.65rem;margin-left:0;order:5;flex-basis:100%;justify-content:center}
+  #lock-input{font-size:1.35rem;padding:12px;letter-spacing:1px}
+  #lock-submit,#calc-btn{padding:12px;font-size:.9rem}
+  .overlay{padding:12px}
+  .ov-card{padding:22px 18px;width:100%}
+  .ov-card h2{font-size:1.5rem}
+  .ov-btns{flex-direction:column;gap:8px}
+  #calc-display{font-size:1.4rem;padding:12px;min-height:2em}
+  #calc-keys button{padding:12px 6px;font-size:1rem}
+}
+@media (max-width:420px){
+  .me-panel h1{font-size:2.1rem}
+  #hud .brand{font-size:1.1rem;flex-basis:100%;text-align:center}
+  .room-card{padding:8px 4px}
+  .rc-num{font-size:.95rem}
+  .rc-name{font-size:.66rem;min-height:2.2em}
+  .rc-lock{font-size:1.5rem}
+}
 </style>
 </head>
 <body>
