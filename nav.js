@@ -257,7 +257,7 @@
             iframe: true
         },
         {
-            herf: '/install',
+            href: '/install',
             label: 'Install app',
             iframe: true,
         },
