@@ -257,6 +257,10 @@
             iframe: true
         },
         {
+            herf: '/install',
+            label: 'Install app',
+            iframe: true,
+        {
             href: '/merch',
             label: 'Merch',
             iframe: true
