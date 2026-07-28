@@ -147,7 +147,7 @@
 
 <div class="panel" id="signPanel">
   <h3>Sign in</h3>
-  <p class="sub">Only needed for publishing releases. Nobody needs to sign in to download Matix.</p>
+  <p class="sub">Same username and password as the rest of the Matix site. Only needed for publishing releases — nobody needs to sign in to download Matix.</p>
   <label class="field"><span>Username</span><input id="siUser" autocomplete="username" placeholder="ghadi"></label>
   <label class="field"><span>Password</span><input id="siPass" type="password" autocomplete="current-password"></label>
   <div class="msg bad" id="siMsg"></div>
@@ -373,8 +373,6 @@
   var FB    = "https://matix-1d538-default-rtdb.firebaseio.com";
   var REPO  = "https://github.com/Gha15/MatixMathClub";
   var LATEST = REPO + "/releases/latest";
-  var OWNERS = ["ghadi"];
-  var KEY   = "mx_dl_user";
 
   /* ---------- tiny helpers ---------- */
   function $(id){ return document.getElementById(id); }
@@ -466,17 +464,56 @@
     return out.join("\n");
   }
 
-  /* ---------- who is signed in ---------- */
+  /* ---------- who is signed in ----------
+     Mirrors doSignIn() in nav.js so the same account works everywhere:
+     a password saved in Firebase always wins, then the built-in member
+     list, then any pre-upgrade account saved in this browser. The session
+     keys are the site's own, so signing in here signs you in site-wide. */
+  var VALID_MEMBERS = {
+    ghadi:   "iamtheownerofmatix",
+    dahlia:  "cheeseflower",
+    yara:    "yara10yoyo20",
+    jad:     "ilikebatatameshwiyye",
+    marwan:  "ilikebeingnumberonebutiamnumbertwo",
+    mak:     "mak2130",
+    hicham:  "pwrbulleye"
+  };
+
+  var owner = false;
+
   function getUser(){
-    try { return localStorage.getItem(KEY) || null; } catch(e){ return null; }
+    try {
+      return sessionStorage.getItem("mx_user")
+          || sessionStorage.getItem("matix_auth_user") || null;
+    } catch(e){ return null; }
   }
+
   function setUser(u){
-    try { u ? localStorage.setItem(KEY, u) : localStorage.removeItem(KEY); } catch(e){}
+    try {
+      if (u){
+        sessionStorage.setItem("mx_user", u);
+        sessionStorage.setItem("matix_auth_user", u);
+      } else {
+        sessionStorage.removeItem("mx_user");
+        sessionStorage.removeItem("matix_auth_user");
+      }
+    } catch(e){}
   }
-  function isOwner(){
+
+  /* Owner comes from /roles like the rest of the site. */
+  function refreshOwner(done){
     var u = getUser();
-    return !!u && OWNERS.indexOf(u) !== -1;
+    if (!u){ owner = false; done(); return; }
+    fb("/roles/" + encodeURIComponent(normUser(u))).then(function(r){
+      owner = (r === "owner") || (normUser(u) === "ghadi" && !r);
+      done();
+    })["catch"](function(){
+      owner = (normUser(u) === "ghadi");
+      done();
+    });
   }
+
+  function isOwner(){ return owner; }
 
   function paintAuth(){
     var u = getUser();
@@ -486,30 +523,56 @@
   }
 
   function signIn(){
-    var user = normUser($("siUser").value);
+    /* nav.js only lowercases and strips spaces here, so do the same. */
+    var u    = String($("siUser").value || "").toLowerCase().replace(/\s+/g, "").trim();
     var pass = $("siPass").value;
     var msg  = $("siMsg");
 
     function fail(t){ msg.textContent = t; msg.className = "msg bad show"; }
 
-    if (!user || !pass){ fail("Type your username and password."); return; }
+    if (!u || !pass){ fail("Type your username and password."); return; }
     msg.className = "msg";
 
-    fb("/members/" + user).then(function(rec){
-      if (rec && rec.password && rec.password === pass){
-        setUser(user);
-        $("signPanel").className = "panel";
-        $("siPass").value = "";
-        paintAuth();
-        draw();
-      } else if (rec && rec.password){
-        fail("That password does not match.");
-      } else {
-        fail("No account called @" + user + ".");
+    function ok(){
+      /* Banned members cannot sign in; ghadi can never be banned. */
+      if (u === "ghadi"){ done(); return; }
+      fb("/bans/" + encodeURIComponent(u)).then(function(b){
+        if (b && b.until && b.until > Date.now()){
+          fail("That account is banned" + (b.reason ? ": " + b.reason : "."));
+          return;
+        }
+        done();
+      })["catch"](done);
+    }
+
+    function done(){
+      setUser(u);
+      $("signPanel").className = "panel";
+      $("siPass").value = "";
+      refreshOwner(function(){ paintAuth(); draw(); });
+    }
+
+    function tryLocal(){
+      try {
+        var m = JSON.parse(localStorage.getItem("mx_joined") || "{}");
+        if (m[u] && m[u] === pass){ ok(); return; }
+      } catch(e){}
+      fail("Wrong username or password.");
+    }
+
+    function tryBuiltIn(){
+      if (VALID_MEMBERS[u] && VALID_MEMBERS[u] === pass){ ok(); return; }
+      tryLocal();
+    }
+
+    fb("/members/" + encodeURIComponent(u)).then(function(rec){
+      if (rec && rec.password){
+        if (rec.password === pass) ok();
+        else fail("Wrong username or password.");
+        return;
       }
-    })["catch"](function(){
-      fail("Could not reach the server. Check your connection.");
-    });
+      tryBuiltIn();
+    })["catch"](tryBuiltIn);
   }
 
   /* ---------- releases ---------- */
@@ -611,6 +674,7 @@
   $("signBtn").onclick = function(){
     if (getUser()){
       setUser(null);
+      owner = false;
       paintAuth();
       draw();
     } else {
@@ -649,6 +713,7 @@
 
   paintAuth();
   draw();
+  refreshOwner(function(){ paintAuth(); draw(); });
 })();
 </script>
 </body>
