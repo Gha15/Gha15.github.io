@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Download Matix — the Math Club</title>
+<meta name="description" content="Download Matix for Windows, Mac and Android, plus how to install it and answers to common questions.">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#faf9ff; --bg2:#ffffff; --card:#ffffff; --text:#2c2c2b; --muted:#8a8a99;
+    --border:#e6e6ee; --navy:#283f71; --brand:#5b46c9; --brand2:#4a38a8; --soft:#f7f7fb;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg:#191919; --bg2:#141414; --card:#1f1f1f; --text:#e8e6e3; --muted:#9b9894;
+      --border:#343434; --navy:#8b73ff; --brand:#8b73ff; --brand2:#7d5cff; --soft:#232323;
+    }
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:linear-gradient(180deg,var(--bg),var(--bg2));
+    color:var(--text);line-height:1.6;padding:0 20px 70px;
+  }
+  .wrap{max-width:820px;margin:0 auto}
+  header{text-align:center;padding:58px 0 10px}
+  .logo{width:92px;height:92px;margin:0 auto 20px}
+  h1{font-size:2.1rem;font-weight:800;color:var(--navy);letter-spacing:-.02em;line-height:1.2}
+  .lede{color:var(--muted);font-size:1.03rem;margin-top:12px;max-width:560px;margin-left:auto;margin-right:auto}
+  h2{font-size:1.35rem;font-weight:800;color:var(--navy);margin:46px 0 6px;letter-spacing:-.01em}
+  h3{font-size:1rem;font-weight:800;margin:22px 0 8px}
+  p{margin:10px 0}
+  a{color:var(--brand)}
+  hr{border:0;border-top:1px solid var(--border);margin:44px 0 0}
+  .sub{color:var(--muted);font-size:.94rem}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-top:24px}
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:15px;
+    padding:22px 18px;text-align:center;position:relative;
+  }
+  .card.rec{border-color:var(--brand);box-shadow:0 0 0 3px rgba(91,70,201,.13)}
+  .tag{
+    position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+    background:var(--brand);color:#fff;font-size:.66rem;font-weight:800;
+    padding:3px 10px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em;
+    white-space:nowrap;display:none;
+  }
+  .card.rec .tag{display:block}
+  .ic{font-size:2rem;line-height:1}
+  .card b{display:block;margin-top:8px;font-size:1.02rem}
+  .card .note{color:var(--muted);font-size:.8rem;margin-top:2px}
+  .card .file{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.76rem;color:var(--muted);margin-top:10px;word-break:break-all}
+  .btn{
+    display:inline-block;margin-top:14px;padding:10px 20px;border-radius:10px;
+    background:var(--brand);color:#fff;font-weight:700;font-size:.9rem;text-decoration:none;
+  }
+  .btn:hover{background:var(--brand2)}
+  .btn.big{padding:13px 28px;font-size:.98rem;box-shadow:0 6px 18px rgba(91,70,201,.26);margin-top:22px}
+  .btn.ghost{background:transparent;color:var(--brand);border:1px solid var(--border)}
+
+  .steps{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-top:14px}
+  .steps h3{margin-top:0}
+  ol,ul{margin:8px 0 0 20px}
+  li{margin:6px 0}
+  code{
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;
+    background:var(--soft);border:1px solid var(--border);border-radius:5px;padding:1px 5px;
+  }
+  .callout{
+    display:flex;gap:12px;background:var(--soft);border:1px solid var(--border);
+    border-left:3px solid var(--brand);border-radius:11px;padding:15px 17px;margin-top:18px;
+  }
+  .callout .ci{font-size:1.2rem;line-height:1.3}
+  .callout p{margin:0}
+
+  details{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:14px 17px;margin-top:10px;
+  }
+  details[open]{border-color:var(--brand)}
+  summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--brand);font-weight:800;font-size:1.15rem}
+  details[open] summary::after{content:"–"}
+  details p:first-of-type{margin-top:11px}
+
+  footer{text-align:center;color:var(--muted);font-size:.86rem;margin-top:50px}
+  .logo svg g{fill:var(--navy)}
+  .logo svg text{fill:var(--navy)}
+  @media(max-width:520px){h1{font-size:1.72rem}header{padding-top:40px}}
+
+  /* ---- sign in + publishing ---- */
+  .topbar{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:16px 0 0;flex-wrap:wrap}
+  .who{font-size:.85rem;color:var(--muted)}
+  .who b{color:var(--text)}
+  .sbtn{padding:7px 15px;border-radius:9px;border:1px solid var(--border);background:var(--card);
+        color:var(--text);font-weight:700;font-size:.84rem;cursor:pointer;font-family:inherit}
+  .sbtn:hover{border-color:var(--brand);color:var(--brand)}
+  .sbtn.pri{background:var(--brand);color:#fff;border-color:transparent}
+  .sbtn.pri:hover{background:var(--brand2);color:#fff}
+  .sbtn.danger{color:#d63a3a}
+  .sbtn.danger:hover{border-color:#d63a3a;color:#d63a3a}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;
+         padding:20px;margin-top:12px;display:none}
+  .panel.open{display:block}
+  .panel h3{margin-top:0}
+  .field{display:block;margin-top:11px}
+  .field span{display:block;font-size:.78rem;font-weight:800;color:var(--muted);
+              margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+  input,textarea{width:100%;font-family:inherit;font-size:.9rem;padding:9px 11px;
+                 border:1px solid var(--border);border-radius:9px;background:var(--bg2);color:var(--text)}
+  input:focus,textarea:focus{outline:none;border-color:var(--brand)}
+  textarea{min-height:180px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.5}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .msg{font-size:.85rem;margin-top:10px;display:none}
+  .msg.show{display:block}
+  .msg.bad{color:#d63a3a}
+  .msg.good{color:#1f9d55}
+  .acts{margin-top:16px;display:flex;gap:9px;flex-wrap:wrap}
+
+  /* ---- published release ---- */
+  .rel{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:22px 24px;margin-top:22px}
+  .rel-h{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+  .vbadge{background:var(--brand);color:#fff;font-weight:800;font-size:.79rem;padding:3px 12px;border-radius:99px}
+  .rel-h .when{color:var(--muted);font-size:.85rem}
+  .md{margin-top:6px}
+  .md h1,.md h2,.md h3{color:var(--navy);margin:19px 0 6px;font-size:1.06rem;font-weight:800}
+  .md h1{font-size:1.24rem}
+  .md h2{font-size:1.14rem}
+  .md p{margin:9px 0}
+  .md ul,.md ol{margin:8px 0 0 21px}
+  .md pre{background:var(--soft);border:1px solid var(--border);border-radius:9px;
+          padding:13px;overflow:auto;margin:11px 0}
+  .md pre code{background:none;border:0;padding:0;font-size:.84rem}
+  .md blockquote{border-left:3px solid var(--brand);padding-left:13px;color:var(--muted);margin:11px 0}
+  .md hr{margin:18px 0 0}
+
+  input[type=file]{padding:8px 10px;background:var(--soft);cursor:pointer;font-size:.84rem}
+  .prog{display:none;height:8px;border-radius:99px;background:var(--soft);
+        border:1px solid var(--border);margin-top:14px;overflow:hidden}
+  .prog.on{display:block}
+  .prog .bar{height:100%;width:0;background:var(--brand);transition:width .2s}
+  .btn.off{background:var(--soft);color:var(--muted);pointer-events:none;box-shadow:none}
+  .card .size{color:var(--muted);font-size:.78rem;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="topbar" id="topbar">
+  <span class="who" id="who"></span>
+  <button class="sbtn" id="signBtn">Sign in</button>
+</div>
+
+<div class="panel" id="signPanel">
+  <h3>Sign in</h3>
+  <p class="sub">Same username and password as the rest of the Matix site. Only needed for publishing releases — nobody needs to sign in to download Matix.</p>
+  <label class="field"><span>Username</span><input id="siUser" autocomplete="username" placeholder="ghadi"></label>
+  <label class="field"><span>Password</span><input id="siPass" type="password" autocomplete="current-password"></label>
+  <div class="msg bad" id="siMsg"></div>
+  <div class="acts">
+    <button class="sbtn pri" id="siGo">Sign in</button>
+    <button class="sbtn" id="siCancel">Cancel</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="100%" height="100%">
+  <!-- Fixed: Self-closed the background rect tag properly -->
+  <rect width="1000" height="1000" rx="112" fill="none" /> 
+  
+  <g fill="#283f71" transform="translate(26, 26)">
+    <g transform="translate(30, 333) scale(5)" fill-rule="nonzero">
+      <path d="M44.1,51.6c-2.5,0.5-2.9-2-2.9-2l-0.2-1.4c0-9-1-17.6-2.9-26.4c-0.5-2.2-2.1-5.8-1.8-8.5c-1.7,1.1-3,2.3-4.2,4.4c-1.5,2.8-2.7,8.3-6.8,8.8c-1.5,0.2-2.7-1.3-4-2.2c-4.6-3.3-7.5-9.2-11.1-13.5c-0.2-0.3-0.5-0.5-0.7-0.7c0.4,2.4,0.6,4.9,0.5,7.5c-0.2,3.4-1.3,7-1.6,10.5c-0.5,4.6-0.2,9.9,0.9,14.4c0,0,0.6,2.4-1.9,3c-2.4,0.6-3-1.9-3-1.9c-1.2-5-1.5-10.8-1-16c0.3-3.4,1.5-7,1.6-10.4c0.2-4.2-0.7-7.9-1.8-11.9l0.1-0.3h-0.1v-2.6c0-1.4,1.1-2.5,2.5-2.5c0.7,0,1.3,0.3,1.8,0.7v0l2,2l-0.4,0.4c4.4,3.5,7.9,8,11.2,12.8c1.2,1.7,2.8,3.1,4.1,4.6c0.2,0.3,0,1.1,0.4,1.1c0.4,0,0.2-0.8,0.3-1.2c0.7-1.7,1.5-3.4,2.4-5.1c2.1-3.6,4.4-5.4,7.9-7.4l1.9-1.5c0.4-0.4,1-0.6,1.6-0.6c1.4,0,2.5,1.1,2.5,2.5v3.1h-0.5c0.1,0.9,0.2,1.7,0.3,2.6c0.4,4.4,2.1,8.9,3.1,13.2c1.5,6.8,1.5,14.1,1.5,21l0.1,0.4C46.5,49.1,47,51.1,44.1,51.6z"/>
+      <path d="M67.5,33.1l-1.6,0.2c-1.6,0.1-3.1,0.4-4.6,0.9c-1.9,4.2-3.4,8.5-5.4,12.7c0,0-1.1,2.3-3.3,1.2c-2.3-1.1-1.2-3.3-1.2-3.3c2.1-4.5,3.8-9.2,5.8-13.7c1.8-3.9,4.3-8.3,4.6-12.6l0.2-0.3l-0.1,0l1.4-4.2c0.3-1,1.3-1.7,2.4-1.7c1,0,1.9,0.6,2.3,1.5l1.1,2.3l-0.1,0c0.1,0.1,0.1,0.2,0.2,0.3c0.5,0.9,0,2.1,0.3,3c0.5,1.4,1.6,2.5,2.2,3.9c2.4,5.8,1.2,11.8,4.9,17.2l0.8,0.7c0,0,1.8,1.8,0,3.5c-1.8,1.8-3.5,0-3.5,0l-1.4-1.5c-1.8-2.8-2.4-3.2-3.3-6.4c-0.3-1.3-0.5-2.7-0.7-4.2C68.5,32.7,68,32.8,68,32.8z M65.6,28.3l1.3-0.2c0,0,0.5-0.1,1,0.1c-0.2-1.1-0.5-2.2-0.9-3.1c-0.2-0.5-0.6-1.2-1.1-1.9c-0.5,1.8-1.2,3.6-2,5.3c0.5-0.1,1.1-0.1,1.6-0.2z"/>
+      <path d="M110.7,7.7c-0.3,2.5-2.8,2.2-2.8,2.2l-1.2-0.2c-5,0-9.7,0.8-14.7,1.4c0,0,0,0,0,0c0.1,0.3,0.1,0.4,0.1,0.4c0.8,5.3,1.7,11,1.3,16.3c-0.2,3.5-1.4,7-1.6,10.5c-0.2,2.4,0.5,4.8,0.9,7.2l0,0.5c0,0,0,2.5-2.5,2.5c-2.5,0-2.5-2.5-2.5-2.5l0,0.2c-0.4-2.8-1.1-5.3-0.9-8.2c0.2-3.6,1.4-7.1,1.7-10.7c0.4-5-0.5-10.2-1.3-15.1c0,0,0-0.3,0-0.8c-3.9,0.2-7.9,0.3-11.8,0.5c0,0-2.5,0.2-2.7-2.3c-0.2-2.5,2.3-2.7,2.3-2.7c5.4-0.3,10.9-0.2,16.3-0.9c5.2-0.6,10.1-1.5,15.4-1.5l1.8,0.2C108.5,5.2,111,5.5,110.7,7.7z"/>
+      <path d="M131.8,47c-2.5,0.2-2.7-2.3-2.7-2.3l-0.2-2.7c0-5-0.2-9.9-0.6-14.9c0,0-0.2-2.5,2.3-2.7c2.5-0.2,2.7,2.3,2.7,2.3c0.4,5.1,0.6,10.1,0.6,15.3l0.2,2.2C134.1,44.3,134.3,46.8,131.8,47z"/>
+      <path d="M141.1,22.8c-1.5,2-3.5,0.4-3.5,0.4l-2.3-1.9c-0.8-1-1.6-2-2.4-3c-1.8,2-3.8,3.8-5.8,5.5l-3.7-0.6c0,0-1.8-1.8,0-3.5c0.6-0.6,1.3-0.8,1.8-0.8c1.5-1.3,2.9-2.7,4.3-4.1c-2.1-2.1-4.2-4.1-6-6.6c0,0-1.5-2,0.6-3.5c2-1.5,3.5,0.6,3.5,0.6c1.5,2.1,3.3,4,5.1,5.7c1.6-2,3.1-4.1,4.5-6.1c0,0,1.4-2.1,3.5-0.6c2.1,1.4,0.6,3.5,0.6,3.5c-1.6,2.3-3.3,4.6-5.1,6.8c1.1,1.2,2.2,2.4,3.2,3.8l1.4,0.9C140.7,19.3,142.7,20.8,141.1,22.8z"/>
+      <path d="M151.5,8.6c0-1.4,1.1-2.5,2.5-2.5c1.4,0,2.5,1.1,2.5,2.5c0,1.4-1.1,2.5-2.5,2.5C152.6,11.1,151.5,10,151.5,8.6z"/>
+      <path d="M152.8,42.1c-2.3-1-1.3-3.3-1.3-3.3l0.8-1.9c1.9-4.2,4.4-7.8,6.9-11.6c2.6-3.9,4.5-8.3,7.2-12.1c1.7-2.4,3.9-4.5,5.9-6.7c0,0,1.6-1.9,3.5-0.3c1.9,1.6,0.3,3.5,0.3,3.5c-1.8,2.1-3.9,4-5.6,6.3c-2.6,3.7-4.6,8.1-7.1,12c-2.4,3.6-4.7,6.9-6.5,10.9l-0.8,1.8C156.1,40.8,155.1,43.1,152.8,42.1z"/>
+      <path d="M171.9,39c0-1.4,1.1-2.5,2.5-2.5c1.4,0,2.5,1.1,2.5,2.5c0,1.4-1.1,2.5-2.5,2.5C173,41.5,171.9,40.4,171.9,39z"/>
+      <text x="178" y="5" font-family="Arial, sans-serif" font-size="7" fill="#283f71">®</text>
+    </g>
+  </g>
+</svg>
+  </div>
+  <h1>Download Matix</h1>
+  <p class="lede">A real app for your computer or phone — your account, your games, and everything the club has published, all in one place.</p>
+  <a class="btn big" href="#pick">Get the latest version</a>
+</header>
+
+<div id="relBox"></div>
+
+<div class="panel" id="pubPanel">
+  <h3>📢 Publish a new release</h3>
+  <p class="sub">Pick the three zip files from your computer. They upload straight to Matix storage and the buttons above start serving them right away. Leave one empty to keep the file already published.</p>
+  <label class="field"><span>Version</span><input id="pvVer" placeholder="1.0.1"></label>
+  <div class="row2">
+    <label class="field"><span>Windows zip</span><input type="file" id="pvWinF" accept=".zip,application/zip"></label>
+    <label class="field"><span>Mac zip</span><input type="file" id="pvMacF" accept=".zip,application/zip"></label>
+  </div>
+  <label class="field"><span>Android zip</span><input type="file" id="pvAndF" accept=".zip,application/zip"></label>
+  <label class="field"><span>Release notes — markdown works</span><textarea id="pvNotes" placeholder="## What&#39;s new&#10;&#10;- Fixed the title bar on Windows&#10;- **Much** smoother resizing"></textarea></label>
+  <div class="prog" id="pvProg"><div class="bar" id="pvBar"></div></div>
+  <div class="msg" id="pvMsg"></div>
+  <div class="acts">
+    <button class="sbtn pri" id="pvGo">Publish</button>
+  </div>
+</div>
+
+<h2>⬇️ Pick your device</h2>
+<h2 id="pick" style="margin:0;padding:0;font-size:0;height:0"></h2>
+<p class="sub">Grab the one that matches your device.</p>
+
+<div class="cards">
+  <div class="card" id="c-win">
+    <span class="tag">Your device</span>
+    <div class="ic">🪟</div>
+    <b>Windows</b>
+    <div class="note">Windows 10 or 11 · 64-bit</div>
+    <div class="file">matix-win.zip</div>
+    <div class="size" id="sz-win"></div>
+    <a class="btn off" id="dl-win" href="#">Not available yet</a>
+  </div>
+  <div class="card" id="c-mac">
+    <span class="tag">Your device</span>
+    <div class="ic">🍎</div>
+    <b>Mac</b>
+    <div class="note">Apple Silicon &amp; Intel</div>
+    <div class="file">matix-mac.zip</div>
+    <div class="size" id="sz-mac"></div>
+    <a class="btn off" id="dl-mac" href="#">Not available yet</a>
+  </div>
+  <div class="card" id="c-android">
+    <span class="tag">Your device</span>
+    <div class="ic">🤖</div>
+    <b>Android</b>
+    <div class="note">Phones &amp; tablets</div>
+    <div class="file">matix-android.zip</div>
+    <div class="size" id="sz-android"></div>
+    <a class="btn off" id="dl-android" href="#">Not available yet</a>
+  </div>
+</div>
+
+<div class="callout">
+  <div class="ci">📱</div>
+  <p><b>On an iPhone or iPad?</b> There’s no iPhone version yet. Apple doesn’t allow installing apps from outside the App Store without a paid developer account. Use Matix in your browser instead.</p>
+</div>
+
+<hr>
+
+<h2>📦 How to install it</h2>
+
+<div class="steps">
+  <h3>🪟 Windows</h3>
+  <ol>
+    <li>Download <code>matix-win.zip</code></li>
+    <li><b>Right-click it → Extract All.</b> You can’t run the installer from inside the zip</li>
+    <li>Open <code>matix-installer.exe</code></li>
+    <li>If a blue warning appears, see <a href="#warnings">getting past the warnings</a></li>
+    <li>Matix shows up in your Start menu 🎉</li>
+  </ol>
+</div>
+
+<div class="steps">
+  <h3>🍎 Mac</h3>
+  <ol>
+    <li>Download <code>matix-mac.zip</code> and double-click to unzip it</li>
+    <li>Open the <code>.dmg</code> inside</li>
+    <li>Drag <b>Matix</b> into your Applications folder</li>
+    <li>The first launch needs a small trick — see <a href="#warnings">getting past the warnings</a></li>
+    <li>After that, open it like any other app</li>
+  </ol>
+</div>
+
+<div class="steps">
+  <h3>🤖 Android</h3>
+  <ol>
+    <li>Download <code>matix-android.zip</code> and unzip it to get <code>matix.apk</code></li>
+    <li>Tap the APK</li>
+    <li>Your phone will ask permission to install from outside the Play Store — allow it</li>
+    <li>Done!</li>
+  </ol>
+  <p class="sub">No unzip app on your phone? Files by Google opens zips, or download it on a computer and send it over.</p>
+</div>
+
+<hr>
+
+<h2 id="warnings">🛡️ Getting past the security warnings</h2>
+<p>Windows, Mac and Android all warn about Matix, and <b>that’s expected</b>. It doesn’t mean anything is wrong with it.</p>
+<p>It happens because Matix isn’t “code signed” — a certificate that costs hundreds of dollars a year. Matix is a school math club app, not a company. Every small app hits this.</p>
+
+<div class="steps">
+  <h3>🌐 First — your browser may block the download</h3>
+  <p class="sub">Chrome and Edge sometimes say “not commonly downloaded”, or look like the download just failed.</p>
+  <ol>
+    <li>Open your <b>Downloads</b> list (<code>Ctrl</code>+<code>J</code>)</li>
+    <li>Find Matix and click the <b>⋯</b> or arrow beside it</li>
+    <li>Choose <b>Keep</b> or <b>Keep anyway</b></li>
+  </ol>
+</div>
+
+<div class="steps">
+  <h3>🪟 Windows</h3>
+  <p>When the blue <b>“Windows protected your PC”</b> box appears:</p>
+  <ol>
+    <li>Click <b>More info</b> — small text, easy to miss</li>
+    <li>Click <b>Run anyway</b></li>
+  </ol>
+  <p><b>No “Run anyway” button?</b> Windows blocked the file itself:</p>
+  <ol>
+    <li>Right-click <code>matix-installer.exe</code> → <b>Properties</b></li>
+    <li>At the bottom, tick <b>Unblock</b></li>
+    <li>Click <b>OK</b> and open it again</li>
+  </ol>
+  <p class="sub">No <b>Unblock</b> tickbox? Open <b>PowerShell</b> in the folder and run <code>Unblock-File .\matix-installer.exe</code></p>
+</div>
+
+<div class="steps">
+  <h3>🍎 Mac</h3>
+  <p>Mac says <b>“Matix can’t be opened because Apple cannot check it for malicious software”</b> — or, on newer versions, <b>“Matix is damaged and can’t be opened”</b>. Nothing is damaged. That is macOS refusing an app it can’t trace to a paid developer account.</p>
+
+  <p><b>Step 1 — move it to Applications first.</b> Drag Matix out of the disk image into your <b>Applications</b> folder and eject the disk image. Running it from the mounted <code>.dmg</code> fails no matter what else you do.</p>
+
+  <p><b>Step 2 — the Settings route:</b></p>
+  <ol>
+    <li>Open Matix from Applications, then dismiss the warning</li>
+    <li>Go to <b>System Settings → Privacy &amp; Security</b></li>
+    <li>Scroll down to <b>Security</b> — there should be a line saying Matix was blocked</li>
+    <li>Click <b>Open Anyway</b>, then confirm with Touch ID or your password</li>
+  </ol>
+
+  <p><b>Step 3 — if there is no “Open Anyway” button.</b> On macOS 15 Sequoia and later this is common, and Control-click → Open no longer works either. Apple removed both shortcuts. This always works:</p>
+  <ol>
+    <li>Open <b>Terminal</b> (Spotlight with <code>⌘</code>+<code>Space</code>, type <i>Terminal</i>, press Return)</li>
+    <li>Copy this line, paste it in, and press Return:<br>
+        <code>xattr -dr com.apple.quarantine /Applications/Matix.app</code></li>
+    <li>Open Matix normally</li>
+  </ol>
+  <p class="sub">If it answers <b>Operation not permitted</b>, run the same line with <code>sudo</code> in front and enter your Mac password. The password stays invisible as you type — that is normal, just press Return.</p>
+
+  <div class="callout">
+    <div class="ci">🧪</div>
+    <p><b>On a macOS beta?</b> Betas tighten Gatekeeper further and the <b>Open Anyway</b> button often never appears at all. Skip straight to the Terminal line in Step 3 — it clears the quarantine flag the download added, which is the actual thing blocking Matix.</p>
+  </div>
+
+  <p class="sub">You only do this once. After the first successful launch, Matix opens like any other app.</p>
+</div>
+
+<div class="steps">
+  <h3>🤖 Android</h3>
+  <ol>
+    <li>When you tap the APK, your phone says this source isn’t allowed → tap <b>Settings</b>, turn on <b>Allow from this source</b>, go back and tap the APK again</li>
+    <li>If <b>Play Protect</b> warns about an unknown app → tap <b>Install anyway</b> (it may be hidden behind <b>More details</b>)</li>
+  </ol>
+</div>
+
+<hr>
+
+<h2>🔄 How to update</h2>
+<p>New versions show up on this page. Check back here and download again.</p>
+<ul>
+  <li><b>🪟 Windows</b> — just run the new installer. It updates your existing Matix in place, no uninstalling needed.</li>
+  <li><b>🍎 Mac</b> — open the new <code>.dmg</code> and drag <b>Matix</b> into Applications again. Choose <b>Replace</b> when asked.</li>
+  <li><b>🤖 Android</b> — you <b>do</b> need to uninstall Matix first, then install the new APK. Android refuses to install over the old one.</li>
+</ul>
+<div class="callout">
+  <div class="ci">💾</div>
+  <p><b>You won’t lose anything.</b> Your games, ideas, bug reports, lessons, points and profile all live on your Matix account, not on your device. Sign back in and everything is exactly where you left it.</p>
+</div>
+
+<footer>
+  <p style="margin-top:18px">Matix — the Math Club</p>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var FB = "https://matix-1d538-default-rtdb.firebaseio.com";
+
+  /* Where the zip files live. Newer Firebase projects use <id>.firebasestorage.app,
+     older ones <id>.appspot.com -- the first is tried, then the second. */
+  var BUCKETS = ["matix-1d538.firebasestorage.app", "matix-1d538.appspot.com"];
+
+  /* ---------- tiny helpers ---------- */
+  function $(id){ return document.getElementById(id); }
+
+  function esc(t){
+    return String(t == null ? "" : t)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function normUser(u){
+    u = String(u || "").toLowerCase().replace(/[^a-z0-9_]/g, "");
+    if (u === "matix" || u === "ghadimatix") u = "ghadi";
+    return u;
+  }
+
+  function safeUrl(u){
+    u = String(u || "").trim();
+    return /^https?:\/\//i.test(u) ? u : "";
+  }
+
+  function fb(path, method, body){
+    var opt = { method: method || "GET" };
+    if (body !== undefined){
+      opt.headers = { "Content-Type": "application/json" };
+      opt.body = JSON.stringify(body);
+    }
+    return fetch(FB + path + ".json", opt).then(function(r){ return r.json(); });
+  }
+
+  /* ---------- markdown ---------- */
+  function inline(t){
+    return t
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<i>$2</i>")
+      .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,
+               '<a href="$2" rel="noopener">$1</a>');
+  }
+
+  function mdToHtml(src){
+    var lines = esc(src || "").replace(/\r\n/g, "\n").split("\n");
+    var out = [], list = null, fence = null, i, ln, m;
+
+    function closeList(){
+      if (list){ out.push("</" + list + ">"); list = null; }
+    }
+    function openList(kind){
+      if (list !== kind){ closeList(); list = kind; out.push("<" + kind + ">"); }
+    }
+
+    for (i = 0; i < lines.length; i++){
+      ln = lines[i];
+
+      if (/^\s*```/.test(ln)){
+        if (fence === null){ closeList(); fence = []; }
+        else { out.push("<pre><code>" + fence.join("\n") + "</code></pre>"); fence = null; }
+        continue;
+      }
+      if (fence !== null){ fence.push(ln); continue; }
+
+      if (!ln.trim()){ closeList(); continue; }
+
+      if (/^\s*(---+|\*\*\*+)\s*$/.test(ln)){ closeList(); out.push("<hr>"); continue; }
+
+      m = ln.match(/^(#{1,6})\s+(.*)$/);
+      if (m){
+        closeList();
+        var lvl = Math.min(m[1].length, 3);
+        out.push("<h" + lvl + ">" + inline(m[2]) + "</h" + lvl + ">");
+        continue;
+      }
+
+      m = ln.match(/^\s*&gt;\s?(.*)$/);
+      if (m){ closeList(); out.push("<blockquote>" + inline(m[1]) + "</blockquote>"); continue; }
+
+      m = ln.match(/^\s*[-*+]\s+(.*)$/);
+      if (m){ openList("ul"); out.push("<li>" + inline(m[1]) + "</li>"); continue; }
+
+      m = ln.match(/^\s*\d+[.)]\s+(.*)$/);
+      if (m){ openList("ol"); out.push("<li>" + inline(m[1]) + "</li>"); continue; }
+
+      closeList();
+      out.push("<p>" + inline(ln) + "</p>");
+    }
+
+    if (fence !== null) out.push("<pre><code>" + fence.join("\n") + "</code></pre>");
+    closeList();
+    return out.join("\n");
+  }
+
+  /* ---------- who is signed in ----------
+     Mirrors doSignIn() in nav.js so the same account works everywhere:
+     a password saved in Firebase always wins, then the built-in member
+     list, then any pre-upgrade account saved in this browser. The session
+     keys are the site's own, so signing in here signs you in site-wide. */
+  var VALID_MEMBERS = {
+    ghadi:   "iamtheownerofmatix",
+    dahlia:  "cheeseflower",
+    yara:    "yara10yoyo20",
+    jad:     "ilikebatatameshwiyye",
+    marwan:  "ilikebeingnumberonebutiamnumbertwo",
+    mak:     "mak2130",
+    hicham:  "pwrbulleye"
+  };
+
+  var owner = false;
+
+  function getUser(){
+    try {
+      return sessionStorage.getItem("mx_user")
+          || sessionStorage.getItem("matix_auth_user") || null;
+    } catch(e){ return null; }
+  }
+
+  function setUser(u){
+    try {
+      if (u){
+        sessionStorage.setItem("mx_user", u);
+        sessionStorage.setItem("matix_auth_user", u);
+      } else {
+        sessionStorage.removeItem("mx_user");
+        sessionStorage.removeItem("matix_auth_user");
+      }
+    } catch(e){}
+  }
+
+  /* Owner comes from /roles like the rest of the site. */
+  function refreshOwner(done){
+    var u = getUser();
+    if (!u){ owner = false; done(); return; }
+    fb("/roles/" + encodeURIComponent(normUser(u))).then(function(r){
+      owner = (r === "owner") || (normUser(u) === "ghadi" && !r);
+      done();
+    })["catch"](function(){
+      owner = (normUser(u) === "ghadi");
+      done();
+    });
+  }
+
+  function isOwner(){ return owner; }
+
+  function paintAuth(){
+    var u = getUser();
+    $("who").innerHTML = u ? "Signed in as <b>@" + esc(u) + "</b>" : "";
+    $("signBtn").textContent = u ? "Sign out" : "Sign in";
+    $("pubPanel").className = isOwner() ? "panel open" : "panel";
+  }
+
+  function signIn(){
+    /* nav.js only lowercases and strips spaces here, so do the same. */
+    var u    = String($("siUser").value || "").toLowerCase().replace(/\s+/g, "").trim();
+    var pass = $("siPass").value;
+    var msg  = $("siMsg");
+
+    function fail(t){ msg.textContent = t; msg.className = "msg bad show"; }
+
+    if (!u || !pass){ fail("Type your username and password."); return; }
+    msg.className = "msg";
+
+    function ok(){
+      /* Banned members cannot sign in; ghadi can never be banned. */
+      if (u === "ghadi"){ done(); return; }
+      fb("/bans/" + encodeURIComponent(u)).then(function(b){
+        if (b && b.until && b.until > Date.now()){
+          fail("That account is banned" + (b.reason ? ": " + b.reason : "."));
+          return;
+        }
+        done();
+      })["catch"](done);
+    }
+
+    function done(){
+      setUser(u);
+      $("signPanel").className = "panel";
+      $("siPass").value = "";
+      refreshOwner(function(){ paintAuth(); draw(); });
+    }
+
+    function tryLocal(){
+      try {
+        var m = JSON.parse(localStorage.getItem("mx_joined") || "{}");
+        if (m[u] && m[u] === pass){ ok(); return; }
+      } catch(e){}
+      fail("Wrong username or password.");
+    }
+
+    function tryBuiltIn(){
+      if (VALID_MEMBERS[u] && VALID_MEMBERS[u] === pass){ ok(); return; }
+      tryLocal();
+    }
+
+    fb("/members/" + encodeURIComponent(u)).then(function(rec){
+      if (rec && rec.password){
+        if (rec.password === pass) ok();
+        else fail("Wrong username or password.");
+        return;
+      }
+      tryBuiltIn();
+    })["catch"](tryBuiltIn);
+  }
+
+  /* ---------- releases ---------- */
+  var current = null;
+
+  var PLATFORMS = [
+    { key: "win",     input: "pvWinF", btn: "dl-win",     size: "sz-win",     file: "matix-win.zip" },
+    { key: "mac",     input: "pvMacF", btn: "dl-mac",     size: "sz-mac",     file: "matix-mac.zip" },
+    { key: "android", input: "pvAndF", btn: "dl-android", size: "sz-android", file: "matix-android.zip" }
+  ];
+
+  function humanSize(b){
+    var n = Number(b);
+    if (!n) return "";
+    var u = ["B", "KB", "MB", "GB"], i = 0;
+    while (n >= 1024 && i < u.length - 1){ n = n / 1024; i++; }
+    return (n >= 10 || i === 0 ? Math.round(n) : n.toFixed(1)) + " " + u[i];
+  }
+
+  /* Older records stored a bare URL string; newer ones store url/size/name. */
+  function asset(r, key){
+    var a = r ? r[key] : null;
+    if (!a) return null;
+    if (typeof a === "string") return { url: a, size: 0, name: "" };
+    return a.url ? a : null;
+  }
+
+  /* ---------- uploading ---------- */
+  function putFile(bucket, path, file, onProgress){
+    return new Promise(function(resolve, reject){
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://firebasestorage.googleapis.com/v0/b/" + bucket
+                     + "/o?uploadType=media&name=" + encodeURIComponent(path), true);
+      xhr.setRequestHeader("Content-Type", file.type || "application/zip");
+
+      xhr.upload.onprogress = function(e){
+        if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
+      };
+      xhr.onerror = function(){ reject({ code: "network" }); };
+      xhr.onload = function(){
+        if (xhr.status === 404){ reject({ code: "bucket" }); return; }
+        if (xhr.status === 401 || xhr.status === 403){ reject({ code: "rules" }); return; }
+        if (xhr.status < 200 || xhr.status >= 300){
+          reject({ code: "http", status: xhr.status }); return;
+        }
+        var res = {};
+        try { res = JSON.parse(xhr.responseText); } catch(e){}
+        var token = String(res.downloadTokens || "").split(",")[0];
+        resolve("https://firebasestorage.googleapis.com/v0/b/" + bucket
+              + "/o/" + encodeURIComponent(path) + "?alt=media"
+              + (token ? "&token=" + token : ""));
+      };
+      xhr.send(file);
+    });
+  }
+
+  function upload(path, file, onProgress){
+    return putFile(BUCKETS[0], path, file, onProgress)["catch"](function(err){
+      if (err && err.code === "bucket" && BUCKETS[1]){
+        return putFile(BUCKETS[1], path, file, onProgress);
+      }
+      throw err;
+    });
+  }
+
+  /* ---------- painting ---------- */
+  function paintCards(r){
+    PLATFORMS.forEach(function(p){
+      var a = asset(r, p.key), btn = $(p.btn), sz = $(p.size);
+      if (!btn) return;
+      if (a){
+        btn.href = a.url;
+        btn.className = "btn";
+        btn.textContent = "Download";
+        if (sz) sz.textContent = humanSize(a.size);
+      } else {
+        btn.removeAttribute("href");
+        btn.className = "btn off";
+        btn.textContent = "Not available yet";
+        if (sz) sz.textContent = "";
+      }
+    });
+    var hero = document.querySelector("header a.btn.big");
+    if (hero && r && r.version) hero.textContent = "Get Matix " + r.version;
+  }
+
+  function paintRelease(r){
+    var box = $("relBox");
+    if (!r || !r.version){ box.innerHTML = ""; return; }
+
+    var when = r.at ? new Date(r.at).toLocaleDateString(undefined,
+                 { year: "numeric", month: "long", day: "numeric" }) : "";
+
+    var html = '<div class="rel"><div class="rel-h">'
+      + '<span class="vbadge">v' + esc(r.version) + '</span>'
+      + (when ? '<span class="when">' + esc(when) + '</span>' : "")
+      + (isOwner() ? '<button class="sbtn danger" id="relDel" style="margin-left:auto">Remove</button>' : "")
+      + "</div>";
+
+    if (r.notes) html += '<div class="md">' + mdToHtml(r.notes) + "</div>";
+    html += "</div>";
+    box.innerHTML = html;
+
+    var del = $("relDel");
+    if (del) del.onclick = function(){
+      if (!confirm("Take v" + r.version + " off the page?")) return;
+      fb("/site_release", "DELETE").then(function(){ draw(); });
+    };
+  }
+
+  function draw(){
+    fb("/site_release").then(function(r){
+      current = (r && r.version) ? r : null;
+      paintRelease(current);
+      paintCards(current);
+      if (current && !$("pvVer").value){
+        $("pvVer").value   = current.version || "";
+        $("pvNotes").value = current.notes || "";
+      }
+    })["catch"](function(){
+      paintCards(null);
+    });
+  }
+
+  /* ---------- publishing ---------- */
+  function publish(){
+    var msg = $("pvMsg"), prog = $("pvProg"), bar = $("pvBar"), go = $("pvGo");
+
+    function say(t, ok){ msg.textContent = t; msg.className = "msg show " + (ok ? "good" : "bad"); }
+    function stop(){ prog.className = "prog"; go.disabled = false; }
+
+    if (!isOwner()){ say("Only the owner can publish."); return; }
+
+    var v = $("pvVer").value.trim().replace(/^v/i, "");
+    if (!v){ say("Give it a version number, like 1.0.1."); return; }
+
+    /* Start from what is already published so an untouched platform keeps its file. */
+    var rec = { version: v, notes: $("pvNotes").value, at: Date.now(), by: getUser() };
+    var queue = [], kept = 0;
+
+    PLATFORMS.forEach(function(p){
+      var keep = asset(current, p.key);
+      if (keep){ rec[p.key] = { url: keep.url, size: keep.size || 0, name: keep.name || p.file }; kept++; }
+      var inp = $(p.input);
+      var f = inp && inp.files && inp.files[0];
+      if (f) queue.push({ p: p, file: f });
+    });
+
+    if (!queue.length && !kept){ say("Pick at least one zip file to upload."); return; }
+
+    var total = queue.length, done = 0;
+    go.disabled = true;
+    prog.className = "prog on";
+    bar.style.width = "0%";
+
+    function fail(err){
+      stop();
+      var c = err && err.code;
+      if (c === "rules"){
+        say("Storage refused the upload \u2014 its rules do not allow writing yet.");
+      } else if (c === "bucket"){
+        say("Could not find the Matix storage bucket. Turn on Storage in Firebase first.");
+      } else if (c === "network"){
+        say("The upload was cut off. Check your connection and try again.");
+      } else {
+        say("The upload failed" + (err && err.status ? " (error " + err.status + ")" : "") + ".");
+      }
+    }
+
+    function finish(){
+      bar.style.width = "100%";
+      say("Saving\u2026", true);
+      fb("/site_release", "PUT", rec).then(function(){
+        return fb("/site_release_history/" + v.replace(/[.#$\[\]\/]/g, "_"), "PUT", rec);
+      }).then(function(){
+        stop();
+        say("Published. Everyone can download it now.", true);
+        PLATFORMS.forEach(function(p){ var i = $(p.input); if (i) i.value = ""; });
+        draw();
+      })["catch"](function(){
+        stop();
+        say("The files uploaded, but saving the release failed. Press Publish again.");
+      });
+    }
+
+    function next(){
+      if (!queue.length){ finish(); return; }
+      var job = queue.shift(), label = job.p.file;
+
+      upload("releases/" + v + "/" + label, job.file, function(frac){
+        bar.style.width = Math.round(((done + frac) / total) * 100) + "%";
+        say("Uploading " + label + " \u2014 " + Math.round(frac * 100) + "%", true);
+      }).then(function(url){
+        rec[job.p.key] = { url: url, size: job.file.size, name: label };
+        done++;
+        next();
+      })["catch"](fail);
+    }
+
+    next();
+  }
+
+  /* ---------- wire up ---------- */
+  $("signBtn").onclick = function(){
+    if (getUser()){
+      setUser(null);
+      owner = false;
+      paintAuth();
+      draw();
+    } else {
+      var pn = $("signPanel");
+      pn.className = pn.className.indexOf("open") === -1 ? "panel open" : "panel";
+      if (pn.className.indexOf("open") !== -1) $("siUser").focus();
+    }
+  };
+  $("siGo").onclick = signIn;
+  $("siCancel").onclick = function(){
+    $("signPanel").className = "panel";
+    $("siMsg").className = "msg";
+  };
+  $("siPass").onkeydown = function(e){ if (e.key === "Enter") signIn(); };
+  $("siUser").onkeydown = function(e){ if (e.key === "Enter") $("siPass").focus(); };
+
+  $("pvGo").onclick = publish;
+
+  /* highlight the card matching the visitor device */
+  (function(){
+    var ua = navigator.userAgent || "", id = null;
+    if (/Android/i.test(ua)) id = "c-android";
+    else if (/Macintosh|Mac OS X/i.test(ua) && !/iPhone|iPad|iPod/i.test(ua)) id = "c-mac";
+    else if (/Windows/i.test(ua)) id = "c-win";
+    if (id && $(id)) $(id).classList.add("rec");
+  })();
+
+  paintAuth();
+  draw();
+  refreshOwner(function(){ paintAuth(); draw(); });
+})();
+</script>
+</body>
+</html>
