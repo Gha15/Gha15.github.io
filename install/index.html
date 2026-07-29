@@ -195,7 +195,7 @@
 
 <div class="panel" id="pubPanel">
   <h3>📢 Publish a new release</h3>
-  <p class="sub">Pick the three zip files from your computer. They upload straight to Matix storage and the buttons above start serving them right away. Leave one empty to keep the file already published.</p>
+  <p class="sub">Pick the zip files from your computer. They are stored in the Matix database itself, so there is nothing else to set up. Leave one empty to keep the file already published. Space is limited to about 1&nbsp;GB in total, and publishing a new version deletes the old files, so keep the zips as small as you can.</p>
   <label class="field"><span>Version</span><input id="pvVer" placeholder="1.0.1"></label>
   <div class="row2">
     <label class="field"><span>Windows zip</span><input type="file" id="pvWinF" accept=".zip,application/zip"></label>
@@ -207,7 +207,6 @@
   <div class="msg" id="pvMsg"></div>
   <div class="acts">
     <button class="sbtn pri" id="pvGo">Publish</button>
-    <button class="sbtn" id="pvTest">Test storage</button>
   </div>
 </div>
 
@@ -384,9 +383,10 @@
 
   var FB = "https://matix-1d538-default-rtdb.firebaseio.com";
 
-  /* Where the zip files live. Newer Firebase projects use <id>.firebasestorage.app,
-     older ones <id>.appspot.com -- the first is tried, then the second. */
-  var BUCKETS = ["matix-1d538.firebasestorage.app", "matix-1d538.appspot.com"];
+  /* The zips are cut into pieces and kept in the database itself, under
+     /release_files. Firebase caps one stored value at 10 MB, and base64 makes
+     a file about a third bigger, so 3 MB of real file per piece is safe. */
+  var CHUNK = 3 * 1024 * 1024;
 
   /* ---------- tiny helpers ---------- */
   function $(id){ return document.getElementById(id); }
@@ -606,164 +606,159 @@
     return (n >= 10 || i === 0 ? Math.round(n) : n.toFixed(1)) + " " + u[i];
   }
 
-  /* Older records stored a bare URL string; newer ones store url/size/name. */
+  /* Three shapes have existed: a bare URL string, a {url,...} record, and now
+     a {mode:"db",...} record whose bytes live in the database. */
   function asset(r, key){
     var a = r ? r[key] : null;
     if (!a) return null;
     if (typeof a === "string") return { url: a, size: 0, name: "" };
+    if (a.mode === "db" && a.chunks) return a;
     return a.url ? a : null;
   }
 
-  /* ---------- uploading ---------- */
-  function putFile(bucket, path, file, onProgress){
+  /* ---------- putting files into the database ---------- */
+  function verKey(v){ return String(v).replace(/[.#$\[\]\/]/g, "_"); }
+
+  function filesPath(ver, key){ return "/release_files/" + ver + "/" + key; }
+
+  /* The database only holds text, so raw bytes have to become base64.
+     fromCharCode blows the call stack on big arrays, hence the 32 KB steps. */
+  function bytesToB64(bytes){
+    var out = "", step = 0x8000;
+    for (var i = 0; i < bytes.length; i += step){
+      out += String.fromCharCode.apply(null, bytes.subarray(i, i + step));
+    }
+    return btoa(out);
+  }
+
+  function readChunk(file, index){
+    var from = index * CHUNK;
+    var slice = file.slice(from, Math.min(from + CHUNK, file.size));
+
+    if (slice.arrayBuffer){
+      return slice.arrayBuffer().then(function(buf){
+        return bytesToB64(new Uint8Array(buf));
+      })["catch"](function(){ throw { code: "read" }; });
+    }
+
+    /* Fallback for older browsers: "data:...;base64,XXXX" - keep only the XXXX. */
     return new Promise(function(resolve, reject){
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", "https://firebasestorage.googleapis.com/v0/b/" + bucket
-                     + "/o?uploadType=media&name=" + encodeURIComponent(path), true);
-      xhr.setRequestHeader("Content-Type", file.type || "application/zip");
-
-      xhr.upload.onprogress = function(e){
-        if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
+      var fr = new FileReader();
+      fr.onerror = function(){ reject({ code: "read" }); };
+      fr.onload = function(){
+        var t = String(fr.result || "");
+        resolve(t.slice(t.indexOf(",") + 1));
       };
-      xhr.onerror = function(){ reject({ code: "network", bucket: bucket }); };
-      xhr.onload = function(){
-        var detail = "";
-        try {
-          var e = JSON.parse(xhr.responseText);
-          detail = (e && e.error && e.error.message) ? e.error.message : "";
-        } catch(err){
-          detail = String(xhr.responseText || "").slice(0, 140);
-        }
-        var st = xhr.status;
-        if (st === 404 || st === 400){
-          reject({ code: "bucket", status: st, detail: detail, bucket: bucket }); return;
-        }
-        if (st === 401 || st === 403){
-          reject({ code: "rules", status: st, detail: detail, bucket: bucket }); return;
-        }
-        if (st < 200 || st >= 300){
-          reject({ code: "http", status: st, detail: detail, bucket: bucket }); return;
-        }
-        var res = {};
-        try { res = JSON.parse(xhr.responseText); } catch(e){}
-        var token = String(res.downloadTokens || "").split(",")[0];
-        resolve("https://firebasestorage.googleapis.com/v0/b/" + bucket
-              + "/o/" + encodeURIComponent(path) + "?alt=media"
-              + (token ? "&token=" + token : ""));
-      };
-      xhr.send(file);
+      fr.readAsDataURL(slice);
     });
   }
 
-  /* Try each bucket in turn. A "rules" answer proves the bucket exists,
-     so that is the error worth reporting. */
-  function upload(path, file, onProgress){
-    var best = null, i = 0;
-
-    function attempt(){
-      if (i >= BUCKETS.length) return Promise.reject(best || { code: "http" });
-      var bucket = BUCKETS[i++];
-      return putFile(bucket, path, file, onProgress)["catch"](function(err){
-        if (!best || (err && err.code === "rules")) best = err;
-        return attempt();
-      });
-    }
-    return attempt();
-  }
-
-  function reason(err){
-    var c = err && err.code;
-    var b = err && err.bucket ? " [" + err.bucket + "]" : "";
-    var d = err && err.detail ? " Firebase said: " + err.detail : "";
-
-    if (c === "rules"){
-      return "Storage refused the upload" + b + " \u2014 its rules still require a signed-in "
-           + "Firebase user. Open Firebase Console \u2192 Storage \u2192 Rules and allow writes." + d;
-    }
-    if (c === "bucket"){
-      return "No storage bucket answered" + b + ". Open Firebase Console \u2192 Storage \u2192 "
-           + "Get started to switch it on, then check the bucket name shown there." + d;
-    }
-    if (c === "network"){
-      if (location.protocol === "file:"){
-        return "Firebase will not accept uploads from a page opened off your own computer "
-             + "(file://). Put this page on your website first, then try again.";
-      }
-      return "The upload never reached storage" + b + " \u2014 no reply came back at all. "
-           + "Press Test storage to find out why.";
-    }
-    return "Upload failed with error " + ((err && err.status) || "?") + b + "." + d;
-  }
-
-  /* Owner-only diagnosis. A failure with no HTTP status can mean three very
-     different things, so probe for each one separately. */
-  function probeBucket(bucket){
-    var url = "https://firebasestorage.googleapis.com/v0/b/" + bucket + "/o?maxResults=1";
-
-    return fetch(url).then(function(r){
-      return { kind: "answered", status: r.status };
-    })["catch"](function(){
-      /* The browser would not let us read it. If a no-cors request still goes
-         through, the server is alive and CORS is what is in the way. */
-      return fetch(url, { mode: "no-cors" }).then(function(){
-        return { kind: "cors" };
-      })["catch"](function(){
-        return { kind: "dead" };
-      });
+  function writeJson(path, value){
+    return fetch(FB + path + ".json", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(value)
+    }).then(function(r){
+      if (!r.ok) throw { code: "write", status: r.status };
+      return true;
+    })["catch"](function(e){
+      if (e && e.code) throw e;
+      throw { code: "offline" };
     });
   }
 
-  function describeProbe(bucket, r){
-    if (r.kind === "cors") return bucket + ": reachable, but the browser blocked it (CORS)";
-    if (r.kind === "dead") return bucket + ": no answer at all";
-    if (r.status === 404)  return bucket + ": does not exist (404)";
-    if (r.status === 403)  return bucket + ": exists, listing locked (403) \u2014 that is normal";
-    if (r.status === 200)  return bucket + ": exists and is readable (200)";
-    return bucket + ": answered " + r.status;
-  }
-
-  function testStorage(){
-    var msg = $("pvMsg"), btn = $("pvTest");
-    btn.disabled = true;
-    msg.className = "msg show good";
-    msg.textContent = "Testing\u2026";
-
-    var isFile = location.protocol === "file:";
-    var lines = [], i = 0;
-
-    function done(){
-      btn.disabled = false;
-      var all = lines.join(" "), head;
-
-      if (isFile){
-        head = "This page is open straight from your computer (file://), and Firebase "
-             + "refuses uploads from there. Put it on your website, or run a local server, "
-             + "and it will work.";
-      } else if (all.indexOf("CORS") > -1){
-        head = "Storage is alive but the bucket is not letting " + location.origin
-             + " talk to it. Its CORS settings need to allow this site.";
-      } else if (all.indexOf("does not exist") > -1){
-        head = "Storage has not been switched on for this project yet.";
-      } else if (all.indexOf("no answer") > -1){
-        head = "Nothing answered. Check your internet, or whether something on this "
-             + "network is blocking Google services.";
-      } else {
-        head = "Storage looks reachable. If uploads still fail, it is the rules.";
-      }
-
-      msg.className = "msg show bad";
-      msg.textContent = head + "  \u2014  " + lines.join("  \u2022  ");
-    }
+  function uploadToDb(version, key, file, onProgress){
+    var ver = verKey(version);
+    var base = filesPath(ver, key);
+    var total = Math.max(1, Math.ceil(file.size / CHUNK));
+    var i = 0;
 
     function step(){
-      if (i >= BUCKETS.length){ done(); return; }
-      var bucket = BUCKETS[i++];
-      probeBucket(bucket).then(function(r){
-        lines.push(describeProbe(bucket, r));
-        step();
+      if (i >= total) return Promise.resolve();
+      var index = i++;
+      return readChunk(file, index).then(function(b64){
+        return writeJson(base + "/chunks/" + index, b64);
+      }).then(function(){
+        if (onProgress) onProgress(i / total);
+        return step();
       });
     }
-    step();
+
+    /* Clear any half-finished attempt for this exact slot first. */
+    return fetch(FB + base + ".json", { method: "DELETE" })
+      .then(step)
+      .then(function(){
+        var meta = { name: file.name, size: file.size, chunks: total };
+        return writeJson(base + "/meta", meta).then(function(){
+          return { mode: "db", ver: ver, key: key, name: file.name,
+                   size: file.size, chunks: total };
+        });
+      });
+  }
+
+  function dropFiles(version){
+    if (!version) return Promise.resolve();
+    return fetch(FB + "/release_files/" + verKey(version) + ".json", { method: "DELETE" })
+      ["catch"](function(){ return null; });
+  }
+
+  /* ---------- pulling files back out ---------- */
+  function b64ToBytes(b64){
+    var bin = atob(b64), n = bin.length, out = new Uint8Array(n);
+    for (var i = 0; i < n; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  function downloadFromDb(a, onProgress){
+    var base = filesPath(a.ver, a.key);
+    var parts = [], i = 0;
+
+    function step(){
+      if (i >= a.chunks) return Promise.resolve();
+      var index = i++;
+      return fb(base + "/chunks/" + index).then(function(b64){
+        if (!b64) throw { code: "missing", index: index };
+        parts.push(b64ToBytes(b64));
+        if (onProgress) onProgress(parts.length / a.chunks);
+        return step();
+      });
+    }
+
+    return step().then(function(){
+      var blob = new Blob(parts, { type: "application/zip" });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement("a");
+      link.href = url;
+      link.download = a.name || "matix.zip";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+      return blob.size;
+    });
+  }
+
+  function grab(a, btn, sz){
+    if (btn.getAttribute("data-busy") === "1") return;
+    btn.setAttribute("data-busy", "1");
+    var label = btn.textContent;
+    btn.textContent = "Getting it\u2026";
+
+    downloadFromDb(a, function(f){
+      if (sz) sz.textContent = "Downloading \u2014 " + Math.round(f * 100) + "%";
+    }).then(function(){
+      btn.setAttribute("data-busy", "");
+      btn.textContent = label;
+      if (sz) sz.textContent = humanSize(a.size) + " \u2014 saved";
+    })["catch"](function(err){
+      btn.setAttribute("data-busy", "");
+      btn.textContent = label;
+      if (sz){
+        sz.textContent = (err && err.code === "missing")
+          ? "Part of this file is missing \u2014 it needs publishing again"
+          : "Download failed \u2014 try again";
+      }
+    });
   }
 
   /* ---------- painting ---------- */
@@ -771,15 +766,23 @@
     PLATFORMS.forEach(function(p){
       var a = asset(r, p.key), btn = $(p.btn), sz = $(p.size);
       if (!btn) return;
-      if (a){
+      if (a && a.mode === "db"){
+        btn.removeAttribute("href");
+        btn.className = "btn";
+        btn.textContent = "Download";
+        btn.onclick = function(e){ e.preventDefault(); grab(a, btn, sz); };
+        if (sz) sz.textContent = humanSize(a.size);
+      } else if (a){
         btn.href = a.url;
         btn.className = "btn";
         btn.textContent = "Download";
+        btn.onclick = null;
         if (sz) sz.textContent = humanSize(a.size);
       } else {
         btn.removeAttribute("href");
         btn.className = "btn off";
         btn.textContent = "Not available yet";
+        btn.onclick = null;
         if (sz) sz.textContent = "";
       }
     });
@@ -806,8 +809,10 @@
 
     var del = $("relDel");
     if (del) del.onclick = function(){
-      if (!confirm("Take v" + r.version + " off the page?")) return;
-      fb("/site_release", "DELETE").then(function(){ draw(); });
+      if (!confirm("Take v" + r.version + " off the page and delete its files?")) return;
+      fb("/site_release", "DELETE").then(function(){
+        return dropFiles(r.version);
+      }).then(function(){ draw(); });
     };
   }
 
@@ -843,7 +848,7 @@
 
     PLATFORMS.forEach(function(p){
       var keep = asset(current, p.key);
-      if (keep){ rec[p.key] = { url: keep.url, size: keep.size || 0, name: keep.name || p.file }; kept++; }
+      if (keep){ rec[p.key] = keep; kept++; }
       var inp = $(p.input);
       var f = inp && inp.files && inp.files[0];
       if (f) queue.push({ p: p, file: f });
@@ -856,7 +861,21 @@
     prog.className = "prog on";
     bar.style.width = "0%";
 
-    function fail(err){ stop(); say(reason(err)); }
+    function fail(err){
+      stop();
+      var c = err && err.code;
+      if (c === "read"){
+        say("Could not read that file off your computer. Pick it again.");
+      } else if (c === "write"){
+        say("The database refused a piece of the file"
+          + (err.status ? " (error " + err.status + ")" : "")
+          + ". If it is out of room, remove the old release first.");
+      } else if (c === "offline"){
+        say("Lost the connection partway through. Nothing was published \u2014 try again.");
+      } else {
+        say("The upload stopped partway. Nothing was published \u2014 press Publish to retry.");
+      }
+    }
 
     function finish(){
       bar.style.width = "100%";
@@ -864,10 +883,16 @@
       fb("/site_release", "PUT", rec).then(function(){
         return fb("/site_release_history/" + v.replace(/[.#$\[\]\/]/g, "_"), "PUT", rec);
       }).then(function(){
+        /* Free the space used by the previous version, if this one replaced it. */
+        var prev = current && current.version;
+        return (prev && verKey(prev) !== verKey(v)) ? dropFiles(prev) : null;
+      }).then(function(){
         stop();
         say("Published. Everyone can download it now.", true);
         PLATFORMS.forEach(function(p){ var i = $(p.input); if (i) i.value = ""; });
-        draw();
+        current = rec;
+        paintRelease(current);
+        paintCards(current);
       })["catch"](function(){
         stop();
         say("The files uploaded, but saving the release failed. Press Publish again.");
@@ -878,11 +903,11 @@
       if (!queue.length){ finish(); return; }
       var job = queue.shift(), label = job.p.file;
 
-      upload("releases/" + v + "/" + label, job.file, function(frac){
+      uploadToDb(v, job.p.key, job.file, function(frac){
         bar.style.width = Math.round(((done + frac) / total) * 100) + "%";
         say("Uploading " + label + " \u2014 " + Math.round(frac * 100) + "%", true);
-      }).then(function(url){
-        rec[job.p.key] = { url: url, size: job.file.size, name: label };
+      }).then(function(saved){
+        rec[job.p.key] = saved;
         done++;
         next();
       })["catch"](fail);
@@ -913,7 +938,6 @@
   $("siUser").onkeydown = function(e){ if (e.key === "Enter") $("siPass").focus(); };
 
   $("pvGo").onclick = publish;
-  $("pvTest").onclick = testStorage;
 
   /* highlight the card matching the visitor device */
   (function(){
