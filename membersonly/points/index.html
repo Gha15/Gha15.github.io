@@ -413,6 +413,7 @@
                 const row = document.createElement('button'); row.className = 'member-link'; row.type = 'button';
                 const nm = document.createElement('span'); nm.className = 'name'; nm.textContent = displayNameFor(user);
                 row.appendChild(nm);
+                if (PROFILES[user] && PROFILES[user].hasBadge) { const bd = document.createElement('img'); bd.src = '/badge.svg'; bd.className = 'badge-icon'; bd.alt = 'Badge'; bd.title = 'Unlocked the profile badge'; row.appendChild(bd); }
                 if (isOwn) { const tag = document.createElement('span'); tag.className = 'admin-tag'; tag.textContent = '(owner)'; row.appendChild(tag); }
                 else if (isMgr) { const tag = document.createElement('span'); tag.className = 'manager-tag'; tag.textContent = '(manager)'; row.appendChild(tag); }
                 else if (isAdm) { const tag = document.createElement('span'); tag.className = 'admin-tag'; tag.textContent = '(admin)'; row.appendChild(tag); }
@@ -498,6 +499,7 @@
 
             const hd = document.createElement('div'); hd.className = 'user-hd';
             const hn = document.createElement('span'); hn.textContent = displayNameFor(user); hd.appendChild(hn);
+            if (PROFILES[user] && PROFILES[user].hasBadge) { const bd = document.createElement('img'); bd.src = '/badge.svg'; bd.className = 'badge-icon'; bd.alt = 'Badge'; bd.title = 'Unlocked the profile badge'; hd.appendChild(bd); }
             if (targetIsOwner) { const tg = document.createElement('span'); tg.className = 'admin-tag'; tg.textContent = '(owner)'; hd.appendChild(tg); }
             else if (targetIsManager) { const tg = document.createElement('span'); tg.className = 'manager-tag'; tg.textContent = '(manager)'; hd.appendChild(tg); }
             else if (targetIsAdmin) { const tg = document.createElement('span'); tg.className = 'admin-tag'; tg.textContent = '(admin)'; hd.appendChild(tg); }
