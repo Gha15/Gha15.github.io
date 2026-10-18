@@ -322,6 +322,11 @@
             iframe: true
         },
         {
+            href: '/privacy',
+            label: 'Privacy',
+            iframe: true
+        },
+        {
             href: '/usefulotherstuffcauseicannotgetanotherdomain',
             label: 'Tools',
             subs: [{
