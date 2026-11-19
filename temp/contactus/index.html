@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>contact us - matix the math club</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=Pinyon+Script&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/temp/global.css">
+  <style>
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .form-container { background: rgba(15,23,42,0.82); padding: 32px; border-radius: 20px; width: 100%; max-width: 460px; box-shadow: 0 8px 40px rgba(0,0,0,0.6); border: 1px solid rgba(129,140,248,0.32); backdrop-filter: blur(16px); }
+    h2 { margin-top: 0; margin-bottom: 14px; color: #a5b4fc; font-family: 'Pinyon Script', cursive; font-size: 52px; font-weight: 400; text-align: center; }
+    .input-group { margin-bottom: 18px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; color: #94a3b8; font-size: 13px; letter-spacing: 0.5px; }
+    input[type="text"], input[type="email"], textarea, select { background: rgba(2,6,23,0.7); border: 1px solid rgba(129,140,248,0.3); border-radius: 10px; color: #f8fafc; font-size: 14px; padding: 11px 14px; width: 100%; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
+    input[type="text"]:focus, input[type="email"]:focus, textarea:focus, select:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,0.18); }
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
+    select option { background: #0f172a; }
+    textarea { height: 110px; resize: vertical; }
+    #otherSubjectContainer { display: none; margin-top: 10px; }
+    button { background: linear-gradient(135deg, #4338ca, #818cf8); color: white; padding: 13px; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-size: 15px; font-family: 'Vibur', cursive; font-weight: 600; letter-spacing: 1px; transition: filter 0.2s, transform 0.2s; }
+    button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    button:disabled { background: #334155; cursor: not-allowed; transform: none; }
+    .custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2,7,18,0.75); backdrop-filter: blur(6px); justify-content: center; align-items: center; z-index: 999; }
+    .modal-content { background: rgba(15,23,42,0.95); border: 1px solid rgba(129,140,248,0.35); padding: 28px; border-radius: 16px; max-width: 360px; width: 100%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.5); color: #f8fafc; }
+    .modal-title { font-weight: 700; font-size: 18px; margin-bottom: 10px; color: #a5b4fc; }
+    .modal-text { font-size: 14px; color: #94a3b8; margin-bottom: 20px; }
+    .modal-btn { background: rgba(129,140,248,0.2); color: #a5b4fc; padding: 10px 22px; font-size: 14px; border: 1px solid rgba(129,140,248,0.4); border-radius: 8px; cursor: pointer; }
+    .modal-btn:hover { background: rgba(129,140,248,0.35); }
+    @media (max-width: 480px) { body { padding: 15px; } .form-container { padding: 20px; } }
+  </style>
+</head>
+<body>
+
+  <!-- FIXED: Changed container to a <div> to block GitHub Pages from intercepting form submissions -->
+  <div class="form-container">
+    <h2>contact us</h2>
+    
+    <div class="input-group">
+      <label for="fullName">Full Name:</label>
+      <input type="text" id="fullName" placeholder="Enter your full name">
+    </div>
+
+    <div class="input-group">
+      <label for="email">Email Address:</label>
+      <input type="email" id="email" placeholder="name@gmail.com">
+    </div>
+
+    <div class="input-group">
+      <label for="subjectSelect">Kind of Problem:</label>
+      <select id="subjectSelect" onchange="toggleOtherInput()">
+        <option value="">-- Select an option --</option>
+        <option value="Bugs in website">Bugs in website</option>
+        <option value="Technical issue">Technical issue</option>
+        <option value="Other">Other (text box)</option>
+      </select>
+      
+      <div id="otherSubjectContainer">
+        <input type="text" id="customSubject" placeholder="Please specify your problem">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label for="description">Text:</label>
+      <textarea id="description" placeholder="Describe your problem here"></textarea>
+    </div>
+
+    <button type="button" id="sendBtn" onclick="handleSubmission()">Send Email</button>
+  </div>
+
+  <div id="alertModal" class="custom-modal">
+    <div class="modal-content">
+      <div id="modalTitle" class="modal-title">Notification</div>
+      <div id="modalText" class="modal-text">Message goes here.</div>
+      <button class="modal-btn" onclick="closeModal()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    let shouldClearForm = false;
+
+    function showAlert(title, message, isError = true) {
+      const titleEl = document.getElementById('modalTitle');
+      titleEl.innerText = title;
+      titleEl.style.color = isError ? '#e53e3e' : '#28a745';
+      document.getElementById('modalText').innerText = message;
+      document.getElementById('alertModal').style.display = 'flex';
+      shouldClearForm = !isError;
+    }
+
+    window.closeModal = function() {
+      document.getElementById('alertModal').style.display = 'none';
+      if (shouldClearForm) {
+        document.getElementById('fullName').value = "";
+        document.getElementById('email').value = "";
+        document.getElementById('subjectSelect').value = "";
+        document.getElementById('description').value = "";
+        document.getElementById('otherSubjectContainer').style.display = "none";
+        shouldClearForm = false;
+      }
+    };
+
+    function toggleOtherInput() {
+      const selectBox = document.getElementById('subjectSelect');
+      const otherContainer = document.getElementById('otherSubjectContainer');
+      if (selectBox.value === "Other") {
+        otherContainer.style.display = "block";
+      } else {
+        otherContainer.style.display = "none";
+        document.getElementById('customSubject').value = "";
+      }
+    }
+
+    function handleSubmission() {
+      const name = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const selectBox = document.getElementById('subjectSelect');
+      const desc = document.getElementById('description').value.trim();
+      const sendBtn = document.getElementById('sendBtn');
+      
+      let subj = selectBox.value === "Other" ? document.getElementById('customSubject').value.trim() : selectBox.value;
+
+      if (!name || !email || !subj || !desc) {
+        showAlert("Missing Fields", "All fields must be completely filled out!", true);
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showAlert("Invalid Email", "Please enter a valid email address!", true);
+        return;
+      }
+
+      // FIXED ARRAY CRASH: Extract domain correctly as a text string
+      const atIndex = email.lastIndexOf("@");
+      const domain = atIndex !== -1 ? email.slice(atIndex + 1).toLowerCase() : "";
+
+      if (domain !== "gmail.com" && domain !== "matixthemathclub.com") {
+        showAlert("Access Restricted", "This form only accepts @gmail.com or @matixthemathclub.com accounts!", true);
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.innerText = "Sending...";
+
+      const formattedMessage = `name:${name}\nemail:${email}\nsubject:${subj}\ntext:${desc}`;
+
+      // Package data using FormData to cleanly bypass CORS security blocks
+      const formData = new FormData();
+      formData.append("_replyto", email);
+      formData.append("_subject", `New Ticket: ${subj}`);
+      formData.append("message", formattedMessage);
+
+      // Secure direct AJAX background transfer
+      fetch('https://formspree.io/f/xvzybyeb', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => {
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send Email";
+
+        if (response.ok) {
+          showAlert("Success!", "We will reply as soon as possible! keep an eye on your inbox 👀", false);
+        } else {
+          showAlert("Submission Failed", "The server rejected the form request. Verify your setup.", true);
+        }
+      })
+      .catch((error) => {
+        console.error("Logged network issue:", error);
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send Email";
+        showAlert("Submission Failed", "Network conflict. Please refresh the page and try again.", true);
+      });
+    }
+  </script>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script src="/temp/nav.js" defer></script>
+</body>
+</html>

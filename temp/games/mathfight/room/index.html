@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Fight - Room</title>
+    <link rel="stylesheet" href="/temp/global.css">
+    <link rel="stylesheet" href="../mathfight.css">
+    <link rel="icon" type="image/svg+xml" href="/temp/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+
+    <style>
+        .action-controls-stack {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .action-controls-stack > * { pointer-events: auto; }
+        .hidden { display: none !important; }
+        
+        /* Matching your existing input styles */
+        .mf-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: #334155;
+            color: white;
+            border: none;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+  <div id="join-screen">
+    <div class="particles" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="rules-panel">
+      <h2>Rules</h2>
+      <ul>
+        <li>Move with <strong>WASD / Arrow Keys</strong></li>
+        <li>Hold <strong>Shift</strong> to sprint</li>
+        <li>Click a player to challenge them</li>
+        <li>They get a question with <strong>12 seconds</strong> to answer</li>
+        <li>Everyone starts with <strong>3 lives ❤️❤️❤️</strong></li>
+        <li>Last one standing <strong>wins 🏆</strong></li>
+      </ul>
+    </div>
+
+    <div class="mf-panel" id="details-panel">
+      <div class="title-glow" aria-hidden="true"></div>
+      <h1><span class="title-math">MATH</span><br><span class="title-fight">FIGHT</span></h1>
+      <p class="mf-subtitle">Enter your details before battle</p>
+      <div class="mf-field">
+        <label for="join-name">Username</label>
+        <input id="join-name" placeholder="Any name..." autocomplete="nickname" spellcheck="false">
+      </div>
+      <div class="details-row">
+        <div class="device-picker">
+          <p>Device</p>
+          <label><input type="radio" name="device" value="pc" checked> 💻 PC</label>
+          <label><input type="radio" name="device" value="mobile"> 📱 Mobile</label>
+        </div>
+        <div class="color-picker">
+          <p>Your Color</p>
+          <input type="color" id="join-color" value="#818cf8">
+        </div>
+      </div>
+      <button id="details-continue-btn" type="button" class="continue-btn">Continue →</button>
+    </div>
+
+    <div class="mf-panel hidden" id="mode-options">
+      <h3 class="mode-title">How do you want to play?</h3>
+      <div class="mode-list">
+        <button class="join-option-btn" id="join-private-btn">🔒 <strong>Join Private</strong></button>
+        <button class="join-option-btn" id="create-private-btn">➕ <strong>Create Private</strong></button>
+        <button class="join-option-btn" id="join-public-btn">🌐 <strong>Play Public</strong></button>
+        <button class="join-option-btn" id="join-vs-bot-btn">🤖 <strong>Play vs Bot</strong></button>
+      </div>
+      <button class="back-link" id="back-to-details-btn">← Change Details</button>
+    </div>
+
+    <div class="mf-panel hidden" id="room-config-panel">
+      <button class="back-btn" id="back-to-modes-btn">← Back</button>
+      <h3 id="room-config-title">Join Room</h3>
+      <form id="join-form">
+        <div id="room-id-section">
+          <p class="field-label">Room ID</p>
+          <div class="room-row">
+            <input id="room-id" placeholder="myroom123" autocomplete="off">
+            <button type="button" id="randomize-room-btn" class="btn-secondary">Random</button>
+          </div>
+        </div>
+        
+        <div id="max-players-section" class="hidden">
+          <p class="field-label">Max Players (2–20)</p>
+          <input id="max-players" type="number" min="2" max="20" value="8">
+        </div>
+
+        <div class="mf-field">
+          <label for="operation-type">Challenge Type</label>
+          <select id="operation-type" class="mf-select">
+            <option value="addition">Addition (+)</option>
+            <option value="subtraction">Subtraction (-)</option>
+            <option value="multiplication" selected>Multiplication (×)</option>
+            <option value="division">Division (÷)</option>
+            <option value="mixed">Mixed (All)</option>
+          </select>
+        </div>
+
+        <div class="room-link-row">
+          <a class="room-link" id="room-link" target="_blank" rel="noopener"></a>
+          <button type="button" id="copy-link-btn" class="btn-secondary hidden">📋 Copy</button>
+        </div>
+
+        <p class="field-error hidden" id="join-error"></p>
+        <button type="submit" id="play-btn">PLAY</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="game-screen" class="hidden">
+    <div id="notif" class="notif"></div>
+    <div id="player-list" class="player-list"></div>
+    <canvas id="canvas"></canvas>
+    <div id="streak-badge" class="streak-badge hidden"></div>
+    <button id="sound-toggle" class="sound-btn" type="button" title="Sound on/off">🔊</button>
+
+    <div id="challenge-overlay" class="overlay hidden">
+      <div class="overlay-box">
+        <div id="challenge-from"></div>
+        <div id="challenge-q" class="big-q"></div>
+        <form id="answer-form">
+          <input id="answer-input" type="number" placeholder="?" required autocomplete="off">
+          <button type="submit">Answer</button>
+        </form>
+        <div class="timer-track"><div id="timer-fill"></div></div>
+      </div>
+    </div>
+
+    <div class="action-controls-stack">
+      <div id="chat-panel" class="chat-panel hidden">
+        <div id="chat-msgs"></div>
+        <form id="chat-form">
+          <input id="chat-input" maxlength="120" placeholder="Message...">
+          <button type="submit">→</button>
+        </form>
+      </div>
+      <button id="chat-toggle" class="chat-btn">💬</button>
+      <button id="boost-btn" class="boost-btn hidden">⚡ Boost</button>
+      <div id="joystick-zone" class="joystick-zone hidden">
+        <div id="joystick-base" class="joystick-base"><div id="joystick-stick" class="joystick-stick"></div></div>
+      </div>
+    </div>
+
+    <div id="gameover-overlay" class="overlay hidden">
+      <div class="overlay-box gameover-box">
+        <div id="gameover-title" class="gameover-title"></div>
+        <div id="gameover-sub" class="gameover-sub"></div>
+        <div class="gameover-btns">
+          <button type="button" id="gameover-again" class="go-btn go-primary">🔁 Play Again</button>
+          <button type="button" id="gameover-menu" class="go-btn go-secondary">🏠 Back to Menu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script src="../mathfight.js"></script>
+<script src="/temp/nav.js" defer></script>
+</body>
+</html>

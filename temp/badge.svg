@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Matix profile badge">
+  <title>Matix Badge</title>
+  <path d="M16 30 10 44 16 41.5 20 45 18 31Z" fill="#6366f1"/>
+  <path d="M32 30 38 44 32 41.5 28 45 30 31Z" fill="#10b981"/>
+  <circle cx="24" cy="20" r="16" fill="#818cf8"/>
+  <circle cx="24" cy="20" r="12.5" fill="#0f172a"/>
+  <path d="M24 11.5l2.47 5.01 5.53.8-4 3.9.94 5.5L24 23.9l-4.94 2.6.94-5.5-4-3.9 5.53-.8L24 11.5Z" fill="#f59e0b"/>
+</svg>

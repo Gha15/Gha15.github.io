@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /temp/
 
 Sitemap: https://matixthemathclub.com/sitemap.xml

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members Only - MATIX The Math Club</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vibur&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #020617; 
+            color: #f8fafc; 
+            font-family: 'Vibur', cursive;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            min-height: 100vh; 
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .container {
+            border: 1px solid #334155; 
+            background: #0f172a; 
+            padding: 40px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
+            width: 95%; 
+            max-width: 800px;
+            text-align: center;
+        }
+        
+        .header {
+            color: #818cf8; 
+            border-bottom: 1px solid #334155; 
+            padding-bottom: 15px;
+            margin-bottom: 30px; 
+            font-size: 3.2rem; 
+        }
+        
+        .welcome-box {
+            background: #020617;
+            border: 1px solid #334155;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            color: #34d399;
+        }
+
+        .welcome-box span {
+            color: #fbbf24;
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .portal-card {
+            background: #020617;
+            border: 1px solid #334155;
+            padding: 25px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #f8fafc;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .portal-card:hover {
+            border-color: #818cf8;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(129, 140, 248, 0.2);
+        }
+
+        .portal-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+
+        .portal-title {
+            font-size: 2.2rem;
+            color: #818cf8;
+            margin-bottom: 8px;
+        }
+
+        .portal-desc {
+            font-size: 1.5rem;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+        
+        .gate-box {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .gate-title {
+            color: #ef4444;
+            font-size: 2.4rem;
+            margin-bottom: 15px;
+        }
+
+        .gate-text {
+            color: #cbd5e1;
+            font-size: 1.6rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px; 
+            border: 1px solid #334155; 
+            background: #020617;
+            color: #f8fafc; 
+            cursor: pointer; 
+            font-size: 1.6rem; 
+            font-family: 'Vibur', cursive; 
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover { 
+            background: #1e293b; 
+            border-color: #818cf8; 
+            color: #818cf8; 
+        }
+
+        /* Styled Modal for alerts/errors */
+        #mxa-ui {
+            font-family: "Trebuchet MS", Arial, sans-serif !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Access Gate Screen -->
+    <div class="gate-box" id="gate-screen">
+        <div class="gate-title">🔐 ACCESS DENIED</div>
+        <div class="gate-text" id="gate-msg">The Members Dashboard is exclusively for Matix members, admins, and managers. Please sign in or ask the owner/admin to register you.</div>
+        <a href="/temp/index.html" class="btn">← Back to Homepage</a>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="container" id="main-content" style="display: none;">
+        <div class="header">MATIX Members Dashboard</div>
+        
+        <div class="welcome-box">
+            Welcome back, <span id="welcome-user">@User</span>! | Balance: <span id="welcome-points">0</span> Points
+        </div>
+        
+        <div class="portal-grid">
+            <!-- Points Ledger -->
+            <a href="/temp/membersonly/points" class="portal-card">
+                <div class="portal-icon">⭐</div>
+                <div class="portal-title">Points Ledger</div>
+                <div class="portal-desc">View rankings, notes, and send point requests.</div>
+            </a>
+            
+            <!-- How to Earn -->
+            <a href="/temp/membersonly/points/how-to-get" class="portal-card">
+                <div class="portal-icon">📈</div>
+                <div class="portal-title">Earn Points</div>
+                <div class="portal-desc">Find lessons, complete tasks, and check ways to earn.</div>
+            </a>
+            
+            <!-- Use Points Store -->
+            <a href="/temp/membersonly/points/use-points" class="portal-card">
+                <div class="portal-icon">🎁</div>
+                <div class="portal-title">Points Shop</div>
+                <div class="portal-desc">Redeem digital rewards or request custom features.</div>
+            </a>
+            
+            <!-- Daily Challenge -->
+            <a href="/temp/daily-challenge" class="portal-card">
+                <div class="portal-icon">🏆</div>
+                <div class="portal-title">Daily Challenge</div>
+                <div class="portal-desc">Answer questions and win points directly!</div>
+            </a>
+        </div>
+        
+        <a href="/temp/index.html" class="btn">← Exit to Homepage</a>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmJOS_aaOVADbu5cACUoeXHrjfpHTBTdo",
+            authDomain: "matix-1d538.firebaseapp.com",
+            databaseURL: "https://matix-1d538-default-rtdb.firebaseio.com",
+            projectId: "matix-1d538",
+            storageBucket: "matix-1d538.firebasestorage.app"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const VALID_MEMBERS = ['ghadi','dahlia','yara','jad','marwan','mak','hicham'];
+        const DISPLAY_NAMES = {
+            ghadi: 'Ghadi (Owner)',
+            dahlia: 'Dahlia',
+            yara: 'Yara',
+            jad: 'Jad',
+            marwan: 'Marwan',
+            mak: 'Mohammad-ali',
+            hicham: 'Hicham'
+        };
+
+        function getActiveUser() {
+            return sessionStorage.getItem("matix_auth_user") || sessionStorage.getItem("mx_user") || null;
+        }
+
+        function displayNameFor(u) {
+            return DISPLAY_NAMES[u] || (u.charAt(0).toUpperCase() + u.slice(1));
+        }
+
+        // Custom Modal Alert Box
+        function mxAlert(message, opts) {
+            opts = opts || {};
+            var msg = String(message == null ? '' : message);
+            var title = opts.title || 'Notice';
+            var accent = opts.danger ? '#f87171' : (opts.success ? '#34d399' : '#f59e0b');
+            var old = document.getElementById('mxa-ui'); if (old && old.parentNode) old.parentNode.removeChild(old);
+            var ov = document.createElement('div'); ov.id = 'mxa-ui';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:100050;display:flex;align-items:center;justify-content:center;background:rgba(2,7,22,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:20px;box-sizing:border-box;font-family:"Trebuchet MS",Arial,sans-serif';
+            var box = document.createElement('div');
+            box.style.cssText = 'max-width:430px;width:100%;background:rgba(10,15,30,.99);border:1px solid rgba(59,130,246,.45);border-top:4px solid ' + accent + ';border-radius:14px;box-shadow:0 32px 80px rgba(0,0,0,.9);padding:20px;box-sizing:border-box';
+            var h = document.createElement('h3'); h.textContent = title; h.style.cssText = 'color:' + accent + ';font-size:1.12rem;font-weight:800;margin:0 0 10px;text-align:left';
+            var p = document.createElement('p'); p.textContent = msg; p.style.cssText = 'color:#cbd5e1;font-size:.9rem;line-height:1.55;margin:0 0 14px;white-space:pre-wrap;text-align:left';
+            var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+            var ok = document.createElement('button'); ok.type = 'button'; ok.textContent = opts.okLabel || 'OK';
+            ok.style.cssText = 'background:linear-gradient(90deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:9px;padding:8px 22px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit';
+            row.appendChild(ok); box.appendChild(h); box.appendChild(p); box.appendChild(row);
+            ov.appendChild(box); document.body.appendChild(ov);
+            function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+            ok.addEventListener('click', close);
+            ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+            ok.focus();
+        }
+
+        function showGate() {
+            document.getElementById('gate-screen').style.display = 'block';
+            document.getElementById('main-content').style.display = 'none';
+        }
+
+        function showContent(username) {
+            document.getElementById('gate-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('welcome-user').innerText = '@' + displayNameFor(username);
+            
+            // Listen to points balance
+            db.ref('points/' + username).on('value', (snapshot) => {
+                const points = snapshot.val() || 0;
+                document.getElementById('welcome-points').innerText = points;
+            });
+        }
+
+        const activeUser = getActiveUser();
+        if (!activeUser) {
+            showGate();
+        } else {
+            // Check roles database to verify they are a member, manager, admin, or owner
+            db.ref('roles/' + activeUser).once('value').then((snap) => {
+                const role = snap.val() || (activeUser === 'ghadi' ? 'owner' : (VALID_MEMBERS.indexOf(activeUser) > -1 ? 'member' : 'user'));
+                if (role === 'member' || role === 'admin' || role === 'manager' || role === 'owner') {
+                    showContent(activeUser);
+                } else {
+                    showGate();
+                }
+            }).catch(() => {
+                showGate();
+            });
+
+            // Listen to profile custom theme color
+            db.ref('profiles/' + activeUser).on('value', (snapshot) => {
+                const profile = snapshot.val() || {};
+                if (profile.customTheme) {
+                    document.documentElement.style.filter = `hue-rotate(${profile.customTheme}deg)`;
+                    localStorage.setItem('matix_theme_hue', profile.customTheme);
+                    localStorage.setItem('haschangedcolor', 'true');
+                }
+            });
+        }
+
+        // Apply cached theme instantly
+        const hasChangedColor = localStorage.getItem('haschangedcolor');
+        const cachedTheme = localStorage.getItem('matix_theme_hue');
+        if (cachedTheme && hasChangedColor === 'true') {
+            document.documentElement.style.filter = `hue-rotate(${cachedTheme}deg)`;
+        }
+    </script>
+    <script src="/temp/nav.js" defer></script>
+</body>
+</html>
