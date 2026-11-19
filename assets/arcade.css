@@ -46,3 +46,22 @@ body.mxg-on .lb-dock,body.mxg-on #mxDockToggle{display:none !important}
 .mxg-final{font-size:3.2rem;font-weight:900;margin:4px 0;color:#fbbf24}
 .mxg-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
 body.no-motion .mxg-msg.on{animation:none;opacity:1}
+/* 1.1.0: at home / in class */
+.mxr-modes{display:inline-flex;gap:6px;padding:5px;border-radius:999px;background:var(--card,#fff);border:1px solid var(--border,rgba(0,0,0,.12));margin:16px 0 4px}
+.mxr-modes button{border:0;background:none;color:inherit;font:800 .92rem/1 inherit;font-family:inherit;padding:11px 18px;border-radius:999px;cursor:pointer;min-height:44px}
+.mxr-modes button[aria-selected="true"]{background:linear-gradient(135deg,#ff4fa3,#8b5cf6);color:#fff}
+.mxr-modes button:focus-visible,.mxr-link:focus-visible{outline:3px solid #fbbf24;outline-offset:2px}
+.mxr-class{margin:6px 0 14px;padding:16px;border-radius:18px;border:1px solid var(--border,rgba(0,0,0,.12));background:var(--card,#fff)}
+.mxr-class p{margin:0 0 10px;line-height:1.45}
+.mxr-teams{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.mxr-teams label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,79,163,.1)}
+.mxr-teams label+label{background:rgba(56,189,248,.12)}
+.mxr-teams input{flex:1;min-width:0;padding:8px 10px;border-radius:10px;border:1px solid var(--border,rgba(0,0,0,.15));background:transparent;color:inherit;font:700 .95rem/1.2 inherit;font-family:inherit;min-height:40px}
+.mxr-teams b{font-size:1.6rem;font-weight:900}
+.mxr-turn{margin:0 !important}
+.mxr-link{background:none;border:0;color:#8b5cf6;font-weight:800;cursor:pointer;padding:4px;font-size:inherit;font-family:inherit}
+.mxg-teams{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.mxg-teams div{padding:12px;border-radius:14px;background:rgba(255,255,255,.06)}
+.mxg-teams div.lead{background:rgba(251,191,36,.18);outline:2px solid #fbbf24}
+.mxg-teams span{display:block;font-size:.85rem;opacity:.8}
+.mxg-teams b{font-size:2rem}

@@ -11,7 +11,8 @@
        sign in with username OR email, create an account with an email,
        6-digit email codes (verify, forgot password, change email),
        sent with the club's EmailJS settings (/config/emailjs).
-   - Signed in → top menu: Exercises (home / class), Games, Download app,
+   - Signed in → top menu: Interactive games (at home / in class: pick the
+     class (grade), two teams take turns), Download app,
      and 👑 Owner for the owner only (it is never added for anyone else):
        user upgrading, email sending settings, store buttons.
    - The previous site lives on, inactive, at /temp/.
@@ -309,7 +310,7 @@ function home(c) {
     + '<img class="hero-logo" src="/assets/matix-logo-light.svg" alt="MATIX" height="44">'
     + '<span class="eyebrow">📲 The Matix app</span>'
     + '<h1>Math you can <em>watch, play</em> and share.</h1>'
-    + '<p class="lead">103 one-minute video lessons from Grade 1 to college, six real math games, end-to-end encrypted chat and friends. Made by and for the Matix math club.</p>'
+    + '<p class="lead">103 one-minute video lessons from Grade 1 to college, 14 math games you can play at home or in class, end-to-end encrypted chat and friends. Made by and for the Matix math club.</p>'
     + storeButtons()
     + '</div>'
     + '<div class="phone" aria-hidden="true"><div class="scr"><div class="ph-h">🦉 Math Learn</div><img src="/assets/posters/pythagoras.jpg" alt=""><div class="ph-tag">Grade 8 · Pythagoras · 1:01</div>'
@@ -318,7 +319,7 @@ function home(c) {
     + '</div></section>'
     + '<section class="sec"><h2>Everything in one app</h2><p class="sub">Free, made for students, and it works offline once installed.</p><div class="feats">'
     + feat('/assets/posters/add_intro.jpg', '', '🎬 Grade 1 to college', 'One-minute animated lessons: from how to add, through fractions and equations, to derivatives, integrals and matrices. Each one ends with a quiz.')
-    + feat('/arcade/img/bg_space.jpg', '/arcade/img/ship.png', '🎮 Matix Arcade', 'Asteroid Answers, Balloon Pop, Fruit Market Sums, Pizza Fractions, Owl Runner and Memory Match. Pick your grade; the questions grow with you.')
+    + feat('/arcade/img/bg_space.jpg', '/arcade/img/ship.png', '🎮 Matix Arcade', '14 games: Castle Defense, Owl Flight, Bomb Defuse, Math Race, Number Snake, Asteroid Answers and more. Play at home, or in class with two teams.')
     + feat('', '', '🔒 Encrypted Math Chat', 'Chat with the club, send equations and stickers. Messages are end-to-end encrypted: only you and your friend can read them.', '💬')
     + feat('/arcade/img/bg_sky.jpg', '/arcade/img/owl0.png', '🤝 Friends & points', 'Add friends, earn points, climb the leaderboard and share ideas with the club.')
     + feat('', '', '♿ Easy for everyone', 'Bigger text, high contrast, bigger buttons, dark mode and reduced motion, plus Arabic, French and Spanish.', '🧭')
@@ -400,74 +401,6 @@ function account(c) {
       };
     };
   }).catch(function () { $('acBody').textContent = 'Could not load your account. Check your connection.'; });
-}
-
-/* ---------- exercises: home (practice alone) and class (one big screen, two teams) ---------- */
-var LEVELS = [['1', 'Grade 1'], ['2', 'Grade 2'], ['3', 'Grade 3'], ['4', 'Grade 4'], ['5', 'Grade 5'], ['6', 'Grade 6'], ['7', 'Grade 7'], ['8', 'Grade 8'], ['9', 'Grade 9'], ['10', 'Grade 10'], ['11', 'Grade 11'], ['12', 'Grade 12'], ['13', 'College']];
-function makeQ(L) { try { return W.mxArcade.makeQ(L); } catch (e) { var a = 2 + Math.floor(Math.random() * 8), b = 2 + Math.floor(Math.random() * 8); return { q: a + ' × ' + b, a: a * b }; } }
-function wrongs(ans, n) {
-  var out = {}, list = [], tries = 0, span = Math.max(3, Math.round(Math.abs(ans) * 0.25));
-  while (list.length < n && tries++ < 200) { var w = ans + (Math.random() < .5 ? -1 : 1) * (1 + Math.floor(Math.random() * span)); if (w === ans || out[w]) continue; out[w] = 1; list.push(w); }
-  return list;
-}
-function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-var EX = { mode: ls('mx_site_exmode') || 'home', level: parseInt(ls('mx_arcade_level') || '3', 10) || 3 };
-function exercises(c) {
-  c.innerHTML = '<div class="page"><h1>✏️ Interactive exercises</h1><p class="sub">Practise at home on your own, or run a class game on one big screen.</p>'
-    + '<div class="tabs" role="tablist"><button role="tab" data-m="home" aria-selected="' + (EX.mode === 'home') + '">🏠 Home</button><button role="tab" data-m="class" aria-selected="' + (EX.mode === 'class') + '">🏫 Class</button></div>'
-    + '<div class="bar"><label>Grade <select id="exLv">' + LEVELS.map(function (l) { return '<option value="' + l[0] + '"' + (+l[0] === EX.level ? ' selected' : '') + '>' + l[1] + '</option>'; }).join('') + '</select></label></div>'
-    + '<div id="exBody"></div></div>';
-  c.querySelectorAll('.tabs button').forEach(function (b) { b.onclick = function () { EX.mode = b.dataset.m; ls('mx_site_exmode', EX.mode); exercises(c); }; });
-  $('exLv').onchange = function () { EX.level = +this.value; ls('mx_arcade_level', this.value); EX.mode === 'home' ? homeQuiz() : classGame(); };
-  EX.mode === 'home' ? homeQuiz() : classGame();
-}
-function homeQuiz() {
-  var box = $('exBody'), N = 10, k = 0, right = 0, streak = 0;
-  function ask() {
-    var q = makeQ(EX.level), opts = shuffle([q.a].concat(wrongs(q.a, 3)));
-    box.innerHTML = '<div class="card"><div class="meta"><span>Question ' + (k + 1) + ' / ' + N + '</span><span>✅ ' + right + (streak > 1 ? ' · 🔥 ' + streak : '') + '</span></div>'
-      + '<div class="prog"><i style="width:' + (100 * k / N) + '%"></i></div><div class="q" aria-live="polite">' + esc(q.q) + (/\?$/.test(q.q) ? '' : ' = ?') + '</div>'
-      + '<div class="opts">' + opts.map(function (o) { return '<button type="button" class="opt">' + esc(o) + '</button>'; }).join('') + '</div></div>';
-    var bs = box.querySelectorAll('.opt');
-    bs.forEach(function (b) {
-      b.onclick = function () {
-        var ok = +b.textContent === q.a; if (ok) { right++; streak++; } else streak = 0;
-        bs.forEach(function (x) { x.disabled = true; if (+x.textContent === q.a) x.classList.add('ok'); }); if (!ok) b.classList.add('no');
-        setTimeout(function () { k++; k < N ? ask() : done(); }, ok ? 700 : 1500);
-      };
-    });
-    bs[0].focus();
-  }
-  function done() {
-    var key = 'mx_site_best_' + EX.level, best = Math.max(+ls(key) || 0, right); ls(key, String(best));
-    box.innerHTML = '<div class="card center"><div style="font-size:2.6rem">' + (right === N ? '🏆' : right >= 7 ? '🌟' : '💪') + '</div><div class="big-num">' + right + ' / ' + N + '</div>'
-      + '<p class="sub">Best for this grade: ' + best + ' / ' + N + '</p><button type="button" class="btn pri" id="exAgain">↻ Try again</button></div>';
-    $('exAgain').onclick = homeQuiz; $('exAgain').focus();
-  }
-  ask();
-}
-var CL = { a: 0, b: 0, t: null };
-function classGame() {
-  var box = $('exBody'), q = null, left = 0;
-  clearInterval(CL.t);
-  box.innerHTML = '<div class="class" id="clBox"><div class="bar" style="justify-content:space-between"><span class="timer" id="clT">⏱ 30</span>'
-    + '<button type="button" class="btn ghost" id="clFs">⛶ Full screen</button></div>'
-    + '<div class="q" id="clQ" aria-live="polite"></div><div class="ans" id="clA"></div>'
-    + '<div class="bar" style="justify-content:center"><button type="button" class="btn ghost" id="clShow">👀 Show answer</button><button type="button" class="btn pri" id="clNext">Next question →</button></div>'
-    + '<div class="teams"><div class="team a"><span>Team A</span><b id="tA">' + CL.a + '</b><button type="button" class="btn ghost" data-t="a" data-d="1">+1</button><button type="button" class="btn ghost" data-t="a" data-d="-1">−1</button></div>'
-    + '<div class="team b"><span>Team B</span><b id="tB">' + CL.b + '</b><button type="button" class="btn ghost" data-t="b" data-d="1">+1</button><button type="button" class="btn ghost" data-t="b" data-d="-1">−1</button></div></div>'
-    + '<p class="center sub" style="margin-top:14px">Read the question out loud. The first team with the right answer gets the point. <button type="button" class="link" id="clReset">Reset scores</button></p></div>';
-  function next() {
-    q = makeQ(EX.level); $('clQ').textContent = q.q + (/\?$/.test(q.q) ? '' : ' = ?'); $('clA').textContent = ''; left = 30;
-    clearInterval(CL.t); $('clT').textContent = '⏱ ' + left;
-    CL.t = setInterval(function () { if (!$('clT')) { clearInterval(CL.t); return; } left--; $('clT').textContent = '⏱ ' + Math.max(0, left); if (left <= 0) { clearInterval(CL.t); show(); } }, 1000);
-  }
-  function show() { if (q) $('clA').textContent = q.a; clearInterval(CL.t); }
-  $('clNext').onclick = next; $('clShow').onclick = show;
-  $('clFs').onclick = function () { var el = $('clBox'); try { (el.requestFullscreen || el.webkitRequestFullscreen).call(el); } catch (e) {} };
-  $('clReset').onclick = function () { CL.a = CL.b = 0; $('tA').textContent = 0; $('tB').textContent = 0; };
-  box.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { var t = b.dataset.t; CL[t] = Math.max(0, CL[t] + (+b.dataset.d)); $(t === 'a' ? 'tA' : 'tB').textContent = CL[t]; }; });
-  next();
 }
 
 /* ---------- games ---------- */
@@ -589,12 +522,12 @@ function route() {
   var c = $('content'), parts = (location.hash.replace(/^#\/?/, '') || 'home').split('/'), r = parts[0] || 'home';
   if (r === 'users') r = 'owner';
   D.querySelectorAll('#menu a').forEach(function (a) { if (a.dataset.r === r) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-  if (r === 'exercises') { if (!ME) needSignIn(c, 'exercises'); else exercises(c); }
-  else if (r === 'games') { if (!ME) needSignIn(c, 'games'); else games(c); }
+  if (r === 'exercises') r = 'games';
+  if (r === 'games') { if (!ME) needSignIn(c, 'the interactive games'); else games(c); }
   else if (r === 'account') { if (!ME) needSignIn(c, 'your account'); else account(c); }
   else if (r === 'owner') owner(c, parts[1]);
   else { r = 'home'; home(c); }
-  D.title = { exercises: 'Exercises · Matix', games: 'Games · Matix', account: 'My account · Matix', owner: 'Owner · Matix' }[r] || 'Matix the Math Club';
+  D.title = { games: 'Interactive games · Matix', account: 'My account · Matix', owner: 'Owner · Matix' }[r] || 'Matix the Math Club';
   if (r !== 'home') { try { c.focus({ preventScroll: true }); } catch (e) {} W.scrollTo(0, 0); }
 }
 
