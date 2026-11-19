@@ -156,3 +156,6 @@ button{font-family:inherit}
 .mxm-btn.sec{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2)}
 .mxr-arcade{color:var(--ink)}
 .mxr-card{background:var(--card) !important;border-color:var(--line) !important}
+
+/* the hidden attribute must win over display rules (menu, modals, owner-only links) */
+[hidden]{display:none !important}
