@@ -6,7 +6,8 @@
 <title>Matix the Math Club</title>
 <meta name="description" content="Matix: a math app with a Grade 1 to college video course, math games, encrypted chat and friends. Get it on Google Play.">
 <meta name="theme-color" content="#0b0c18">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/matix-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/matix-icon.svg">
 <meta property="og:title" content="Matix the Math Club">
 <meta property="og:description" content="Learn math from Grade 1 to college in one-minute videos, then play it.">
 <meta property="og:image" content="https://matixthemathclub.com/assets/posters/pythagoras.jpg">
@@ -17,22 +18,19 @@
 <a class="skip" href="#content">Skip to content</a>
 
 <header class="top" id="top">
-  <a class="brand" href="#/" aria-label="Matix home"><img src="/favicon.svg" alt="" width="34" height="34"><span>matix</span></a>
+  <a class="brand" href="#/" aria-label="Matix home"><img class="brand-ic" src="/assets/matix-icon.svg" alt="" width="34" height="34"><img class="brand-word" src="/assets/matix-logo-light.svg" alt="MATIX" height="22"></a>
   <nav class="menu" id="menu" aria-label="Main" hidden>
     <a href="#/exercises" data-r="exercises">✏️ <span>Exercises</span></a>
     <a href="#/games" data-r="games">🎮 <span>Games</span></a>
-    <a href="#/users" data-r="users" id="menuUsers" hidden>⬆️ <span>User upgrading</span></a>
     <a href="#/" data-r="home">📲 <span>Download app</span></a>
   </nav>
-  <div class="who" id="who">
-    <button type="button" class="btn ghost" id="signInBtn">Sign in</button>
-  </div>
+  <div class="who" id="who"></div>
 </header>
 
 <main id="content" tabindex="-1"></main>
 
 <footer class="foot">
-  <img src="/logo.svg" alt="" width="28" height="28">
+  <img src="/assets/matix-icon.svg" alt="" width="28" height="28" style="border-radius:8px">
   <span>© Matix the Math Club</span>
   <a href="/privacy/">Privacy</a>
 </footer>
@@ -40,31 +38,7 @@
 <div class="modal" id="authModal" hidden role="dialog" aria-modal="true" aria-labelledby="authTitle">
   <div class="modal-card">
     <button type="button" class="x" data-close aria-label="Close">✕</button>
-    <h2 id="authTitle">Sign in to Matix</h2>
-    <p class="sub" id="authSub">Use the same username and password as the app.</p>
-    <form id="authForm" autocomplete="on">
-      <label>Username<input id="authUser" name="username" autocomplete="username" required autocapitalize="none" spellcheck="false"></label>
-      <label>Password<input id="authPass" name="password" type="password" autocomplete="current-password" required></label>
-      <label class="check"><input type="checkbox" id="authKeep" checked> Keep me signed in on this device</label>
-      <div class="err" id="authErr" role="alert"></div>
-      <button type="submit" class="btn pri wide" id="authGo">Sign in</button>
-    </form>
-    <p class="swap"><span id="authSwapTxt">New to Matix?</span> <button type="button" class="link" id="authSwap">Create an account</button></p>
-  </div>
-</div>
-
-<div class="modal" id="storeModal" hidden role="dialog" aria-modal="true" aria-labelledby="storeTitle">
-  <div class="modal-card">
-    <button type="button" class="x" data-close aria-label="Close">✕</button>
-    <h2 id="storeTitle">App Store button (owner)</h2>
-    <p class="sub">Fill in ONE of these. Leave both empty to show “Coming soon” with a lock.</p>
-    <label>App Store link<input id="stLink" placeholder="https://apps.apple.com/app/…" inputmode="url" spellcheck="false"></label>
-    <label>TestFlight code or link<input id="stTf" placeholder="ABCD1234 or https://testflight.apple.com/join/ABCD1234" spellcheck="false"></label>
-    <div class="err" id="stErr" role="alert"></div>
-    <div class="row">
-      <button type="button" class="btn ghost" id="stLock">🔒 Coming soon</button>
-      <button type="button" class="btn pri" id="stSave">Save</button>
-    </div>
+    <div id="authBody"></div>
   </div>
 </div>
 

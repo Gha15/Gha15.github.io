@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><rect width="512" height="512" fill="#f97316"/><g transform="translate(83.3 219.2) scale(1.05)">
+  <g fill="#ffffff" fill-rule="evenodd">
+    <!-- M -->
+    <path d="M0 70V0h13l19 43 19-43h13v70H51V26L37 58H27L13 26v44z"/>
+    <!-- A -->
+    <path d="M72 70 97 0h12l25 70h-14l-5.4-15H91.4L86 70zM95.3 44h15.4L103 22.4z"/>
+    <!-- T -->
+    <path d="M142 0h62v13h-24.5v57h-13V13H142z"/>
+    <!-- I stem -->
+    <rect x="217" y="28" width="14" height="40" rx="4"/>
+  </g>
+  <!-- I dot (a multiplication sign) -->
+  <path d="M217 6l14 14M231 6 217 20" fill="none" stroke="#7c2d12" stroke-width="7" stroke-linecap="round"/>
+  <!-- X: a division-style slash with two dots -->
+  <line x1="275.3" y1="64.1" x2="304.7" y2="5.9" stroke="#ffffff" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="265" cy="12" r="12" fill="#7c2d12"/>
+  <circle cx="315" cy="58" r="12" fill="#7c2d12"/>
+</g></svg>
