@@ -2,8 +2,7 @@
    matixthemathclub.com (Nov 2026)
    - Home: an ad for the Matix app.
        Google Play button, set by the owner at /site/playstore:
-         live → "Get it on Google Play"
-         testing (default) → Google Play + "🧪 In testing: join the test"
+         link (default) → "Get it on Google Play"
          soon → 🔒 coming soon
        App Store button, set by the owner at /site/appstore:
          link → App Store, testflight → TestFlight, nothing → 🔒 coming soon
@@ -22,7 +21,6 @@
 var D = document, W = window;
 var FB = 'https://matix-1d538-default-rtdb.firebaseio.com';
 var PLAY = 'https://play.google.com/store/apps/details?id=com.matixmathclubappandroid.app';
-var PLAY_TEST = 'https://play.google.com/apps/testing/com.matixmathclubappandroid.app';
 var OWNERS = ['ghadi'];
 var CODE_MIN = 15, MAX_TRIES = 5, RESEND_MS = 45000;
 function $(id) { return D.getElementById(id); }
@@ -289,21 +287,17 @@ function loadStores() {
     .catch(function () { STORE = {}; PLAYCFG = {}; });
 }
 function tfUrl(v) { v = String(v || '').trim(); if (!v) return ''; if (/^https?:\/\//i.test(v)) return v; return 'https://testflight.apple.com/join/' + v.replace(/[^A-Za-z0-9]/g, ''); }
-function playMode() { return ['live', 'testing', 'soon'].indexOf(PLAYCFG.mode) > -1 ? PLAYCFG.mode : 'testing'; }
+function playMode() { return PLAYCFG.mode === 'soon' ? 'soon' : 'link'; }
 var ICON_PLAY = '<svg width="28" height="30" viewBox="0 0 28 30" aria-hidden="true"><path d="M2 2l14 13L2 28z" fill="#34d399"/><path d="M2 2l19 10.5-5 2.5z" fill="#38bdf8"/><path d="M2 28l14-13 5 2.5z" fill="#f43f5e"/><path d="M21 12.5l5 2.5-5 2.5-5-2.5z" fill="#fbbf24"/></svg>';
 var ICON_APPLE = '<svg width="26" height="30" viewBox="0 0 26 30" aria-hidden="true"><path fill="currentColor" d="M21.4 15.9c0-3.6 3-5.3 3.1-5.4-1.7-2.5-4.3-2.8-5.2-2.9-2.2-.2-4.3 1.3-5.4 1.3-1.1 0-2.8-1.3-4.7-1.2-2.4 0-4.6 1.4-5.8 3.6-2.5 4.3-.6 10.7 1.8 14.2 1.2 1.7 2.6 3.6 4.4 3.5 1.8-.1 2.4-1.1 4.6-1.1 2.1 0 2.7 1.1 4.6 1.1 1.9 0 3.1-1.7 4.2-3.4 1.3-2 1.9-3.9 1.9-4-.1 0-3.5-1.4-3.5-5.7zM17.9 5.4c1-1.2 1.6-2.8 1.4-4.4-1.4.1-3.1.9-4.1 2.1-.9 1-1.7 2.7-1.5 4.3 1.6.1 3.2-.8 4.2-2z"/></svg>';
 function storeButtons() {
-  var pm = playMode(), playLink = PLAYCFG.link || PLAY, testLink = PLAYCFG.testLink || PLAY_TEST, s = STORE, apple, play = '';
-  if (pm === 'soon') play = '<span class="store locked" role="img" aria-label="Google Play: coming soon">' + ICON_PLAY + '<span><small>🔒 Google Play</small><b>Coming soon</b></span></span>';
-  else {
-    play = '<a class="store" href="' + esc(playLink) + '" target="_blank" rel="noopener">' + ICON_PLAY + '<span><small>Get it on</small><b>Google Play</b></span></a>';
-    if (pm === 'testing') play += '<a class="store testing" href="' + esc(testLink) + '" target="_blank" rel="noopener"><span class="tube" aria-hidden="true">🧪</span><span><small>Android · in testing</small><b>Join the test</b></span></a>';
-  }
+  var playLink = PLAYCFG.link || PLAY, s = STORE, apple, play;
+  if (playMode() === 'soon') play = '<span class="store locked" role="img" aria-label="Google Play: coming soon">' + ICON_PLAY + '<span><small>🔒 Google Play</small><b>Coming soon</b></span></span>';
+  else play = '<a class="store" href="' + esc(playLink) + '" target="_blank" rel="noopener">' + ICON_PLAY + '<span><small>Get it on</small><b>Google Play</b></span></a>';
   if (s.link) apple = '<a class="store" href="' + esc(s.link) + '" target="_blank" rel="noopener">' + ICON_APPLE + '<span><small>Download on the</small><b>App Store</b></span></a>';
   else if (s.testflight) apple = '<a class="store" href="' + esc(tfUrl(s.testflight)) + '" target="_blank" rel="noopener">' + ICON_APPLE + '<span><small>iPhone beta on</small><b>TestFlight</b></span></a>';
   else apple = '<span class="store locked" role="img" aria-label="App Store: coming soon">' + ICON_APPLE + '<span><small>🔒 App Store</small><b>Coming soon</b></span></span>';
   return '<div class="stores">' + play + apple + '</div>'
-    + (pm === 'testing' ? '<p class="store-note">Matix is in testing on Android: tap <b>Join the test</b> with your Play Store email first, then install it.</p>' : '')
     + (s.testflight && !s.link ? '<p class="store-note">iPhone: install TestFlight, then use code <b>' + esc(String(s.testflight).replace(/^https?:\/\/testflight\.apple\.com\/join\//i, '')) + '</b>.</p>' : '')
     + (isOwner() ? '<div class="owner-edit"><a class="btn ghost" href="#/owner/stores">✏️ Edit the store buttons</a></div>' : '');
 }
@@ -559,21 +553,20 @@ function ownerStores(box) {
     var pm = playMode(), s = STORE;
     box.innerHTML = '<div class="card"><h2 class="h2">Google Play</h2>'
       + '<fieldset class="radios"><legend>Button</legend>'
-      + [['live', '✅ Live: “Get it on Google Play”'], ['testing', '🧪 In testing: Google Play + “Join the test”'], ['soon', '🔒 Coming soon (locked)']].map(function (o) {
+      + [['link', '✅ Link: “Get it on Google Play”'], ['soon', '🔒 Coming soon (locked)']].map(function (o) {
         return '<label class="radio"><input type="radio" name="pm" value="' + o[0] + '"' + (pm === o[0] ? ' checked' : '') + '> ' + o[1] + '</label>';
       }).join('') + '</fieldset>'
-      + fld('Play Store link', 'psL', 'url', 'off', PLAY) + fld('Testing link (for “Join the test”)', 'psT', 'url', 'off', PLAY_TEST)
+      + fld('Play Store link', 'psL', 'url', 'off', PLAY)
       + '<div class="row-btns"><button type="button" class="btn pri" id="psSave">Save Google Play</button></div><div class="err" id="psErr" role="alert"></div></div>'
       + '<div class="card" style="margin-top:16px"><h2 class="h2">App Store</h2><p class="sub">Fill in ONE of these. Leave both empty for 🔒 Coming soon.</p>'
       + fld('App Store link', 'stL', 'url', 'off', 'https://apps.apple.com/app/…') + fld('TestFlight code or link', 'stT', 'text', 'off', 'ABCD1234 or https://testflight.apple.com/join/ABCD1234')
       + '<div class="row-btns"><button type="button" class="btn ghost" id="stLock">🔒 Coming soon</button><button type="button" class="btn pri" id="stSave">Save App Store</button></div><div class="err" id="stErr" role="alert"></div></div>'
       + '<p class="sub" style="margin-top:14px"><a href="#/">See how the home page looks →</a></p>';
-    $('psL').value = PLAYCFG.link || ''; $('psT').value = PLAYCFG.testLink || ''; $('stL').value = s.link || ''; $('stT').value = s.testflight || '';
+    $('psL').value = PLAYCFG.link || ''; $('stL').value = s.link || ''; $('stT').value = s.testflight || '';
     $('psSave').onclick = function () {
-      var mode = (box.querySelector('input[name=pm]:checked') || {}).value || 'testing', l = $('psL').value.trim(), t = $('psT').value.trim();
+      var mode = (box.querySelector('input[name=pm]:checked') || {}).value || 'link', l = $('psL').value.trim();
       if (l && !/^https:\/\/play\.google\.com\//i.test(l)) { $('psErr').textContent = 'The Play Store link should start with https://play.google.com/'; return; }
-      if (t && !/^https:\/\/play\.google\.com\//i.test(t)) { $('psErr').textContent = 'The testing link should start with https://play.google.com/'; return; }
-      var v = { mode: mode, updatedAt: Date.now(), by: ME }; if (l) v.link = l; if (t) v.testLink = t;
+      var v = { mode: mode, updatedAt: Date.now(), by: ME }; if (l) v.link = l;
       fbPut('/site/playstore', v, true).then(function () { PLAYCFG = v; toast('✅ Google Play button saved'); }).catch(function () { $('psErr').textContent = 'Could not save. Check your connection.'; });
     };
     function saveApple(val) {
