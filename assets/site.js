@@ -319,7 +319,7 @@ function home(c) {
     + '</div></section>'
     + '<section class="sec"><h2>Everything in one app</h2><p class="sub">Free, made for students, and it works offline once installed.</p><div class="feats">'
     + feat('/assets/posters/add_intro.jpg', '', '🎬 Grade 1 to college', 'One-minute animated lessons: from how to add, through fractions and equations, to derivatives, integrals and matrices. Each one ends with a quiz.')
-    + feat('/arcade/img/bg_space.jpg', '/arcade/img/ship.png', '🎮 Matix Arcade', '14 games: Castle Defense, Owl Flight, Bomb Defuse, Math Race, Number Snake, Asteroid Answers and more. Play at home, or in class with two teams.')
+    + feat('/arcade/img/bg_space.jpg', '/arcade/img/ship.png', '🎮 Matix Arcade', '21 games + smart-board class exercises: Castle Defense, Owl Flight, Bomb Defuse, Math Race, Number Snake, Asteroid Answers and more. Play at home, or in class with two teams.')
     + feat('', '', '🔒 Encrypted Math Chat', 'Chat with the club, send equations and stickers. Messages are end-to-end encrypted: only you and your friend can read them.', '💬')
     + feat('/arcade/img/bg_sky.jpg', '/arcade/img/owl0.png', '🤝 Friends & points', 'Add friends, earn points, climb the leaderboard and share ideas with the club.')
     + feat('', '', '♿ Easy for everyone', 'Bigger text, high contrast, bigger buttons, dark mode and reduced motion, plus Arabic, French and Spanish.', '🧭')

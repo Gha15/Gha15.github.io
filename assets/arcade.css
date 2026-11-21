@@ -1,4 +1,4 @@
-/* Matix Arcade (1.0.8) */
+/* Matix Arcade (1.2.0) */
 .mxr-arcade{max-width:1180px;margin:0 auto;padding:18px 16px 120px}
 .mxr-hero{padding:22px;border-radius:26px;color:#fff;background:url(/arcade/img/bg_space.jpg) center/cover;box-shadow:0 20px 50px -24px rgba(20,10,60,.7)}
 .mxr-hero h1{margin:0 0 6px;font-size:1.7rem}
@@ -34,7 +34,7 @@ body.mxg-on .lb-dock,body.mxg-on #mxDockToggle{display:none !important}
 .mxg-stat img.lost{opacity:.2;filter:grayscale(1)}
 .mxg-sc{font-size:1.4rem;font-weight:900;min-width:2ch;text-align:right}
 .mxg-time{font-weight:800;margin-left:4px}
-.mxg-msg{position:absolute;left:0;right:0;top:96px;text-align:center;font-weight:900;font-size:1.4rem;pointer-events:none;opacity:0;
+.mxg-msg{position:absolute;left:0;right:0;top:215px;text-align:center;font-weight:900;font-size:1.4rem;pointer-events:none;opacity:0;
   text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 12px rgba(0,0,0,.6)}
 .mxg-msg.on{animation:mxgMsg 1.4s ease}
 @keyframes mxgMsg{0%{opacity:0;transform:translateY(10px) scale(.9)}15%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
@@ -65,3 +65,82 @@ body.no-motion .mxg-msg.on{animation:none;opacity:1}
 .mxg-teams div.lead{background:rgba(251,191,36,.18);outline:2px solid #fbbf24}
 .mxg-teams span{display:block;font-size:.85rem;opacity:.8}
 .mxg-teams b{font-size:2rem}
+
+/* ===== 1.2.0: cooler look, big equation bar, smart-board exercises ===== */
+.mxr-hero{position:relative;overflow:hidden;background:linear-gradient(120deg,rgba(18,10,60,.55),rgba(139,92,246,.25)),url(/arcade/img/bg_space.jpg) center/cover}
+.mxr-hero::after{content:"";position:absolute;inset:-40% -10% auto auto;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(255,79,163,.45),transparent 65%);animation:mxrGlow 6s ease-in-out infinite alternate}
+@keyframes mxrGlow{from{transform:translate(0,0) scale(1)}to{transform:translate(-40px,30px) scale(1.25)}}
+.mxr-hero h1{font-size:2rem;letter-spacing:-.5px;text-shadow:0 0 24px rgba(167,139,250,.9)}
+.mxr-lv{margin:12px 0 6px}
+.mxr-card{position:relative;border:1px solid rgba(139,92,246,.25)}
+.mxr-card:hover{border-color:#a78bfa;box-shadow:0 0 0 2px rgba(167,139,250,.5),0 18px 40px -16px rgba(139,92,246,.7)}
+.mxr-card.dim{opacity:.62}
+.mxr-art{position:relative}
+.mxr-gr,.mxr-new{position:absolute;top:10px;font-style:normal;font-weight:800;font-size:.72rem;padding:4px 9px;border-radius:999px;letter-spacing:.3px}
+.mxr-gr{left:10px;background:rgba(10,10,25,.75);color:#e9d5ff;backdrop-filter:blur(4px)}
+.mxr-new{right:10px;background:linear-gradient(135deg,#ff4fa3,#f59e0b);color:#fff;animation:mxrPulse 1.6s ease-in-out infinite}
+@keyframes mxrPulse{50%{transform:scale(1.12)}}
+.mxr-h{margin:22px 0 4px;font-size:1.25rem}
+.mxr-filter{display:flex;align-items:center;gap:8px;margin:14px 0 6px;font-weight:700;color:var(--muted,#6b6b76)}
+.mxr-ex{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.mxr-exc{flex-direction:row;align-items:center;gap:6px;padding:16px;background:linear-gradient(135deg,rgba(255,79,163,.12),rgba(139,92,246,.16))}
+.mxr-exi{font-size:2.6rem;flex:0 0 auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+.mxr-exc .mxr-tx{padding:0 0 0 8px}
+
+/* the equation, big, on the game screen */
+.mxg-bigq{font-weight:900;text-align:center;line-height:1.15;padding:10px 16px;color:#fde68a;white-space:nowrap;overflow:hidden;text-overflow:clip;
+  background:linear-gradient(180deg,rgba(30,27,75,.96),rgba(15,16,40,.96));border-bottom:2px solid rgba(167,139,250,.4);text-shadow:0 0 22px rgba(251,191,36,.45);min-height:1.3em;font-variant-numeric:tabular-nums}
+.mxg-bigq:empty{display:none}
+.mxg-bigq.pop{animation:mxgPop .35s ease}
+@keyframes mxgPop{0%{transform:scale(.94);opacity:.4}100%{transform:none;opacity:1}}
+body.no-motion .mxg-bigq.pop{animation:none}
+.mxg-tt span{display:none}
+#mxgCv.shake{animation:mxgShake .35s}
+@keyframes mxgShake{20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+body.no-motion #mxgCv.shake{animation:none}
+.mxg-card{box-shadow:0 0 60px -10px rgba(139,92,246,.6)}
+
+/* smart-board exercises */
+#mxbOv{position:fixed;inset:0;z-index:100001;display:flex;flex-direction:column;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));color:#fff;
+  background:radial-gradient(circle at 20% 0,#2a1a5e 0,#0b0c18 60%);overflow:auto}
+body.desktop #mxbOv{top:40px}
+.mxb-top{display:flex;align-items:center;gap:12px}
+.mxb-title{flex:1;min-width:0;display:flex;flex-direction:column}
+.mxb-title b{font-size:1.15rem}.mxb-title span{opacity:.75;font-size:.9rem}
+.mxb-team{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:16px;background:rgba(255,255,255,.07);cursor:pointer;border:2px solid transparent;font-weight:800}
+.mxb-team b{font-size:1.9rem}
+.mxb-team.on{border-color:#fbbf24;background:rgba(251,191,36,.18)}
+.mxb-prob{display:flex;align-items:center;justify-content:center;gap:24px;padding:14px 18px;border-radius:22px;background:rgba(255,255,255,.08);border:1px solid rgba(167,139,250,.35)}
+.mxb-q{font-weight:900;text-align:center;line-height:1.3;font-size:clamp(1.8rem,5.2vw,4.4rem);color:#fde68a;text-shadow:0 0 24px rgba(251,191,36,.35)}
+.mxb-q.small{font-size:clamp(1.4rem,3.4vw,2.4rem)}
+.mxb-ring{--p:1;position:relative;flex:0 0 auto;width:92px;height:92px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#22c55e calc(var(--p)*360deg),rgba(255,255,255,.15) 0)}
+.mxb-ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:#14142c}
+.mxb-ring b{position:relative;font-size:2.2rem}
+.mxb-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.mxb-c{width:46px;height:46px;border-radius:50%;border:3px solid rgba(255,255,255,.3);cursor:pointer}
+.mxb-c.on{border-color:#fff;transform:scale(1.15)}
+.mxb-t{min-height:46px;padding:0 16px;border-radius:14px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font:700 1rem inherit;font-family:inherit;cursor:pointer}
+.mxb-t.on{background:#8b5cf6}
+.mxb-cv{flex:1;min-height:200px;width:100%;border-radius:20px;touch-action:none;cursor:crosshair;display:block;
+  background:#0f2a1e;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:36px 36px;border:6px solid #8b5a2b}
+.mxb-fill{flex:1}
+.mxb-ans{padding:14px 20px;border-radius:18px;background:rgba(34,197,94,.16);border:2px solid #22c55e;font-size:clamp(1.1rem,2.4vw,1.7rem)}
+.mxb-ans[hidden]{display:none}
+.mxb-a{font-weight:900;font-size:clamp(1.5rem,3.6vw,2.8rem);color:#bbf7d0}
+.mxb-ans ol{margin:8px 0 0 1.4em;padding:0;line-height:1.5}
+.mxb-act{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.mxb-b{min-height:64px;padding:0 28px;border-radius:18px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font:800 1.25rem inherit;font-family:inherit;cursor:pointer}
+.mxb-b.pri{background:linear-gradient(135deg,#ff4fa3,#8b5cf6);border-color:transparent}
+.mxb-b.ok{background:#16a34a;border-color:transparent}
+.mxb-b.steal{background:#f59e0b;border-color:transparent;color:#1f1300}
+.mxb-b:focus-visible,.mxb-t:focus-visible,.mxb-c:focus-visible{outline:3px solid #fbbf24;outline-offset:2px}
+.mxb-cards{flex:1;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:16px;padding:10px;touch-action:none}
+.mxb-card{min-width:clamp(96px,16vw,190px);padding:26px 14px;border-radius:22px;text-align:center;font-weight:900;font-size:clamp(1.6rem,4vw,3rem);cursor:grab;user-select:none;touch-action:none;
+  background:linear-gradient(160deg,#fff,#e9d5ff);color:#1e1b4b;box-shadow:0 12px 24px -10px rgba(0,0,0,.6);transition:transform .15s}
+.mxb-card small{display:block;font-size:.4em;font-weight:700;opacity:.7;margin-top:4px}
+.mxb-card.sel{outline:5px solid #fbbf24;transform:translateY(-8px)}
+.mxb-card.good{background:linear-gradient(160deg,#dcfce7,#86efac)}
+.mxb-card.bad{background:linear-gradient(160deg,#fee2e2,#fca5a5)}
+.mxb-end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
+.mxb-end h2{font-size:2.4rem;margin:0}
+@media(max-width:640px){.mxb-top{flex-wrap:wrap}.mxb-b{flex:1;min-height:56px;padding:0 12px;font-size:1.05rem}}
