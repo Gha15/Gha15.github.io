@@ -192,3 +192,10 @@ form.mini .btn{margin-top:14px}
 .radio input{width:20px;height:20px}
 input.code{letter-spacing:.4em;font-size:1.4rem !important;text-align:center;font-weight:900}
 .modal-card input.code{letter-spacing:.4em;font-size:1.4rem;text-align:center;font-weight:900}
+
+/* language button (English / French) */
+.langbtn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;cursor:pointer;font:inherit;font-weight:800;color:inherit;
+  background:var(--card,rgba(255,255,255,.08));border:1px solid var(--border,rgba(128,128,160,.35))}
+.langbtn:hover{border-color:#a78bfa}
+.langbtn:focus-visible{outline:3px solid #fbbf24;outline-offset:2px}
+.langbtn+.who{margin-left:0}

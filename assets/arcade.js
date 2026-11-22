@@ -127,7 +127,7 @@ function makeQ(L){
          function(){a=rnd(-4,5);b=rnd(-4,5);c=rnd(-4,5);d=rnd(-4,5);return {q:'(' +a+', '+b+', 0) × ('+c+', '+d+', 0): z-part = ?',a:a*d-b*c};}]
   ];
   var list=G[clamp(L,1,13)];
-  return pick(list)();
+  var q=pick(list)();if(W.trq)q.q=W.trq(q.q);return q;
 }
 function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var t=a%b;a=b;b=t;}return a;}
 function wrongs(ans,n,L){
@@ -149,7 +149,7 @@ var G=null;
 /* Home = play on your own. Class = two teams take turns on one screen; every game's score goes to the team that played it. */
 var CLS=(function(){var d={on:false,turn:'A',A:0,B:0,nA:'Team A',nB:'Team B'};try{var v=JSON.parse(ls('mx_arcade_class')||'null');if(v)for(var k in d)if(v[k]!==undefined)d[k]=v[k];}catch(e){}return d;})();
 function saveCls(){ls('mx_arcade_class',JSON.stringify(CLS));}
-function teamName(t){return CLS['n'+t]||('Team '+t);}
+function teamName(t){var n=CLS['n'+t]||('Team '+t);return n==='Team '+t?T(n):n;}
 function best(id){return parseInt(ls('mx_arcade_best_'+id)||'0',10)||0;}
 function setBest(id,v){if(v>best(id))ls('mx_arcade_best_'+id,String(v));}
 function startGame(def){
@@ -1013,8 +1013,9 @@ var WORDS=[null,
         function(){var P=pick([40,60,80,100,120]);return {q:'You have '+P+' m of fence for a rectangular pen.\nWhat is the largest area you can enclose?',a:(P/4)*(P/4)+' m\u00b2',steps:['2(l + w) = '+P+'  \u2192  w = '+P/2+' \u2212 l','A = l('+P/2+' \u2212 l), maximum at l = '+P/4,'A = '+P/4+' \u00d7 '+P/4+' = '+(P/4)*(P/4)]};}]
 ];
 function bandIdx(L){return L<=2?1:L<=4?2:L<=6?3:L<=8?4:L<=10?5:L<=12?6:7;}
-function boardQ(L){var list=BOARD[clamp(L,1,13)];return pick(list)();}
-function wordQ(L){var list=WORDS[bandIdx(L)];return pick(list)();}
+function trB(o){if(!W.trq)return o;o.q=W.trq(o.q);o.a=W.trq(o.a);o.steps=(o.steps||[]).map(function(x){return W.trq(x);});return o;}
+function boardQ(L){var list=BOARD[clamp(L,1,13)];return trB(pick(list)());}
+function wordQ(L){var list=WORDS[bandIdx(L)];return trB(pick(list)());}
 /* order-it cards */
 function orderSet(L){var n=L>=7?6:5,items=[],seen={};
   function add(l,v){var k=Math.round(v*1000);if(seen[k])return false;seen[k]=1;items.push({l:l,v:v});return true;}
@@ -1135,8 +1136,8 @@ function renderArcade(c){
     +'<div class="mxr-modes" role="tablist" aria-label="'+E(T('Where are you playing?'))+'"><button type="button" role="tab" data-m="home" aria-selected="'+(!CLS.on)+'">🏠 '+E(T('At home'))+'</button><button type="button" role="tab" data-m="class" aria-selected="'+CLS.on+'">🏫 '+E(T('In class'))+'</button></div>'
     +'<label class="mxr-lv"><span>'+E(T(CLS.on?'Pick the class':'Difficulty'))+'</span><select id="mxaLv" aria-label="'+E(T('Grade'))+'">'+LEVELS.map(function(l){return '<option value="'+l[0]+'"'+(+l[0]===L?' selected':'')+'>'+E(T(l[1]))+'</option>';}).join('')+'</select></label>'
     +(CLS.on?'<div class="mxr-class"><p>'+E(T('Class mode is for the smart board. Pick an exercise below: a big problem, a pen board for working it out, and the worked answer to reveal. Two teams take turns and the points add up.'))+'</p>'
-      +'<div class="mxr-teams"><label>'+'<input id="mxaNA" maxlength="16" value="'+E(CLS.nA)+'" aria-label="'+E(T('Team A name'))+'"><b>'+CLS.A+'</b></label>'
-      +'<label><input id="mxaNB" maxlength="16" value="'+E(CLS.nB)+'" aria-label="'+E(T('Team B name'))+'"><b>'+CLS.B+'</b></label></div>'
+      +'<div class="mxr-teams"><label>'+'<input id="mxaNA" maxlength="16" value="'+E(teamName('A'))+'" aria-label="'+E(T('Team A name'))+'"><b>'+CLS.A+'</b></label>'
+      +'<label><input id="mxaNB" maxlength="16" value="'+E(teamName('B'))+'" aria-label="'+E(T('Team B name'))+'"><b>'+CLS.B+'</b></label></div>'
       +'<p class="mxr-turn">▶ '+E(T('Next to play'))+': <b>'+E(teamName(CLS.turn))+'</b> <button type="button" class="mxr-link" id="mxaSwap">'+E(T('switch'))+'</button> · <button type="button" class="mxr-link" id="mxaReset">'+E(T('reset scores'))+'</button></p></div>'
       +'<h2 class="mxr-h">✏️ '+E(T('Smart-board exercises'))+'</h2><div class="mxr-grid mxr-ex">'+EXERCISES.map(function(x,i){return '<button type="button" class="mxr-card mxr-exc" data-x="'+i+'"><span class="mxr-exi">'+x.icon+'</span><span class="mxr-tx"><b>'+E(T(x.name))+'</b><small>'+E(T(x.desc))+'</small></span></button>';}).join('')+'</div>'
       +'<h2 class="mxr-h">🎮 '+E(T('Team games'))+'</h2>':'')
@@ -1155,6 +1156,7 @@ function renderArcade(c){
   c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.onclick=function(){startGame(GAMES[+b.dataset.i]);};});
 }
 W.renderGames=function(c){renderArcade(c);};
+W.addEventListener('mxlang',function(){if(G||BX.on)return;var c=$('content');if(c&&c.querySelector('.mxr-arcade'))renderArcade(c);});
 W.renderGamePlay=function(c){renderArcade(c);};
 W.mxArcade={start:function(id){var g=GAMES.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:GAMES,makeQ:makeQ};
 /* Android back button closes a running game */

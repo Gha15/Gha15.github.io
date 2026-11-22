@@ -310,7 +310,7 @@ function home(c) {
     + '<img class="hero-logo" src="/assets/matix-logo-light.svg" alt="MATIX" height="44">'
     + '<span class="eyebrow">📲 The Matix app</span>'
     + '<h1>Math you can <em>watch, play</em> and share.</h1>'
-    + '<p class="lead">103 one-minute video lessons from Grade 1 to college, 14 math games you can play at home or in class, end-to-end encrypted chat and friends. Made by and for the Matix math club.</p>'
+    + '<p class="lead">103 one-minute video lessons from Grade 1 to college, 21 math games you can play at home or in class, end-to-end encrypted chat and friends. Made by and for the Matix math club.</p>'
     + storeButtons()
     + '</div>'
     + '<div class="phone" aria-hidden="true"><div class="scr"><div class="ph-h">🦉 Math Learn</div><img src="/assets/posters/pythagoras.jpg" alt=""><div class="ph-tag">Grade 8 · Pythagoras · 1:01</div>'
@@ -531,6 +531,7 @@ function route() {
   if (r !== 'home') { try { c.focus({ preventScroll: true }); } catch (e) {} W.scrollTo(0, 0); }
 }
 
+W.addEventListener('mxlang', function () { try { paintAuth(); } catch (e) {} });
 function boot() {
   wireModal();
   ME = getUser();
