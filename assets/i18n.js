@@ -225,6 +225,6 @@ function boot(){
   if(b){b.onclick=function(){setLang(lang==='fr'?'en':'fr');};paintBtn();}
   run(D.body);observe();
 }
-W.tr=tr;W.FRG=FRG;W.trq=trq;W.mxLang={get:function(){return lang;},set:setLang};
+W.trAdd=function(o){for(var k in o)FR[k]=o[k];};W.tr=tr;W.FRG=FRG;W.trq=trq;W.mxLang={get:function(){return lang;},set:setLang};
 if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();

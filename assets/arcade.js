@@ -1162,6 +1162,15 @@ THEMES.forEach(function(th,i){var odd=i%2===1,n=th[3];
     mkOrder(th,'Order',odd?'Tap the '+n+' from the biggest number to the smallest.':'Tap the '+n+' from the smallest number to the biggest.',odd),
     mkDuel(th,'Duel',odd?'Two cards, one winner. Tap the smaller value, fast.':'Two cards, one winner. Tap the bigger value, fast.',odd),
     mkHunt(th,'Hunt','Tap every card that fits the rule: multiples, primes, squares, factors. A wrong tap costs a heart.'));});
+/* French names and descriptions for the themed games */
+var THEMES_FR=['dinos','singes','renards du désert','pingouins','diablotins de feu','bonbons','pirates','robots','porcelets','fantômes','licornes','perroquets'],MECH_FR=['Course','Envol','Pluie','Quiz','Vrai ou faux','Ordre','Duel','Chasse'];
+(function(){var o={};THEMES.forEach(function(th,i){var n=THEMES_FR[i],g=THEMED.slice(i*8,i*8+8),odd=i%2===1;
+  g.forEach(function(d,j){o[d.name]=MECH_FR[j]+' des '+n;});
+  o[g[0].desc]='Les '+n+' traversent l’écran, chacun portant une réponse. Touche celui qui a la bonne !';
+  o[g[1].desc]='Les '+n+' s’envolent, chacun portant une réponse. Touche le bon avant qu’ils ne s’échappent !';
+  o[g[2].desc]='Les '+n+' tombent du ciel, chacun portant une réponse. Touche le bon avant qu’ils n’atterrissent !';
+  o[g[5].desc]='Touche les '+n+(odd?' du plus grand nombre au plus petit.':' du plus petit nombre au plus grand.');});
+  if(W.trAdd)W.trAdd(o);})();
 var GAMES=[FISH,STARS,GEMS,DUEL,ASTEROIDS,TRUEFALSE,CASTLE,FLIGHT,BALLOONS,SNAKE,BOMB,RACE,STONES,CATCHER,FRUITS,RUNNER,MEMORY].concat(THEMED);
 
 /* ---------- arcade page (replaces the old Games hub) ---------- */
