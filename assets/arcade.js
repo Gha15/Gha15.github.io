@@ -1122,7 +1122,9 @@ var GAMES=[BONDS,CLOCK,NLINE,ANGLES,FACTORS,GRAPHS,UNIT,ASTEROIDS,TRUEFALSE,CAST
 var SHOWALL=false;
 
 /* ---------- arcade page (replaces the old Games hub) ---------- */
-function gradeTag(g){var lv=g.lv||[1,13];if(lv[0]===1&&lv[1]===13)return T('All grades');var a=LEVELS[lv[0]-1][1].replace('Grade ',''),b=LEVELS[lv[1]-1][1].replace('Grade ','');return T('Grades')+' '+a+(a===b?'':'–'+b);}
+function gradeTag(g){var lv=g.lv||[1,13];if(lv[0]===1&&lv[1]===13)return T('All grades');
+  var fr=W.mxLang&&W.mxLang.get()==='fr',a=fr?T(LEVELS[lv[0]-1][1]):LEVELS[lv[0]-1][1].replace('Grade ',''),b=fr?T(LEVELS[lv[1]-1][1]):LEVELS[lv[1]-1][1].replace('Grade ','');
+  return (fr?'':T('Grades')+' ')+a+(a===b?'':'\u2013'+b);}
 function fits(g,L){var lv=g.lv||[1,13];return L>=lv[0]&&L<=lv[1];}
 function renderArcade(c){
   var L=level(),mine=GAMES.filter(function(g){return fits(g,L);}),shown=SHOWALL?GAMES:mine;

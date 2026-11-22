@@ -13,6 +13,8 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorag
 var LANGS=['en','fr'];
 var lang=(function(){var v=ls('mx_lang');if(v==='fr'||v==='en')return v;try{if(/^fr/i.test(navigator.language||''))return 'fr';}catch(e){}return 'en';})();
 
+/* French school levels for Grade 1 ... 12 */
+var FRG=[null,'CP','CE1','CE2','CM1','CM2','6ème','5ème','4ème','3ème','Seconde','Première','Terminale'];
 var FR={
 /* ---- site ---- */
 'Skip to content':'Passer au contenu','Interactive games':'Jeux interactifs','Download app':'Télécharger l’app','Privacy':'Confidentialité','Close':'Fermer','Main':'Principal',
@@ -51,8 +53,8 @@ var FR={
 '♿ Easy for everyone':'♿ Facile pour tous','Bigger text, high contrast, bigger buttons, dark mode and reduced motion, plus Arabic, French and Spanish.':'Texte plus grand, contraste élevé, gros boutons, mode sombre et animations réduites, plus l’arabe, le français et l’espagnol.',
 '✨ Matix AI':'✨ Matix IA','Stuck? Ask Matix AI. It shows its working step by step, like a patient tutor.':'Bloqué ? Demande à Matix IA. Elle montre son raisonnement étape par étape, comme un tuteur patient.',
 'From counting to calculus':'Du comptage au calcul différentiel','A peek at the video course.':'Un aperçu du cours vidéo.','Get Matix':'Obtenir Matix','Install it and start with any grade.':'Installe-la et commence au niveau de ton choix.',
-'Grade 1 · Counting to 10':'Niveau 1 · Compter jusqu’à 10','Grade 4 · 6 and 7 times tables':'Niveau 4 · Tables de 6 et de 7','Grade 7 · Probability':'Niveau 7 · Probabilités','Grade 8 · Slope':'Niveau 8 · Pente','Grade 11 · The unit circle':'Niveau 11 · Le cercle trigonométrique','Grade 12 · The integral':'Niveau 12 · L’intégrale','College · Matrices':'Université · Matrices',
-'Grade 3 · Fractions \u00a0 Grade 12 · Derivatives':'Niveau 3 · Fractions \u00a0 Niveau 12 · Dérivées','Team A':'Équipe A','Team B':'Équipe B','Grade 8 · Pythagoras · 1:01':'Niveau 8 · Pythagore · 1:01','Grade 3 · Fractions':'Niveau 3 · Fractions','Grade 12 · Derivatives':'Niveau 12 · Dérivées',
+'Grade 1 · Counting to 10':'CP · Compter jusqu’à 10','Grade 4 · 6 and 7 times tables':'CM1 · Tables de 6 et de 7','Grade 7 · Probability':'5ème · Probabilités','Grade 8 · Slope':'4ème · Pente','Grade 11 · The unit circle':'Première · Le cercle trigonométrique','Grade 12 · The integral':'Terminale · L’intégrale','College · Matrices':'Université · Matrices',
+'Grade 3 · Fractions \u00a0 Grade 12 · Derivatives':'CE2 · Fractions \u00a0 Terminale · Dérivées','Team A':'Équipe A','Team B':'Équipe B','Grade 8 · Pythagoras · 1:01':'4ème · Pythagore · 1:01','Grade 3 · Fractions':'CE2 · Fractions','Grade 12 · Derivatives':'Terminale · Dérivées',
 'Get it on':'Disponible sur','Download on the':'Télécharger sur','Coming soon':'Bientôt disponible','🔒 Coming soon':'🔒 Bientôt disponible',
 'Language':'Langue',
 /* ---- arcade ---- */
@@ -93,8 +95,8 @@ var FR={
 };
 /* generated sentences with a changing tail (anchored, first match wins) */
 var RULES=[
- [/^Grade (\d+) \u00b7 (.+)$/,function(m){return 'Niveau '+m[1]+' \u00b7 '+tr(m[2]);}],
- [/^Grade (\d+)$/,'Niveau $1'],[/^College \u00b7 (.+)$/,function(m){return 'Université \u00b7 '+tr(m[1]);}],
+ [/^Grade (\d+) \u00b7 (.+)$/,function(m){return (FRG[+m[1]]||'Niveau '+m[1])+' \u00b7 '+tr(m[2]);}],
+ [/^Grade (\d+)$/,function(m){return FRG[+m[1]]||m[0];}],[/^College \u00b7 (.+)$/,function(m){return 'Université \u00b7 '+tr(m[1]);}],
  [/^(Grade \d+ \u00b7 .+|College \u00b7 .+) lesson$/,function(m){return 'Leçon : '+tr(m[1]);}],
  [/^Tries left: (\d+)$/,'Essais restants : $1'],[/^ Tries left: (\d+)$/,' Essais restants : $1'],
  [/^Wait a moment before asking for another code \((\d+)s\)\.$/,'Attends un instant avant de demander un autre code ($1 s).'],
@@ -223,6 +225,6 @@ function boot(){
   if(b){b.onclick=function(){setLang(lang==='fr'?'en':'fr');};paintBtn();}
   run(D.body);observe();
 }
-W.tr=tr;W.trq=trq;W.mxLang={get:function(){return lang;},set:setLang};
+W.tr=tr;W.FRG=FRG;W.trq=trq;W.mxLang={get:function(){return lang;},set:setLang};
 if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
