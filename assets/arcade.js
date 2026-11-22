@@ -22,14 +22,25 @@ var IMG_DIR='/arcade/img/';
 /* ---------- images ---------- */
 var IMG={},IMG_LIST=['bg_space.jpg','ship.png','asteroid0.png','asteroid1.png','asteroid2.png','bg_sky.jpg','balloon_red.png','balloon_blue.png','balloon_green.png','balloon_yellow.png','balloon_purple.png','balloon_pink.png',
   'bg_market.jpg','basket.png','fruit_apple.png','fruit_orange.png','fruit_watermelon.png','fruit_lemon.png','fruit_grapes.png','pizza.png','bg_table.jpg','owl0.png','owl1.png','bg_road.jpg','gate.png','coin.png','card_back.png','card_front.png','heart.png','bomb.png','castle.png','monster0.png','monster1.png','monster2.png','car_orange.png','car_purple.png','stone.png','snake.png','bolt.png'];
+/* Backgrounds come in five screen shapes (p 9:16, t 3:4, s 1:1, w 16:9, u 21:9: see tools/make-backgrounds.py).
+   The one closest to the game's screen is used, and it is swapped if you rotate the device or resize the window. */
+var SHAPES=[['p',9/16],['t',3/4],['s',1],['w',16/9],['u',21/9]],BGK='';
+function shapeKey(){var w=W.innerWidth||1280,h=Math.max(200,(W.innerHeight||720)-130),r=Math.log(w/h),best='w',bd=9;
+  SHAPES.forEach(function(s){var d=Math.abs(r-Math.log(s[1]));if(d<bd){bd=d;best=s[0];}});return best;}
+function bgFile(n,k){return /^bg_/.test(n)?n.replace(/\.jpg$/,'_'+k+'.jpg'):n;}
+function loadOne(n,k,done){var im=new Image();im.onload=function(){IMG[n]=im;done();};
+  im.onerror=function(){if(bgFile(n,k)!==n){var fb=new Image();fb.onload=fb.onerror=function(){IMG[n]=fb;done();};fb.src=IMG_DIR+n;}else{IMG[n]=im;done();}};
+  im.src=IMG_DIR+bgFile(n,k);}
 function loadImages(cb){
-  var left=0;
+  var left=0,k=BGK=shapeKey();
   IMG_LIST.forEach(function(n){
     if(IMG[n])return;left++;
-    var im=new Image();im.onload=im.onerror=function(){left--;if(!left)cb();};im.src=IMG_DIR+n;IMG[n]=im;
+    loadOne(n,k,function(){left--;if(!left)cb();});
   });
   if(!left)cb();
 }
+function swapBackgrounds(){var k=shapeKey();if(k===BGK)return;BGK=k;
+  IMG_LIST.forEach(function(n){if(/^bg_/.test(n)){var im=new Image();im.onload=function(){IMG[n]=im;};im.src=IMG_DIR+bgFile(n,k);}});}
 function ok(im){return im&&im.complete&&im.naturalWidth>0;}
 function cover(ctx,im,w,h,oy){
   if(!ok(im)){ctx.fillStyle='#14152a';ctx.fillRect(0,0,w,h);return;}
@@ -165,7 +176,7 @@ function startGame(def){
   var pushed=had;if(!had){try{history.pushState({mxg:1},'');pushed=true;}catch(e){}}
   var cv=$('mxgCv'),ctx=cv.getContext('2d');
   G={def:def,ov:ov,cv:cv,ctx:ctx,w:0,h:0,score:0,lives:3,t:0,run:true,paused:false,raf:0,last:0,L:level(),state:{},pops:[],pushed:pushed};
-  function size(){var r=cv.getBoundingClientRect(),dpr=Math.min(2,W.devicePixelRatio||1);G.w=r.width;G.h=r.height;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(def.resize)def.resize(G);}
+  function size(){swapBackgrounds();var r=cv.getBoundingClientRect(),dpr=Math.min(2,W.devicePixelRatio||1);G.w=r.width;G.h=r.height;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(def.resize)def.resize(G);}
   G.size=size;W.addEventListener('resize',size);
   $('mxgX').onclick=function(){stopGame();};
   $('mxgPause').onclick=function(){G.paused=!G.paused;this.textContent=G.paused?'▶':'⏸';this.setAttribute('aria-label',T(G.paused?'Resume':'Pause'));if(!G.paused){G.last=performance.now();}};
