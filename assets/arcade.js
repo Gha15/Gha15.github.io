@@ -21,7 +21,7 @@ var IMG_DIR='/arcade/img/';
 
 /* ---------- images ---------- */
 var IMG={},IMG_LIST=['bg_space.jpg','ship.png','asteroid0.png','asteroid1.png','asteroid2.png','bg_sky.jpg','balloon_red.png','balloon_blue.png','balloon_green.png','balloon_yellow.png','balloon_purple.png','balloon_pink.png',
-  'bg_market.jpg','basket.png','fruit_apple.png','fruit_orange.png','fruit_watermelon.png','fruit_lemon.png','fruit_grapes.png','pizza.png','bg_table.jpg','owl0.png','owl1.png','bg_road.jpg','gate.png','coin.png','card_back.png','card_front.png','heart.png','bomb.png','castle.png','monster0.png','monster1.png','monster2.png','car_orange.png','car_purple.png','stone.png','snake.png','bolt.png'];
+  'bg_market.jpg','basket.png','fruit_apple.png','fruit_orange.png','fruit_watermelon.png','fruit_lemon.png','fruit_grapes.png','pizza.png','bg_table.jpg','owl0.png','owl1.png','bg_road.jpg','gate.png','coin.png','card_back.png','card_front.png','heart.png','bomb.png','castle.png','monster0.png','monster1.png','monster2.png','car_orange.png','car_purple.png','stone.png','snake.png','bolt.png','bg_ocean.jpg','bg_forest.jpg','fish_orange.png','fish_blue.png','star.png','gem.png'];
 /* Backgrounds come in five screen shapes (p 9:16, t 3:4, s 1:1, w 16:9, u 21:9: see tools/make-backgrounds.py).
    The one closest to the game's screen is used, and it is swapped if you rotate the device or resize the window. */
 var SHAPES=[['p',9/16],['t',3/4],['s',1],['w',16/9],['u',21/9]],BGK='';
@@ -1129,7 +1129,140 @@ function startBoard(ex){
 }
 
 PIZZA.lv=[2,9];
-var GAMES=[BONDS,CLOCK,NLINE,ANGLES,FACTORS,GRAPHS,UNIT,ASTEROIDS,TRUEFALSE,CASTLE,FLIGHT,BALLOONS,SNAKE,BOMB,RACE,STONES,CATCHER,FRUITS,PIZZA,RUNNER,MEMORY];
+
+/* =====================================================================
+   1.3.0: four more games, with two new backgrounds (ocean, forest) drawn for every screen shape
+   ===================================================================== */
+var SUP={2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶'};
+/* number "cards" of a size that suits the grade: {l: text, v: value} */
+function numCard(L){
+  var a,b,c,d;
+  if(L<=2){a=rnd(1,L<=1?20:99);return {l:String(a),v:a};}
+  if(L<=4){var t=pick([0,1,2]);if(t===0){a=rnd(100,L<=3?999:9999);return {l:String(a),v:a};}
+    if(t===1){a=rnd(3,9);b=rnd(3,12);return {l:a+' × '+b,v:a*b};}a=rnd(20,90);b=rnd(10,60);return {l:a+' + '+b,v:a+b};}
+  if(L<=6){var t2=pick([0,1,2,3]);if(t2===0){a=rnd(1,99)/100+rnd(0,9);a=Math.round(a*100)/100;return {l:a.toFixed(2),v:a};}
+    if(t2===1){b=rnd(2,9);a=rnd(1,b-1);return {l:a+'/'+b,v:a/b};}
+    if(t2===2){a=pick([10,20,25,30,40,50,60,75]);b=pick([40,80,120,200,240]);return {l:a+'% of '+b,v:a*b/100};}
+    a=rnd(2,9);b=rnd(2,4);return {l:a+SUP[b],v:Math.pow(a,b)};}
+  if(L<=9){var t3=pick([0,1,2,3]);if(t3===0){a=rnd(-40,40);return {l:a<0?'−'+(-a):String(a),v:a};}
+    if(t3===1){b=rnd(2,9);a=rnd(-9,9);if(!a)a=1;return {l:(a<0?'−':'')+Math.abs(a)+'/'+b,v:a/b};}
+    if(t3===2){a=rnd(2,60);return {l:'√'+a,v:Math.sqrt(a)};}
+    a=rnd(2,5);b=rnd(2,5);return {l:a+SUP[b]+' − '+rnd(1,20),v:0};}
+  var t4=pick([0,1,2,3]);
+  if(t4===0){a=rnd(2,60);return {l:'√'+a,v:Math.sqrt(a)};}
+  if(t4===1){a=pick([2,3,5,10]);b=rnd(2,50);var nm={2:'₂',3:'₃',5:'₅',10:'₁₀'};return {l:'log'+nm[a]+' '+b,v:Math.log(b)/Math.log(a)};}
+  if(t4===2){a=rnd(1,11);var ang=pick([[0,'0'],[30,'π/6'],[45,'π/4'],[60,'π/3'],[90,'π/2'],[120,'2π/3'],[180,'π']]);var f=pick([['sin',Math.sin],['cos',Math.cos]]);return {l:f[0]+' '+ang[1],v:f[1](ang[0]*Math.PI/180)};}
+  a=rnd(2,6);b=rnd(-3,3);return {l:'e^'+b,v:Math.exp(b)};
+}
+function fixCard(c){ /* the lazy power-minus-number card above needs its value worked out from its label */
+  var m=/^(\d)([²³⁴⁵⁶]) − (\d+)$/.exec(c.l);if(m){var e={'²':2,'³':3,'⁴':4,'⁵':5,'⁶':6}[m[2]];c.v=Math.pow(+m[1],e)-(+m[3]);}return c;}
+function card(L){return fixCard(numCard(L));}
+function distinctCards(L,n){var out=[],tries=0;while(out.length<n&&tries++<200){var c=card(L);if(!out.some(function(o){return Math.abs(o.v-c.v)<1e-6||o.l===c.l;}))out.push(c);}return out;}
+
+/* 🐠 Fish Quiz (all grades): tap the fish carrying the right answer */
+var FISH={id:'fish',icon:'🐠',name:'Fish Quiz',thumb:'fish_orange.png',bg:'bg_ocean.jpg',
+  desc:'A school of fish swims by, each one carrying an answer. Tap the fish with the right one before they all swim away!',
+  init:function(g){var s=g.state;s.parts=[];s.fish=[];s.streak=0;s.bub=[];for(var i=0;i<14;i++)s.bub.push({x:Math.random(),y:Math.random(),r:2+Math.random()*5,v:.03+Math.random()*.06});this.next(g);},
+  next:function(g){var s=g.state,q=makeQ(g.L),n=g.w<520?4:5,vals=shuffle([q.a].concat(wrongs(q.a,n-1,g.L)));s.q=q;setQ(qText(q));
+    var top=g.h*.2,bot=btnsTop(g)+(g.w<520?60:20),lane=(Math.min(g.h-70,bot)-top)/n,sp=Math.min(130,60+g.t*1.1+g.w*.03);
+    s.fish=vals.map(function(v,i){var dir=i%2?1:-1,r=Math.min(46,lane*.42,g.w*.1);return {v:v,x:dir<0?g.w+r+rnd(0,160):-r-rnd(0,160),y:top+lane*(i+.5),dir:dir,r:r,sp:sp*(.8+Math.random()*.5),ph:Math.random()*6,img:i%2?'fish_blue.png':'fish_orange.png'};});},
+  update:function(g,dt){var s=g.state;
+    s.bub.forEach(function(b){b.y-=b.v*dt;if(b.y<-.05){b.y=1.05;b.x=Math.random();}});
+    s.fish.forEach(function(f){f.x+=f.dir*f.sp*dt;f.ph+=dt*4;});
+    if(s.fish.every(function(f){return f.dir<0?f.x<-f.r*2:f.x>g.w+f.r*2;})){flash(T('They swam away!')+' '+ansText(s.q),'#fca5a5');s.streak=0;hurt();if(!g.over)this.next(g);}},
+  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_ocean.jpg'],g.w,g.h);
+    ctx.fillStyle='rgba(255,255,255,.35)';s.bub.forEach(function(b){ctx.beginPath();ctx.arc(b.x*g.w,b.y*g.h,b.r,0,6.283);ctx.fill();});
+    s.fish.forEach(function(f){var im=IMG[f.img],y=f.y+Math.sin(f.ph)*6;ctx.save();ctx.translate(f.x,y);if(f.dir>0)ctx.scale(-1,1);
+      if(ok(im))ctx.drawImage(im,-f.r*1.5,-f.r*1.1,f.r*3,f.r*2.2);ctx.restore();
+      label(ctx,String(f.v),f.x+(f.dir<0?-f.r*.1:f.r*.1),y-f.r*.05,Math.round(f.r*(String(f.v).length>3?.5:.72)),'#fff');});
+    if(s.streak>1)label(ctx,'🔥 '+s.streak,g.w-52,g.h*.14,24,'#fbbf24');
+    drawParts(ctx,s.parts,1/60);},
+  down:function(g,x,y){var s=g.state,hit=null,bd=1e9;s.fish.forEach(function(f){var d=Math.hypot(x-f.x,y-f.y);if(d<f.r*1.6&&d<bd){bd=d;hit=f;}});if(!hit)return;
+    if(hit.v===s.q.a){s.streak++;addScore(10+Math.min(10,s.streak)*2);burst(s.parts,hit.x,hit.y,'#7dd3fc');this.next(g);}
+    else{s.streak=0;flash(T('Not quite!')+' '+hit.v,'#fca5a5');burst(s.parts,hit.x,hit.y,'#ef4444');s.fish=s.fish.filter(function(f){return f!==hit;});hurt();}},
+  key:function(g,k){var i=parseInt(k,10)-1,s=g.state;if(s.fish[i])this.down(g,s.fish[i].x,s.fish[i].y);}
+};
+
+/* ⭐ Star Order (all grades): tap the stars from smallest to biggest */
+var STARS={id:'stars',icon:'⭐',name:'Star Order',thumb:'star.png',bg:'bg_forest.jpg',
+  desc:'Stars light up the evening sky. Tap them from the smallest number to the biggest. Fractions, roots and logs join in as you grow!',
+  init:function(g){var s=g.state;s.parts=[];s.round=0;s.streak=0;this.round(g);},
+  round:function(g){var s=g.state,n=clamp(4+Math.floor(s.round/2),4,g.L<=2?6:7),cs=distinctCards(g.L,n),r=Math.min(64,g.w*.13,g.h*.1),top=g.h*.2+r,bot=g.h-r-24,tries=0;
+    s.round++;s.next=0;s.st=[];
+    cs.forEach(function(c,i){var x,y,k=0;do{x=rnd(Math.round(r),Math.round(g.w-r));y=rnd(Math.round(top),Math.round(Math.max(top+1,bot)));k++;}while(k<80&&s.st.some(function(o){return Math.hypot(o.x-x,o.y-y)<r*2.3;}));
+      s.st.push({l:c.l,v:c.v,x:x,y:y,r:r,ph:Math.random()*6,done:false});});
+    s.order=s.st.slice().sort(function(a,b){return a.v-b.v;});s.limit=limitFor(g,10+n*2.2,7,.12);s.left=s.limit;setQ(T('Smallest to biggest'));},
+  update:function(g,dt){var s=g.state;s.st.forEach(function(o){o.ph+=dt*3;});s.left-=dt;
+    if(s.left<=0){flash(T('Time up!')+' '+s.order.map(function(o){return o.l;}).join(' < '),'#fca5a5');s.streak=0;hurt();if(!g.over)this.round(g);}},
+  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_forest.jpg'],g.w,g.h);timeBar(ctx,14,g.h*.17,g.w-28,clamp(s.left/s.limit,0,1));
+    s.st.forEach(function(o){var im=IMG['star.png'],p=1+Math.sin(o.ph)*.05,R=o.r*p;ctx.globalAlpha=o.done?.3:1;
+      ctx.save();ctx.shadowColor='#fde047';ctx.shadowBlur=o.done?0:18;if(ok(im))ctx.drawImage(im,o.x-R*1.25,o.y-R*1.25,R*2.5,R*2.5);ctx.restore();
+      label(ctx,o.l,o.x,o.y+R*.12,Math.round(Math.min(R*.7,R*1.7/Math.max(2.4,o.l.length*.6))),o.done?'#cbd5e1':'#1e1b4b',false);ctx.globalAlpha=1;});
+    if(s.streak>1)label(ctx,'🔥 '+s.streak,g.w-52,g.h*.13,24,'#fbbf24');
+    drawParts(ctx,s.parts,1/60);},
+  down:function(g,x,y){var s=g.state,hit=null,bd=1e9;s.st.forEach(function(o){var d=Math.hypot(x-o.x,y-o.y);if(!o.done&&d<o.r*1.5&&d<bd){bd=d;hit=o;}});if(!hit)return;
+    if(hit===s.order[s.next]){hit.done=true;s.next++;addScore(4+Math.round(s.left*.5));burst(s.parts,hit.x,hit.y,'#fde047');
+      if(s.next>=s.order.length){s.streak++;addScore(10+s.streak*2);flash('✨ '+T('Great order!'),'#bbf7d0');this.round(g);}}
+    else{s.streak=0;flash(hit.l+' '+T('is not the smallest left'),'#fca5a5');hurt();if(!g.over)s.left=Math.max(1,s.left-2);}}
+};
+
+/* 💎 Gem Hunt (Grades 3-13): tap every number that fits the rule */
+var GEMS={id:'gems',icon:'💎',name:'Gem Hunt',thumb:'gem.png',bg:'bg_ocean.jpg',lv:[3,13],
+  desc:'Dig up every gem that fits the rule: multiples, primes, squares, factors. Miss one when time is up, or dig a wrong one, and you lose a heart.',
+  init:function(g){var s=g.state;s.parts=[];s.round=0;s.streak=0;this.round(g);},
+  rule:function(L){var n;
+    if(L<=4){n=pick([3,4,6,7,8,9]);return {t:T('Multiples of')+' '+n,f:function(v){return v%n===0;},lo:n,hi:n*12};}
+    if(L<=6){n=pick([2,3,4,5,6,7]);var kind=pick([0,1]);if(kind)return {t:T('Prime numbers'),f:isPrime,lo:2,hi:60};return {t:T('Multiples of')+' '+n*3,f:function(v){return v%(n*3)===0;},lo:n*3,hi:n*3*10};}
+    if(L<=9){var k=pick([0,1,2]);if(k===0)return {t:T('Prime numbers'),f:isPrime,lo:2,hi:90};if(k===1)return {t:T('Perfect squares'),f:function(v){return Math.sqrt(v)%1===0;},lo:1,hi:200};n=pick([24,36,48,60,72]);return {t:T('Factors of')+' '+n,f:function(v){return n%v===0;},lo:1,hi:n};}
+    var k2=pick([0,1,2]);if(k2===0)return {t:T('Perfect cubes'),f:function(v){return Math.round(Math.cbrt(v))%1===0&&Math.pow(Math.round(Math.cbrt(v)),3)===v;},lo:1,hi:1100};
+    if(k2===1){n=pick([84,96,120,144,180]);return {t:T('Factors of')+' '+n,f:function(v){return n%v===0;},lo:1,hi:n};}
+    return {t:T('Prime numbers'),f:isPrime,lo:2,hi:200};},
+  round:function(g){var s=g.state,rule=this.rule(g.L),n=g.w<520?12:15,cols=g.w<520?3:5,vals=[],good=[],bad=[],tries=0;
+    for(var v=rule.lo;v<=rule.hi;v++)(rule.f(v)?good:bad).push(v);
+    good=shuffle(good);bad=shuffle(bad);var ng=clamp(Math.round(n*.4),3,good.length);vals=good.slice(0,ng).concat(bad.slice(0,n-ng));
+    if(vals.length<n)vals=vals.concat(good.slice(ng,ng+n-vals.length));
+    vals=shuffle(vals);s.round++;s.rule=rule;s.cells=vals.map(function(v){return {v:v,good:rule.f(v),done:false};});s.cols=cols;
+    s.limit=limitFor(g,22,10,.15);s.left=s.limit;setQ(rule.t);},
+  update:function(g,dt){var s=g.state;s.left-=dt;
+    if(s.left<=0){flash(T('Time up!'),'#fca5a5');s.streak=0;hurt();if(!g.over)this.round(g);}},
+  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_ocean.jpg'],g.w,g.h);ctx.fillStyle='rgba(6,24,70,.35)';ctx.fillRect(0,0,g.w,g.h);
+    timeBar(ctx,14,g.h*.17,g.w-28,clamp(s.left/s.limit,0,1));
+    var rows=Math.ceil(s.cells.length/s.cols),top=g.h*.22,gap=8,cw=(g.w-24-gap*(s.cols-1))/s.cols,ch=Math.min(cw,(g.h-top-20-gap*(rows-1))/rows);
+    s.cells.forEach(function(c,i){var r=Math.floor(i/s.cols),k=i%s.cols;c.x=12+k*(cw+gap);c.y=top+r*(ch+gap);c.w=cw;c.h=ch;
+      ctx.globalAlpha=c.done?.25:1;var im=IMG['gem.png'];ctx.fillStyle='rgba(255,255,255,.14)';rr(ctx,c.x,c.y,cw,ch,16);ctx.fill();
+      if(ok(im)){var sz=Math.min(cw,ch)*.92;ctx.drawImage(im,c.x+(cw-sz)/2,c.y+(ch-sz)/2,sz,sz);}
+      label(ctx,String(c.v),c.x+cw/2,c.y+ch*.44,Math.round(Math.min(ch*.34,cw/Math.max(2,String(c.v).length)*.8)),'#fff');ctx.globalAlpha=1;});
+    var left=s.cells.filter(function(c){return c.good&&!c.done;}).length;label(ctx,'💎 '+left,g.w-48,g.h*.13,24,'#fde047');
+    if(s.streak>1)label(ctx,'🔥 '+s.streak,48,g.h*.13,24,'#fbbf24');drawParts(ctx,s.parts,1/60);},
+  down:function(g,x,y){var s=g.state,hit=null;s.cells.forEach(function(c){if(!c.done&&x>c.x&&x<c.x+c.w&&y>c.y&&y<c.y+c.h)hit=c;});if(!hit)return;
+    if(hit.good){hit.done=true;addScore(5);burst(s.parts,hit.x+hit.w/2,hit.y+hit.h/2,'#67e8f9');
+      if(!s.cells.some(function(c){return c.good&&!c.done;})){s.streak++;addScore(10+Math.round(s.left)+s.streak*2);flash('✨ '+T('All found!'),'#bbf7d0');this.round(g);}}
+    else{hit.done=true;s.streak=0;flash(hit.v+' '+T('does not fit'),'#fca5a5');burst(s.parts,hit.x+hit.w/2,hit.y+hit.h/2,'#ef4444');hurt();}}
+};
+function isPrime(n){if(n<2)return false;for(var i=2;i*i<=n;i++)if(n%i===0)return false;return true;}
+
+/* ⚔️ Bigger Duel (all grades): which card is worth more? */
+var DUEL={id:'duel',icon:'⚔️',name:'Bigger Duel',thumb:'bolt.png',bg:'bg_forest.jpg',
+  desc:'Two cards, one winner. Tap the bigger value, fast. From 38 vs 83 to 5/8 vs 0.6, and √50 vs 7 for the older players.',
+  init:function(g){g.state.parts=[];g.state.streak=0;this.next(g);},
+  next:function(g){var s=g.state,p=distinctCards(g.L,2);
+    if(Math.abs(p[0].v-p[1].v)<1e-6||p.length<2){this.next(g);return;}
+    s.a=p[0];s.b=p[1];s.win=p[0].v>p[1].v?s.a:s.b;s.limit=Math.max(2,6-g.t*.04);s.left=s.limit;setQ(T('Which is bigger?'));},
+  update:function(g,dt){var s=g.state;s.left-=dt;if(s.left<=0){flash(T('Too slow!')+' '+s.win.l,'#fca5a5');s.streak=0;hurt();if(!g.over)this.next(g);}},
+  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_forest.jpg'],g.w,g.h);
+    var cw=Math.min(300,(g.w-70)/2),ch=Math.min(g.h*.46,260),y=g.h*.28,x1=g.w/2-cw-22,x2=g.w/2+22;s.ra={x:x1,y:y,w:cw,h:ch};s.rb={x:x2,y:y,w:cw,h:ch};
+    timeBar(ctx,x1,y-26,cw*2+44,clamp(s.left/s.limit,0,1));
+    [[s.a,x1,'#7c3aed'],[s.b,x2,'#0ea5e9']].forEach(function(c){ctx.save();ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=20;ctx.fillStyle=c[2];rr(ctx,c[1],y,cw,ch,26);ctx.fill();ctx.restore();
+      label(ctx,c[0].l,c[1]+cw/2,y+ch/2,Math.round(Math.min(56,cw*.66/Math.max(2.4,c[0].l.length*.6))),'#fff');});
+    label(ctx,'VS',g.w/2,y+ch/2,Math.round(Math.min(30,cw*.14)),'#fde68a');
+    if(s.streak>1)label(ctx,'🔥 '+s.streak,g.w/2,y+ch+40,26,'#fbbf24');drawParts(ctx,s.parts,1/60);},
+  down:function(g,x,y){var s=g.state;function inb(b){return b&&x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h;}if(inb(s.ra))this.pick(g,s.a,s.ra);else if(inb(s.rb))this.pick(g,s.b,s.rb);},
+  key:function(g,k){var s=g.state;if(k==='ArrowLeft'||k==='1')this.pick(g,s.a,s.ra);else if(k==='ArrowRight'||k==='2')this.pick(g,s.b,s.rb);},
+  pick:function(g,c,r){var s=g.state;if(c===s.win){s.streak++;addScore(5+Math.min(10,s.streak)*2+Math.round(s.left*2));burst(s.parts,r.x+r.w/2,r.y+r.h/2,'#22c55e');}
+    else{s.streak=0;flash(T('Nope!')+' '+s.win.l+' > '+(c===s.a?s.b:s.a).l,'#fca5a5');hurt();}if(!g.over)this.next(g);}
+};
+
+var GAMES=[FISH,STARS,GEMS,DUEL,BONDS,CLOCK,NLINE,ANGLES,FACTORS,GRAPHS,UNIT,ASTEROIDS,TRUEFALSE,CASTLE,FLIGHT,BALLOONS,SNAKE,BOMB,RACE,STONES,CATCHER,FRUITS,PIZZA,RUNNER,MEMORY];
 var SHOWALL=false;
 
 /* ---------- arcade page (replaces the old Games hub) ---------- */
@@ -1143,7 +1276,7 @@ function renderArcade(c){
     return '<button type="button" class="mxr-card'+(fits(g,L)?'':' dim')+'" data-i="'+i+'" aria-label="'+E(T(g.name)+'. '+T(g.desc))+'">'
       +'<span class="mxr-art" style="background-image:url('+IMG_DIR+g.bg+')"><img src="'+IMG_DIR+g.thumb+'" alt=""><i class="mxr-gr">'+E(gradeTag(g))+'</i>'+(isNew?'<i class="mxr-new">NEW</i>':'')+'</span>'
       +'<span class="mxr-tx"><b>'+g.icon+' '+E(T(g.name))+'</b><small>'+E(T(g.desc))+'</small><em>🏆 '+E(T('Best'))+': '+best(g.id)+'</em></span></button>';}
-  var NEWIDS={bonds:1,clock:1,nline:1,angles:1,factors:1,graphs:1,unit:1};
+  var NEWIDS={fish:1,stars:1,gems:1,duel:1};
   c.innerHTML='<div class="mxr-arcade">'
     +'<div class="mxr-hero"><div><h1>🎮 '+E(T('Matix Arcade'))+'</h1><p>'+E(T('Real games, real maths. Pick your grade and the games and questions are made for it.'))+' '+GAMES.length+' '+E(T('games'))+', '+EXERCISES.length+' '+E(T('smart-board exercises'))+'.</p></div></div>'
     +'<div class="mxr-modes" role="tablist" aria-label="'+E(T('Where are you playing?'))+'"><button type="button" role="tab" data-m="home" aria-selected="'+(!CLS.on)+'">🏠 '+E(T('At home'))+'</button><button type="button" role="tab" data-m="class" aria-selected="'+CLS.on+'">🏫 '+E(T('In class'))+'</button></div>'
