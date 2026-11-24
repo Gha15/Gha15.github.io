@@ -21,6 +21,8 @@
 'use strict';
 var D = document, W = window;
 var FB = 'https://matix-1d538-default-rtdb.firebaseio.com';
+W.FB = FB; /* the arcade uses it to sync best scores */
+var PLAY_TEST_DEFAULT = 'https://play.google.com/apps/testing/com.matixmathclubappandroid.app';
 var PLAY = 'https://play.google.com/store/apps/details?id=com.matixmathclubappandroid.app';
 var OWNERS = ['ghadi'];
 var CODE_MIN = 15, MAX_TRIES = 5, RESEND_MS = 45000;
@@ -183,6 +185,7 @@ function showView(v, arg) {
       + fld('Username or email', 'aU', 'text', 'username') + fld('Password', 'aP', 'password', 'current-password')
       + '<label class="check"><input type="checkbox" id="aK"' + (KEEP ? ' checked' : '') + '> Keep me signed in on this device</label>'
       + '<div class="err" id="aE" role="alert"></div><button class="btn pri wide" id="aGo">Sign in</button></form>'
+      + '<p class="legal">By signing in or creating an account you agree to our <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</p>'
       + '<p class="swap"><button type="button" class="link" id="aForgot">Forgot your password?</button></p>'
       + '<p class="swap">New to Matix? <button type="button" class="link" id="aJoin">Create an account</button></p>';
   } else if (v === 'join') {
@@ -190,6 +193,7 @@ function showView(v, arg) {
       + fld('Username', 'aU', 'text', 'username', 'yourname') + fld('Email', 'aM', 'email', 'email', 'you@example.com') + fld('Password', 'aP', 'password', 'new-password')
       + '<label class="check"><input type="checkbox" id="aK"' + (KEEP ? ' checked' : '') + '> Keep me signed in on this device</label>'
       + '<div class="err" id="aE" role="alert"></div><button class="btn pri wide" id="aGo">Create account</button></form>'
+      + '<p class="legal">By signing in or creating an account you agree to our <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</p>'
       + '<p class="swap">Already have an account? <button type="button" class="link" id="aIn">Sign in</button></p>';
   } else if (v === 'verify') {
     h = '<h2 id="authTitle">📬 Check your email</h2><p class="sub">We sent a 6-digit code to <b>' + esc(maskEmail(arg.email)) + '</b>. It works for 15 minutes.</p><form id="af">'
@@ -261,6 +265,7 @@ function wireModal() {
 }
 
 function paintAuth() {
+  W.mxUser = ME; /* the arcade syncs best scores for the signed-in player */
   var who = $('who'), menu = $('menu');
   var old = $('menuOwner'); if (old) old.remove();
   if (ME) {
@@ -294,7 +299,11 @@ var ICON_APPLE = '<svg width="26" height="30" viewBox="0 0 26 30" aria-hidden="t
 function storeButtons() {
   var playLink = PLAYCFG.link || PLAY, s = STORE, apple, play;
   if (playMode() === 'soon') play = '<span class="store locked" role="img" aria-label="Google Play: coming soon">' + ICON_PLAY + '<span><small>🔒 Google Play</small><b>Coming soon</b></span></span>';
-  else play = '<a class="store" href="' + esc(playLink) + '" target="_blank" rel="noopener">' + ICON_PLAY + '<span><small>Get it on</small><b>Google Play</b></span></a>';
+  else {
+    play = '<a class="store" href="' + esc(playLink) + '" target="_blank" rel="noopener">' + ICON_PLAY + '<span><small>Get it on</small><b>Google Play</b></span></a>';
+    /* open testing: for people who want new versions before everyone else */
+    if (PLAYCFG.beta !== false) play += '<a class="store testing" href="' + esc(PLAYCFG.testLink || PLAY_TEST_DEFAULT) + '" target="_blank" rel="noopener">' + ICON_PLAY + '<span><small>Pre-releases on Google Play</small><b>Join the beta</b></span></a>';
+  }
   if (s.link) apple = '<a class="store" href="' + esc(s.link) + '" target="_blank" rel="noopener">' + ICON_APPLE + '<span><small>Download on the</small><b>App Store</b></span></a>';
   else if (s.testflight) apple = '<a class="store" href="' + esc(tfUrl(s.testflight)) + '" target="_blank" rel="noopener">' + ICON_APPLE + '<span><small>iPhone beta on</small><b>TestFlight</b></span></a>';
   else apple = '<span class="store locked" role="img" aria-label="App Store: coming soon">' + ICON_APPLE + '<span><small>🔒 App Store</small><b>Coming soon</b></span></span>';
@@ -489,17 +498,20 @@ function ownerStores(box) {
       + [['link', '✅ Link: “Get it on Google Play”'], ['soon', '🔒 Coming soon (locked)']].map(function (o) {
         return '<label class="radio"><input type="radio" name="pm" value="' + o[0] + '"' + (pm === o[0] ? ' checked' : '') + '> ' + o[1] + '</label>';
       }).join('') + '</fieldset>'
-      + fld('Play Store link', 'psL', 'url', 'off', PLAY)
+      + fld('Play Store link (normal release)', 'psL', 'url', 'off', PLAY)
+      + '<label class="radio"><input type="checkbox" id="psBeta"' + (PLAYCFG.beta === false ? '' : ' checked') + '> 🧪 Show the “Join the beta” button (open testing)</label>'
+      + fld('Open testing link (pre-releases)', 'psT', 'url', 'off', PLAY_TEST_DEFAULT)
       + '<div class="row-btns"><button type="button" class="btn pri" id="psSave">Save Google Play</button></div><div class="err" id="psErr" role="alert"></div></div>'
       + '<div class="card" style="margin-top:16px"><h2 class="h2">App Store</h2><p class="sub">Fill in ONE of these. Leave both empty for 🔒 Coming soon.</p>'
       + fld('App Store link', 'stL', 'url', 'off', 'https://apps.apple.com/app/…') + fld('TestFlight code or link', 'stT', 'text', 'off', 'ABCD1234 or https://testflight.apple.com/join/ABCD1234')
       + '<div class="row-btns"><button type="button" class="btn ghost" id="stLock">🔒 Coming soon</button><button type="button" class="btn pri" id="stSave">Save App Store</button></div><div class="err" id="stErr" role="alert"></div></div>'
       + '<p class="sub" style="margin-top:14px"><a href="#/">See how the home page looks →</a></p>';
-    $('psL').value = PLAYCFG.link || ''; $('stL').value = s.link || ''; $('stT').value = s.testflight || '';
+    $('psL').value = PLAYCFG.link || ''; $('psT').value = PLAYCFG.testLink || ''; $('stL').value = s.link || ''; $('stT').value = s.testflight || '';
     $('psSave').onclick = function () {
-      var mode = (box.querySelector('input[name=pm]:checked') || {}).value || 'link', l = $('psL').value.trim();
+      var mode = (box.querySelector('input[name=pm]:checked') || {}).value || 'link', l = $('psL').value.trim(), tl = $('psT').value.trim();
+      if (tl && !/^https:\/\/play\.google\.com\//i.test(tl)) { $('psErr').textContent = 'The testing link should start with https://play.google.com/'; return; }
       if (l && !/^https:\/\/play\.google\.com\//i.test(l)) { $('psErr').textContent = 'The Play Store link should start with https://play.google.com/'; return; }
-      var v = { mode: mode, updatedAt: Date.now(), by: ME }; if (l) v.link = l;
+      var v = { mode: mode, beta: $('psBeta').checked, updatedAt: Date.now(), by: ME }; if (l) v.link = l; if (tl) v.testLink = tl;
       fbPut('/site/playstore', v, true).then(function () { PLAYCFG = v; toast('✅ Google Play button saved'); }).catch(function () { $('psErr').textContent = 'Could not save. Check your connection.'; });
     };
     function saveApple(val) {

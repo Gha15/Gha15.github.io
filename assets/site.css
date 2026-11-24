@@ -199,3 +199,5 @@ input.code{letter-spacing:.4em;font-size:1.4rem !important;text-align:center;fon
 .langbtn:hover{border-color:#a78bfa}
 .langbtn:focus-visible{outline:3px solid #fbbf24;outline-offset:2px}
 .langbtn+.who{margin-left:0}
+.legal{font-size:.8rem;color:var(--dim);text-align:center;margin:12px 0 0}
+.legal a{color:var(--blue)}

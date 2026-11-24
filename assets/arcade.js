@@ -1,5 +1,5 @@
 /* =====================================================================
-   Matix Arcade (1.2.0) — replaces the old Games hub with real built-in
+   Matix Arcade (1.5, ARCADE_VERSION 15) — replaces the old Games hub with real built-in
    math games that use drawn art from assets/games/img:
      🚀 Asteroid Answers   🎈 Balloon Pop     🍎 Fruit Market Sums
      🍕 Pizza Fractions    🦉 Owl Runner      🃏 Memory Match
@@ -17,7 +17,11 @@ function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function clamp(x,a,b){return x<a?a:(x>b?b:x);}
-var IMG_DIR='/arcade/img/';
+/* ARCADE_VERSION: bump it whenever games change. The app compares it with the website's
+   /arcade/version.json and loads the newer arcade straight from the website. */
+var ARCADE_VERSION=15;
+var IMG_DIR=(function(){try{var s=(D.currentScript&&D.currentScript.src)||'',m=s.match(/^(https?:\/\/[^\/]*matixthemathclub\.com)\//);if(m)return m[1]+'/arcade/img/';}catch(e){}
+  return W.MX_ARCADE_IMG||'/arcade/img/';})();
 
 /* ---------- images ---------- */
 var IMG={},IMG_LIST=['bg_space.jpg','ship.png','asteroid0.png','asteroid1.png','asteroid2.png','bg_sky.jpg','balloon_red.png','balloon_blue.png','balloon_green.png','balloon_yellow.png','balloon_purple.png','balloon_pink.png',
@@ -168,7 +172,7 @@ function startGame(def){
   stopGame(true);
   var ov=D.createElement('div');ov.id='mxgOv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label',T(def.name));
   ov.innerHTML='<div class="mxg-hud"><button type="button" class="mxg-ib" id="mxgX" aria-label="'+E(T('Exit game'))+'">✕</button>'
-    +'<div class="mxg-tt"><b>'+def.icon+' '+E(T(def.name))+(CLS.on?' \u00b7 '+E(teamName(CLS.turn)):'')+'</b><span id="mxgQ" aria-live="polite"></span></div>'
+    +'<div class="mxg-tt"><b>'+def.icon+' '+E(T(def.name))+(def.versus?' \u00b7 '+E(teamName('A'))+' vs '+E(teamName('B')):(CLS.on?' \u00b7 '+E(teamName(CLS.turn)):''))+'</b><span id="mxgQ" aria-live="polite"></span></div>'
     +'<div class="mxg-stat"><span id="mxgLives" aria-label="'+E(T('Lives'))+'"></span><span class="mxg-sc" id="mxgScore">0</span></div>'
     +'<button type="button" class="mxg-ib" id="mxgPause" aria-label="'+E(T('Pause'))+'">⏸</button></div>'
     +'<div class="mxg-bigq" id="mxgBigQ" aria-hidden="true"></div><canvas id="mxgCv"></canvas><div class="mxg-end" id="mxgEnd" hidden></div><div class="mxg-msg" id="mxgMsg"></div>';
@@ -232,7 +236,15 @@ function addScore(n){G.score=Math.max(0,G.score+n);hud();if(n>0)G.pops.push({t:'
 function hurt(){G.lives--;hud();try{G.cv.classList.remove('shake');void G.cv.offsetWidth;G.cv.classList.add('shake');}catch(e){}if(navigator.vibrate)try{navigator.vibrate(60);}catch(e){}if(G.lives<=0)gameOver();}
 function gameOver(){
   if(!G||G.over)return;G.over=true;G.paused=true;
-  var id=G.def.id,prev=best(id);setBest(id,G.score);
+  if(G.def.versus){var wd=G.def,wn=G.winner;if(wn){CLS[wn]+=1;saveCls();}
+    var endv=$('mxgEnd');endv.hidden=false;
+    endv.innerHTML='<div class="mxg-card"><div class="mxg-big">\uD83C\uDFC6</div><h2>'+(wn?E(teamName(wn))+' '+E(T('wins!')):E(T('Game over')))+'</h2>'
+      +'<div class="mxg-teams"><div class="'+(CLS.A>=CLS.B?'lead':'')+'"><span>'+E(teamName('A'))+'</span><b>'+CLS.A+'</b></div><div class="'+(CLS.B>CLS.A?'lead':'')+'"><span>'+E(teamName('B'))+'</span><b>'+CLS.B+'</b></div></div>'
+      +'<div class="mxg-btns"><button type="button" class="mxm-btn pri" id="mxgAgain">\u21BB '+E(T('Rematch'))+'</button><button type="button" class="mxm-btn sec" id="mxgQuit">'+E(T('Pick another game'))+'</button></div></div>';
+    $('mxgAgain').onclick=function(){startGame(wd);};$('mxgQuit').onclick=function(){stopGame();};try{$('mxgAgain').focus();}catch(e){}
+    if(wn&&typeof W.lxConfetti==='function')try{W.lxConfetti();}catch(e){}
+    return;}
+  var id=G.def.id,prev=best(id);setBest(id,G.score);pushBest(id,G.score);
   var end=$('mxgEnd');end.hidden=false;
   end.innerHTML='<div class="mxg-card"><div class="mxg-big">'+(G.score>prev&&G.score>0?'🏆':'🎮')+'</div><h2>'+E(T(G.score>prev&&G.score>0?'New best score!':'Game over'))+'</h2>'
     +'<p class="mxg-final">'+G.score+'</p><p>'+E(T('Best'))+': '+Math.max(prev,G.score)+'</p>'
@@ -246,6 +258,7 @@ function gameOver(){
   }
   $('mxgAgain').onclick=function(){startGame(def);};
   $('mxgQuit').onclick=function(){stopGame();};
+  var card=end.querySelector('.mxg-card');if(card&&!CLS.on){var tp=D.createElement('div');tp.id='mxgTop';tp.className='mxg-top';card.insertBefore(tp,card.querySelector('.mxg-btns'));showTop(id);}
   try{$('mxgAgain').focus();}catch(e){}
   if(G.score>prev&&G.score>0&&typeof W.lxConfetti==='function')try{W.lxConfetti();}catch(e){}
 }
@@ -1171,18 +1184,151 @@ var THEMES_FR=['dinos','singes','renards du désert','pingouins','diablotins de 
   o[g[2].desc]='Les '+n+' tombent du ciel, chacun portant une réponse. Touche le bon avant qu’ils n’atterrissent !';
   o[g[5].desc]='Touche les '+n+(odd?' du plus grand nombre au plus petit.':' du plus petit nombre au plus grand.');});
   if(W.trAdd)W.trAdd(o);})();
+/* =====================================================================
+   Class-only team games (Arcade 1.5): both teams play on ONE screen at
+   the same time — Team A on the left, Team B on the right. These only
+   show in "In class"; home games only show "At home".
+   ===================================================================== */
+var TA='#ff4fa3',TB='#38bdf8';
+function vsHalf(g,side){return side==='A'?{x:0,w:g.w/2}:{x:g.w/2,w:g.w/2};}
+/* four answer buttons in one team's half (tap, or keys 1-4 for A and 7-0 for B) */
+function vsBtns(g,ctx,side,opts,top,locked){
+  var h=vsHalf(g,side),gap=8,bw=(h.w-30-gap)/2,bh=Math.max(30,Math.min(64,(g.h-top-20)/2-gap)),out=[];
+  opts.forEach(function(o,i){var x=h.x+10+(i%2)*(bw+gap)+5,y=top+Math.floor(i/2)*(bh+gap);out.push({x:x,y:y,w:bw,h:bh,v:o,side:side});
+    ctx.globalAlpha=locked?.35:1;ctx.fillStyle='rgba(255,255,255,.95)';rr(ctx,x,y,bw,bh,14);ctx.fill();
+    ctx.strokeStyle=side==='A'?TA:TB;ctx.lineWidth=3;rr(ctx,x,y,bw,bh,14);ctx.stroke();
+    label(ctx,String(o),x+bw/2,y+bh/2,Math.min(26,bh*.42),'#1f2937',false);ctx.globalAlpha=1;});
+  return out;
+}
+function vsHit(btns,x,y){for(var i=0;i<btns.length;i++){var r=btns[i];if(x>r.x&&x<r.x+r.w&&y>r.y&&y<r.y+r.h)return r;}return null;}
+function vsKey(btns,k){var m={'1':['A',0],'2':['A',1],'3':['A',2],'4':['A',3],'7':['B',0],'8':['B',1],'9':['B',2],'0':['B',3]}[k];if(!m)return null;var s=btns.filter(function(b){return b.side===m[0];});return s[m[1]]||null;}
+function vsDivider(ctx,g){ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(g.w/2-2,0,4,g.h);}
+function vsNames(ctx,g,y){label(ctx,teamName('A'),g.w/4,y,Math.min(26,g.w/20),TA);label(ctx,teamName('B'),g.w*3/4,y,Math.min(26,g.w/20),TB);}
+function vsWin(g,side){if(g.over)return;g.winner=side;gameOver();}
+
+/* 🪢 Tug of War: each right answer pulls the rope one step to your side */
+var TUG={id:'c_tug',icon:'🪢',name:'Tug of War',thumb:'owl0.png',bg:'bg_sky.jpg',versus:true,lives:false,classOnly:true,
+  desc:'Both teams answer the same question. Each right answer pulls the rope one step your way. Pull it 5 steps to win! A wrong answer freezes your team for 2 seconds.',
+  init:function(g){var s=g.state;s.p=0;s.parts=[];s.frz={A:0,B:0};this.next(g);},
+  next:function(g){var s=g.state;s.q=makeQ(g.L);s.oA=choices(s.q,g.L,4);s.oB=choices(s.q,g.L,4);setQ(qText(s.q));},
+  update:function(g,dt){var s=g.state;s.frz.A=Math.max(0,s.frz.A-dt);s.frz.B=Math.max(0,s.frz.B-dt);},
+  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_sky.jpg'],g.w,g.h);vsDivider(ctx,g);vsNames(ctx,g,26);
+    var ry=g.h*.3,cx=g.w/2+s.p*(g.w*.07);ctx.strokeStyle='#a16207';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(40,ry);ctx.lineTo(g.w-40,ry);ctx.stroke();
+    ctx.fillStyle='#ef4444';ctx.beginPath();ctx.moveTo(cx,ry-6);ctx.lineTo(cx+18,ry-40);ctx.lineTo(cx-18,ry-40);ctx.fill();ctx.fillRect(cx-2,ry-40,4,40);
+    for(var i=-5;i<=5;i++){ctx.fillStyle=i===0?'#fff':'rgba(255,255,255,.5)';ctx.fillRect(g.w/2+i*g.w*.07-1,ry+14,2,i===0||Math.abs(i)===5?22:10);}
+    if(ok(IMG['owl0.png'])){ctx.drawImage(IMG['owl0.png'],10,ry-40,60,68);ctx.save();ctx.translate(g.w-10,ry-40);ctx.scale(-1,1);ctx.drawImage(ok(IMG['owl1.png'])?IMG['owl1.png']:IMG['owl0.png'],0,0,60,68);ctx.restore();}
+    var top=g.h*.48;s.btns=vsBtns(g,ctx,'A',s.oA,top,s.frz.A>0).concat(vsBtns(g,ctx,'B',s.oB,top,s.frz.B>0));
+    ['A','B'].forEach(function(t){if(s.frz[t]>0)label(ctx,'❄ '+s.frz[t].toFixed(1)+'s',t==='A'?g.w/4:g.w*3/4,top-24,22,'#bae6fd');});
+    drawParts(ctx,s.parts,1/60);},
+  pick:function(g,b){var s=g.state;if(!b||s.frz[b.side]>0)return;
+    if(b.v===s.q.a){s.p+=b.side==='A'?-1:1;burst(s.parts,g.w/2+s.p*g.w*.07,g.h*.3,b.side==='A'?TA:TB);flash(teamName(b.side)+' '+T('pulls!'),b.side==='A'?TA:TB);
+      if(Math.abs(s.p)>=5){vsWin(g,s.p<0?'A':'B');return;}this.next(g);}
+    else{s.frz[b.side]=2;flash(teamName(b.side)+': '+T('frozen!'),'#bae6fd');}},
+  down:function(g,x,y){this.pick(g,vsHit(g.state.btns||[],x,y));},
+  key:function(g,k){this.pick(g,vsKey(g.state.btns||[],k));}
+};
+
+/* 🔔 Buzzer Battle: buzz first, then answer. A wrong answer lets the other team steal. First to 7 */
+var BUZZER={id:'c_buzzer',icon:'🔔',name:'Buzzer Battle',thumb:'bolt.png',bg:'bg_space.jpg',versus:true,lives:false,classOnly:true,
+  desc:'Hit your buzzer first, then answer within 6 seconds. Get it wrong and the other team can steal. First team to 7 points wins.',
+  init:function(g){var s=g.state;s.pt={A:0,B:0};s.parts=[];this.next(g);},
+  next:function(g){var s=g.state;s.q=makeQ(g.L);s.opts=choices(s.q,g.L,4);s.who=null;s.tried={};s.left=0;setQ(qText(s.q));},
+  update:function(g,dt){var s=g.state;if(s.who){s.left-=dt;if(s.left<=0){flash(teamName(s.who)+': '+T('too slow!'),'#fca5a5');this.miss(g);}}},
+  miss:function(g){var s=g.state,o=s.who==='A'?'B':'A';s.tried[s.who]=1;s.who=null;if(s.tried[o]){flash(ansText(s.q),'#fde68a');this.next(g);}},
+  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_space.jpg'],g.w,g.h);vsDivider(ctx,g);
+    ['A','B'].forEach(function(t){var cx=t==='A'?g.w/4:g.w*3/4,col=t==='A'?TA:TB;label(ctx,teamName(t)+': '+s.pt[t],cx,28,Math.min(28,g.w/18),col);
+      if(!s.who){var r=Math.min(g.w/8,g.h/5),dead=s.tried[t];ctx.globalAlpha=dead?.3:1;ctx.fillStyle=col;ctx.beginPath();ctx.arc(cx,g.h*.5,r,0,6.28);ctx.fill();ctx.fillStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(cx-r*.3,g.h*.5-r*.3,r*.3,0,6.28);ctx.fill();
+        label(ctx,T('BUZZ'),cx,g.h*.5,r*.45,'#fff');ctx.globalAlpha=1;label(ctx,t==='A'?'(A)':'(L)',cx,g.h*.5+r+22,16,'rgba(255,255,255,.7)');}});
+    s.btns=[];if(s.who){label(ctx,teamName(s.who)+' — '+Math.ceil(s.left)+'s',s.who==='A'?g.w/4:g.w*3/4,g.h*.2,26,'#fde68a');s.btns=vsBtns(g,ctx,s.who,s.opts,g.h*.32,false);}
+    drawParts(ctx,s.parts,1/60);},
+  buzz:function(g,t){var s=g.state;if(s.who||s.tried[t])return;s.who=t;s.left=6;},
+  pick:function(g,b){var s=g.state;if(!b||b.side!==s.who)return;
+    if(b.v===s.q.a){s.pt[b.side]++;burst(s.parts,b.side==='A'?g.w/4:g.w*3/4,g.h*.4,'#fbbf24');flash('✔ '+teamName(b.side),b.side==='A'?TA:TB);if(s.pt[b.side]>=7){vsWin(g,b.side);return;}this.next(g);}
+    else{flash(T('Wrong!')+' '+T('Steal chance'),'#fca5a5');this.miss(g);}},
+  down:function(g,x,y){var s=g.state;if(!s.who){if(y>g.h*.25&&y<g.h*.8)this.buzz(g,x<g.w/2?'A':'B');return;}this.pick(g,vsHit(s.btns||[],x,y));},
+  key:function(g,k){var s=g.state;if(k==='a'||k==='A')this.buzz(g,'A');else if(k==='l'||k==='L')this.buzz(g,'B');else this.pick(g,vsKey(s.btns||[],k));}
+};
+
+/* 💣 Hot Potato: answer right to throw the bomb to the other team. Hold it when it blows and they score. First to 3 */
+var POTATO={id:'c_potato',icon:'💣',name:'Hot Potato Bomb',thumb:'bomb.png',bg:'bg_table.jpg',versus:true,lives:false,classOnly:true,
+  desc:'The team holding the bomb must answer right to throw it to the other team. Nobody knows when it blows! If it explodes on your side, the other team scores. First to 3.',
+  init:function(g){var s=g.state;s.pt={A:0,B:0};s.parts=[];s.hold=Math.random()<.5?'A':'B';this.round(g);},
+  round:function(g){var s=g.state;s.fuse=12+Math.random()*14;s.boom=0;s.fly=0;this.next(g);},
+  next:function(g){var s=g.state;s.q=makeQ(g.L);s.opts=choices(s.q,g.L,4);setQ(teamName(s.hold)+': '+qText(s.q));},
+  update:function(g,dt){var s=g.state;if(s.fly>0)s.fly=Math.max(0,s.fly-dt*2.5);
+    if(s.boom>0){s.boom-=dt;if(s.boom<=0&&!g.over)this.round(g);return;}
+    s.fuse-=dt;if(s.fuse<=0){var o=s.hold==='A'?'B':'A';s.pt[o]++;s.boom=1.6;var x=s.hold==='A'?g.w/4:g.w*3/4;['#f97316','#ef4444','#fde047'].forEach(function(c){burst(s.parts,x,g.h*.3,c);});flash('💥 BOOM! +1 '+teamName(o),'#fca5a5');
+      if(s.pt[o]>=3){vsWin(g,o);return;}s.hold=o==='A'?'B':'A';}},
+  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_table.jpg'],g.w,g.h);vsDivider(ctx,g);
+    label(ctx,teamName('A')+': '+s.pt.A,g.w/4,26,Math.min(26,g.w/18),TA);label(ctx,teamName('B')+': '+s.pt.B,g.w*3/4,26,Math.min(26,g.w/18),TB);
+    var fx=s.hold==='A'?g.w*3/4:g.w/4,tx=s.hold==='A'?g.w/4:g.w*3/4,p=1-s.fly,bx=s.fly>0?fx+(tx-fx)*p:tx,by=g.h*.3-(s.fly>0?Math.sin(p*3.14)*80:0),r=Math.min(70,g.w*.1);
+    s.btns=[];
+    if(s.boom>0)label(ctx,'💥',bx,g.h*.3,90,'#fff',false);
+    else{if(ok(IMG['bomb.png']))ctx.drawImage(IMG['bomb.png'],bx-r,by-r,r*2,r*2);ctx.fillStyle=Math.random()<.5?'#fde047':'#f97316';ctx.beginPath();ctx.arc(bx+r*.5,by-r*.85,6+Math.random()*5,0,6.28);ctx.fill();
+      s.btns=vsBtns(g,ctx,s.hold,s.opts,g.h*.52,false);}
+    drawParts(ctx,s.parts,1/60);},
+  pick:function(g,b){var s=g.state;if(!b||s.boom>0||b.side!==s.hold)return;
+    if(b.v===s.q.a){s.fly=1;s.hold=s.hold==='A'?'B':'A';this.next(g);}else{flash(T('Wrong! Keep holding it'),'#fca5a5');this.next(g);}},
+  down:function(g,x,y){this.pick(g,vsHit(g.state.btns||[],x,y));},
+  key:function(g,k){this.pick(g,vsKey(g.state.btns||[],k));}
+};
+
+/* 🏁 Team Race: each team answers its own questions; every right answer moves your car */
+var TEAMRACE={id:'c_race',icon:'🏁',name:'Team Race',thumb:'car_purple.png',bg:'bg_road.jpg',versus:true,lives:false,classOnly:true,
+  desc:'Each team gets its own questions on its side. Every right answer moves your car forward; a wrong one spins you out. First car over the line wins.',
+  init:function(g){var s=g.state;s.pos={A:0,B:0};s.spin={A:0,B:0};s.q={};s.o={};s.parts=[];this.next(g,'A');this.next(g,'B');setQ(T('Race! Each team answers its own questions'));},
+  next:function(g,t){var s=g.state;s.q[t]=makeQ(g.L);s.o[t]=choices(s.q[t],g.L,4);},
+  update:function(g,dt){var s=g.state;s.spin.A=Math.max(0,s.spin.A-dt);s.spin.B=Math.max(0,s.spin.B-dt);},
+  draw:function(g,ctx){var s=g.state;ctx.fillStyle='#3f6212';ctx.fillRect(0,0,g.w,g.h);var top=10,rh=Math.min(150,g.h*.28);ctx.fillStyle='#374151';ctx.fillRect(0,top,g.w,rh);
+    ctx.strokeStyle='#fde047';ctx.setLineDash([24,18]);ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,top+rh/2);ctx.lineTo(g.w,top+rh/2);ctx.stroke();ctx.setLineDash([]);
+    var x0=50,x1=g.w-70,cw=Math.min(90,g.w*.12);for(var i=0;i<6;i++){ctx.fillStyle=i%2?'#fff':'#111';ctx.fillRect(x1+40,top+i*rh/6,12,rh/6);}
+    [['A','car_orange.png',.27],['B','car_purple.png',.73]].forEach(function(c){var x=x0+(x1-x0)*clamp(s.pos[c[0]]/10,0,1),y=top+rh*c[2];ctx.save();ctx.translate(x,y);if(s.spin[c[0]]>0)ctx.rotate(Math.sin(g.t*30)*.4);if(ok(IMG[c[1]]))ctx.drawImage(IMG[c[1]],-cw/2,-cw*.25,cw,cw*.5);ctx.restore();});
+    ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(g.w/2-2,top+rh,4,g.h-top-rh);
+    var qy=top+rh+34;['A','B'].forEach(function(t){var cx=t==='A'?g.w/4:g.w*3/4,qt=qText(s.q[t]);label(ctx,teamName(t),cx,qy,18,t==='A'?TA:TB);label(ctx,qt,cx,qy+32,Math.max(12,Math.min(26,g.w/(qt.length+6)*1.6)),'#fff');});
+    s.btns=vsBtns(g,ctx,'A',s.o.A,qy+62,s.spin.A>0).concat(vsBtns(g,ctx,'B',s.o.B,qy+62,s.spin.B>0));drawParts(ctx,s.parts,1/60);},
+  pick:function(g,b){var s=g.state;if(!b||s.spin[b.side]>0)return;var t=b.side;
+    if(b.v===s.q[t].a){s.pos[t]++;if(s.pos[t]>=10){vsWin(g,t);return;}}else{s.spin[t]=1.5;flash(teamName(t)+': '+T('spin out!'),'#fca5a5');}this.next(g,t);},
+  down:function(g,x,y){this.pick(g,vsHit(g.state.btns||[],x,y));},
+  key:function(g,k){this.pick(g,vsKey(g.state.btns||[],k));}
+};
+var CLASS_GAMES=[TUG,BUZZER,POTATO,TEAMRACE];
+
 var GAMES=[FISH,STARS,GEMS,DUEL,ASTEROIDS,TRUEFALSE,CASTLE,FLIGHT,BALLOONS,SNAKE,BOMB,RACE,STONES,CATCHER,FRUITS,RUNNER,MEMORY].concat(THEMED);
+var ALLG=GAMES.concat(CLASS_GAMES);
+/* Each home game is made for certain grades, so every grade gets its own set of games.
+   Themed worlds go from little-kid worlds (farm, candy) to older ones (robots, haunted). */
+var LV={fish:[1,13],stars:[1,13],gems:[2,13],duel:[1,9],asteroids:[3,13],truefalse:[4,13],castle:[4,13],flight:[5,13],balloons:[1,6],snake:[3,13],bomb:[6,13],race:[5,13],stones:[1,8],catcher:[1,8],fruit:[1,6],runner:[2,10],memory:[1,13]};
+var THEME_LV={farm:[1,3],candy:[1,4],rainbow:[2,5],jungle:[2,5],dino:[3,6],island:[4,7],arctic:[5,8],pirate:[6,9],desert:[7,10],volcano:[8,11],haunted:[9,13],robot:[10,13]};
+function gradeRange(g){if(LV[g.id])return LV[g.id];var m=/^t_([a-z]+)_/.exec(g.id);if(m&&THEME_LV[m[1]])return THEME_LV[m[1]];if(g.lv)return g.lv;return [1,13];}
+function forGrade(g,L){var r=gradeRange(g);return L>=r[0]&&L<=r[1];}
+/* ---------- best scores sync between the app and the website (signed-in players) ---------- */
+function who(){return W.ME||W.mxUser||null;}
+function fbBase(){return W.FB||'https://matix-1d538-default-rtdb.firebaseio.com';}
+function fbJ(p,m,d){var o={method:m||'GET'};if(d!==undefined){o.headers={'Content-Type':'application/json'};o.body=JSON.stringify(d);}return fetch(fbBase()+p+'.json',o).then(function(r){return r.json();});}
+function gkey(id){return encodeURIComponent(String(id).replace(/[.#$\[\]\/]/g,'_'));}
+function pushBest(id,score){var u=who();if(!u||!(score>0))return;var k=encodeURIComponent(u),g=gkey(id);
+  fbJ('/arcade/best/'+k+'/'+g).then(function(cur){if(!(+cur>=score)){fbJ('/arcade/best/'+k+'/'+g,'PUT',score);fbJ('/arcade/top/'+g+'/'+k,'PUT',score);}})['catch'](function(){});}
+var lastPull=0;
+function syncBests(after){var u=who();if(!u||Date.now()-lastPull<60000)return;lastPull=Date.now();
+  fbJ('/arcade/best/'+encodeURIComponent(u)).then(function(o){o=o||{};var changed=false;
+    ALLG.forEach(function(g){var r=+o[gkey(g.id)]||0,l=best(g.id);if(r>l){ls('mx_arcade_best_'+g.id,String(r));changed=true;}else if(l>r)pushBest(g.id,l);});
+    if(changed&&after)after();})['catch'](function(){});}
+function showTop(id){var box=$('mxgTop');if(!box)return;
+  fbJ('/arcade/top/'+gkey(id)).then(function(o){if(!$('mxgTop'))return;var rows=Object.keys(o||{}).map(function(k){return [decodeURIComponent(k),+o[k]||0];}).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+    if(!rows.length){box.innerHTML='';return;}
+    box.innerHTML='<b>\uD83C\uDFC6 '+E(T('Top players'))+'</b><ol>'+rows.map(function(r){return '<li'+(r[0]===who()?' class="me"':'')+'><span>@'+E(r[0])+'</span><b>'+r[1]+'</b></li>';}).join('')+'</ol>';})['catch'](function(){});}
 
 /* ---------- arcade page (replaces the old Games hub) ---------- */
 function renderArcade(c){
-  var L=level(),shown=GAMES;
+  var L=level(),shown=CLS.on?CLASS_GAMES:GAMES.filter(function(g){return forGrade(g,L);});
+  syncBests(function(){var cc=$('content');if(!G&&cc&&cc.querySelector('.mxr-arcade'))renderArcade(cc);});
   function card(g,i,isNew){
     return '<button type="button" class="mxr-card" data-i="'+i+'" data-n="'+E((T(g.name)+' '+g.name).toLowerCase())+'" aria-label="'+E(T(g.name)+'. '+T(g.desc))+'">'
       +'<span class="mxr-art"><img class="mxr-bg" loading="lazy" src="'+IMG_DIR+(g.bgThumb||g.bg)+'" alt=""><img loading="lazy" src="'+IMG_DIR+g.thumb+'" alt="">'+(isNew?'<i class="mxr-new">NEW</i>':'')+'</span>'
-      +'<span class="mxr-tx"><b>'+g.icon+' '+E(T(g.name))+'</b><small>'+E(T(g.desc))+'</small><em>🏆 '+E(T('Best'))+': '+best(g.id)+'</em></span></button>';}
+      +'<span class="mxr-tx"><b>'+g.icon+' '+E(T(g.name))+'</b><small>'+E(T(g.desc))+'</small>'+(g.versus?'<em>\uD83C\uDFEB '+E(T('Both teams play at once'))+'</em>':'<em>🏆 '+E(T('Best'))+': '+best(g.id)+'</em>')+'</span></button>';}
   var NEWIDS={};
   c.innerHTML='<div class="mxr-arcade">'
-    +'<div class="mxr-hero"><div><h1>🎮 '+E(T('Matix Arcade'))+'</h1><p>'+E(T('Real games, real maths. Pick your grade and the games and questions are made for it.'))+' '+GAMES.length+' '+E(T('games'))+', '+EXERCISES.length+' '+E(T('smart-board exercises'))+'.</p></div></div>'
+    +'<div class="mxr-hero"><div><h1>🎮 '+E(T('Matix Arcade'))+'</h1><p>'+E(T('Real games, real maths. Pick your grade and the games and questions are made for it.'))+' '+ALLG.length+' '+E(T('games'))+', '+EXERCISES.length+' '+E(T('smart-board exercises'))+'.</p></div></div>'
     +'<div class="mxr-modes" role="tablist" aria-label="'+E(T('Where are you playing?'))+'"><button type="button" role="tab" data-m="home" aria-selected="'+(!CLS.on)+'">🏠 '+E(T('At home'))+'</button><button type="button" role="tab" data-m="class" aria-selected="'+CLS.on+'">🏫 '+E(T('In class'))+'</button></div>'
     +'<label class="mxr-lv"><span>'+E(T(CLS.on?'Pick the class':'Difficulty'))+'</span><select id="mxaLv" aria-label="'+E(T('Grade'))+'">'+LEVELS.map(function(l){return '<option value="'+l[0]+'"'+(+l[0]===L?' selected':'')+'>'+E(T(l[1]))+'</option>';}).join('')+'</select></label>'
     +(CLS.on?'<div class="mxr-class"><p>'+E(T('Class mode is for the smart board. Pick an exercise below: a big problem, a pen board for working it out, and the worked answer to reveal. Two teams take turns and the points add up.'))+'</p>'
@@ -1190,9 +1336,9 @@ function renderArcade(c){
       +'<label><input id="mxaNB" maxlength="16" value="'+E(teamName('B'))+'" aria-label="'+E(T('Team B name'))+'"><b>'+CLS.B+'</b></label></div>'
       +'<p class="mxr-turn">▶ '+E(T('Next to play'))+': <b>'+E(teamName(CLS.turn))+'</b> <button type="button" class="mxr-link" id="mxaSwap">'+E(T('switch'))+'</button> · <button type="button" class="mxr-link" id="mxaReset">'+E(T('reset scores'))+'</button></p></div>'
       +'<h2 class="mxr-h">✏️ '+E(T('Smart-board exercises'))+'</h2><div class="mxr-grid mxr-ex">'+EXERCISES.map(function(x,i){return '<button type="button" class="mxr-card mxr-exc" data-x="'+i+'"><span class="mxr-exi">'+x.icon+'</span><span class="mxr-tx"><b>'+E(T(x.name))+'</b><small>'+E(T(x.desc))+'</small></span></button>';}).join('')+'</div>'
-      +'<h2 class="mxr-h">🎮 '+E(T('Team games'))+'</h2>':'')
-    +'<div class="mxr-filter"><span>'+GAMES.length+' '+E(T('games'))+'</span> <input type="search" id="mxaSearch" class="mxr-search" placeholder="'+E(T('Search games'))+'" aria-label="'+E(T('Search games'))+'"></div>'
-    +'<div class="mxr-grid">'+shown.map(function(g){return card(g,GAMES.indexOf(g),NEWIDS[g.id]);}).join('')+'</div></div>';
+      +'<h2 class="mxr-h">🎮 '+E(T('Class team games'))+'</h2>':'')
+    +'<div class="mxr-filter"><span>'+shown.length+' '+E(T(CLS.on?'class games':'games for this grade'))+'</span> <input type="search" id="mxaSearch" class="mxr-search" placeholder="'+E(T('Search games'))+'" aria-label="'+E(T('Search games'))+'"></div>'
+    +'<div class="mxr-grid">'+shown.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div></div>';
   $('mxaLv').onchange=function(){ls('mx_arcade_level',this.value);renderArcade(c);};
   $('mxaSearch').oninput=function(){var q=this.value.trim().toLowerCase();c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.style.display=!q||b.dataset.n.indexOf(q)>=0?'':'none';});};
   c.querySelectorAll('.mxr-modes button').forEach(function(b){b.onclick=function(){CLS.on=b.dataset.m==='class';saveCls();renderArcade(c);};});
@@ -1203,12 +1349,12 @@ function renderArcade(c){
     $('mxaReset').onclick=function(){CLS.A=CLS.B=0;CLS.turn='A';saveCls();renderArcade(c);};
     c.querySelectorAll('.mxr-exc').forEach(function(b){b.onclick=function(){startBoard(EXERCISES[+b.dataset.x]);};});
   }
-  c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.onclick=function(){startGame(GAMES[+b.dataset.i]);};});
+  c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.onclick=function(){startGame(ALLG[+b.dataset.i]);};});
 }
 W.renderGames=function(c){renderArcade(c);};
 W.addEventListener('mxlang',function(){if(G||BX.on)return;var c=$('content');if(c&&c.querySelector('.mxr-arcade'))renderArcade(c);});
 W.renderGamePlay=function(c){renderArcade(c);};
-W.mxArcade={start:function(id){var g=GAMES.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:GAMES,makeQ:makeQ};
+W.mxArcade={start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:CLASS_GAMES,forGrade:forGrade,makeQ:makeQ,version:ARCADE_VERSION};
 /* Android back button closes a running game */
 W.addEventListener('popstate',function(){if(G){G.pushed=false;stopGame();}});
 })();

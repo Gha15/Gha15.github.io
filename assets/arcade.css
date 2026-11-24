@@ -157,3 +157,9 @@ body.desktop #mxbOv{top:40px}
 #mxbOv>*{min-width:0;max-width:100%}
 .mxb-cv{width:100%;max-width:100%}
 .mxb-tools{max-width:100%}
+/* Arcade 1.5: top players on the game-over card */
+.mxg-top{margin:12px 0 4px;text-align:left}
+.mxg-top b{display:block;margin-bottom:6px}
+.mxg-top ol{margin:0;padding-left:22px}
+.mxg-top li{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.mxg-top li.me{color:#fde68a;font-weight:800}
