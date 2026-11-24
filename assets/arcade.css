@@ -200,3 +200,11 @@ body.desktop #mxbOv{top:40px}
 .mxp-bar .on{outline:3px solid #fde047}
 .mxp-teams{display:flex;gap:6px;flex-wrap:wrap}
 .mxp-ta{border-color:#ff4fa3 !important}.mxp-tb{border-color:#38bdf8 !important}
+/* 1.5.0: each class (grade) has its own world */
+.mxr-hero.mxr-world{background-size:cover;background-position:center;display:flex;align-items:center;gap:16px;min-height:150px}
+.mxr-hero.mxr-world>div{position:relative;z-index:1;flex:1;min-width:0}
+.mxr-wsp{position:relative;z-index:1;width:110px;height:110px;object-fit:contain;flex:none;order:2;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45));animation:mxrBob 3s ease-in-out infinite}
+.mxr-wtag{display:inline-block;margin-bottom:8px;padding:5px 12px;border-radius:99px;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);font-weight:800;font-size:.85rem}
+@keyframes mxrBob{50%{transform:translateY(-8px)}}
+@media (max-width:520px){.mxr-wsp{width:72px;height:72px}}
+@media (prefers-reduced-motion:reduce){.mxr-wsp{animation:none}}

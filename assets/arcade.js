@@ -19,7 +19,7 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function clamp(x,a,b){return x<a?a:(x>b?b:x);}
 /* ARCADE_VERSION: bump it whenever games change. The app compares it with the website's
    /arcade/version.json and loads the newer arcade straight from the website. */
-var ARCADE_VERSION=16;
+var ARCADE_VERSION=17;
 var IMG_DIR=(function(){try{var s=(D.currentScript&&D.currentScript.src)||'',m=s.match(/^(https?:\/\/[^\/]*matixthemathclub\.com)\//);if(m)return m[1]+'/arcade/img/';}catch(e){}
   return W.MX_ARCADE_IMG||'/arcade/img/';})();
 
@@ -37,6 +37,7 @@ function loadOne(n,k,done){var im=new Image();im.onload=function(){IMG[n]=im;don
   im.src=IMG_DIR+bgFile(n,k);}
 function loadImages(cb,def){
   var left=0,k=BGK=shapeKey(),names=def&&def.themed?def.assets.concat(['heart.png']):IMG_LIST;
+  if(def&&def.classOnly){var wd=worldOf(level())[0];names=names.concat(['bg_'+wd+'.jpg','sp_'+wd+'.png']);}
   names.forEach(function(n){
     if(IMG[n])return;left++;
     loadOne(n,k,function(){left--;if(!left)cb();});
@@ -172,7 +173,7 @@ function startGame(def){
   stopGame(true);
   var ov=D.createElement('div');ov.id='mxgOv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label',T(def.name));
   ov.innerHTML='<div class="mxg-hud"><button type="button" class="mxg-ib" id="mxgX" aria-label="'+E(T('Exit game'))+'">✕</button>'
-    +'<div class="mxg-tt"><b>'+def.icon+' '+E(T(def.name))+(def.versus?' \u00b7 '+E(teamName('A'))+' vs '+E(teamName('B')):(CLS.on?' \u00b7 '+E(teamName(CLS.turn)):''))+'</b><span id="mxgQ" aria-live="polite"></span></div>'
+    +'<div class="mxg-tt"><b>'+def.icon+' '+E(gName(def,level()))+(def.versus?' \u00b7 '+E(teamName('A'))+' vs '+E(teamName('B')):(CLS.on?' \u00b7 '+E(teamName(CLS.turn)):''))+'</b><span id="mxgQ" aria-live="polite"></span></div>'
     +'<div class="mxg-stat"><span id="mxgLives" aria-label="'+E(T('Lives'))+'"></span><span class="mxg-sc" id="mxgScore">0</span></div>'
     +'<button type="button" class="mxg-ib" id="mxgPause" aria-label="'+E(T('Pause'))+'">⏸</button></div>'
     +'<div class="mxg-bigq" id="mxgBigQ" aria-hidden="true"></div><canvas id="mxgCv"></canvas><div class="mxg-end" id="mxgEnd" hidden></div><div class="mxg-msg" id="mxgMsg"></div>';
@@ -1078,6 +1079,12 @@ var DUEL={id:'duel',icon:'⚔️',name:'Bigger Duel',thumb:'bolt.png',bg:'bg_for
    ===================================================================== */
 var THEMES=[['dino','🦖','Dino','dinos'],['jungle','🐒','Jungle','monkeys'],['desert','🦊','Desert','desert foxes'],['arctic','🐧','Arctic','penguins'],['volcano','🌋','Volcano','fire imps'],['candy','🍬','Candy','candies'],
   ['pirate','🏴‍☠️','Pirate','pirates'],['robot','🤖','Robot','robots'],['farm','🐷','Farm','piglets'],['haunted','👻','Haunted','ghosts'],['rainbow','🦄','Rainbow','unicorns'],['island','🦜','Island','parrots']];
+/* 1.5.0: every class (grade) has its own world. Its themed games, its arcade page and its class team games all use it. */
+var GRADE_WORLD=['farm','candy','rainbow','jungle','dino','island','arctic','pirate','desert','volcano','haunted','robot','robot'];
+function worldOf(L){var id=GRADE_WORLD[(L||3)-1]||'dino';return THEMES.filter(function(t){return t[0]===id;})[0]||THEMES[0];}
+function wbg(g,fb){var im=IMG['bg_'+worldOf(g.L)[0]+'.jpg'];return ok(im)?im:IMG[fb];}
+function wsp(g){return IMG['sp_'+worldOf(g.L)[0]+'.png'];}
+function wcover(ctx,g,fb){cover(ctx,wbg(g,fb),g.w,g.h);ctx.fillStyle='rgba(10,10,30,.28)';ctx.fillRect(0,0,g.w,g.h);}
 function tag(ctx,s,x,y,size,maxW){ctx.font='800 '+size+'px system-ui,sans-serif';var m=ctx.measureText(s).width+size*.8;if(maxW&&m>maxW){size=Math.max(9,size*maxW/m);ctx.font='800 '+size+'px system-ui,sans-serif';m=ctx.measureText(s).width+size*.8;}
   var w=Math.max(size*1.7,m),h=size*1.4;ctx.fillStyle='rgba(255,255,255,.96)';rr(ctx,x-w/2,y-h/2,w,h,h/2);ctx.fill();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#1f2937';ctx.fillText(s,x,y+1);}
 function spr(ctx,im,x,y,sz,flip){if(!ok(im))return;ctx.save();ctx.translate(x,y);if(flip)ctx.scale(-1,1);ctx.drawImage(im,-sz/2,-sz/2,sz,sz);ctx.restore();}
@@ -1212,11 +1219,12 @@ var TUG={id:'c_tug',icon:'🪢',name:'Tug of War',thumb:'owl0.png',bg:'bg_sky.jp
   init:function(g){var s=g.state;s.p=0;s.parts=[];s.frz={A:0,B:0};this.next(g);},
   next:function(g){var s=g.state;s.q=makeQ(g.L);s.oA=choices(s.q,g.L,4);s.oB=choices(s.q,g.L,4);setQ(qText(s.q));},
   update:function(g,dt){var s=g.state;s.frz.A=Math.max(0,s.frz.A-dt);s.frz.B=Math.max(0,s.frz.B-dt);},
-  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_sky.jpg'],g.w,g.h);vsDivider(ctx,g);vsNames(ctx,g,26);
+  draw:function(g,ctx){var s=g.state;wcover(ctx,g,'bg_sky.jpg');vsDivider(ctx,g);vsNames(ctx,g,26);
     var ry=g.h*.3,cx=g.w/2+s.p*(g.w*.07);ctx.strokeStyle='#a16207';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(40,ry);ctx.lineTo(g.w-40,ry);ctx.stroke();
     ctx.fillStyle='#ef4444';ctx.beginPath();ctx.moveTo(cx,ry-6);ctx.lineTo(cx+18,ry-40);ctx.lineTo(cx-18,ry-40);ctx.fill();ctx.fillRect(cx-2,ry-40,4,40);
     for(var i=-5;i<=5;i++){ctx.fillStyle=i===0?'#fff':'rgba(255,255,255,.5)';ctx.fillRect(g.w/2+i*g.w*.07-1,ry+14,2,i===0||Math.abs(i)===5?22:10);}
-    if(ok(IMG['owl0.png'])){ctx.drawImage(IMG['owl0.png'],10,ry-40,60,68);ctx.save();ctx.translate(g.w-10,ry-40);ctx.scale(-1,1);ctx.drawImage(ok(IMG['owl1.png'])?IMG['owl1.png']:IMG['owl0.png'],0,0,60,68);ctx.restore();}
+    if(ok(wsp(g))){spr(ctx,wsp(g),48,ry-8,76,false);spr(ctx,wsp(g),g.w-48,ry-8,76,true);}
+    else if(ok(IMG['owl0.png'])){ctx.drawImage(IMG['owl0.png'],10,ry-40,60,68);ctx.save();ctx.translate(g.w-10,ry-40);ctx.scale(-1,1);ctx.drawImage(ok(IMG['owl1.png'])?IMG['owl1.png']:IMG['owl0.png'],0,0,60,68);ctx.restore();}
     var top=g.h*.48;s.btns=vsBtns(g,ctx,'A',s.oA,top,s.frz.A>0).concat(vsBtns(g,ctx,'B',s.oB,top,s.frz.B>0));
     ['A','B'].forEach(function(t){if(s.frz[t]>0)label(ctx,'❄ '+s.frz[t].toFixed(1)+'s',t==='A'?g.w/4:g.w*3/4,top-24,22,'#bae6fd');});
     drawParts(ctx,s.parts,1/60);},
@@ -1235,8 +1243,9 @@ var BUZZER={id:'c_buzzer',icon:'🔔',name:'Buzzer Battle',thumb:'bolt.png',bg:'
   next:function(g){var s=g.state;s.q=makeQ(g.L);s.opts=choices(s.q,g.L,4);s.who=null;s.tried={};s.left=0;setQ(qText(s.q));},
   update:function(g,dt){var s=g.state;if(s.who){s.left-=dt;if(s.left<=0){flash(teamName(s.who)+': '+T('too slow!'),'#fca5a5');this.miss(g);}}},
   miss:function(g){var s=g.state,o=s.who==='A'?'B':'A';s.tried[s.who]=1;s.who=null;if(s.tried[o]){flash(ansText(s.q),'#fde68a');this.next(g);}},
-  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_space.jpg'],g.w,g.h);vsDivider(ctx,g);
+  draw:function(g,ctx){var s=g.state;wcover(ctx,g,'bg_space.jpg');vsDivider(ctx,g);
     ['A','B'].forEach(function(t){var cx=t==='A'?g.w/4:g.w*3/4,col=t==='A'?TA:TB;label(ctx,teamName(t)+': '+s.pt[t],cx,28,Math.min(28,g.w/18),col);
+      if(!s.who&&!s.tried[t])spr(ctx,wsp(g),cx,g.h*.5-Math.min(g.w/8,g.h/5)-34+Math.sin(g.t*4+(t==='A'?0:2))*4,Math.min(64,g.h*.12),t==='B');
       if(!s.who){var r=Math.min(g.w/8,g.h/5),dead=s.tried[t];ctx.globalAlpha=dead?.3:1;ctx.fillStyle=col;ctx.beginPath();ctx.arc(cx,g.h*.5,r,0,6.28);ctx.fill();ctx.fillStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(cx-r*.3,g.h*.5-r*.3,r*.3,0,6.28);ctx.fill();
         label(ctx,T('BUZZ'),cx,g.h*.5,r*.45,'#fff');ctx.globalAlpha=1;label(ctx,t==='A'?'(A)':'(L)',cx,g.h*.5+r+22,16,'rgba(255,255,255,.7)');}});
     s.btns=[];if(s.who){label(ctx,teamName(s.who)+' — '+Math.ceil(s.left)+'s',s.who==='A'?g.w/4:g.w*3/4,g.h*.2,26,'#fde68a');s.btns=vsBtns(g,ctx,s.who,s.opts,g.h*.32,false);}
@@ -1259,7 +1268,7 @@ var POTATO={id:'c_potato',icon:'💣',name:'Hot Potato Bomb',thumb:'bomb.png',bg
     if(s.boom>0){s.boom-=dt;if(s.boom<=0&&!g.over)this.round(g);return;}
     s.fuse-=dt;if(s.fuse<=0){var o=s.hold==='A'?'B':'A';s.pt[o]++;s.boom=1.6;var x=s.hold==='A'?g.w/4:g.w*3/4;['#f97316','#ef4444','#fde047'].forEach(function(c){burst(s.parts,x,g.h*.3,c);});flash('💥 BOOM! +1 '+teamName(o),'#fca5a5');
       if(s.pt[o]>=3){vsWin(g,o);return;}s.hold=o==='A'?'B':'A';}},
-  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_table.jpg'],g.w,g.h);vsDivider(ctx,g);
+  draw:function(g,ctx){var s=g.state;wcover(ctx,g,'bg_table.jpg');vsDivider(ctx,g);
     label(ctx,teamName('A')+': '+s.pt.A,g.w/4,26,Math.min(26,g.w/18),TA);label(ctx,teamName('B')+': '+s.pt.B,g.w*3/4,26,Math.min(26,g.w/18),TB);
     var fx=s.hold==='A'?g.w*3/4:g.w/4,tx=s.hold==='A'?g.w/4:g.w*3/4,p=1-s.fly,bx=s.fly>0?fx+(tx-fx)*p:tx,by=g.h*.3-(s.fly>0?Math.sin(p*3.14)*80:0),r=Math.min(70,g.w*.1);
     s.btns=[];
@@ -1279,10 +1288,10 @@ var TEAMRACE={id:'c_race',icon:'🏁',name:'Team Race',thumb:'car_purple.png',bg
   init:function(g){var s=g.state;s.pos={A:0,B:0};s.spin={A:0,B:0};s.q={};s.o={};s.parts=[];this.next(g,'A');this.next(g,'B');setQ(T('Race! Each team answers its own questions'));},
   next:function(g,t){var s=g.state;s.q[t]=makeQ(g.L);s.o[t]=choices(s.q[t],g.L,4);},
   update:function(g,dt){var s=g.state;s.spin.A=Math.max(0,s.spin.A-dt);s.spin.B=Math.max(0,s.spin.B-dt);},
-  draw:function(g,ctx){var s=g.state;ctx.fillStyle='#3f6212';ctx.fillRect(0,0,g.w,g.h);var top=10,rh=Math.min(150,g.h*.28);ctx.fillStyle='#374151';ctx.fillRect(0,top,g.w,rh);
+  draw:function(g,ctx){var s=g.state;if(ok(IMG['bg_'+worldOf(g.L)[0]+'.jpg']))wcover(ctx,g,'bg_road.jpg');else{ctx.fillStyle='#3f6212';ctx.fillRect(0,0,g.w,g.h);}var top=10,rh=Math.min(150,g.h*.28);ctx.fillStyle='#374151';ctx.fillRect(0,top,g.w,rh);
     ctx.strokeStyle='#fde047';ctx.setLineDash([24,18]);ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,top+rh/2);ctx.lineTo(g.w,top+rh/2);ctx.stroke();ctx.setLineDash([]);
     var x0=50,x1=g.w-70,cw=Math.min(90,g.w*.12);for(var i=0;i<6;i++){ctx.fillStyle=i%2?'#fff':'#111';ctx.fillRect(x1+40,top+i*rh/6,12,rh/6);}
-    [['A','car_orange.png',.27],['B','car_purple.png',.73]].forEach(function(c){var x=x0+(x1-x0)*clamp(s.pos[c[0]]/10,0,1),y=top+rh*c[2];ctx.save();ctx.translate(x,y);if(s.spin[c[0]]>0)ctx.rotate(Math.sin(g.t*30)*.4);if(ok(IMG[c[1]]))ctx.drawImage(IMG[c[1]],-cw/2,-cw*.25,cw,cw*.5);ctx.restore();});
+    [['A','car_orange.png',.27],['B','car_purple.png',.73]].forEach(function(c){var x=x0+(x1-x0)*clamp(s.pos[c[0]]/10,0,1),y=top+rh*c[2];ctx.save();ctx.translate(x,y);if(s.spin[c[0]]>0)ctx.rotate(Math.sin(g.t*30)*.4);if(ok(IMG[c[1]]))ctx.drawImage(IMG[c[1]],-cw/2,-cw*.25,cw,cw*.5);spr(ctx,wsp(g),cw*.05,-cw*.42,cw*.5,c[0]==='B');ctx.restore();});
     ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(g.w/2-2,top+rh,4,g.h-top-rh);
     var qy=top+rh+34;['A','B'].forEach(function(t){var cx=t==='A'?g.w/4:g.w*3/4,qt=qText(s.q[t]);label(ctx,teamName(t),cx,qy,18,t==='A'?TA:TB);label(ctx,qt,cx,qy+32,Math.max(12,Math.min(26,g.w/(qt.length+6)*1.6)),'#fff');});
     s.btns=vsBtns(g,ctx,'A',s.o.A,qy+62,s.spin.A>0).concat(vsBtns(g,ctx,'B',s.o.B,qy+62,s.spin.B>0));drawParts(ctx,s.parts,1/60);},
@@ -1300,7 +1309,8 @@ var ALLG=GAMES.concat(CLASS_GAMES);
 var LV={fish:[1,13],stars:[1,13],gems:[2,13],duel:[1,9],asteroids:[3,13],truefalse:[4,13],castle:[4,13],flight:[5,13],balloons:[1,6],snake:[3,13],bomb:[6,13],race:[5,13],stones:[1,8],catcher:[1,8],fruit:[1,6],runner:[2,10],memory:[1,13]};
 var THEME_LV={farm:[1,3],candy:[1,4],rainbow:[2,5],jungle:[2,5],dino:[3,6],island:[4,7],arctic:[5,8],pirate:[6,9],desert:[7,10],volcano:[8,11],haunted:[9,13],robot:[10,13]};
 function gradeRange(g){if(LV[g.id])return LV[g.id];var m=/^t_([a-z]+)_/.exec(g.id);if(m&&THEME_LV[m[1]])return THEME_LV[m[1]];if(g.lv)return g.lv;return [1,13];}
-function forGrade(g,L){var r=gradeRange(g);return L>=r[0]&&L<=r[1];}
+function forGrade(g,L){if(g.th)return g.th===worldOf(L)[0];var r=gradeRange(g);return L>=r[0]&&L<=r[1];}
+function gName(g,L){if(g.classOnly){var w=worldOf(L);return T(w[2])+' '+T(g.name);}return T(g.name);}
 /* ---------- best scores sync between the app and the website (signed-in players) ---------- */
 function who(){return W.ME||W.mxUser||null;}
 function fbBase(){return W.FB||'https://matix-1d538-default-rtdb.firebaseio.com';}
@@ -1431,15 +1441,17 @@ W.addEventListener('popstate',function(){if(DK.pv)closePresent(true);});
 
 /* ---------- arcade page (replaces the old Games hub) ---------- */
 function renderArcade(c){
-  var L=level(),shown=CLS.on?CLASS_GAMES:GAMES.filter(function(g){return forGrade(g,L);});
+  var L=level(),WD=worldOf(L),shown=CLS.on?CLASS_GAMES:GAMES.filter(function(g){return forGrade(g,L);}),
+    mine=shown.filter(function(g){return g.th;}),rest=shown.filter(function(g){return !g.th;});
   syncBests(function(){var cc=$('content');if(!G&&cc&&cc.querySelector('.mxr-arcade'))renderArcade(cc);});
   function card(g,i,isNew){
-    return '<button type="button" class="mxr-card" data-i="'+i+'" data-n="'+E((T(g.name)+' '+g.name).toLowerCase())+'" aria-label="'+E(T(g.name)+'. '+T(g.desc))+'">'
-      +'<span class="mxr-art"><img class="mxr-bg" loading="lazy" src="'+IMG_DIR+(g.bgThumb||g.bg)+'" alt=""><img loading="lazy" src="'+IMG_DIR+g.thumb+'" alt="">'+(isNew?'<i class="mxr-new">NEW</i>':'')+'</span>'
-      +'<span class="mxr-tx"><b>'+g.icon+' '+E(T(g.name))+'</b><small>'+E(T(g.desc))+'</small>'+(g.versus?'<em>\uD83C\uDFEB '+E(T('Both teams play at once'))+'</em>':'<em>🏆 '+E(T('Best'))+': '+best(g.id)+'</em>')+'</span></button>';}
+    var nm=gName(g,L),cb=g.classOnly?'bg_'+WD[0]+'_w.jpg':(g.bgThumb||g.bg),ct=g.classOnly?'sp_'+WD[0]+'.png':g.thumb;
+    return '<button type="button" class="mxr-card" data-i="'+i+'" data-n="'+E((nm+' '+g.name).toLowerCase())+'" aria-label="'+E(nm+'. '+T(g.desc))+'">'
+      +'<span class="mxr-art"><img class="mxr-bg" loading="lazy" src="'+IMG_DIR+cb+'" alt=""><img loading="lazy" src="'+IMG_DIR+ct+'" alt="">'+(isNew?'<i class="mxr-new">NEW</i>':'')+'</span>'
+      +'<span class="mxr-tx"><b>'+g.icon+' '+E(nm)+'</b><small>'+E(T(g.desc))+'</small>'+(g.versus?'<em>\uD83C\uDFEB '+E(T('Both teams play at once'))+'</em>':'<em>🏆 '+E(T('Best'))+': '+best(g.id)+'</em>')+'</span></button>';}
   var NEWIDS={};
   c.innerHTML='<div class="mxr-arcade">'
-    +'<div class="mxr-hero"><div><h1>🎮 '+E(T('Matix Arcade'))+'</h1><p>'+E(T('Real games, real maths. Pick your grade and the games and questions are made for it.'))+' '+ALLG.length+' '+E(T('games'))+', '+EXERCISES.length+' '+E(T('smart-board exercises'))+'.</p></div></div>'
+    +'<div class="mxr-hero mxr-world" style="background-image:linear-gradient(120deg,rgba(18,10,60,.72),rgba(18,10,60,.25)),url('+IMG_DIR+'bg_'+WD[0]+'_w.jpg)"><img class="mxr-wsp" src="'+IMG_DIR+'sp_'+WD[0]+'.png" alt=""><div><span class="mxr-wtag">'+WD[1]+' '+E(T(LEVELS[L-1][1]))+' · '+E(T(WD[2]))+' '+E(T('world'))+'</span><h1>🎮 '+E(T('Matix Arcade'))+'</h1><p>'+E(T('Real games, real maths. Pick your grade and the games and questions are made for it.'))+' '+ALLG.length+' '+E(T('games'))+', '+EXERCISES.length+' '+E(T('smart-board exercises'))+'.</p></div></div>'
     +'<div class="mxr-modes" role="tablist" aria-label="'+E(T('Where are you playing?'))+'"><button type="button" role="tab" data-m="home" aria-selected="'+(!CLS.on)+'">🏠 '+E(T('At home'))+'</button><button type="button" role="tab" data-m="class" aria-selected="'+CLS.on+'">🏫 '+E(T('In class'))+'</button></div>'
     +'<label class="mxr-lv"><span>'+E(T(CLS.on?'Pick the class':'Difficulty'))+'</span><select id="mxaLv" aria-label="'+E(T('Grade'))+'">'+LEVELS.map(function(l){return '<option value="'+l[0]+'"'+(+l[0]===L?' selected':'')+'>'+E(T(l[1]))+'</option>';}).join('')+'</select></label>'
     +(CLS.on?'<div class="mxr-class"><p>'+E(T('Class mode is for the smart board. Pick an exercise below: a big problem, a pen board for working it out, and the worked answer to reveal. Two teams take turns and the points add up.'))+'</p>'
@@ -1449,7 +1461,10 @@ function renderArcade(c){
       +'<h2 class="mxr-h">✏️ '+E(T('Smart-board exercises'))+'</h2><div class="mxr-grid mxr-ex">'+EXERCISES.map(function(x,i){return '<button type="button" class="mxr-card mxr-exc" data-x="'+i+'"><span class="mxr-exi">'+x.icon+'</span><span class="mxr-tx"><b>'+E(T(x.name))+'</b><small>'+E(T(x.desc))+'</small></span></button>';}).join('')+'</div>'
       +'<h2 class="mxr-h">🎮 '+E(T('Class team games'))+'</h2>':'')
     +'<div class="mxr-filter"><span>'+shown.length+' '+E(T(CLS.on?'class games':'games for this grade'))+'</span> <input type="search" id="mxaSearch" class="mxr-search" placeholder="'+E(T('Search games'))+'" aria-label="'+E(T('Search games'))+'"></div>'
-    +'<div class="mxr-grid">'+shown.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div></div>';
+    +(CLS.on||!mine.length?'<div class="mxr-grid">'+shown.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'
+      :'<h2 class="mxr-h">'+WD[1]+' '+E(T('Your class world'))+': '+E(T(WD[2]))+'</h2><div class="mxr-grid">'+mine.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'
+       +'<h2 class="mxr-h">🎮 '+E(T('More games for this grade'))+'</h2><div class="mxr-grid">'+rest.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>')
+    +'</div>';
   if(CLS.on){var cl=c.querySelector('.mxr-class'),tabs=D.createElement('div'),sub=CLS.sub==='present'?'present':'team';tabs.className='mxr-sub';tabs.setAttribute('role','tablist');
     tabs.innerHTML='<button type="button" role="tab" data-s="team" aria-selected="'+(sub==='team')+'">\uD83D\uDC65 '+E(T('Team mode'))+'</button><button type="button" role="tab" data-s="present" aria-selected="'+(sub==='present')+'">\uD83C\uDFA4 '+E(T('Presentation mode'))+'</button>';
     cl.parentNode.insertBefore(tabs,cl.nextSibling);
