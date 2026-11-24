@@ -1,5 +1,5 @@
 /* =====================================================================
-   Matix Arcade (1.5, ARCADE_VERSION 15) — replaces the old Games hub with real built-in
+   Matix Arcade (1.6, ARCADE_VERSION 16) — replaces the old Games hub with real built-in
    math games that use drawn art from assets/games/img:
      🚀 Asteroid Answers   🎈 Balloon Pop     🍎 Fruit Market Sums
      🍕 Pizza Fractions    🦉 Owl Runner      🃏 Memory Match
@@ -19,7 +19,7 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function clamp(x,a,b){return x<a?a:(x>b?b:x);}
 /* ARCADE_VERSION: bump it whenever games change. The app compares it with the website's
    /arcade/version.json and loads the newer arcade straight from the website. */
-var ARCADE_VERSION=15;
+var ARCADE_VERSION=16;
 var IMG_DIR=(function(){try{var s=(D.currentScript&&D.currentScript.src)||'',m=s.match(/^(https?:\/\/[^\/]*matixthemathclub\.com)\//);if(m)return m[1]+'/arcade/img/';}catch(e){}
   return W.MX_ARCADE_IMG||'/arcade/img/';})();
 
@@ -1318,6 +1318,117 @@ function showTop(id){var box=$('mxgTop');if(!box)return;
     if(!rows.length){box.innerHTML='';return;}
     box.innerHTML='<b>\uD83C\uDFC6 '+E(T('Top players'))+'</b><ol>'+rows.map(function(r){return '<li'+(r[0]===who()?' class="me"':'')+'><span>@'+E(r[0])+'</span><b>'+r[1]+'</b></li>';}).join('')+'</ol>';})['catch'](function(){});}
 
+/* =====================================================================
+   🎤 Presentation mode (Arcade 1.6): the teacher makes the exercises.
+   A "set" = a title, a grade and slides {q, a, steps, opts[], time}.
+   Sets are kept on this device and, when signed in, synced to
+   /arcade/decks/<user>/<id> so they work on the website and in the app.
+   Present: full screen, big question, timer, pen board, reveal the
+   answer and steps, give a point to Team A or B, arrows to move.
+   ===================================================================== */
+var DK={list:null,edit:null,pv:null};
+function dkLoad(){if(DK.list)return DK.list;try{DK.list=JSON.parse(ls('mx_arcade_decks')||'[]')||[];}catch(e){DK.list=[];}return DK.list;}
+function dkSave(){ls('mx_arcade_decks',JSON.stringify(DK.list||[]));}
+function dkId(){return 'd'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);}
+function dkPush(d){var u=who();if(!u)return;fbJ('/arcade/decks/'+encodeURIComponent(u)+'/'+d.id,'PUT',d)['catch'](function(){});}
+function dkDrop(id){var u=who();if(!u)return;fbJ('/arcade/decks/'+encodeURIComponent(u)+'/'+id,'PUT',null)['catch'](function(){});}
+function dkSync(after){var u=who();if(!u)return;
+  fbJ('/arcade/decks/'+encodeURIComponent(u)).then(function(o){o=o||{};var L=dkLoad(),ch=false,byId={};L.forEach(function(d){byId[d.id]=d;});
+    Object.keys(o).forEach(function(id){var r=o[id];if(!r||!r.slides)return;var l=byId[id];if(!l){L.push(r);ch=true;}else if((r.updatedAt||0)>(l.updatedAt||0)){L[L.indexOf(l)]=r;ch=true;}});
+    L.forEach(function(d){if(!o[d.id])dkPush(d);});
+    if(ch){dkSave();if(after)after();}})['catch'](function(){});}
+function dkFill(L,n){var out=[];for(var i=0;i<n;i++){var q=makeQ(L);out.push({q:qText(q),a:String(q.a),steps:'',opts:wrongs(q.a,3,L).map(String),time:30});}return out;}
+
+/* the list of sets + the editor, drawn inside the class panel */
+function presentPanel(host,L,rerender){
+  var list=dkLoad();
+  if(DK.edit){editDeck(host,L,rerender);return;}
+  host.innerHTML='<p>'+E(T('Make your own exercises, then present them on the board: big question, timer, pen, reveal the answer and the steps, and points for each team.'))+'</p>'
+    +'<div class="mxp-actions"><button type="button" class="mxm-btn pri" id="mxpNew">➕ '+E(T('New exercise set'))+'</button><button type="button" class="mxm-btn sec" id="mxpAuto">✨ '+E(T('Quick set for this grade'))+'</button></div>'
+    +(list.length?'<div class="mxp-list">'+list.map(function(d,i){return '<div class="mxp-row"><div><b>'+E(d.title||T('Untitled'))+'</b><small>'+(d.slides||[]).length+' '+E(T('exercises'))+' · '+E(T((LEVELS[(d.grade||3)-1]||LEVELS[2])[1]))+'</small></div>'
+      +'<span><button type="button" class="mxm-btn pri" data-play="'+i+'">▶ '+E(T('Present'))+'</button><button type="button" class="mxm-btn sec" data-edit="'+i+'">✏️</button><button type="button" class="mxm-btn sec" data-del="'+i+'" aria-label="'+E(T('Delete'))+'">🗑</button></span></div>';}).join('')+'</div>'
+      :'<p class="mxp-empty">'+E(T('No exercise sets yet. Make one, or start with a quick set for this grade and edit it.'))+'</p>')
+    +(who()?'':'<p class="mxp-note">'+E(T('Sign in to keep your sets on all your devices.'))+'</p>');
+  $('mxpNew').onclick=function(){DK.edit={id:dkId(),title:'',grade:L,slides:[{q:'',a:'',steps:'',opts:[],time:30}]};rerender();};
+  $('mxpAuto').onclick=function(){DK.edit={id:dkId(),title:T('Practice')+' · '+T(LEVELS[L-1][1]),grade:L,slides:dkFill(L,8)};rerender();};
+  host.querySelectorAll('[data-play]').forEach(function(b){b.onclick=function(){presentDeck(list[+b.dataset.play]);};});
+  host.querySelectorAll('[data-edit]').forEach(function(b){b.onclick=function(){DK.edit=JSON.parse(JSON.stringify(list[+b.dataset.edit]));rerender();};});
+  host.querySelectorAll('[data-del]').forEach(function(b){b.onclick=function(){var d=list[+b.dataset.del];if(!confirm(T('Delete this exercise set?')+' '+(d.title||'')))return;list.splice(+b.dataset.del,1);dkSave();dkDrop(d.id);rerender();};});
+  dkSync(rerender);
+}
+function editDeck(host,L,rerender){
+  var d=DK.edit;
+  function slideHtml(s,i){return '<div class="mxp-slide" data-i="'+i+'"><div class="mxp-sh"><b>'+(i+1)+'</b><span><button type="button" data-up="'+i+'" aria-label="'+E(T('Move up'))+'">▲</button><button type="button" data-dn="'+i+'" aria-label="'+E(T('Move down'))+'">▼</button><button type="button" data-rm="'+i+'" aria-label="'+E(T('Remove'))+'">✕</button></span></div>'
+    +'<label>'+E(T('Question'))+'<textarea data-f="q" rows="2" placeholder="'+E(T('e.g. 3/4 + 1/8 = ?'))+'">'+E(s.q)+'</textarea></label>'
+    +'<div class="mxp-two"><label>'+E(T('Answer'))+'<input data-f="a" value="'+E(s.a)+'"></label><label>'+E(T('Time (seconds, 0 = no timer)'))+'<input data-f="time" type="number" min="0" max="600" value="'+(s.time==null?30:s.time)+'"></label></div>'
+    +'<label>'+E(T('Worked steps (one per line, optional)'))+'<textarea data-f="steps" rows="2">'+E(s.steps||'')+'</textarea></label>'
+    +'<label>'+E(T('Wrong choices for multiple choice (comma separated, optional)'))+'<input data-f="opts" value="'+E((s.opts||[]).join(', '))+'"></label></div>';}
+  host.innerHTML='<div class="mxp-edit"><label>'+E(T('Set title'))+'<input id="mxpTitle" value="'+E(d.title)+'" placeholder="'+E(T('e.g. Fractions warm-up'))+'"></label>'
+    +'<label>'+E(T('Grade'))+'<select id="mxpGrade">'+LEVELS.map(function(l){return '<option value="'+l[0]+'"'+(+l[0]===(d.grade||L)?' selected':'')+'>'+E(T(l[1]))+'</option>';}).join('')+'</select></label>'
+    +d.slides.map(slideHtml).join('')
+    +'<div class="mxp-actions"><button type="button" class="mxm-btn sec" id="mxpAdd">➕ '+E(T('Add exercise'))+'</button><button type="button" class="mxm-btn sec" id="mxpGen">✨ '+E(T('Add 5 for this grade'))+'</button></div>'
+    +'<div class="mxp-actions"><button type="button" class="mxm-btn pri" id="mxpSave">💾 '+E(T('Save'))+'</button><button type="button" class="mxm-btn pri" id="mxpSavePlay">▶ '+E(T('Save and present'))+'</button><button type="button" class="mxm-btn sec" id="mxpCancel">'+E(T('Cancel'))+'</button></div><p class="mxp-err" id="mxpErr" role="alert"></p></div>';
+  function read(){d.title=$('mxpTitle').value.trim();d.grade=+$('mxpGrade').value;
+    host.querySelectorAll('.mxp-slide').forEach(function(el){var s=d.slides[+el.dataset.i];el.querySelectorAll('[data-f]').forEach(function(f){var k=f.dataset.f,v=f.value;
+      if(k==='opts')s.opts=v.split(',').map(function(x){return x.trim();}).filter(Boolean).slice(0,5);else if(k==='time')s.time=Math.max(0,Math.min(600,parseInt(v,10)||0));else s[k]=v.trim();});});}
+  host.querySelectorAll('[data-up],[data-dn],[data-rm]').forEach(function(b){b.onclick=function(){read();var i=+(b.dataset.up||b.dataset.dn||b.dataset.rm);
+    if(b.dataset.rm!=null){d.slides.splice(i,1);if(!d.slides.length)d.slides.push({q:'',a:'',steps:'',opts:[],time:30});}
+    else{var j=b.dataset.up!=null?i-1:i+1;if(j<0||j>=d.slides.length)return;var t=d.slides[i];d.slides[i]=d.slides[j];d.slides[j]=t;}rerender();};});
+  $('mxpAdd').onclick=function(){read();d.slides.push({q:'',a:'',steps:'',opts:[],time:30});rerender();};
+  $('mxpGen').onclick=function(){read();d.slides=d.slides.filter(function(s){return s.q;}).concat(dkFill(d.grade||L,5));rerender();};
+  $('mxpCancel').onclick=function(){DK.edit=null;rerender();};
+  function save(play){read();d.slides=d.slides.filter(function(s){return s.q;});
+    if(!d.slides.length){$('mxpErr').textContent=T('Add at least one question.');if(!d.slides.length)d.slides.push({q:'',a:'',steps:'',opts:[],time:30});return;}
+    if(!d.title)d.title=T('Exercise set');d.updatedAt=Date.now();var L2=dkLoad(),k=-1;L2.forEach(function(x,i){if(x.id===d.id)k=i;});if(k>-1)L2[k]=d;else L2.unshift(d);dkSave();dkPush(d);
+    var saved=d;DK.edit=null;rerender();if(play)presentDeck(saved);}
+  $('mxpSave').onclick=function(){save(false);};$('mxpSavePlay').onclick=function(){save(true);};
+}
+
+/* full-screen presenter */
+function presentDeck(d){
+  if(!d||!d.slides||!d.slides.length)return;
+  closePresent();
+  var ov=D.createElement('div');ov.id='mxpOv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label',d.title||T('Presentation'));ov.tabIndex=-1;
+  ov.innerHTML='<div class="mxp-top"><button type="button" class="mxg-ib" id="mxpX" aria-label="'+E(T('Close'))+'">✕</button><b class="mxp-tt"></b><span class="mxp-n" id="mxpN"></span>'
+    +'<span class="mxp-tm" id="mxpTm" aria-live="off"></span><button type="button" class="mxg-ib" id="mxpFs" aria-label="'+E(T('Full screen'))+'">⛶</button></div>'
+    +'<div class="mxp-stage"><div class="mxp-q" id="mxpQ"></div><div class="mxp-opts" id="mxpOpts"></div><div class="mxp-ans" id="mxpA" hidden></div><canvas id="mxpPen"></canvas></div>'
+    +'<div class="mxp-bar"><button type="button" class="mxm-btn sec" id="mxpPrev">← '+E(T('Previous'))+'</button><button type="button" class="mxm-btn sec" id="mxpPenB" aria-pressed="false">✏️ '+E(T('Pen'))+'</button><button type="button" class="mxm-btn sec" id="mxpClr">🧽 '+E(T('Clear'))+'</button>'
+    +'<button type="button" class="mxm-btn pri" id="mxpShow">👀 '+E(T('Show answer'))+'</button>'
+    +'<span class="mxp-teams"><button type="button" class="mxm-btn sec mxp-ta" id="mxpTA"></button><button type="button" class="mxm-btn sec mxp-tb" id="mxpTB"></button></span>'
+    +'<button type="button" class="mxm-btn pri" id="mxpNext">'+E(T('Next'))+' →</button></div>';
+  D.body.appendChild(ov);D.body.classList.add('mxg-on');ov.querySelector('.mxp-tt').textContent=d.title||'';
+  var P=DK.pv={d:d,i:0,tm:null,left:0,pen:false,ov:ov},cv=$('mxpPen'),ctx=cv.getContext('2d'),drawing=false;
+  function sizePen(){var r=cv.getBoundingClientRect(),dpr=Math.min(2,W.devicePixelRatio||1);cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=5;ctx.strokeStyle='#fde047';}
+  P.rs=sizePen;W.addEventListener('resize',sizePen);
+  function teams(){$('mxpTA').textContent='+1 '+teamName('A')+' ('+CLS.A+')';$('mxpTB').textContent='+1 '+teamName('B')+' ('+CLS.B+')';}
+  function show(){var s=d.slides[P.i];clearInterval(P.tm);sizePen();ctx.clearRect(0,0,cv.width,cv.height);
+    $('mxpN').textContent=(P.i+1)+' / '+d.slides.length;$('mxpQ').textContent=s.q;$('mxpA').hidden=true;
+    var st=(s.steps||'').split('\n').map(function(x){return x.trim();}).filter(Boolean);
+    $('mxpA').innerHTML='<b>'+E(s.a)+'</b>'+(st.length?'<ol>'+st.map(function(x){return '<li>'+E(x)+'</li>';}).join('')+'</ol>':'');
+    var opts=(s.opts&&s.opts.length&&s.a)?shuffle([s.a].concat(s.opts)):[];
+    $('mxpOpts').innerHTML=opts.map(function(o,k){return '<span class="mxp-opt" data-o="'+E(o)+'">'+String.fromCharCode(65+k)+'. '+E(o)+'</span>';}).join('');
+    P.left=s.time||0;$('mxpTm').textContent=P.left?'⏱ '+P.left:'';
+    if(P.left)P.tm=setInterval(function(){P.left--;$('mxpTm').textContent='⏱ '+Math.max(0,P.left);if(P.left<=0){clearInterval(P.tm);reveal();}},1000);
+    $('mxpPrev').disabled=P.i===0;$('mxpNext').textContent=P.i===d.slides.length-1?T('Finish')+' ✓':T('Next')+' →';teams();}
+  function reveal(){clearInterval(P.tm);$('mxpA').hidden=false;var a=d.slides[P.i].a;ov.querySelectorAll('.mxp-opt').forEach(function(o){if(o.dataset.o===a)o.classList.add('ok');});}
+  function go(k){var n=P.i+k;if(n<0)return;if(n>=d.slides.length){closePresent();return;}P.i=n;show();}
+  $('mxpX').onclick=closePresent;$('mxpPrev').onclick=function(){go(-1);};$('mxpNext').onclick=function(){go(1);};$('mxpShow').onclick=reveal;
+  $('mxpFs').onclick=function(){try{(ov.requestFullscreen||ov.webkitRequestFullscreen).call(ov);}catch(e){}};
+  $('mxpTA').onclick=function(){CLS.A++;saveCls();teams();};$('mxpTB').onclick=function(){CLS.B++;saveCls();teams();};
+  $('mxpPenB').onclick=function(){P.pen=!P.pen;this.setAttribute('aria-pressed',P.pen);this.classList.toggle('on',P.pen);cv.style.pointerEvents=P.pen?'auto':'none';};
+  $('mxpClr').onclick=function(){ctx.clearRect(0,0,cv.width,cv.height);};
+  function pos(e){var r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];}
+  cv.addEventListener('pointerdown',function(e){if(!P.pen)return;drawing=true;var p=pos(e);ctx.beginPath();ctx.moveTo(p[0],p[1]);try{cv.setPointerCapture(e.pointerId);}catch(x){}});
+  cv.addEventListener('pointermove',function(e){if(!drawing)return;var p=pos(e);ctx.lineTo(p[0],p[1]);ctx.stroke();});
+  cv.addEventListener('pointerup',function(){drawing=false;});
+  ov.addEventListener('keydown',function(e){if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(e.key==='Escape')closePresent();else if(e.key==='ArrowRight'||e.key==='PageDown')go(1);else if(e.key==='ArrowLeft'||e.key==='PageUp')go(-1);else if(e.key===' '||e.key==='Enter'){e.preventDefault();reveal();}});
+  try{history.pushState({mxp:1},'');P.pushed=true;}catch(e){}
+  show();try{ov.focus();}catch(e){}
+}
+function closePresent(fromPop){var P=DK.pv;if(!P)return;DK.pv=null;clearInterval(P.tm);W.removeEventListener('resize',P.rs);if(P.ov.parentNode)P.ov.parentNode.removeChild(P.ov);D.body.classList.remove('mxg-on');
+  if(P.pushed&&fromPop!==true){try{history.back();}catch(e){}}var c=$('content');if(c&&c.querySelector('.mxr-arcade'))renderArcade(c);}
+W.addEventListener('popstate',function(){if(DK.pv)closePresent(true);});
+
 /* ---------- arcade page (replaces the old Games hub) ---------- */
 function renderArcade(c){
   var L=level(),shown=CLS.on?CLASS_GAMES:GAMES.filter(function(g){return forGrade(g,L);});
@@ -1339,8 +1450,14 @@ function renderArcade(c){
       +'<h2 class="mxr-h">🎮 '+E(T('Class team games'))+'</h2>':'')
     +'<div class="mxr-filter"><span>'+shown.length+' '+E(T(CLS.on?'class games':'games for this grade'))+'</span> <input type="search" id="mxaSearch" class="mxr-search" placeholder="'+E(T('Search games'))+'" aria-label="'+E(T('Search games'))+'"></div>'
     +'<div class="mxr-grid">'+shown.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div></div>';
+  if(CLS.on){var cl=c.querySelector('.mxr-class'),tabs=D.createElement('div'),sub=CLS.sub==='present'?'present':'team';tabs.className='mxr-sub';tabs.setAttribute('role','tablist');
+    tabs.innerHTML='<button type="button" role="tab" data-s="team" aria-selected="'+(sub==='team')+'">\uD83D\uDC65 '+E(T('Team mode'))+'</button><button type="button" role="tab" data-s="present" aria-selected="'+(sub==='present')+'">\uD83C\uDFA4 '+E(T('Presentation mode'))+'</button>';
+    cl.parentNode.insertBefore(tabs,cl.nextSibling);
+    tabs.querySelectorAll('button').forEach(function(b){b.onclick=function(){CLS.sub=b.dataset.s;saveCls();renderArcade(c);};});
+    if(sub==='present'){c.querySelectorAll('.mxr-ex,.mxr-h,.mxr-filter,.mxr-grid').forEach(function(n){n.remove();});var host=D.createElement('div');host.className='mxp-panel';tabs.parentNode.insertBefore(host,tabs.nextSibling);
+      presentPanel(host,L,function(){if(!DK.edit||host.isConnected)renderArcade(c);});}}
   $('mxaLv').onchange=function(){ls('mx_arcade_level',this.value);renderArcade(c);};
-  $('mxaSearch').oninput=function(){var q=this.value.trim().toLowerCase();c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.style.display=!q||b.dataset.n.indexOf(q)>=0?'':'none';});};
+  if($('mxaSearch'))$('mxaSearch').oninput=function(){var q=this.value.trim().toLowerCase();c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.style.display=!q||b.dataset.n.indexOf(q)>=0?'':'none';});};
   c.querySelectorAll('.mxr-modes button').forEach(function(b){b.onclick=function(){CLS.on=b.dataset.m==='class';saveCls();renderArcade(c);};});
   if(CLS.on){
     $('mxaNA').onchange=function(){CLS.nA=this.value.trim()||'Team A';saveCls();};
