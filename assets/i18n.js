@@ -225,6 +225,9 @@ function boot(){
   if(b){b.onclick=function(){setLang(lang==='fr'?'en':'fr');};paintBtn();}
   run(D.body);observe();
 }
-W.trAdd=function(o){for(var k in o)FR[k]=o[k];};W.tr=tr;W.FRG=FRG;W.trq=trq;W.mxLang={get:function(){return lang;},set:setLang};
+W.trAdd=function(o){for(var k in o)FR[k]=o[k];};
+/* 1.5.0: privacy notice and beta button */
+W.trAdd({"By signing in or creating an account you agree to our": "En te connectant ou en créant un compte, tu acceptes notre", "Privacy Policy": "Politique de confidentialité", "Join the beta": "Rejoindre la bêta", "Pre-releases on Google Play": "Versions en avant-première sur Google Play", "Get it on": "Disponible sur", "Play Store link (normal release)": "Lien Play Store (version normale)", "Open testing link (pre-releases)": "Lien du test ouvert (avant-premières)", "🧪 Show the “Join the beta” button (open testing)": "🧪 Afficher le bouton « Rejoindre la bêta » (test ouvert)", "The testing link should start with https://play.google.com/": "Le lien du test doit commencer par https://play.google.com/", "The Play Store link should start with https://play.google.com/": "Le lien Play Store doit commencer par https://play.google.com/"});
+W.tr=tr;W.FRG=FRG;W.trq=trq;W.mxLang={get:function(){return lang;},set:setLang};
 if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
