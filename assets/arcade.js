@@ -19,7 +19,7 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function clamp(x,a,b){return x<a?a:(x>b?b:x);}
 /* ARCADE_VERSION: bump it whenever games change. The app compares it with the website's
    /arcade/version.json and loads the newer arcade straight from the website. */
-var ARCADE_VERSION=20;
+var ARCADE_VERSION=21;
 var IMG_DIR=(function(){try{var s=(D.currentScript&&D.currentScript.src)||'',m=s.match(/^(https?:\/\/[^\/]*matixthemathclub\.com)\//);if(m)return m[1]+'/arcade/img/';}catch(e){}
   return W.MX_ARCADE_IMG||'/arcade/img/';})();
 
@@ -174,7 +174,7 @@ function startGame(def,topic){
   stopGame(true);
   var ov=D.createElement('div');ov.id='mxgOv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label',T(def.name));
   ov.innerHTML='<div class="mxg-hud"><button type="button" class="mxg-ib" id="mxgX" aria-label="'+E(T('Exit game'))+'">✕</button>'
-    +'<div class="mxg-tt"><b>'+def.icon+' '+E(gName(def,level()))+(topic?' \u00b7 '+E(lsnName(topic)):'')+(def.versus?' \u00b7 '+E(teamName('A'))+' vs '+E(teamName('B')):(CLS.on?' \u00b7 '+E(teamName(CLS.turn)):''))+'</b><span id="mxgQ" aria-live="polite"></span></div>'
+    +'<div class="mxg-tt"><b>'+def.icon+' '+E(gName(def,level()))+(topic?' \u00b7 '+E(lsnName(topic)):'')+(def.versus?' \u00b7 '+E(teamName('A'))+' vs '+E(teamName('B')):(CLS.on&&!def.board?' \u00b7 '+E(teamName(CLS.turn)):''))+'</b><span id="mxgQ" aria-live="polite"></span></div>'
     +'<div class="mxg-stat"><span id="mxgLives" aria-label="'+E(T('Lives'))+'"></span><span class="mxg-sc" id="mxgScore">0</span></div>'
     +'<button type="button" class="mxg-ib" id="mxgPause" aria-label="'+E(T('Pause'))+'">⏸</button></div>'
     +'<div class="mxg-bigq" id="mxgBigQ" aria-hidden="true"></div><canvas id="mxgCv"></canvas><div class="mxg-end" id="mxgEnd" hidden></div><div class="mxg-msg" id="mxgMsg"></div>';
@@ -183,6 +183,7 @@ function startGame(def,topic){
   var cv=$('mxgCv'),ctx=cv.getContext('2d');
   G={def:def,ov:ov,cv:cv,ctx:ctx,w:0,h:0,score:0,lives:3,t:0,run:true,paused:false,raf:0,last:0,L:level(),state:{},pops:[],pushed:pushed};
   if(TOPIC)G.L=Math.min(TOPIC.lv[1],Math.max(TOPIC.lv[0],G.L));
+  else if(def.board)G.L=Math.min(def.lv[1],Math.max(def.lv[0],G.L));
   function size(){swapBackgrounds();var r=cv.getBoundingClientRect(),dpr=Math.min(2,W.devicePixelRatio||1);G.bh=Math.round(clamp(r.height*.11,58,CLS.on?112:90));G.w=r.width;G.h=r.height-G.bh;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(def.resize)def.resize(G);}
   G.size=size;W.addEventListener('resize',size);
   $('mxgX').onclick=function(){stopGame();};
@@ -1315,64 +1316,11 @@ function vsScore(ctx,g,s){label(ctx,teamName('A')+': '+s.pt.A,g.w/4,26,Math.min(
 function vsCheckBtn(g,ctx,side,y,txt){var h=vsHalf(g,side),bw=Math.min(220,h.w-40),bh=52,x=h.x+(h.w-bw)/2;
   ctx.fillStyle=side==='A'?TA:TB;rr(ctx,x,y,bw,bh,16);ctx.fill();label(ctx,txt,x+bw/2,y+bh/2,22,'#fff',false);return {x:x,y:y,w:bw,h:bh,side:side,check:true};}
 
-/* 🧱 Shape Builder: both teams build a rectangle with the given area or perimeter on their grid. First to 5 */
-var SHAPEB={id:'c_shape',icon:'🧱',name:'Shape Builder',thumb:'gem.png',bg:'bg_sky.jpg',versus:true,lives:false,classOnly:true,topicOnly:true,
-  desc:'Each team taps two corners on its grid to build a rectangle with the area or perimeter asked. Right first scores. First team to 5 wins.',
-  init:function(g){var s=g.state;s.pt={A:0,B:0};s.parts=[];s.C=g.L<=4?6:8;s.R=g.L<=4?5:6;this.next(g);},
-  next:function(g){var s=g.state,w=rnd(1,s.C),h=rnd(1,s.R);while(w*h<2){w=rnd(1,s.C);h=rnd(1,s.R);}
-    s.mode=g.L>=4&&Math.random()<.5?'p':'a';s.val=s.mode==='a'?w*h:2*(w+h);s.sel={A:null,B:null};s.last={A:'',B:''};
-    setQ(s.mode==='a'?X('Build a rectangle with area '+s.val+' squares','Construis un rectangle d’aire '+s.val+' carreaux'):X('Build a rectangle with perimeter '+s.val,'Construis un rectangle de périmètre '+s.val));},
-  geo:function(g,side){var s=g.state,h=vsHalf(g,side),cs=Math.max(14,Math.min((h.w-36)/s.C,(g.h-170)/s.R)),ox=h.x+(h.w-cs*s.C)/2,oy=104;return {cs:cs,ox:ox,oy:oy};},
-  update:function(){},
-  draw:function(g,ctx){var s=g.state,me=this;wcover(ctx,g,'bg_sky.jpg');vsDivider(ctx,g);vsScore(ctx,g,s);
-    label(ctx,(s.mode==='a'?X('Area','Aire'):X('Perimeter','Périmètre'))+' = '+s.val,g.w/2,66,Math.min(30,g.w/16),'#fde68a');
-    ['A','B'].forEach(function(t){var o=me.geo(g,t),sel=s.sel[t],col=t==='A'?TA:TB,r=null;
-      if(sel&&sel.b)r=[Math.min(sel.a[0],sel.b[0]),Math.min(sel.a[1],sel.b[1]),Math.abs(sel.a[0]-sel.b[0])+1,Math.abs(sel.a[1]-sel.b[1])+1];
-      for(var c=0;c<s.C;c++)for(var k=0;k<s.R;k++){var on=r&&c>=r[0]&&c<r[0]+r[2]&&k>=r[1]&&k<r[1]+r[3],first=sel&&!sel.b&&sel.a[0]===c&&sel.a[1]===k;
-        ctx.fillStyle=on||first?col:'rgba(255,255,255,.88)';ctx.fillRect(o.ox+c*o.cs+1,o.oy+k*o.cs+1,o.cs-2,o.cs-2);}
-      var hx=vsHalf(g,t);label(ctx,s.last[t]||(sel&&!sel.b?X('Now tap the opposite corner','Touche le coin opposé'):X('Tap two corners','Touche deux coins')),hx.x+hx.w/2,o.oy+o.cs*s.R+26,16,'#fff');});
-    drawParts(ctx,s.parts,1/60);},
-  down:function(g,x,y){var s=g.state,t=x<g.w/2?'A':'B',o=this.geo(g,t),c=Math.floor((x-o.ox)/o.cs),k=Math.floor((y-o.oy)/o.cs);
-    if(c<0||k<0||c>=s.C||k>=s.R)return;var sel=s.sel[t];
-    if(!sel||sel.b){s.sel[t]={a:[c,k]};s.last[t]='';return;}
-    sel.b=[c,k];var w=Math.abs(sel.a[0]-c)+1,h=Math.abs(sel.a[1]-k)+1,v=s.mode==='a'?w*h:2*(w+h);
-    s.last[t]=w+' × '+h+(s.mode==='a'?' → '+X('area','aire')+' '+w*h:' → '+X('perimeter','périmètre')+' '+2*(w+h));
-    if(v===s.val){s.pt[t]++;burst(s.parts,t==='A'?g.w/4:g.w*3/4,g.h*.45,'#fbbf24');flash('✔ '+teamName(t),t==='A'?TA:TB);if(s.pt[t]>=5){vsWin(g,t);return;}var me=this;setTimeout(function(){if(G&&G.state===s&&!g.over)me.next(g);},700);}
-    else flash(teamName(t)+': '+X('not '+s.val+', try again','pas '+s.val+', réessaie'),'#fca5a5');}
-};
-
-/* 🍕 Pizza Fractions: shade the fraction asked on your pizza, then press Check. First to 5 */
-var PIZZA={id:'c_pizza',icon:'🍕',name:'Pizza Fractions',thumb:'fruit_orange.png',bg:'bg_table.jpg',versus:true,lives:false,classOnly:true,topicOnly:true,
-  desc:'Each team taps slices to shade the fraction asked, then presses Check. Higher grades get pizzas cut into more slices, so you need equivalent fractions. First team to 5 wins.',
-  init:function(g){var s=g.state;s.pt={A:0,B:0};s.parts=[];this.next(g);},
-  next:function(g){var s=g.state,dd=rnd(2,g.L<=3?6:8),n=rnd(1,dd-1),k=g.L>=5?rnd(1,Math.max(1,Math.floor(12/dd))):1;while(gcd(n,dd)!==1)n=rnd(1,dd-1);
-    s.n=n;s.dd=dd;s.d=dd*k;s.on={A:[],B:[]};for(var i=0;i<s.d;i++){s.on.A.push(false);s.on.B.push(false);}
-    setQ(X('Shade '+n+'/'+dd+' of the pizza','Colorie '+n+'/'+dd+' de la pizza'));},
-  geo:function(g,side){var h=vsHalf(g,side),r=Math.max(40,Math.min(h.w*.38,(g.h-200)/2));return {cx:h.x+h.w/2,cy:96+r,r:r};},
-  update:function(){},
-  draw:function(g,ctx){var s=g.state,me=this;wcover(ctx,g,'bg_table.jpg');vsDivider(ctx,g);vsScore(ctx,g,s);
-    label(ctx,X('Shade ','Colorie ')+s.n+'/'+s.dd,g.w/2,64,Math.min(30,g.w/16),'#fde68a');s.btns=[];
-    ['A','B'].forEach(function(t){var o=me.geo(g,t),col=t==='A'?TA:TB,step=6.2832/s.d,cnt=0;
-      ctx.fillStyle='#b45309';ctx.beginPath();ctx.arc(o.cx,o.cy,o.r+8,0,6.2832);ctx.fill();
-      for(var i=0;i<s.d;i++){var a0=-1.5708+i*step;ctx.beginPath();ctx.moveTo(o.cx,o.cy);ctx.arc(o.cx,o.cy,o.r,a0,a0+step);ctx.closePath();
-        ctx.fillStyle=s.on[t][i]?col:'#fde68a';ctx.fill();ctx.strokeStyle='#92400e';ctx.lineWidth=3;ctx.stroke();if(s.on[t][i])cnt++;}
-      label(ctx,cnt+'/'+s.d,o.cx,o.cy+o.r+30,20,'#fff');
-      s.btns.push(vsCheckBtn(g,ctx,t,o.cy+o.r+52,'✔ '+X('Check','Vérifier')));});
-    drawParts(ctx,s.parts,1/60);},
-  check:function(g,t){var s=g.state,cnt=s.on[t].filter(Boolean).length;
-    if(cnt*s.dd===s.n*s.d){s.pt[t]++;burst(s.parts,t==='A'?g.w/4:g.w*3/4,g.h*.4,'#fbbf24');flash('✔ '+teamName(t)+(s.d!==s.dd?' · '+cnt+'/'+s.d+' = '+s.n+'/'+s.dd:''),t==='A'?TA:TB);if(s.pt[t]>=5){vsWin(g,t);return;}this.next(g);}
-    else flash(teamName(t)+': '+cnt+'/'+s.d+X(' is not ',' n’est pas ')+s.n+'/'+s.dd,'#fca5a5');},
-  down:function(g,x,y){var s=g.state,b=vsHit(s.btns||[],x,y);if(b){this.check(g,b.side);return;}
-    var t=x<g.w/2?'A':'B',o=this.geo(g,t),dx=x-o.cx,dy=y-o.cy;if(dx*dx+dy*dy>o.r*o.r)return;
-    var a=Math.atan2(dy,dx)+1.5708;if(a<0)a+=6.2832;var i=Math.floor(a/(6.2832/s.d))%s.d;s.on[t][i]=!s.on[t][i];},
-  key:function(g,k){if(k==='Enter')return;}
-};
-var TOPIC_GAMES=[SHAPEB,PIZZA];
 
 var CLASS_GAMES=[TUG,BUZZER,POTATO,TEAMRACE];
 
 var GAMES=[FISH,STARS,GEMS,DUEL,ASTEROIDS,TRUEFALSE,CASTLE,FLIGHT,BALLOONS,SNAKE,BOMB,RACE,STONES,CATCHER,FRUITS,RUNNER,MEMORY].concat(THEMED);
-var ALLG=GAMES.concat(CLASS_GAMES,TOPIC_GAMES);
+var ALLG=GAMES;
 /* Each home game is made for certain grades, so every grade gets its own set of games.
    Themed worlds go from little-kid worlds (farm, candy) to older ones (robots, haunted). */
 var LV={fish:[1,13],stars:[1,13],gems:[2,13],duel:[1,9],asteroids:[3,13],truefalse:[4,13],castle:[4,13],flight:[5,13],balloons:[1,6],snake:[3,13],bomb:[6,13],race:[5,13],stones:[1,8],catcher:[1,8],fruit:[1,6],runner:[2,10],memory:[1,13]};
@@ -1381,7 +1329,7 @@ function gradeRange(g){if(LV[g.id])return LV[g.id];var m=/^t_([a-z]+)_/.exec(g.i
 function forGrade(g,L){if(g.th){if(g.mj==null)g.mj=THEMED.indexOf(g)%8;return g.th===themeFor(L,g.mj)[0];}var r=gradeRange(g);return L>=r[0]&&L<=r[1];}
 function isFr(){try{return W.mxLang&&W.mxLang.get()==='fr';}catch(e){return false;}}
 function worldName(w){return isFr()?'Monde '+T(w[2]):w[2]+' world';}
-function gName(g,L){if(g.classOnly&&!g.topicOnly){var w=classWorld(g,L);return isFr()?T(g.name)+' · '+T(w[2]):w[2]+' '+g.name;}return T(g.name);}
+function gName(g,L){if(g.classOnly&&!g.topicOnly&&!g.board){var w=classWorld(g,L);return isFr()?T(g.name)+' · '+T(w[2]):w[2]+' '+g.name;}return T(g.name);}
 /* ---------- best scores sync between the app and the website (signed-in players) ---------- */
 function who(){return W.ME||W.mxUser||null;}
 function fbBase(){return W.FB||'https://matix-1d538-default-rtdb.firebaseio.com';}
@@ -1558,7 +1506,7 @@ var LESSONS=[
  gen:function(L){var b=rnd(2,L<=3?5:12),k=rnd(2,12),r=L>=5&&Math.random()<.5?rnd(1,b-1):0,a=b*k+r,R=X(' remainder ',' reste '),ans=r?k+R+r:String(k);
    return {q:a+' ÷ '+b+' = ?',a:ans,steps:[b+' × '+k+' = '+b*k].concat(r?[a+' − '+b*k+' = '+r+X(' left over',' de reste')]:[X('So ','Donc ')+a+' ÷ '+b+' = '+k]),
      opts:U(ans,r?[k+R+(r+1),(k+1)+R+r,(k-1)+R+(r+b<a?r:1)]:[k+1,k-1,a-b])};}},
-{id:'frac',icon:'🍕',lv:[2,4],games:['c_pizza'],n:['What is a fraction?','Qu’est-ce qu’une fraction ?'],
+{id:'frac',icon:'🍕',lv:[2,4],n:['What is a fraction?','Qu’est-ce qu’une fraction ?'],
  idea:['A fraction is a part of a whole cut into equal parts.\nThe bottom number (denominator) says how many equal parts there are.\nThe top number (numerator) says how many parts we take.\n3/8 of a pizza: cut it into 8 equal slices, take 3.',
        'Une fraction est une partie d’un tout coupé en parts égales.\nLe nombre du bas (dénominateur) dit en combien de parts égales on coupe.\nLe nombre du haut (numérateur) dit combien de parts on prend.\n3/8 d’une pizza : coupe-la en 8 parts égales, prends-en 3.'],
  gen:function(L){var d=rnd(3,L<=2?8:12),n=rnd(1,d-1);
@@ -1577,7 +1525,7 @@ var LESSONS=[
    return {q:X('Which is bigger: '+A+' or '+B+'?','Laquelle est la plus grande : '+A+' ou '+B+' ?'),a:big,
      steps:[X('Same bottom number: ','Même dénominateur : ')+c,A+' = '+x+'/'+c+X(' and ',' et ')+B+' = '+y+'/'+c,(x>y?x+' > '+y:y+' > '+x)+X(', so '+big+' is bigger',', donc '+big+' est la plus grande')],
      opts:[big===A?B:A,X('They are equal','Elles sont égales')]};}},
-{id:'fraceq',icon:'🟰',lv:[4,7],games:['c_pizza'],n:['Equivalent fractions and simplifying','Fractions équivalentes et simplification'],
+{id:'fraceq',icon:'🟰',lv:[4,7],n:['Equivalent fractions and simplifying','Fractions équivalentes et simplification'],
  idea:['Times or divide the top and the bottom by the same number and the fraction keeps its value: 1/2 = 2/4 = 3/6.\nTo simplify, divide the top and the bottom by the biggest number that goes into both. 12/18: both ÷ 6 = 2/3.',
        'Multiplie ou divise le numérateur et le dénominateur par le même nombre : la fraction garde sa valeur. 1/2 = 2/4 = 3/6.\nPour simplifier, divise le haut et le bas par le plus grand nombre qui divise les deux. 12/18 : les deux ÷ 6 = 2/3.'],
  gen:function(L){var f=cop(2,9),k=rnd(2,L<=5?5:9),N=f[0]*k,D=f[1]*k;
@@ -1655,7 +1603,7 @@ var LESSONS=[
    var neg=Math.random()<.3,c2=neg?a*x-b:a*x+b,lhs=a+'x '+(neg?'− ':'+ ')+b;
    return {q:X('Solve: ','Résous : ')+lhs+' = '+ng(c2),a:ans,steps:[(neg?X('Add '+b+' to both sides: ','Ajoute '+b+' des deux côtés : '):X('Take away '+b+' from both sides: ','Enlève '+b+' des deux côtés : '))+a+'x = '+ng(a*x),
      X('Divide both sides by '+a+': ','Divise les deux côtés par '+a+' : ')+'x = '+ng(x),X('Check: ','Vérifie : ')+a+' × '+pn(x)+(neg?' − ':' + ')+b+' = '+ng(c2)+' ✓'],opts:U(ans,['x = '+ng(neg?x-1:x+1),'x = '+fs(c2,a),'x = '+ng(-x)])};}},
-{id:'area',icon:'📐',lv:[3,7],games:['c_shape'],n:['Area and perimeter','Aire et périmètre'],
+{id:'area',icon:'📐',lv:[3,7],n:['Area and perimeter','Aire et périmètre'],
  idea:['Perimeter is the distance all the way around a shape: add all the sides.\nArea is the space inside, in squares. Rectangle: length × width.\nTriangle: base × height ÷ 2.\nA 5 cm by 3 cm rectangle: perimeter 16 cm, area 15 cm².',
        'Le périmètre est la longueur du tour d’une figure : additionne tous les côtés.\nL’aire est l’espace à l’intérieur, en carrés. Rectangle : longueur × largeur.\nTriangle : base × hauteur ÷ 2.\nUn rectangle de 5 cm sur 3 cm : périmètre 16 cm, aire 15 cm².'],
  gen:function(L){var l=rnd(3,L<=4?10:20),w=rnd(2,l-1),r=Math.random();
@@ -1715,64 +1663,265 @@ var LESSONS=[
 function lsnName(t){return isFr()?t.n[1]:t.n[0];}
 function lsnFor(L){return LESSONS.filter(function(t){return L>=t.lv[0]&&L<=t.lv[1];});}
 var LSN={all:false};
-function lessonsPanel(host,L,rerender){
-  var list=LSN.all?LESSONS:lsnFor(L);
-  function gbtn(g,i,big){return '<button type="button" class="mxm-btn '+(big?'pri':'sec')+'" data-t="'+i+'" data-g="'+g.id+'" title="'+E(gName(g,L))+'">'+g.icon+' '+E(T(g.name))+'</button>';}
-  host.innerHTML='<p>'+E(T('Pick a topic and a team game. Every question in the game is about that topic, made for your class.'))+'</p>'
-    +'<label class="mxl-all"><input type="checkbox" id="mxlAll"'+(LSN.all?' checked':'')+'> '+E(T('Show topics for all grades'))+'</label>'
-    +(list.length?'<div class="mxl-grid">'+list.map(function(t){var i=LESSONS.indexOf(t),sp=(t.games||[]).map(function(id){return ALLG.filter(function(g){return g.id===id;})[0];}).filter(Boolean);
-      return '<div class="mxl-card"><div class="mxl-ic">'+t.icon+'</div><div class="mxl-tx"><b>'+E(lsnName(t))+'</b><small>'+E(T(LEVELS[t.lv[0]-1][1]))+(t.lv[1]>t.lv[0]?' \u2013 '+E(T(LEVELS[t.lv[1]-1][1])):'')+'</small></div>'
-        +'<div class="mxl-act">'+sp.map(function(g){return gbtn(g,i,true);}).join('')+CLASS_GAMES.map(function(g){return gbtn(g,i,!sp.length&&g===CLASS_GAMES[0]);}).join('')+'</div></div>';}).join('')+'</div>'
-      :'<p class="mxp-empty">'+E(T('No topics for this grade yet.'))+'</p>');
-  $('mxlAll').onchange=function(){LSN.all=this.checked;rerender();};
-  host.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){var t=LESSONS[+b.dataset.t],g=ALLG.filter(function(x){return x.id===b.dataset.g;})[0];if(g)startGame(g,t);};});
-}
+function tw(ctx,s,cx,y,maxW,size,col){ctx.font='800 '+size+'px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle=col||'#fff';
+  var words=String(s).split(' '),lines=[],cur='';words.forEach(function(w){var t=cur?cur+' '+w:w;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;});if(cur)lines.push(cur);
+  lines.forEach(function(l,i){ctx.fillText(l,cx,y+i*size*1.2);});ctx.textBaseline='middle';return lines.length*size*1.2;}
+function bbtn(ctx,x,y,w,h,txt,bg,fg,size){ctx.fillStyle=bg;rr(ctx,x,y,w,h,Math.min(18,h/2));ctx.fill();label(ctx,txt,x+w/2,y+h/2,Math.max(12,Math.min(size||24,h*.45,(w-12)/(String(txt).length*.6))),fg||'#fff',false);return {x:x,y:y,w:w,h:h};}
+function gg(a,C,R){var cs=Math.min(a.w/C,a.h/R);return {cs:cs,ox:a.x+(a.w-cs*C)/2,oy:a.y+(a.h-cs*R)/2,C:C,R:R};}
+function gcell(G2,x,y){var c=Math.floor((x-G2.ox)/G2.cs),r=Math.floor((y-G2.oy)/G2.cs);return c>=0&&r>=0&&c<G2.C&&r<G2.R?[c,r]:null;}
+function gdraw(ctx,G2,fn){for(var c=0;c<G2.C;c++)for(var r=0;r<G2.R;r++){var col=fn(c,r);ctx.fillStyle=col||'rgba(255,255,255,.9)';ctx.fillRect(G2.ox+c*G2.cs+1,G2.oy+r*G2.cs+1,G2.cs-2,G2.cs-2);}}
+function rectCells(x,y,w,h){var o={};for(var c=x;c<x+w;c++)for(var r=y;r<y+h;r++)o[c+','+r]=1;return o;}
+function cellsPerim(o){var p=0;Object.keys(o).forEach(function(k){var a=k.split(','),c=+a[0],r=+a[1];[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){if(!o[(c+d[0])+','+(r+d[1])])p++;});});return p;}
+function shapeCells(C,R,lshape){var w=rnd(2,C-1),h=rnd(2,R-1),x=rnd(0,C-w),y=rnd(0,R-h),o=rectCells(x,y,w,h);
+  if(lshape&&w>=3&&h>=3){var cw=rnd(1,w-2),ch=rnd(1,h-2);for(var c=x+w-cw;c<x+w;c++)for(var r=y;r<y+ch;r++)delete o[c+','+r];}return o;}
+function pizza(ctx,cx,cy,r,d,on,col){var st=6.2832/d;ctx.fillStyle='#b45309';ctx.beginPath();ctx.arc(cx,cy,r+Math.max(4,r*.06),0,6.2832);ctx.fill();
+  for(var i=0;i<d;i++){var a0=-1.5708+i*st;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,a0,a0+st);ctx.closePath();ctx.fillStyle=on[i]?(col||'#f472b6'):'#fde68a';ctx.fill();ctx.strokeStyle='#92400e';ctx.lineWidth=3;ctx.stroke();}}
+function pizzaHit(cx,cy,r,d,x,y){var dx=x-cx,dy=y-cy;if(dx*dx+dy*dy>r*r)return -1;var a=Math.atan2(dy,dx)+1.5708;if(a<0)a+=6.2832;return Math.floor(a/(6.2832/d))%d;}
+function fbar(ctx,x,y,w,h,d,on,col){var cw=w/d;for(var i=0;i<d;i++){ctx.fillStyle=on[i]?(col||'#f472b6'):'rgba(255,255,255,.9)';ctx.fillRect(x+i*cw,y,cw,h);ctx.strokeStyle='#1f2937';ctx.lineWidth=3;ctx.strokeRect(x+i*cw,y,cw,h);}}
+function fbarHit(x0,y0,w,h,d,x,y){if(x<x0||x>x0+w||y<y0||y>y0+h)return -1;return Math.min(d-1,Math.floor((x-x0)/(w/d)));}
+function falses(n){var a=[];for(var i=0;i<n;i++)a.push(false);return a;}
+function cnt(a){return a.filter(Boolean).length;}
+function shadeRand(d,n){var a=falses(d),idx=shuffle(Array.from({length:d},function(_,i){return i;})).slice(0,n);if(Math.random()<.6){a=falses(d);for(var i=0;i<n;i++)a[i]=true;}else idx.forEach(function(i){a[i]=true;});return a;}
+function optsFrom(ans,wrong){return shuffle([String(ans)].concat(U(ans,wrong)));}
+function fracEq(n1,d1,n2,d2){return d1>0&&d2>0&&n1*d2===n2*d1;}
+/* writing pad: two boxes (top / bottom of a fraction) and digit keys */
+function padDraw(g,ctx,s,a){var p=s.pad,kw=Math.min(76,a.w/3.6),kh=Math.min(64,(a.h-150)/4.3),bx=a.x+(a.w-kw*3-16)/2,by=a.y+a.h-(kh*4+24);
+  var boxW=Math.min(150,a.w*.6),cx=a.x+a.w/2,top=a.y+8,bh=Math.min(70,(by-top-30)/2);
+  ['n','d'].forEach(function(f,i){var y=top+i*(bh+18);ctx.fillStyle='#fff';rr(ctx,cx-boxW/2,y,boxW,bh,12);ctx.fill();if(p.f===f&&!s.show){ctx.strokeStyle='#fbbf24';ctx.lineWidth=5;rr(ctx,cx-boxW/2,y,boxW,bh,12);ctx.stroke();}
+    label(ctx,p[f]||(p.f===f?'_':''),cx,y+bh/2,bh*.6,'#111827',false);s.ui.push({x:cx-boxW/2,y:y,w:boxW,h:bh,box:f});});
+  ctx.fillStyle='#fff';ctx.fillRect(cx-boxW/2-6,top+bh+7,boxW+12,5);
+  ['1','2','3','4','5','6','7','8','9','⌫','0','↕'].forEach(function(k,i){var x=bx+(i%3)*(kw+8),y=by+Math.floor(i/3)*(kh+8);var r=bbtn(ctx,x,y,kw,kh,k,'rgba(255,255,255,.16)','#fff',30);r.key=k;s.ui.push(r);});}
+function padKey(s,u){var p=s.pad;if(u.box){p.f=u.box;return;}if(!u.key)return;if(u.key==='⌫')p[p.f]=p[p.f].slice(0,-1);else if(u.key==='↕')p.f=p.f==='n'?'d':'n';else if(p[p.f].length<3){p[p.f]+=u.key;if(p.f==='n'&&p.n.length>=String(s.want?s.want[0]:9).length&&!p.d)p.f='d';}}
+function split(a,ratio){/* picture area and side area: side-by-side on wide boards, stacked on tall ones */
+  if(a.w>a.h*1.15){var w1=a.w*(ratio||.58);return [{x:a.x,y:a.y,w:w1-10,h:a.h},{x:a.x+w1+10,y:a.y,w:a.w-w1-10,h:a.h}];}
+  var h1=a.h*.46;return [{x:a.x,y:a.y,w:a.w,h:h1},{x:a.x,y:a.y+h1+8,w:a.w,h:a.h-h1-8}];}
+function optRow(g,ctx,s,a){var n=s.opts.length,gap=12,bh=Math.min(74,a.h),bw=Math.min(240,(a.w-gap*(n-1))/n),x0=a.x+(a.w-(bw*n+gap*(n-1)))/2;
+  s.opts.forEach(function(o,i){var x=x0+i*(bw+gap),good=(s.show||s.res==='ok')&&o===s.ans,bad=s.pick===o&&s.res==='no';
+    var r=bbtn(ctx,x,a.y+(a.h-bh)/2,bw,bh,o,good?'#16a34a':bad?'#dc2626':'#fff',good||bad?'#fff':'#111827',30);r.opt=o;s.ui.push(r);});}
+function labRect(ctx,a,l,w,unit,fill){var k=Math.min(a.w*.72/l,a.h*.7/w),W2=l*k,H2=w*k,x=a.x+(a.w-W2)/2,y=a.y+(a.h-H2)/2+8;
+  ctx.fillStyle=fill||'rgba(96,165,250,.45)';ctx.fillRect(x,y,W2,H2);ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(x,y,W2,H2);
+  label(ctx,l+' '+unit,x+W2/2,y-18,24,'#fde68a');label(ctx,w+' '+unit,x-10-String(w+' '+unit).length*6.5,y+H2/2,24,'#fde68a');return {x:x,y:y,w:W2,h:H2};}
+
+var BOARD=[];
+function mkBoard(o){var tr0={};tr0[o.name[0]]=o.name[1];tr0[o.desc[0]]=o.desc[1];if(W.trAdd)W.trAdd(tr0);
+  var d={id:'b_'+o.id,icon:o.icon,name:o.name[0],desc:o.desc[0],thumb:'star.png',bg:'bg_space.jpg',lives:false,classOnly:true,board:true,topic:o.topic,lv:o.lv||[1,13],o:o};
+  d.init=function(g){var s=g.state;s.ok=0;s.parts=[];d.nextR(g);};
+  d.nextR=function(g){var s=g.state;s.res='';s.show=false;s.pick=null;s.counted=false;s.ui=[];s.pad={n:'',d:'',f:'n'};o.round(g,s);setQ(s.q);};
+  d.update=function(){};
+  d.draw=function(g,ctx){var s=g.state;ctx.fillStyle='#163a2c';ctx.fillRect(0,0,g.w,g.h);ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=10;ctx.strokeRect(5,5,g.w-10,g.h-10);
+    var hq=0;
+    var barY=g.h-78,a={x:24,y:14+hq+12,w:g.w-48,h:barY-(14+hq+12)-(s.opts?92:44)};s.ui=[];
+    o.paint(g,ctx,s,a);
+    if(s.opts)optRow(g,ctx,s,{x:24,y:a.y+a.h+8,w:g.w-48,h:80});
+    var msg=s.show?'✔ '+s.ans:s.res==='ok'?'✔ '+X('Correct!','Bravo !'):s.res==='no'?X('Not yet, try again','Pas encore, réessaie'):s.res==='empty'?X('Do it on the board first','Fais-le d’abord au tableau'):'';
+    if(msg)label(ctx,msg,g.w/2,barY-22,Math.min(30,g.w/24),s.show||s.res==='ok'?'#86efac':'#fca5a5');
+    var labs=(s.opts?[]:[['chk','✔ '+X('Check','Vérifier'),'#16a34a']]).concat([['ans','👀 '+X('Show answer','Voir la réponse'),'#7c3aed'],['nxt',X('Next student','Élève suivant')+' →','#2563eb']]);
+    var gap=10,bw=Math.min(260,(g.w-48-gap*(labs.length-1))/labs.length),x0=(g.w-(bw*labs.length+gap*(labs.length-1)))/2;s.bar=[];
+    labs.forEach(function(b,i){var r=bbtn(ctx,x0+i*(bw+gap),barY,bw,60,b[1],b[2],'#fff',24);r.act=b[0];s.bar.push(r);});
+    drawParts(ctx,s.parts,1/60);};
+  d.judge=function(g,s,r){if(r===null){s.res='empty';return;}if(r){s.res='ok';if(!s.counted&&!s.show){s.ok++;s.counted=true;G.score=s.ok;hud();}burst(s.parts,g.w/2,g.h*.4,'#fbbf24');burst(s.parts,g.w/2,g.h*.4,'#22c55e');}else s.res='no';};
+  d.down=function(g,x,y){var s=g.state,b=vsHit(s.bar||[],x,y);
+    if(b){if(b.act==='nxt')d.nextR(g);else if(b.act==='ans'){s.show=true;s.res='';}else if(b.act==='chk'&&!s.show)d.judge(g,s,o.check(g,s));return;}
+    var u=vsHit(s.ui||[],x,y);if(u&&!s.show){if(u.opt!=null){if(s.res==='ok')return;s.pick=u.opt;d.judge(g,s,u.opt===s.ans);return;}if(u.box||u.key){padKey(s,u);if(s.res!=='ok')s.res='';return;}if(o.ui){o.ui(g,s,u);if(s.res!=='ok')s.res='';return;}}
+    if(o.tap&&!s.show&&s.res!=='ok'){o.tap(g,s,x,y);s.res='';}};
+  d.key=function(g,k){var s=g.state;if(/^[0-9]$/.test(k)&&s.pad&&o.pad){padKey(s,{key:k});}else if(k==='Backspace'&&o.pad)padKey(s,{key:'⌫'});else if(k==='Enter'&&o.check)d.judge(g,s,o.check(g,s));else if(k==='ArrowRight'||k==='n')d.nextR(g);};
+  BOARD.push(d);return d;}
+
+/* ---------- AREA ---------- */
+function buildRound(kind){return function(g,s){var C=g.L<=3?8:10,R=6,w=rnd(1,C),h=rnd(1,R);while(w*h<3||(kind==='p'&&w+h<4)){w=rnd(1,C);h=rnd(1,R);}
+  s.C=C;s.R=R;s.sol=[w,h];s.sel=null;s.val=kind==='a'?w*h:2*(w+h);
+  s.q=kind==='a'?X('Build a rectangle with an area of '+s.val+' squares. Tap two opposite corners.','Construis un rectangle d’aire '+s.val+' carreaux. Touche deux coins opposés.'):X('Build a rectangle with a perimeter of '+s.val+'. Tap two opposite corners.','Construis un rectangle de périmètre '+s.val+'. Touche deux coins opposés.');
+  s.ans=w+' × '+h+(kind==='a'?' = '+s.val:' → 2 × ('+w+' + '+h+') = '+s.val);};}
+function buildPaint(kind){return function(g,ctx,s,a){var G2=gg(a,s.C,s.R),sel=s.sel,r=null;s.G2=G2;
+  if(s.show)r=[0,0,s.sol[0],s.sol[1]];else if(sel&&sel.b)r=[Math.min(sel.a[0],sel.b[0]),Math.min(sel.a[1],sel.b[1]),Math.abs(sel.a[0]-sel.b[0])+1,Math.abs(sel.a[1]-sel.b[1])+1];
+  gdraw(ctx,G2,function(c,k){if(r&&c>=r[0]&&c<r[0]+r[2]&&k>=r[1]&&k<r[1]+r[3])return s.show?'#86efac':'#f472b6';if(sel&&!sel.b&&sel.a[0]===c&&sel.a[1]===k)return '#fbbf24';return null;});
+  if(r){var info=r[2]+' × '+r[3]+(kind==='a'?' → '+X('area ','aire ')+r[2]*r[3]:' → '+X('perimeter ','périmètre ')+2*(r[2]+r[3]));label(ctx,info,a.x+a.w/2,G2.oy+G2.cs*s.R+18,22,'#fde68a');}};}
+function buildTap(g,s,x,y){var c=gcell(s.G2,x,y);if(!c)return;if(!s.sel||s.sel.b)s.sel={a:c};else s.sel.b=c;}
+function buildCheck(kind){return function(g,s){var sel=s.sel;if(!sel||!sel.b)return null;var w=Math.abs(sel.a[0]-sel.b[0])+1,h=Math.abs(sel.a[1]-sel.b[1])+1;return (kind==='a'?w*h:2*(w+h))===s.val;};}
+mkBoard({id:'a_build',topic:'area',icon:'🧱',lv:[2,8],name:['Build the area','Construis l’aire'],desc:['Build a rectangle with the area asked on the grid.','Construis au quadrillage un rectangle de l’aire demandée.'],
+  round:buildRound('a'),paint:buildPaint('a'),tap:buildTap,check:buildCheck('a')});
+mkBoard({id:'a_count',topic:'area',icon:'🔲',lv:[1,6],name:['Count the squares','Compte les carreaux'],desc:['How many squares cover the shape? That is its area.','Combien de carreaux couvrent la figure ? C’est son aire.'],
+  round:function(g,s){s.C=10;s.R=6;s.cells=shapeCells(10,6,g.L>=3&&Math.random()<.5);var n=Object.keys(s.cells).length;s.ans=String(n);s.opts=optsFrom(n,[n+1,n-1,cellsPerim(s.cells),n+2]);
+    s.q=X('What is the area of the pink shape? Count the squares.','Quelle est l’aire de la figure rose ? Compte les carreaux.');},
+  paint:function(g,ctx,s,a){var G2=gg(a,s.C,s.R),i=0;gdraw(ctx,G2,function(c,r){return s.cells[c+','+r]?'#f472b6':null;});
+    if(s.show)for(var r=0;r<s.R;r++)for(var c=0;c<s.C;c++)if(s.cells[c+','+r]){i++;label(ctx,String(i),G2.ox+(c+.5)*G2.cs,G2.oy+(r+.5)*G2.cs,G2.cs*.4,'#111827',false);}}});
+mkBoard({id:'a_rect',topic:'area',icon:'▭',lv:[3,8],name:['Area of a rectangle','Aire d’un rectangle'],desc:['Length × width, with the sides marked.','Longueur × largeur, avec les côtés indiqués.'],
+  round:function(g,s){s.l=rnd(3,g.L<=4?10:15);s.w=rnd(2,s.l-1);var A=s.l*s.w;s.ans=A+' cm²';s.opts=optsFrom(s.ans,[2*(s.l+s.w)+' cm²',(s.l+s.w)+' cm²',(A+s.l)+' cm²']);s.q=X('What is the area of this rectangle?','Quelle est l’aire de ce rectangle ?');},
+  paint:function(g,ctx,s,a){var r=labRect(ctx,a,s.l,s.w,'cm');if(s.show)label(ctx,s.l+' × '+s.w+' = '+s.l*s.w+' cm²',r.x+r.w/2,r.y+r.h/2,28,'#fff');}});
+mkBoard({id:'a_tri',topic:'area',icon:'🔺',lv:[5,9],name:['Area of a triangle','Aire d’un triangle'],desc:['Base × height ÷ 2.','Base × hauteur ÷ 2.'],
+  round:function(g,s){s.b=2*rnd(2,9);s.h=rnd(3,12);s.t=Math.random();var A=s.b*s.h/2;s.ans=A+' cm²';s.opts=optsFrom(s.ans,[s.b*s.h+' cm²',(s.b+s.h)+' cm²',(A+s.h)+' cm²']);s.q=X('What is the area of this triangle?','Quelle est l’aire de ce triangle ?');},
+  paint:function(g,ctx,s,a){var k=Math.min(a.w*.7/s.b,a.h*.72/s.h),B=s.b*k,H=s.h*k,x=a.x+(a.w-B)/2,y=a.y+(a.h-H)/2+10,px=x+B*(.15+s.t*.7);
+    ctx.fillStyle='rgba(251,191,36,.45)';ctx.beginPath();ctx.moveTo(x,y+H);ctx.lineTo(x+B,y+H);ctx.lineTo(px,y);ctx.closePath();ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.stroke();
+    ctx.setLineDash([10,8]);ctx.beginPath();ctx.moveTo(px,y);ctx.lineTo(px,y+H);ctx.stroke();ctx.setLineDash([]);ctx.strokeRect(px,y+H-16,16,16);
+    label(ctx,s.b+' cm',x+B/2,y+H+22,24,'#fde68a');label(ctx,s.h+' cm',px+42,y+H/2,24,'#fde68a');
+    if(s.show)label(ctx,s.b+' × '+s.h+' ÷ 2 = '+s.b*s.h/2+' cm²',a.x+a.w/2,a.y+12,26,'#86efac');}});
+mkBoard({id:'a_lshape',topic:'area',icon:'⬛',lv:[5,9],name:['Area of an L-shape','Aire d’une figure en L'],desc:['Split the shape into two rectangles and add.','Coupe la figure en deux rectangles et additionne.'],
+  round:function(g,s){s.W=rnd(6,14);s.H=rnd(5,12);s.cw=rnd(2,s.W-3);s.ch=rnd(2,s.H-3);var A=s.W*s.H-s.cw*s.ch;s.ans=A+' cm²';s.opts=optsFrom(s.ans,[s.W*s.H+' cm²',(A+s.cw)+' cm²',2*(s.W+s.H)+' cm²']);s.q=X('What is the area of this shape?','Quelle est l’aire de cette figure ?');},
+  paint:function(g,ctx,s,a){var k=Math.min(a.w*.66/s.W,a.h*.72/s.H),x=a.x+(a.w-s.W*k)/2,y=a.y+(a.h-s.H*k)/2+8,W2=s.W*k,H2=s.H*k,cw=s.cw*k,ch=s.ch*k;
+    ctx.fillStyle='rgba(52,211,153,.45)';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+W2-cw,y);ctx.lineTo(x+W2-cw,y+ch);ctx.lineTo(x+W2,y+ch);ctx.lineTo(x+W2,y+H2);ctx.lineTo(x,y+H2);ctx.closePath();ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.stroke();
+    label(ctx,s.W+' cm',x+W2/2,y+H2+22,22,'#fde68a');label(ctx,s.H+' cm',x-42,y+H2/2,22,'#fde68a');label(ctx,(s.W-s.cw)+' cm',x+(W2-cw)/2,y-18,22,'#fde68a');label(ctx,(s.H-s.ch)+' cm',x+W2+44,y+ch+(H2-ch)/2,22,'#fde68a');
+    if(s.show){ctx.setLineDash([10,8]);ctx.beginPath();ctx.moveTo(x,y+ch);ctx.lineTo(x+W2-cw,y+ch);ctx.stroke();ctx.setLineDash([]);
+      label(ctx,(s.W-s.cw)+' × '+s.ch+' + '+s.W+' × '+(s.H-s.ch)+' = '+(s.W*s.H-s.cw*s.ch),a.x+a.w/2,a.y+10,24,'#86efac');}}});
+mkBoard({id:'a_same',topic:'area',icon:'🔁',lv:[3,8],name:['Same area, new shape','Même aire, autre forme'],desc:['Build a different rectangle with the same area as the blue one.','Construis un autre rectangle de même aire que le bleu.'],
+  round:function(g,s){var pairs=[[2,6],[3,4],[2,8],[4,4],[3,6],[2,9],[4,5],[2,10],[3,8],[4,6],[2,12],[3,5],[5,2],[1,6]];var p=pick(pairs);s.C=12;s.R=6;s.base=[p[0],p[1]];s.val=p[0]*p[1];s.sel=null;
+    var alt=[];for(var w=1;w<=12;w++)for(var h=1;h<=6;h++)if(w*h===s.val&&!(w===p[0]&&h===p[1]))alt.push([w,h]);s.sol=alt[0]||[p[1],p[0]];
+    s.q=X('The blue rectangle has an area of '+s.val+'. Build a DIFFERENT rectangle with the same area.','Le rectangle bleu a une aire de '+s.val+'. Construis un rectangle DIFFÉRENT de même aire.');s.ans=s.sol[0]+' × '+s.sol[1]+' = '+s.val;},
+  paint:function(g,ctx,s,a){var p=split(a,.32);labRect(ctx,{x:p[0].x+20,y:p[0].y,w:p[0].w-20,h:p[0].h},s.base[0],s.base[1],'','rgba(96,165,250,.7)');var bp=buildPaint('a');bp(g,ctx,s,p[1]);},
+  tap:buildTap,check:function(g,s){var sel=s.sel;if(!sel||!sel.b)return null;var w=Math.abs(sel.a[0]-sel.b[0])+1,h=Math.abs(sel.a[1]-sel.b[1])+1;return w*h===s.val&&!(w===s.base[0]&&h===s.base[1]);}});
+
+/* ---------- PERIMETER ---------- */
+mkBoard({id:'p_build',topic:'perim',icon:'🧱',lv:[3,8],name:['Build the perimeter','Construis le périmètre'],desc:['Build a rectangle with the perimeter asked on the grid.','Construis au quadrillage un rectangle du périmètre demandé.'],
+  round:buildRound('p'),paint:buildPaint('p'),tap:buildTap,check:buildCheck('p')});
+mkBoard({id:'p_count',topic:'perim',icon:'🚶',lv:[2,6],name:['Walk around the shape','Fais le tour de la figure'],desc:['Count every edge around the outside of the shape.','Compte tous les côtés du contour de la figure.'],
+  round:function(g,s){s.C=10;s.R=6;s.cells=shapeCells(10,6,g.L>=4&&Math.random()<.5);var p=cellsPerim(s.cells),n=Object.keys(s.cells).length;s.ans=String(p);s.opts=optsFrom(p,[n,p+2,p-2,p+1]);
+    s.q=X('What is the perimeter of the pink shape? Count the edges all the way around.','Quel est le périmètre de la figure rose ? Compte les côtés tout autour.');},
+  paint:function(g,ctx,s,a){var G2=gg(a,s.C,s.R);gdraw(ctx,G2,function(c,r){return s.cells[c+','+r]?'#f472b6':null;});
+    if(s.show){ctx.strokeStyle='#fbbf24';ctx.lineWidth=6;Object.keys(s.cells).forEach(function(k){var q=k.split(','),c=+q[0],r=+q[1],x=G2.ox+c*G2.cs,y=G2.oy+r*G2.cs;
+      if(!s.cells[c+','+(r-1)]){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+G2.cs,y);ctx.stroke();}if(!s.cells[c+','+(r+1)]){ctx.beginPath();ctx.moveTo(x,y+G2.cs);ctx.lineTo(x+G2.cs,y+G2.cs);ctx.stroke();}
+      if(!s.cells[(c-1)+','+r]){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+G2.cs);ctx.stroke();}if(!s.cells[(c+1)+','+r]){ctx.beginPath();ctx.moveTo(x+G2.cs,y);ctx.lineTo(x+G2.cs,y+G2.cs);ctx.stroke();}});}}});
+mkBoard({id:'p_rect',topic:'perim',icon:'▭',lv:[3,8],name:['Perimeter of a rectangle','Périmètre d’un rectangle'],desc:['Add all four sides.','Additionne les quatre côtés.'],
+  round:function(g,s){s.l=rnd(3,g.L<=4?10:20);s.w=rnd(2,s.l-1);var P=2*(s.l+s.w);s.ans=P+' cm';s.opts=optsFrom(s.ans,[s.l*s.w+' cm',(s.l+s.w)+' cm',(2*s.l+s.w)+' cm']);s.q=X('What is the perimeter of this rectangle?','Quel est le périmètre de ce rectangle ?');},
+  paint:function(g,ctx,s,a){var r=labRect(ctx,a,s.l,s.w,'cm','rgba(251,146,60,.4)');if(s.show)label(ctx,s.l+' + '+s.w+' + '+s.l+' + '+s.w+' = '+2*(s.l+s.w)+' cm',r.x+r.w/2,r.y+r.h/2,26,'#fff');}});
+mkBoard({id:'p_poly',topic:'perim',icon:'⬠',lv:[3,8],name:['Add the sides','Additionne les côtés'],desc:['A shape with every side marked. Add them all.','Une figure avec chaque côté indiqué. Additionne-les tous.'],
+  round:function(g,s){s.n=rnd(3,g.L<=4?5:7);s.sides=[];for(var i=0;i<s.n;i++)s.sides.push(rnd(2,g.L<=4?9:20));var P=s.sides.reduce(function(x,y){return x+y;},0);s.ans=P+' cm';s.opts=optsFrom(s.ans,[(P+s.sides[0])+' cm',(P-s.sides[1])+' cm',(P+2)+' cm']);
+    s.q=X('What is the perimeter of this shape? (not to scale)','Quel est le périmètre de cette figure ? (pas à l’échelle)');},
+  paint:function(g,ctx,s,a){var cx=a.x+a.w/2,cy=a.y+a.h/2+6,R2=Math.min(a.w,a.h)*.36,pts=[];for(var i=0;i<s.n;i++){var t=-1.5708+i*6.2832/s.n+(s.n===4?.785:0);pts.push([cx+R2*Math.cos(t),cy+R2*Math.sin(t)]);}
+    ctx.fillStyle='rgba(167,139,250,.45)';ctx.beginPath();pts.forEach(function(p,i){if(i)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.closePath();ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.stroke();
+    pts.forEach(function(p,i){var q=pts[(i+1)%s.n],mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2,ox=mx-cx,oy=my-cy,ln=Math.sqrt(ox*ox+oy*oy)||1;label(ctx,s.sides[i]+' cm',mx+ox/ln*30,my+oy/ln*24,22,'#fde68a');});
+    if(s.show)label(ctx,s.sides.join(' + ')+' = '+s.sides.reduce(function(x,y){return x+y;},0),cx,cy,22,'#fff');}});
+mkBoard({id:'p_missing',topic:'perim',icon:'❓',lv:[4,9],name:['Find the missing side','Trouve le côté manquant'],desc:['You know the perimeter and one side. Find the other.','Tu connais le périmètre et un côté. Trouve l’autre.'],
+  round:function(g,s){s.l=rnd(4,16);s.w=rnd(2,s.l-1);var P=2*(s.l+s.w);s.P=P;s.ans=s.w+' cm';s.opts=optsFrom(s.ans,[(P-s.l)+' cm',(P/2)+' cm',(s.w+2)+' cm']);
+    s.q=X('This rectangle has a perimeter of '+P+' cm. How long is the short side?','Ce rectangle a un périmètre de '+P+' cm. Combien mesure le petit côté ?');},
+  paint:function(g,ctx,s,a){var k=Math.min(a.w*.72/s.l,a.h*.7/s.w),W2=s.l*k,H2=s.w*k,x=a.x+(a.w-W2)/2,y=a.y+(a.h-H2)/2+8;ctx.fillStyle='rgba(251,146,60,.4)';ctx.fillRect(x,y,W2,H2);ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(x,y,W2,H2);
+    label(ctx,s.l+' cm',x+W2/2,y-18,24,'#fde68a');label(ctx,'?',x-26,y+H2/2,34,'#fde68a');if(s.show)label(ctx,s.P+' ÷ 2 = '+s.P/2+',  '+s.P/2+' − '+s.l+' = '+s.w,x+W2/2,y+H2/2,24,'#fff');}});
+mkBoard({id:'p_square',topic:'perim',icon:'⬜',lv:[4,9],name:['Square puzzle','L’énigme du carré'],desc:['A square has 4 equal sides. Use the perimeter to find one side.','Un carré a 4 côtés égaux. Utilise le périmètre pour trouver un côté.'],
+  round:function(g,s){s.a=rnd(2,15);var P=4*s.a;s.ans=s.a+' cm';s.opts=optsFrom(s.ans,[(P/2)+' cm',(s.a+4)+' cm',(P-4)+' cm']);s.q=X('A square has a perimeter of '+P+' cm. How long is one side?','Un carré a un périmètre de '+P+' cm. Combien mesure un côté ?');},
+  paint:function(g,ctx,s,a){var sz=Math.min(a.w,a.h)*.6,x=a.x+(a.w-sz)/2,y=a.y+(a.h-sz)/2+6;ctx.fillStyle='rgba(56,189,248,.4)';ctx.fillRect(x,y,sz,sz);ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(x,y,sz,sz);
+    ['?','?','?','?'].forEach(function(t,i){label(ctx,s.show?String(s.a):t,[x+sz/2,x+sz+24,x+sz/2,x-24][i],[y-18,y+sz/2,y+sz+20,y+sz/2][i],28,'#fde68a');});if(s.show)label(ctx,4*s.a+' ÷ 4 = '+s.a,x+sz/2,y+sz/2,28,'#fff');}});
+
+/* ---------- FRACTIONS ---------- */
+function fracPick(L){var dd=rnd(2,L<=3?6:L<=5?10:12),n=rnd(1,dd-1);return [n,dd];}
+mkBoard({id:'f_pizza',topic:'frac',icon:'🍕',lv:[1,9],name:['Shade the pizza','Colorie la pizza'],desc:['Tap slices to shade the fraction asked. Higher grades need equivalent fractions.','Touche les parts pour colorier la fraction demandée. Les grandes classes ont besoin de fractions équivalentes.'],
+  round:function(g,s){var f=fracPick(g.L);while(gcd(f[0],f[1])!==1)f=fracPick(g.L);var k=g.L>=4?rnd(1,Math.max(1,Math.floor(12/f[1]))):1;s.f=f;s.d=f[1]*k;s.on=falses(s.d);
+    s.q=X('Shade '+f[0]+'/'+f[1]+' of the pizza.','Colorie '+f[0]+'/'+f[1]+' de la pizza.');s.ans=(f[0]*k)+'/'+s.d+(k>1?' = '+f[0]+'/'+f[1]:'');},
+  paint:function(g,ctx,s,a){s.r=Math.min(a.w,a.h)*.44;s.cx=a.x+a.w/2;s.cy=a.y+a.h/2;var on=s.show?s.on.map(function(_,i){return i<s.f[0]*s.d/s.f[1];}):s.on;pizza(ctx,s.cx,s.cy,s.r,s.d,on,s.show?'#22c55e':'#f472b6');
+    label(ctx,cnt(on)+'/'+s.d,s.cx+s.r+50,s.cy,26,'#fff');},
+  tap:function(g,s,x,y){var i=pizzaHit(s.cx,s.cy,s.r,s.d,x,y);if(i>=0)s.on[i]=!s.on[i];},check:function(g,s){var c=cnt(s.on);if(!c)return null;return fracEq(c,s.d,s.f[0],s.f[1]);}});
+mkBoard({id:'f_bar',topic:'frac',icon:'🍫',lv:[2,9],name:['Shade the bar','Colorie la barre'],desc:['Tap parts of the chocolate bar to shade the fraction.','Touche les carrés de la tablette pour colorier la fraction.'],
+  round:function(g,s){var f=fracPick(g.L);while(gcd(f[0],f[1])!==1)f=fracPick(g.L);var k=g.L>=4?rnd(1,Math.max(1,Math.floor(12/f[1]))):1;s.f=f;s.d=f[1]*k;s.on=falses(s.d);
+    s.q=X('Shade '+f[0]+'/'+f[1]+' of the bar.','Colorie '+f[0]+'/'+f[1]+' de la barre.');s.ans=(f[0]*k)+'/'+s.d+(k>1?' = '+f[0]+'/'+f[1]:'');},
+  paint:function(g,ctx,s,a){s.bw=Math.min(a.w,900);s.bh=Math.min(140,a.h*.5);s.bx=a.x+(a.w-s.bw)/2;s.by=a.y+(a.h-s.bh)/2;var on=s.show?s.on.map(function(_,i){return i<s.f[0]*s.d/s.f[1];}):s.on;
+    fbar(ctx,s.bx,s.by,s.bw,s.bh,s.d,on,s.show?'#22c55e':'#a16207');label(ctx,cnt(on)+'/'+s.d,a.x+a.w/2,s.by+s.bh+30,26,'#fff');},
+  tap:function(g,s,x,y){var i=fbarHit(s.bx,s.by,s.bw,s.bh,s.d,x,y);if(i>=0)s.on[i]=!s.on[i];},check:function(g,s){var c=cnt(s.on);if(!c)return null;return fracEq(c,s.d,s.f[0],s.f[1]);}});
+function writeCheck(g,s){var n=parseInt(s.pad.n,10),d=parseInt(s.pad.d,10);if(!(n>=0)||!(d>0))return null;return fracEq(n,d,s.want[0],s.want[1]);}
+mkBoard({id:'f_write',topic:'frac',icon:'✍️',lv:[1,9],pad:true,name:['Write the fraction','Écris la fraction'],desc:['Look at the shaded part and write the fraction with the number pad.','Regarde la partie coloriée et écris la fraction avec le pavé.'],
+  round:function(g,s){var f=fracPick(g.L);s.kind=Math.random()<.5?'p':'b';s.d=f[1];s.on=shadeRand(f[1],f[0]);s.want=f;s.q=X('What fraction is shaded? Write it.','Quelle fraction est coloriée ? Écris-la.');s.ans=f[0]+'/'+f[1]+(fs(f[0],f[1])!==f[0]+'/'+f[1]?' = '+fs(f[0],f[1]):'');},
+  paint:function(g,ctx,s,a){var p=split(a,.55),q=p[0];if(s.kind==='p')pizza(ctx,q.x+q.w/2,q.y+q.h/2,Math.min(q.w,q.h)*.42,s.d,s.on);else fbar(ctx,q.x+10,q.y+q.h/2-50,q.w-20,100,s.d,s.on,'#a16207');padDraw(g,ctx,s,p[1]);},
+  check:writeCheck});
+mkBoard({id:'f_group',topic:'frac',icon:'🍎',lv:[2,8],pad:true,name:['Fraction of a group','Fraction d’un groupe'],desc:['Some of the apples are red. Write the fraction that is red.','Certaines pommes sont rouges. Écris la fraction de pommes rouges.'],
+  round:function(g,s){var N=rnd(4,g.L<=3?10:16),k=rnd(1,N-1);s.N=N;s.on=shadeRand(N,k);s.want=[k,N];s.q=X('What fraction of the apples is red? Write it.','Quelle fraction des pommes est rouge ? Écris-la.');s.ans=k+'/'+N+(fs(k,N)!==k+'/'+N?' = '+fs(k,N):'');},
+  paint:function(g,ctx,s,a){var p=split(a,.55),q=p[0],cols=Math.ceil(Math.sqrt(s.N*1.6)),rows=Math.ceil(s.N/cols),sz=Math.min(q.w/cols,q.h/rows)*.8;
+    for(var i=0;i<s.N;i++){var x=q.x+(q.w-cols*sz/.8)/2+(i%cols+.5)*sz/.8,y=q.y+(q.h-rows*sz/.8)/2+(Math.floor(i/cols)+.5)*sz/.8;ctx.fillStyle=s.on[i]?'#ef4444':'#84cc16';ctx.beginPath();ctx.arc(x,y,sz/2,0,6.2832);ctx.fill();ctx.fillStyle='#78350f';ctx.fillRect(x-2,y-sz/2-8,4,10);}
+    padDraw(g,ctx,s,p[1]);},check:writeCheck});
+mkBoard({id:'f_colour',topic:'frac',icon:'🎨',lv:[3,9],name:['Colour a fraction of a group','Colorie une fraction d’un groupe'],desc:['Tap the balloons to colour the fraction of the group asked.','Touche les ballons pour colorier la fraction du groupe demandée.'],
+  round:function(g,s){var f=fracPick(g.L);while(gcd(f[0],f[1])!==1||f[1]>8)f=fracPick(Math.min(g.L,5));var m=rnd(1,Math.max(1,Math.floor(16/f[1])));s.N=f[1]*m;s.f=f;s.on=falses(s.N);
+    s.q=X('Colour '+f[0]+'/'+f[1]+' of the '+s.N+' balloons.','Colorie '+f[0]+'/'+f[1]+' des '+s.N+' ballons.');s.ans=s.N+' ÷ '+f[1]+' × '+f[0]+' = '+(s.N/f[1]*f[0]);},
+  paint:function(g,ctx,s,a){var cols=Math.min(s.N,Math.ceil(Math.sqrt(s.N*2.2))),rows=Math.ceil(s.N/cols),cw=a.w/cols,ch=a.h/rows,sz=Math.min(cw,ch)*.7;s.pos=[];var need=s.N/s.f[1]*s.f[0];
+    for(var i=0;i<s.N;i++){var x=a.x+(i%cols+.5)*cw,y=a.y+(Math.floor(i/cols)+.5)*ch,on=s.show?i<need:s.on[i];s.pos.push([x,y,sz/2]);ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y+sz/2);ctx.lineTo(x,y+sz*.9);ctx.stroke();
+      ctx.fillStyle=on?(s.show?'#22c55e':'#f472b6'):'rgba(255,255,255,.85)';ctx.beginPath();ctx.ellipse(x,y,sz*.42,sz/2,0,0,6.2832);ctx.fill();}
+    label(ctx,(s.show?need:cnt(s.on))+'/'+s.N,a.x+a.w-40,a.y+14,24,'#fff');},
+  tap:function(g,s,x,y){(s.pos||[]).forEach(function(p,i){if((x-p[0])*(x-p[0])+(y-p[1])*(y-p[1])<p[2]*p[2]*1.4)s.on[i]=!s.on[i];});},
+  check:function(g,s){var c=cnt(s.on);if(!c)return null;return c*s.f[1]===s.f[0]*s.N;}});
+mkBoard({id:'f_line',topic:'frac',icon:'📏',lv:[3,10],name:['Fraction on the number line','Fraction sur la droite graduée'],desc:['Tap the mark where the fraction belongs.','Touche la graduation où se trouve la fraction.'],
+  round:function(g,s){var dd=rnd(2,g.L<=4?6:10),mx=g.L>=5&&Math.random()<.4?2:1,n=rnd(1,dd*mx-1);while(n%dd===0)n=rnd(1,dd*mx-1);var k=g.L>=6&&Math.random()<.4?2:1;
+    s.dd=dd;s.mx=mx;s.ticks=dd*k;s.n=n;s.k=k;s.pk=-1;var shown=k>1&&gcd(n,dd)===1?n+'/'+dd:n+'/'+dd;s.q=X('Tap where '+shown+' goes on the number line.','Touche l’endroit où va '+shown+' sur la droite graduée.');s.ans=n+'/'+dd+(k>1?' = '+(n*k)+'/'+(dd*k):'');},
+  paint:function(g,ctx,s,a){var x1=a.x+40,x2=a.x+a.w-40,y=a.y+a.h/2,tot=s.ticks*s.mx;s.x1=x1;s.x2=x2;s.ly=y;ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();
+    for(var i=0;i<=tot;i++){var x=x1+(x2-x1)*i/tot,big=i%s.ticks===0,good=s.show&&i===s.n*s.k,sel=s.pk===i;ctx.lineWidth=big?5:3;ctx.strokeStyle=good?'#22c55e':sel?'#f472b6':'#fff';ctx.beginPath();ctx.moveTo(x,y-(big?28:18));ctx.lineTo(x,y+(big?28:18));ctx.stroke();
+      if(big)label(ctx,String(i/s.ticks),x,y+52,30,'#fde68a');if(sel||good){ctx.fillStyle=good?'#22c55e':'#f472b6';ctx.beginPath();ctx.arc(x,y-46,14,0,6.2832);ctx.fill();}}},
+  tap:function(g,s,x,y){if(Math.abs(y-s.ly)>80)return;var tot=s.ticks*s.mx,i=Math.round((x-s.x1)/(s.x2-s.x1)*tot);if(i>=0&&i<=tot)s.pk=i;},
+  check:function(g,s){if(s.pk<0)return null;return s.pk===s.n*s.k;}});
+mkBoard({id:'f_cmp',topic:'frac',icon:'⚖️',lv:[3,8],name:['Which is bigger?','Laquelle est la plus grande ?'],desc:['Two pizzas. Tap the one with more shaded, or Equal.','Deux pizzas. Touche celle qui est le plus coloriée, ou Égales.'],
+  round:function(g,s){var a=cop(2,g.L<=4?8:12),b=cop(2,g.L<=4?8:12);if(g.L>=4&&Math.random()<.15){var m=rnd(2,3);b=[a[0]*m,a[1]*m];if(b[1]>12)b=cop(2,12);}while(fracEq(a[0],a[1],b[0],b[1])&&b[1]===a[1])b=cop(2,12);
+    s.A=a;s.B=b;var va=a[0]/a[1],vb=b[0]/b[1],L1=a[0]+'/'+a[1],L2=b[0]+'/'+b[1],EQ=X('Equal','Égales');s.ans=Math.abs(va-vb)<1e-9?EQ:va>vb?L1:L2;s.opts=[L1,L2,EQ];
+    s.q=X('Which pizza has more shaded: '+L1+' or '+L2+'?','Quelle pizza est la plus coloriée : '+L1+' ou '+L2+' ?');},
+  paint:function(g,ctx,s,a){var r=Math.min(a.w/4.4,a.h*.42);[[s.A,a.x+a.w*.28],[s.B,a.x+a.w*.72]].forEach(function(p){var on=falses(p[0][1]);for(var i=0;i<p[0][0];i++)on[i]=true;pizza(ctx,p[1],a.y+a.h/2,r,p[0][1],on);label(ctx,p[0][0]+'/'+p[0][1],p[1],a.y+a.h/2+r+22,28,'#fde68a');});}});
+mkBoard({id:'f_equiv',topic:'frac',icon:'🟰',lv:[4,9],name:['Make it equal','Rends-les égales'],desc:['Shade the second bar so it shows the same amount as the first.','Colorie la deuxième barre pour qu’elle montre la même quantité que la première.'],
+  round:function(g,s){var f=cop(2,6),k=rnd(2,Math.max(2,Math.floor(12/f[1])));s.f=f;s.d=f[1]*k;s.on=falses(s.d);s.top=falses(f[1]);for(var i=0;i<f[0];i++)s.top[i]=true;
+    s.q=X('The top bar shows '+f[0]+'/'+f[1]+'. Shade the same amount on the bottom bar.','La barre du haut montre '+f[0]+'/'+f[1]+'. Colorie la même quantité sur la barre du bas.');s.ans=f[0]+'/'+f[1]+' = '+(f[0]*k)+'/'+s.d;},
+  paint:function(g,ctx,s,a){var bw=Math.min(a.w,900),bh=Math.min(100,a.h*.3),x=a.x+(a.w-bw)/2,y1=a.y+a.h*.18,y2=a.y+a.h*.58;s.bx=x;s.bw=bw;s.bh=bh;s.by=y2;
+    fbar(ctx,x,y1,bw,bh,s.f[1],s.top,'#60a5fa');var on=s.show?s.on.map(function(_,i){return i<s.f[0]*s.d/s.f[1];}):s.on;fbar(ctx,x,y2,bw,bh,s.d,on,s.show?'#22c55e':'#f472b6');label(ctx,cnt(on)+'/'+s.d,x+bw/2,y2+bh+28,24,'#fff');},
+  tap:function(g,s,x,y){var i=fbarHit(s.bx,s.by,s.bw,s.bh,s.d,x,y);if(i>=0)s.on[i]=!s.on[i];},check:function(g,s){var c=cnt(s.on);if(!c)return null;return fracEq(c,s.d,s.f[0],s.f[1]);}});
+mkBoard({id:'f_add',topic:'frac',icon:'➕',lv:[4,9],pad:true,name:['Add fractions on the bar','Additionne sur la barre'],desc:['The bar shows two fractions. Write what they add up to.','La barre montre deux fractions. Écris leur somme.'],
+  round:function(g,s){var d=rnd(3,12),a=rnd(1,d-2),b=rnd(1,d-a);s.d=d;s.a=a;s.b=b;s.want=[a+b,d];s.q=X('What is '+a+'/'+d+' + '+b+'/'+d+'? Write it.','Combien font '+a+'/'+d+' + '+b+'/'+d+' ? Écris-le.');s.ans=(a+b)+'/'+d+(fs(a+b,d)!==(a+b)+'/'+d?' = '+fs(a+b,d):'');},
+  paint:function(g,ctx,s,a2){var p=split(a2,.55),q=p[0],cw=(q.w-20)/s.d,y=q.y+q.h/2-50;for(var i=0;i<s.d;i++){ctx.fillStyle=i<s.a?'#f472b6':i<s.a+s.b?'#60a5fa':'rgba(255,255,255,.9)';ctx.fillRect(q.x+10+i*cw,y,cw,100);ctx.strokeStyle='#1f2937';ctx.lineWidth=3;ctx.strokeRect(q.x+10+i*cw,y,cw,100);}
+    label(ctx,s.a+'/'+s.d,q.x+10+cw*s.a/2,y-22,24,'#f9a8d4');label(ctx,s.b+'/'+s.d,q.x+10+cw*(s.a+s.b/2),y+124,24,'#93c5fd');padDraw(g,ctx,s,p[1]);},check:writeCheck});
+mkBoard({id:'f_name',topic:'frac',icon:'🏷️',lv:[1,5],name:['Name the fraction','Nomme la fraction'],desc:['Pick the fraction that matches the picture.','Choisis la fraction qui correspond au dessin.'],
+  round:function(g,s){var f=fracPick(Math.min(g.L,4));s.f=f;s.on=shadeRand(f[1],f[0]);s.kind=Math.random()<.5?'p':'b';s.ans=f[0]+'/'+f[1];s.opts=optsFrom(s.ans,[f[1]+'/'+f[0],(f[1]-f[0])+'/'+f[1],f[0]+'/'+(f[1]+1)]);s.q=X('What fraction is shaded?','Quelle fraction est coloriée ?');},
+  paint:function(g,ctx,s,a){if(s.kind==='p')pizza(ctx,a.x+a.w/2,a.y+a.h/2,Math.min(a.w,a.h)*.44,s.f[1],s.on);else fbar(ctx,a.x+(a.w-Math.min(a.w,800))/2,a.y+a.h/2-55,Math.min(a.w,800),110,s.f[1],s.on,'#a16207');}});
+
+/* ---------- quick questions on any topic, one student at a time ---------- */
+var BQUIZ=mkBoard({id:'quiz',topic:'any',icon:'🙋',lv:[1,13],name:['Quick question','Question rapide'],desc:['One question on the topic, four big answers to tap.','Une question sur le thème, quatre grandes réponses à toucher.'],
+  round:function(g,s){var t=TOPIC||LESSONS[0],q=t.gen(g.L);s.q=q.q;s.ans=String(q.a);s.steps=q.steps||[];s.opts=shuffle([s.ans].concat((q.opts||[]).slice(0,3)));},
+  paint:function(g,ctx,s,a){if(s.show&&s.steps.length){var y=a.y+10;s.steps.forEach(function(st){y+=tw(ctx,st,a.x+a.w/2,y,a.w,Math.min(28,a.h/(s.steps.length*1.6)),'#fde68a')+6;});}
+    else{ctx.globalAlpha=.25;label(ctx,(TOPIC||LESSONS[0]).icon,a.x+a.w/2,a.y+a.h/2,Math.min(160,a.h*.7),'#fff',false);ctx.globalAlpha=1;}}});
+
+ALLG=GAMES.concat(BOARD);
 /* ---------- arcade page (replaces the old Games hub) ---------- */
 function renderArcade(c){
-  var L=level(),WD=worldOf(L),shown=CLS.on?CLASS_GAMES:GAMES.filter(function(g){return forGrade(g,L);}),
+  var L=level(),WD=worldOf(L),shown=GAMES.filter(function(g){return forGrade(g,L);}),
     mine=shown.filter(function(g){return g.th;}),rest=shown.filter(function(g){return !g.th;});
   syncBests(function(){var cc=$('content');if(!G&&cc&&cc.querySelector('.mxr-arcade'))renderArcade(cc);});
   function card(g,i,isNew){
-    var cw=g.classOnly?classWorld(g,L)[0]:'',nm=gName(g,L),cb=g.classOnly?'bg_'+cw+'_w.jpg':(g.bgThumb||g.bg),ct=g.classOnly?'sp_'+cw+'.png':g.thumb;
+    var nm=gName(g,L);
     return '<button type="button" class="mxr-card" data-i="'+i+'" data-n="'+E((nm+' '+g.name).toLowerCase())+'" aria-label="'+E(nm+'. '+T(g.desc))+'">'
-      +'<span class="mxr-art"><img class="mxr-bg" loading="lazy" src="'+IMG_DIR+cb+'" alt=""><img loading="lazy" src="'+IMG_DIR+ct+'" alt="">'+(isNew?'<i class="mxr-new">NEW</i>':'')+'</span>'
-      +'<span class="mxr-tx"><b>'+g.icon+' '+E(nm)+'</b><small>'+E(T(g.desc))+'</small>'+(g.versus?'<em>\uD83C\uDFEB '+E(T('Both teams play at once'))+'</em>':'<em>🏆 '+E(T('Best'))+': '+best(g.id)+'</em>')+'</span></button>';}
+      +'<span class="mxr-art"><img class="mxr-bg" loading="lazy" src="'+IMG_DIR+(g.bgThumb||g.bg)+'" alt=""><img loading="lazy" src="'+IMG_DIR+g.thumb+'" alt="">'+(isNew?'<i class="mxr-new">NEW</i>':'')+'</span>'
+      +'<span class="mxr-tx"><b>'+g.icon+' '+E(nm)+'</b><small>'+E(T(g.desc))+'</small><em>🏆 '+E(T('Best'))+': '+best(g.id)+'</em></span></button>';}
+  function bcard(d){var i=ALLG.indexOf(d);return '<button type="button" class="mxr-card mxb-card" data-i="'+i+'" data-n="'+E((T(d.name)+' '+d.name).toLowerCase())+'"><span class="mxb-ic">'+d.icon+'</span><span class="mxr-tx"><b>'+E(T(d.name))+'</b><small>'+E(T(d.desc))+'</small><em>'+E(T(LEVELS[d.lv[0]-1][1]))+(d.lv[1]>d.lv[0]?' – '+E(T(LEVELS[d.lv[1]-1][1])):'')+'</em></span></button>';}
+  function inLv(r){return LSN.all||(L>=r[0]&&L<=r[1]);}
+  var sub=CLS.sub==='present'?'present':'board',classHtml='';
+  if(CLS.on){
+    classHtml='<div class="mxr-sub" role="tablist"><button type="button" role="tab" data-s="board" aria-selected="'+(sub==='board')+'">🧑‍🏫 '+E(T('Board activities'))+'</button><button type="button" role="tab" data-s="present" aria-selected="'+(sub==='present')+'">🎤 '+E(T('Presentation mode'))+'</button></div>';
+    if(sub==='board'){
+      classHtml+='<div class="mxr-class"><p>'+E(T('For the smart board: call a student to the board. They do the activity and press Check. Show answer explains it, and Next student makes a new one.'))+'</p>'
+        +'<label class="mxl-all"><input type="checkbox" id="mxlAll"'+(LSN.all?' checked':'')+'> '+E(T('Show activities for all grades'))+'</label></div>';
+      [['area','📐','Area'],['perim','📏','Perimeter'],['frac','🍕','Fractions']].forEach(function(sec){var list=BOARD.filter(function(d){return d.topic===sec[0]&&inLv(d.lv);});
+        if(list.length)classHtml+='<h2 class="mxr-h">'+sec[1]+' '+E(T(sec[2]))+'</h2><div class="mxr-grid mxb-grid">'+list.map(bcard).join('')+'</div>';});
+      var tl=LESSONS.filter(function(t){return inLv(t.lv);});
+      if(tl.length)classHtml+='<h2 class="mxr-h">🙋 '+E(T('Quick questions by topic'))+'</h2><p class="mxb-note">'+E(T('One question at a time with four big answers. Pick a topic:'))+'</p><div class="mxb-chips">'+tl.map(function(t){return '<button type="button" class="mxb-chip" data-qt="'+LESSONS.indexOf(t)+'">'+t.icon+' '+E(lsnName(t))+'</button>';}).join('')+'</div>';
+      classHtml+='<h2 class="mxr-h">✏️ '+E(T('Work it out on the board'))+'</h2><div class="mxr-grid mxr-ex">'+EXERCISES.map(function(x,i){return '<button type="button" class="mxr-card mxr-exc" data-x="'+i+'"><span class="mxr-exi">'+x.icon+'</span><span class="mxr-tx"><b>'+E(T(x.name))+'</b><small>'+E(T(x.desc))+'</small></span></button>';}).join('')+'</div>';
+    }else{
+      classHtml+='<div class="mxr-class"><div class="mxr-teams"><label><input id="mxaNA" maxlength="16" value="'+E(teamName('A'))+'" aria-label="'+E(T('Team A name'))+'"><b>'+CLS.A+'</b></label>'
+        +'<label><input id="mxaNB" maxlength="16" value="'+E(teamName('B'))+'" aria-label="'+E(T('Team B name'))+'"><b>'+CLS.B+'</b></label></div>'
+        +'<p class="mxr-turn"><button type="button" class="mxr-link" id="mxaReset">'+E(T('reset scores'))+'</button></p></div><div class="mxp-panel" id="mxpHost"></div>';}
+  }
   var NEWIDS={};
   c.innerHTML='<div class="mxr-arcade">'
-    +'<div class="mxr-hero mxr-world" style="background-image:linear-gradient(120deg,rgba(18,10,60,.72),rgba(18,10,60,.25)),url('+IMG_DIR+'bg_'+WD[0]+'_w.jpg)"><img class="mxr-wsp" src="'+IMG_DIR+'sp_'+WD[0]+'.png" alt=""><div><span class="mxr-wtag">'+E(T(LEVELS[L-1][1]))+' · '+[0,1,2,3,4,5,6,7].map(function(j){return themeFor(L,j)[1];}).join(' ')+'</span><h1>🎮 '+E(T('Matix Arcade'))+'</h1><p>'+E(T('Real games, real maths. Pick your grade and the games and questions are made for it.'))+' '+ALLG.length+' '+E(T('games'))+', '+EXERCISES.length+' '+E(T('smart-board exercises'))+'.</p></div></div>'
+    +'<div class="mxr-hero mxr-world" style="background-image:linear-gradient(120deg,rgba(18,10,60,.72),rgba(18,10,60,.25)),url('+IMG_DIR+'bg_'+WD[0]+'_w.jpg)"><img class="mxr-wsp" src="'+IMG_DIR+'sp_'+WD[0]+'.png" alt=""><div><span class="mxr-wtag">'+E(T(LEVELS[L-1][1]))+' · '+[0,1,2,3,4,5,6,7].map(function(j){return themeFor(L,j)[1];}).join(' ')+'</span><h1>🎮 '+E(T('Matix Arcade'))+'</h1><p>'+E(T('Real games, real maths. Pick your grade and the games and questions are made for it.'))+' '+GAMES.length+' '+E(T('games'))+', '+BOARD.length+' '+E(T('smart-board activities'))+'.</p></div></div>'
     +'<div class="mxr-modes" role="tablist" aria-label="'+E(T('Where are you playing?'))+'"><button type="button" role="tab" data-m="home" aria-selected="'+(!CLS.on)+'">🏠 '+E(T('At home'))+'</button><button type="button" role="tab" data-m="class" aria-selected="'+CLS.on+'">🏫 '+E(T('In class'))+'</button></div>'
     +'<label class="mxr-lv"><span>'+E(T(CLS.on?'Pick the class':'Difficulty'))+'</span><select id="mxaLv" aria-label="'+E(T('Grade'))+'">'+LEVELS.map(function(l){return '<option value="'+l[0]+'"'+(+l[0]===L?' selected':'')+'>'+E(T(l[1]))+'</option>';}).join('')+'</select></label>'
-    +(CLS.on?'<div class="mxr-class"><p>'+E(T('Class mode is for the smart board. Pick an exercise below: a big problem, a pen board for working it out, and the worked answer to reveal. Two teams take turns and the points add up.'))+'</p>'
-      +'<div class="mxr-teams"><label>'+'<input id="mxaNA" maxlength="16" value="'+E(teamName('A'))+'" aria-label="'+E(T('Team A name'))+'"><b>'+CLS.A+'</b></label>'
-      +'<label><input id="mxaNB" maxlength="16" value="'+E(teamName('B'))+'" aria-label="'+E(T('Team B name'))+'"><b>'+CLS.B+'</b></label></div>'
-      +'<p class="mxr-turn">▶ '+E(T('Next to play'))+': <b>'+E(teamName(CLS.turn))+'</b> <button type="button" class="mxr-link" id="mxaSwap">'+E(T('switch'))+'</button> · <button type="button" class="mxr-link" id="mxaReset">'+E(T('reset scores'))+'</button></p></div>'
-      +'<h2 class="mxr-h">✏️ '+E(T('Smart-board exercises'))+'</h2><div class="mxr-grid mxr-ex">'+EXERCISES.map(function(x,i){return '<button type="button" class="mxr-card mxr-exc" data-x="'+i+'"><span class="mxr-exi">'+x.icon+'</span><span class="mxr-tx"><b>'+E(T(x.name))+'</b><small>'+E(T(x.desc))+'</small></span></button>';}).join('')+'</div>'
-      +'<h2 class="mxr-h">🎮 '+E(T('Class team games'))+'</h2>':'')
-    +'<div class="mxr-filter"><span>'+shown.length+' '+E(T(CLS.on?'class games':'games for this grade'))+'</span> <input type="search" id="mxaSearch" class="mxr-search" placeholder="'+E(T('Search games'))+'" aria-label="'+E(T('Search games'))+'"></div>'
-    +(CLS.on||!mine.length?'<div class="mxr-grid">'+shown.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'
+    +(CLS.on?classHtml:'<div class="mxr-filter"><span>'+shown.length+' '+E(T('games for this grade'))+'</span> <input type="search" id="mxaSearch" class="mxr-search" placeholder="'+E(T('Search games'))+'" aria-label="'+E(T('Search games'))+'"></div>'
+      +(!mine.length?'<div class="mxr-grid">'+shown.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'
       :'<h2 class="mxr-h">✨ '+E(T('Themed games for your class'))+'</h2><div class="mxr-grid">'+mine.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'
-       +'<h2 class="mxr-h">🎮 '+E(T('More games for this grade'))+'</h2><div class="mxr-grid">'+rest.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>')
+       +'<h2 class="mxr-h">🎮 '+E(T('More games for this grade'))+'</h2><div class="mxr-grid">'+rest.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'))
     +'</div>';
-  if(CLS.on){var cl=c.querySelector('.mxr-class'),tabs=D.createElement('div'),sub=CLS.sub==='present'||CLS.sub==='lessons'?CLS.sub:'team';tabs.className='mxr-sub';tabs.setAttribute('role','tablist');
-    tabs.innerHTML='<button type="button" role="tab" data-s="team" aria-selected="'+(sub==='team')+'">\uD83D\uDC65 '+E(T('Team mode'))+'</button><button type="button" role="tab" data-s="present" aria-selected="'+(sub==='present')+'">\uD83C\uDFA4 '+E(T('Presentation mode'))+'</button><button type="button" role="tab" data-s="lessons" aria-selected="'+(sub==='lessons')+'">\uD83D\uDCDA '+E(T('Topic games'))+'</button>';
-    cl.parentNode.insertBefore(tabs,cl.nextSibling);
-    tabs.querySelectorAll('button').forEach(function(b){b.onclick=function(){CLS.sub=b.dataset.s;saveCls();renderArcade(c);};});
-    if(sub==='present'){c.querySelectorAll('.mxr-ex,.mxr-h,.mxr-filter,.mxr-grid').forEach(function(n){n.remove();});var host=D.createElement('div');host.className='mxp-panel';tabs.parentNode.insertBefore(host,tabs.nextSibling);
-      presentPanel(host,L,function(){if(!DK.edit||host.isConnected)renderArcade(c);});}
-    if(sub==='lessons'){c.querySelectorAll('.mxr-ex,.mxr-h,.mxr-filter,.mxr-grid').forEach(function(n){n.remove();});var lh=D.createElement('div');lh.className='mxp-panel';tabs.parentNode.insertBefore(lh,tabs.nextSibling);
-      lessonsPanel(lh,L,function(){renderArcade(c);});}}
   $('mxaLv').onchange=function(){ls('mx_arcade_level',this.value);renderArcade(c);};
   if($('mxaSearch'))$('mxaSearch').oninput=function(){var q=this.value.trim().toLowerCase();c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.style.display=!q||b.dataset.n.indexOf(q)>=0?'':'none';});};
   c.querySelectorAll('.mxr-modes button').forEach(function(b){b.onclick=function(){CLS.on=b.dataset.m==='class';saveCls();renderArcade(c);};});
-  if(CLS.on){
+  c.querySelectorAll('.mxr-sub button').forEach(function(b){b.onclick=function(){CLS.sub=b.dataset.s;saveCls();renderArcade(c);};});
+  if(CLS.on&&sub==='board'){
+    $('mxlAll').onchange=function(){LSN.all=this.checked;renderArcade(c);};
+    c.querySelectorAll('[data-qt]').forEach(function(b){b.onclick=function(){startGame(BQUIZ,LESSONS[+b.dataset.qt]);};});
+    c.querySelectorAll('.mxr-exc').forEach(function(b){b.onclick=function(){startBoard(EXERCISES[+b.dataset.x]);};});
+  }
+  if(CLS.on&&sub==='present'){
     $('mxaNA').onchange=function(){CLS.nA=this.value.trim()||'Team A';saveCls();};
     $('mxaNB').onchange=function(){CLS.nB=this.value.trim()||'Team B';saveCls();};
-    $('mxaSwap').onclick=function(){CLS.turn=CLS.turn==='A'?'B':'A';saveCls();renderArcade(c);};
     $('mxaReset').onclick=function(){CLS.A=CLS.B=0;CLS.turn='A';saveCls();renderArcade(c);};
-    c.querySelectorAll('.mxr-exc').forEach(function(b){b.onclick=function(){startBoard(EXERCISES[+b.dataset.x]);};});
+    var host=$('mxpHost');presentPanel(host,L,function(){if(!DK.edit||host.isConnected)renderArcade(c);});
   }
   c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.onclick=function(){startGame(ALLG[+b.dataset.i]);};});
 }
+if(W.trAdd)W.trAdd({"Board activities": "Activités au tableau", "For the smart board: call a student to the board. They do the activity and press Check. Show answer explains it, and Next student makes a new one.": "Pour le tableau interactif : appelle un élève au tableau. Il fait l’activité et appuie sur Vérifier. Voir la réponse l’explique, et Élève suivant en crée une nouvelle.", "Show activities for all grades": "Voir les activités de toutes les années", "Area": "Aire", "Perimeter": "Périmètre", "Fractions": "Fractions", "Quick questions by topic": "Questions rapides par thème", "One question at a time with four big answers. Pick a topic:": "Une question à la fois avec quatre grandes réponses. Choisis un thème :", "Work it out on the board": "Résous au tableau", "smart-board activities": "activités au tableau"});
 if(W.trAdd)W.trAdd({"Topic games": "Jeux par thème", "Pick a topic and a team game. Every question in the game is about that topic, made for your class.": "Choisis un thème et un jeu d’équipe. Toutes les questions du jeu portent sur ce thème, adaptées à ta classe.", "No topics for this grade yet.": "Pas encore de thème pour cette année.", "Shape Builder": "Constructeur de formes", "Pizza Fractions": "Fractions pizza", "Each team taps two corners on its grid to build a rectangle with the area or perimeter asked. Right first scores. First team to 5 wins.": "Chaque équipe touche deux coins de sa grille pour construire un rectangle avec l’aire ou le périmètre demandé. La première juste marque. La première équipe à 5 gagne.", "Each team taps slices to shade the fraction asked, then presses Check. Higher grades get pizzas cut into more slices, so you need equivalent fractions. First team to 5 wins.": "Chaque équipe touche des parts pour colorier la fraction demandée, puis appuie sur Vérifier. Dans les grandes classes, les pizzas ont plus de parts : il faut des fractions équivalentes. La première équipe à 5 gagne."});
 if(W.trAdd)W.trAdd({"Lessons": "Leçons", "Teach": "Enseigner", "Copy to my sets": "Copier dans mes séries", "Show topics for all grades": "Voir les thèmes de toutes les années", "No lessons for this grade yet.": "Pas encore de leçon pour cette année.", "Ready-made lessons for the board. Teach starts with the idea and a worked example, then practice questions with the steps. Practice skips straight to the questions.": "Des leçons toutes prêtes pour le tableau. Enseigner commence par l’idée et un exemple corrigé, puis des exercices avec les étapes. Entraînement passe directement aux exercices."});
 /* 1.5.0: French for the class worlds, class team games and Presentation mode */
@@ -1780,7 +1929,7 @@ if(W.trAdd)W.trAdd({"Farm": "Ferme", "Candy": "Bonbons", "Rainbow": "Arc-en-ciel
 W.renderGames=function(c){renderArcade(c);};
 W.addEventListener('mxlang',function(){if(G||BX.on)return;var c=$('content');if(c&&c.querySelector('.mxr-arcade'))renderArcade(c);});
 W.renderGamePlay=function(c){renderArcade(c);};
-W.mxArcade={start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:CLASS_GAMES,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
+W.mxArcade={start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:BOARD,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,board:BOARD,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
 /* Android back button closes a running game */
 W.addEventListener('popstate',function(){if(G){G.pushed=false;stopGame();}});
 })();

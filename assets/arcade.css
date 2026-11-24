@@ -218,3 +218,10 @@ body.desktop #mxbOv{top:40px}
 .mxl-act{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
 .mxp-q.mxp-lt{font-size:clamp(1.8rem,5vw,3.6rem)}
 .mxp-body{margin-top:18px;font-size:clamp(1.1rem,2.8vw,2rem);line-height:1.5;white-space:pre-wrap;text-align:left;max-width:1000px;color:#e5e7eb}
+/* 1.7.0: smart-board activities */
+.mxb-grid .mxb-card{display:flex;align-items:center;gap:12px;text-align:left;padding:14px}
+.mxb-ic{font-size:2.2rem;width:64px;height:64px;flex:none;display:grid;place-items:center;border-radius:16px;background:rgba(34,197,94,.15)}
+.mxb-chips{display:flex;flex-wrap:wrap;gap:8px}
+.mxb-chip{min-height:44px;padding:8px 14px;border-radius:999px;border:1px solid var(--border,rgba(0,0,0,.15));background:var(--card,#fff);color:inherit;font:700 .92rem/1.2 inherit;font-family:inherit;cursor:pointer}
+.mxb-chip:hover{border-color:#22c55e}
+.mxb-note{opacity:.75;margin:0 0 8px}

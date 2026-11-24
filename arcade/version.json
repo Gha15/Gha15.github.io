@@ -1,5 +1,5 @@
 {
-  "version": 20,
+  "version": 21,
   "js": "/assets/arcade.js",
   "css": "/assets/arcade.css",
   "note": "The Matix app loads the arcade from here when this version is newer than the one built into the app. Bump it together with ARCADE_VERSION in assets/arcade.js."
