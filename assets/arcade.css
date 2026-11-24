@@ -208,3 +208,13 @@ body.desktop #mxbOv{top:40px}
 @keyframes mxrBob{50%{transform:translateY(-8px)}}
 @media (max-width:520px){.mxr-wsp{width:72px;height:72px}}
 @media (prefers-reduced-motion:reduce){.mxr-wsp{animation:none}}
+/* 1.6.0: Lessons in class mode */
+.mxl-all{display:flex;align-items:center;gap:8px;font-weight:700;margin:6px 0 12px;cursor:pointer}
+.mxl-all input{width:20px;height:20px}
+.mxl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.mxl-card{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;padding:12px;border-radius:16px;border:1px solid var(--border,rgba(0,0,0,.12))}
+.mxl-ic{font-size:2rem;width:52px;height:52px;display:grid;place-items:center;border-radius:14px;background:rgba(139,92,246,.14)}
+.mxl-tx b{display:block}.mxl-tx small{opacity:.7}
+.mxl-act{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
+.mxp-q.mxp-lt{font-size:clamp(1.8rem,5vw,3.6rem)}
+.mxp-body{margin-top:18px;font-size:clamp(1.1rem,2.8vw,2rem);line-height:1.5;white-space:pre-wrap;text-align:left;max-width:1000px;color:#e5e7eb}

@@ -19,7 +19,7 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function clamp(x,a,b){return x<a?a:(x>b?b:x);}
 /* ARCADE_VERSION: bump it whenever games change. The app compares it with the website's
    /arcade/version.json and loads the newer arcade straight from the website. */
-var ARCADE_VERSION=19;
+var ARCADE_VERSION=20;
 var IMG_DIR=(function(){try{var s=(D.currentScript&&D.currentScript.src)||'',m=s.match(/^(https?:\/\/[^\/]*matixthemathclub\.com)\//);if(m)return m[1]+'/arcade/img/';}catch(e){}
   return W.MX_ARCADE_IMG||'/arcade/img/';})();
 
@@ -163,17 +163,18 @@ function wrongs(ans,n,L){
 /* ---------- shared game shell ---------- */
 var G=null;
 /* Home = play on your own. Class = two teams take turns on one screen; every game's score goes to the team that played it. */
-var CLS=(function(){var d={on:false,turn:'A',A:0,B:0,nA:'Team A',nB:'Team B'};try{var v=JSON.parse(ls('mx_arcade_class')||'null');if(v)for(var k in d)if(v[k]!==undefined)d[k]=v[k];}catch(e){}return d;})();
+var CLS=(function(){var d={on:false,turn:'A',A:0,B:0,nA:'Team A',nB:'Team B',sub:'team'};try{var v=JSON.parse(ls('mx_arcade_class')||'null');if(v)for(var k in d)if(v[k]!==undefined)d[k]=v[k];}catch(e){}return d;})();
 function saveCls(){ls('mx_arcade_class',JSON.stringify(CLS));}
 function teamName(t){var n=CLS['n'+t]||('Team '+t);return n==='Team '+t?T(n):n;}
 function best(id){return parseInt(ls('mx_arcade_best_'+id)||'0',10)||0;}
 function setBest(id,v){if(v>best(id))ls('mx_arcade_best_'+id,String(v));}
-function startGame(def){
+function startGame(def,topic){
+  TOPIC=topic||null;
   var had=!!(G&&G.pushed);if(G)G.pushed=false;
   stopGame(true);
   var ov=D.createElement('div');ov.id='mxgOv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label',T(def.name));
   ov.innerHTML='<div class="mxg-hud"><button type="button" class="mxg-ib" id="mxgX" aria-label="'+E(T('Exit game'))+'">✕</button>'
-    +'<div class="mxg-tt"><b>'+def.icon+' '+E(gName(def,level()))+(def.versus?' \u00b7 '+E(teamName('A'))+' vs '+E(teamName('B')):(CLS.on?' \u00b7 '+E(teamName(CLS.turn)):''))+'</b><span id="mxgQ" aria-live="polite"></span></div>'
+    +'<div class="mxg-tt"><b>'+def.icon+' '+E(gName(def,level()))+(topic?' \u00b7 '+E(lsnName(topic)):'')+(def.versus?' \u00b7 '+E(teamName('A'))+' vs '+E(teamName('B')):(CLS.on?' \u00b7 '+E(teamName(CLS.turn)):''))+'</b><span id="mxgQ" aria-live="polite"></span></div>'
     +'<div class="mxg-stat"><span id="mxgLives" aria-label="'+E(T('Lives'))+'"></span><span class="mxg-sc" id="mxgScore">0</span></div>'
     +'<button type="button" class="mxg-ib" id="mxgPause" aria-label="'+E(T('Pause'))+'">⏸</button></div>'
     +'<div class="mxg-bigq" id="mxgBigQ" aria-hidden="true"></div><canvas id="mxgCv"></canvas><div class="mxg-end" id="mxgEnd" hidden></div><div class="mxg-msg" id="mxgMsg"></div>';
@@ -181,6 +182,7 @@ function startGame(def){
   var pushed=had;if(!had){try{history.pushState({mxg:1},'');pushed=true;}catch(e){}}
   var cv=$('mxgCv'),ctx=cv.getContext('2d');
   G={def:def,ov:ov,cv:cv,ctx:ctx,w:0,h:0,score:0,lives:3,t:0,run:true,paused:false,raf:0,last:0,L:level(),state:{},pops:[],pushed:pushed};
+  if(TOPIC)G.L=Math.min(TOPIC.lv[1],Math.max(TOPIC.lv[0],G.L));
   function size(){swapBackgrounds();var r=cv.getBoundingClientRect(),dpr=Math.min(2,W.devicePixelRatio||1);G.bh=Math.round(clamp(r.height*.11,58,CLS.on?112:90));G.w=r.width;G.h=r.height-G.bh;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(def.resize)def.resize(G);}
   G.size=size;W.addEventListener('resize',size);
   $('mxgX').onclick=function(){stopGame();};
@@ -242,7 +244,7 @@ function gameOver(){
     endv.innerHTML='<div class="mxg-card"><div class="mxg-big">\uD83C\uDFC6</div><h2>'+(wn?E(teamName(wn))+' '+E(T('wins!')):E(T('Game over')))+'</h2>'
       +'<div class="mxg-teams"><div class="'+(CLS.A>=CLS.B?'lead':'')+'"><span>'+E(teamName('A'))+'</span><b>'+CLS.A+'</b></div><div class="'+(CLS.B>CLS.A?'lead':'')+'"><span>'+E(teamName('B'))+'</span><b>'+CLS.B+'</b></div></div>'
       +'<div class="mxg-btns"><button type="button" class="mxm-btn pri" id="mxgAgain">\u21BB '+E(T('Rematch'))+'</button><button type="button" class="mxm-btn sec" id="mxgQuit">'+E(T('Pick another game'))+'</button></div></div>';
-    $('mxgAgain').onclick=function(){startGame(wd);};$('mxgQuit').onclick=function(){stopGame();};try{$('mxgAgain').focus();}catch(e){}
+    $('mxgAgain').onclick=function(){startGame(wd,TOPIC);};$('mxgQuit').onclick=function(){stopGame();};try{$('mxgAgain').focus();}catch(e){}
     if(wn&&typeof W.lxConfetti==='function')try{W.lxConfetti();}catch(e){}
     return;}
   var id=G.def.id,prev=best(id);setBest(id,G.score);pushBest(id,G.score);
@@ -541,8 +543,8 @@ var MEMORY={id:'memory',icon:'🃏',name:'Memory Match',thumb:'card_back.png',bg
    1.0.10: eight more games, each with real ways to lose
    ===================================================================== */
 function rr(ctx,x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
-function qText(q){return /\?$/.test(q.q)?q.q:q.q+' = ?';}
-function ansText(q){return /\?$/.test(q.q)?q.q.replace(/\?$/,String(q.a)):q.q+' = '+q.a;}
+function qText(q){if(q.topic)return q.q;return /\?$/.test(q.q)?q.q:q.q+' = ?';}
+function ansText(q){if(q.topic)return /= \?$/.test(q.q)?q.q.replace(/\?$/,String(q.a)):q.q.replace(/\s*\?$/,'')+' \u2192 '+q.a;return /\?$/.test(q.q)?q.q.replace(/\?$/,String(q.a)):q.q+' = '+q.a;}
 function choices(q,L,n){return shuffle([q.a].concat(wrongs(q.a,(n||4)-1,L)));}
 /* answer buttons drawn on the canvas (tap them, or press 1-4) */
 function choiceBtns(g,ctx,opts,top,h){
@@ -1208,7 +1210,7 @@ function vsBtns(g,ctx,side,opts,top,locked){
   opts.forEach(function(o,i){var x=h.x+10+(i%2)*(bw+gap)+5,y=top+Math.floor(i/2)*(bh+gap);out.push({x:x,y:y,w:bw,h:bh,v:o,side:side});
     ctx.globalAlpha=locked?.35:1;ctx.fillStyle='rgba(255,255,255,.95)';rr(ctx,x,y,bw,bh,14);ctx.fill();
     ctx.strokeStyle=side==='A'?TA:TB;ctx.lineWidth=3;rr(ctx,x,y,bw,bh,14);ctx.stroke();
-    label(ctx,String(o),x+bw/2,y+bh/2,Math.min(26,bh*.42),'#1f2937',false);ctx.globalAlpha=1;});
+    label(ctx,String(o),x+bw/2,y+bh/2,Math.max(11,Math.min(26,bh*.42,(bw-14)/(String(o).length*.58))),'#1f2937',false);ctx.globalAlpha=1;});
   return out;
 }
 function vsHit(btns,x,y){for(var i=0;i<btns.length;i++){var r=btns[i];if(x>r.x&&x<r.x+r.w&&y>r.y&&y<r.y+r.h)return r;}return null;}
@@ -1221,7 +1223,7 @@ function vsWin(g,side){if(g.over)return;g.winner=side;gameOver();}
 var TUG={id:'c_tug',icon:'🪢',name:'Tug of War',thumb:'owl0.png',bg:'bg_sky.jpg',versus:true,lives:false,classOnly:true,
   desc:'Both teams answer the same question. Each right answer pulls the rope one step your way. Pull it 5 steps to win! A wrong answer freezes your team for 2 seconds.',
   init:function(g){var s=g.state;s.p=0;s.parts=[];s.frz={A:0,B:0};this.next(g);},
-  next:function(g){var s=g.state;s.q=makeQ(g.L);s.oA=choices(s.q,g.L,4);s.oB=choices(s.q,g.L,4);setQ(qText(s.q));},
+  next:function(g){var s=g.state;s.q=cq(g);s.oA=cc(s.q,g.L);s.oB=cc(s.q,g.L);setQ(qText(s.q));},
   update:function(g,dt){var s=g.state;s.frz.A=Math.max(0,s.frz.A-dt);s.frz.B=Math.max(0,s.frz.B-dt);},
   draw:function(g,ctx){var s=g.state;wcover(ctx,g,'bg_sky.jpg');vsDivider(ctx,g);vsNames(ctx,g,26);
     var ry=g.h*.3,cx=g.w/2+s.p*(g.w*.07);ctx.strokeStyle='#a16207';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(40,ry);ctx.lineTo(g.w-40,ry);ctx.stroke();
@@ -1244,7 +1246,7 @@ var TUG={id:'c_tug',icon:'🪢',name:'Tug of War',thumb:'owl0.png',bg:'bg_sky.jp
 var BUZZER={id:'c_buzzer',icon:'🔔',name:'Buzzer Battle',thumb:'bolt.png',bg:'bg_space.jpg',versus:true,lives:false,classOnly:true,
   desc:'Hit your buzzer first, then answer within 6 seconds. Get it wrong and the other team can steal. First team to 7 points wins.',
   init:function(g){var s=g.state;s.pt={A:0,B:0};s.parts=[];this.next(g);},
-  next:function(g){var s=g.state;s.q=makeQ(g.L);s.opts=choices(s.q,g.L,4);s.who=null;s.tried={};s.left=0;setQ(qText(s.q));},
+  next:function(g){var s=g.state;s.q=cq(g);s.opts=cc(s.q,g.L);s.who=null;s.tried={};s.left=0;setQ(qText(s.q));},
   update:function(g,dt){var s=g.state;if(s.who){s.left-=dt;if(s.left<=0){flash(teamName(s.who)+': '+T('too slow!'),'#fca5a5');this.miss(g);}}},
   miss:function(g){var s=g.state,o=s.who==='A'?'B':'A';s.tried[s.who]=1;s.who=null;if(s.tried[o]){flash(ansText(s.q),'#fde68a');this.next(g);}},
   draw:function(g,ctx){var s=g.state;wcover(ctx,g,'bg_space.jpg');vsDivider(ctx,g);
@@ -1267,7 +1269,7 @@ var POTATO={id:'c_potato',icon:'💣',name:'Hot Potato Bomb',thumb:'bomb.png',bg
   desc:'The team holding the bomb must answer right to throw it to the other team. Nobody knows when it blows! If it explodes on your side, the other team scores. First to 3.',
   init:function(g){var s=g.state;s.pt={A:0,B:0};s.parts=[];s.hold=Math.random()<.5?'A':'B';this.round(g);},
   round:function(g){var s=g.state;s.fuse=12+Math.random()*14;s.boom=0;s.fly=0;this.next(g);},
-  next:function(g){var s=g.state;s.q=makeQ(g.L);s.opts=choices(s.q,g.L,4);setQ(teamName(s.hold)+': '+qText(s.q));},
+  next:function(g){var s=g.state;s.q=cq(g);s.opts=cc(s.q,g.L);setQ(teamName(s.hold)+': '+qText(s.q));},
   update:function(g,dt){var s=g.state;if(s.fly>0)s.fly=Math.max(0,s.fly-dt*2.5);
     if(s.boom>0){s.boom-=dt;if(s.boom<=0&&!g.over)this.round(g);return;}
     s.fuse-=dt;if(s.fuse<=0){var o=s.hold==='A'?'B':'A';s.pt[o]++;s.boom=1.6;var x=s.hold==='A'?g.w/4:g.w*3/4;['#f97316','#ef4444','#fde047'].forEach(function(c){burst(s.parts,x,g.h*.3,c);});flash('💥 BOOM! +1 '+teamName(o),'#fca5a5');
@@ -1290,7 +1292,7 @@ var POTATO={id:'c_potato',icon:'💣',name:'Hot Potato Bomb',thumb:'bomb.png',bg
 var TEAMRACE={id:'c_race',icon:'🏁',name:'Team Race',thumb:'car_purple.png',bg:'bg_road.jpg',versus:true,lives:false,classOnly:true,
   desc:'Each team gets its own questions on its side. Every right answer moves your car forward; a wrong one spins you out. First car over the line wins.',
   init:function(g){var s=g.state;s.pos={A:0,B:0};s.spin={A:0,B:0};s.q={};s.o={};s.parts=[];this.next(g,'A');this.next(g,'B');setQ(T('Race! Each team answers its own questions'));},
-  next:function(g,t){var s=g.state;s.q[t]=makeQ(g.L);s.o[t]=choices(s.q[t],g.L,4);},
+  next:function(g,t){var s=g.state;s.q[t]=cq(g);s.o[t]=cc(s.q[t],g.L);},
   update:function(g,dt){var s=g.state;s.spin.A=Math.max(0,s.spin.A-dt);s.spin.B=Math.max(0,s.spin.B-dt);},
   draw:function(g,ctx){var s=g.state;if(ok(IMG['bg_'+classWorld(g.def,g.L)[0]+'.jpg']))wcover(ctx,g,'bg_road.jpg');else{ctx.fillStyle='#3f6212';ctx.fillRect(0,0,g.w,g.h);}var top=10,rh=Math.min(150,g.h*.28);ctx.fillStyle='#374151';ctx.fillRect(0,top,g.w,rh);
     ctx.strokeStyle='#fde047';ctx.setLineDash([24,18]);ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,top+rh/2);ctx.lineTo(g.w,top+rh/2);ctx.stroke();ctx.setLineDash([]);
@@ -1304,10 +1306,73 @@ var TEAMRACE={id:'c_race',icon:'🏁',name:'Team Race',thumb:'car_purple.png',bg
   down:function(g,x,y){this.pick(g,vsHit(g.state.btns||[],x,y));},
   key:function(g,k){this.pick(g,vsKey(g.state.btns||[],k));}
 };
+/* 1.6.0: topic team games. TOPIC is the class topic being played (null = mixed questions for the grade).
+   cq/cc give the team games their question and four answers from that topic. */
+var TOPIC=null;
+function cq(g){if(TOPIC){var t=TOPIC.gen(g.L);return {q:t.q,a:t.a,opts:t.opts||[],topic:true};}return makeQ(g.L);}
+function cc(q,L){if(q.topic)return shuffle([q.a].concat(q.opts.slice(0,3)));return choices(q,L,4);}
+function vsScore(ctx,g,s){label(ctx,teamName('A')+': '+s.pt.A,g.w/4,26,Math.min(26,g.w/18),TA);label(ctx,teamName('B')+': '+s.pt.B,g.w*3/4,26,Math.min(26,g.w/18),TB);}
+function vsCheckBtn(g,ctx,side,y,txt){var h=vsHalf(g,side),bw=Math.min(220,h.w-40),bh=52,x=h.x+(h.w-bw)/2;
+  ctx.fillStyle=side==='A'?TA:TB;rr(ctx,x,y,bw,bh,16);ctx.fill();label(ctx,txt,x+bw/2,y+bh/2,22,'#fff',false);return {x:x,y:y,w:bw,h:bh,side:side,check:true};}
+
+/* 🧱 Shape Builder: both teams build a rectangle with the given area or perimeter on their grid. First to 5 */
+var SHAPEB={id:'c_shape',icon:'🧱',name:'Shape Builder',thumb:'gem.png',bg:'bg_sky.jpg',versus:true,lives:false,classOnly:true,topicOnly:true,
+  desc:'Each team taps two corners on its grid to build a rectangle with the area or perimeter asked. Right first scores. First team to 5 wins.',
+  init:function(g){var s=g.state;s.pt={A:0,B:0};s.parts=[];s.C=g.L<=4?6:8;s.R=g.L<=4?5:6;this.next(g);},
+  next:function(g){var s=g.state,w=rnd(1,s.C),h=rnd(1,s.R);while(w*h<2){w=rnd(1,s.C);h=rnd(1,s.R);}
+    s.mode=g.L>=4&&Math.random()<.5?'p':'a';s.val=s.mode==='a'?w*h:2*(w+h);s.sel={A:null,B:null};s.last={A:'',B:''};
+    setQ(s.mode==='a'?X('Build a rectangle with area '+s.val+' squares','Construis un rectangle d’aire '+s.val+' carreaux'):X('Build a rectangle with perimeter '+s.val,'Construis un rectangle de périmètre '+s.val));},
+  geo:function(g,side){var s=g.state,h=vsHalf(g,side),cs=Math.max(14,Math.min((h.w-36)/s.C,(g.h-170)/s.R)),ox=h.x+(h.w-cs*s.C)/2,oy=104;return {cs:cs,ox:ox,oy:oy};},
+  update:function(){},
+  draw:function(g,ctx){var s=g.state,me=this;wcover(ctx,g,'bg_sky.jpg');vsDivider(ctx,g);vsScore(ctx,g,s);
+    label(ctx,(s.mode==='a'?X('Area','Aire'):X('Perimeter','Périmètre'))+' = '+s.val,g.w/2,66,Math.min(30,g.w/16),'#fde68a');
+    ['A','B'].forEach(function(t){var o=me.geo(g,t),sel=s.sel[t],col=t==='A'?TA:TB,r=null;
+      if(sel&&sel.b)r=[Math.min(sel.a[0],sel.b[0]),Math.min(sel.a[1],sel.b[1]),Math.abs(sel.a[0]-sel.b[0])+1,Math.abs(sel.a[1]-sel.b[1])+1];
+      for(var c=0;c<s.C;c++)for(var k=0;k<s.R;k++){var on=r&&c>=r[0]&&c<r[0]+r[2]&&k>=r[1]&&k<r[1]+r[3],first=sel&&!sel.b&&sel.a[0]===c&&sel.a[1]===k;
+        ctx.fillStyle=on||first?col:'rgba(255,255,255,.88)';ctx.fillRect(o.ox+c*o.cs+1,o.oy+k*o.cs+1,o.cs-2,o.cs-2);}
+      var hx=vsHalf(g,t);label(ctx,s.last[t]||(sel&&!sel.b?X('Now tap the opposite corner','Touche le coin opposé'):X('Tap two corners','Touche deux coins')),hx.x+hx.w/2,o.oy+o.cs*s.R+26,16,'#fff');});
+    drawParts(ctx,s.parts,1/60);},
+  down:function(g,x,y){var s=g.state,t=x<g.w/2?'A':'B',o=this.geo(g,t),c=Math.floor((x-o.ox)/o.cs),k=Math.floor((y-o.oy)/o.cs);
+    if(c<0||k<0||c>=s.C||k>=s.R)return;var sel=s.sel[t];
+    if(!sel||sel.b){s.sel[t]={a:[c,k]};s.last[t]='';return;}
+    sel.b=[c,k];var w=Math.abs(sel.a[0]-c)+1,h=Math.abs(sel.a[1]-k)+1,v=s.mode==='a'?w*h:2*(w+h);
+    s.last[t]=w+' × '+h+(s.mode==='a'?' → '+X('area','aire')+' '+w*h:' → '+X('perimeter','périmètre')+' '+2*(w+h));
+    if(v===s.val){s.pt[t]++;burst(s.parts,t==='A'?g.w/4:g.w*3/4,g.h*.45,'#fbbf24');flash('✔ '+teamName(t),t==='A'?TA:TB);if(s.pt[t]>=5){vsWin(g,t);return;}var me=this;setTimeout(function(){if(G&&G.state===s&&!g.over)me.next(g);},700);}
+    else flash(teamName(t)+': '+X('not '+s.val+', try again','pas '+s.val+', réessaie'),'#fca5a5');}
+};
+
+/* 🍕 Pizza Fractions: shade the fraction asked on your pizza, then press Check. First to 5 */
+var PIZZA={id:'c_pizza',icon:'🍕',name:'Pizza Fractions',thumb:'fruit_orange.png',bg:'bg_table.jpg',versus:true,lives:false,classOnly:true,topicOnly:true,
+  desc:'Each team taps slices to shade the fraction asked, then presses Check. Higher grades get pizzas cut into more slices, so you need equivalent fractions. First team to 5 wins.',
+  init:function(g){var s=g.state;s.pt={A:0,B:0};s.parts=[];this.next(g);},
+  next:function(g){var s=g.state,dd=rnd(2,g.L<=3?6:8),n=rnd(1,dd-1),k=g.L>=5?rnd(1,Math.max(1,Math.floor(12/dd))):1;while(gcd(n,dd)!==1)n=rnd(1,dd-1);
+    s.n=n;s.dd=dd;s.d=dd*k;s.on={A:[],B:[]};for(var i=0;i<s.d;i++){s.on.A.push(false);s.on.B.push(false);}
+    setQ(X('Shade '+n+'/'+dd+' of the pizza','Colorie '+n+'/'+dd+' de la pizza'));},
+  geo:function(g,side){var h=vsHalf(g,side),r=Math.max(40,Math.min(h.w*.38,(g.h-200)/2));return {cx:h.x+h.w/2,cy:96+r,r:r};},
+  update:function(){},
+  draw:function(g,ctx){var s=g.state,me=this;wcover(ctx,g,'bg_table.jpg');vsDivider(ctx,g);vsScore(ctx,g,s);
+    label(ctx,X('Shade ','Colorie ')+s.n+'/'+s.dd,g.w/2,64,Math.min(30,g.w/16),'#fde68a');s.btns=[];
+    ['A','B'].forEach(function(t){var o=me.geo(g,t),col=t==='A'?TA:TB,step=6.2832/s.d,cnt=0;
+      ctx.fillStyle='#b45309';ctx.beginPath();ctx.arc(o.cx,o.cy,o.r+8,0,6.2832);ctx.fill();
+      for(var i=0;i<s.d;i++){var a0=-1.5708+i*step;ctx.beginPath();ctx.moveTo(o.cx,o.cy);ctx.arc(o.cx,o.cy,o.r,a0,a0+step);ctx.closePath();
+        ctx.fillStyle=s.on[t][i]?col:'#fde68a';ctx.fill();ctx.strokeStyle='#92400e';ctx.lineWidth=3;ctx.stroke();if(s.on[t][i])cnt++;}
+      label(ctx,cnt+'/'+s.d,o.cx,o.cy+o.r+30,20,'#fff');
+      s.btns.push(vsCheckBtn(g,ctx,t,o.cy+o.r+52,'✔ '+X('Check','Vérifier')));});
+    drawParts(ctx,s.parts,1/60);},
+  check:function(g,t){var s=g.state,cnt=s.on[t].filter(Boolean).length;
+    if(cnt*s.dd===s.n*s.d){s.pt[t]++;burst(s.parts,t==='A'?g.w/4:g.w*3/4,g.h*.4,'#fbbf24');flash('✔ '+teamName(t)+(s.d!==s.dd?' · '+cnt+'/'+s.d+' = '+s.n+'/'+s.dd:''),t==='A'?TA:TB);if(s.pt[t]>=5){vsWin(g,t);return;}this.next(g);}
+    else flash(teamName(t)+': '+cnt+'/'+s.d+X(' is not ',' n’est pas ')+s.n+'/'+s.dd,'#fca5a5');},
+  down:function(g,x,y){var s=g.state,b=vsHit(s.btns||[],x,y);if(b){this.check(g,b.side);return;}
+    var t=x<g.w/2?'A':'B',o=this.geo(g,t),dx=x-o.cx,dy=y-o.cy;if(dx*dx+dy*dy>o.r*o.r)return;
+    var a=Math.atan2(dy,dx)+1.5708;if(a<0)a+=6.2832;var i=Math.floor(a/(6.2832/s.d))%s.d;s.on[t][i]=!s.on[t][i];},
+  key:function(g,k){if(k==='Enter')return;}
+};
+var TOPIC_GAMES=[SHAPEB,PIZZA];
+
 var CLASS_GAMES=[TUG,BUZZER,POTATO,TEAMRACE];
 
 var GAMES=[FISH,STARS,GEMS,DUEL,ASTEROIDS,TRUEFALSE,CASTLE,FLIGHT,BALLOONS,SNAKE,BOMB,RACE,STONES,CATCHER,FRUITS,RUNNER,MEMORY].concat(THEMED);
-var ALLG=GAMES.concat(CLASS_GAMES);
+var ALLG=GAMES.concat(CLASS_GAMES,TOPIC_GAMES);
 /* Each home game is made for certain grades, so every grade gets its own set of games.
    Themed worlds go from little-kid worlds (farm, candy) to older ones (robots, haunted). */
 var LV={fish:[1,13],stars:[1,13],gems:[2,13],duel:[1,9],asteroids:[3,13],truefalse:[4,13],castle:[4,13],flight:[5,13],balloons:[1,6],snake:[3,13],bomb:[6,13],race:[5,13],stones:[1,8],catcher:[1,8],fruit:[1,6],runner:[2,10],memory:[1,13]};
@@ -1316,7 +1381,7 @@ function gradeRange(g){if(LV[g.id])return LV[g.id];var m=/^t_([a-z]+)_/.exec(g.i
 function forGrade(g,L){if(g.th){if(g.mj==null)g.mj=THEMED.indexOf(g)%8;return g.th===themeFor(L,g.mj)[0];}var r=gradeRange(g);return L>=r[0]&&L<=r[1];}
 function isFr(){try{return W.mxLang&&W.mxLang.get()==='fr';}catch(e){return false;}}
 function worldName(w){return isFr()?'Monde '+T(w[2]):w[2]+' world';}
-function gName(g,L){if(g.classOnly){var w=classWorld(g,L);return isFr()?T(g.name)+' · '+T(w[2]):w[2]+' '+g.name;}return T(g.name);}
+function gName(g,L){if(g.classOnly&&!g.topicOnly){var w=classWorld(g,L);return isFr()?T(g.name)+' · '+T(w[2]):w[2]+' '+g.name;}return T(g.name);}
 /* ---------- best scores sync between the app and the website (signed-in players) ---------- */
 function who(){return W.ME||W.mxUser||null;}
 function fbBase(){return W.FB||'https://matix-1d538-default-rtdb.firebaseio.com';}
@@ -1407,7 +1472,7 @@ function presentDeck(d){
   var ov=D.createElement('div');ov.id='mxpOv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label',d.title||T('Presentation'));ov.tabIndex=-1;
   ov.innerHTML='<div class="mxp-top"><button type="button" class="mxg-ib" id="mxpX" aria-label="'+E(T('Close'))+'">✕</button><b class="mxp-tt"></b><span class="mxp-n" id="mxpN"></span>'
     +'<span class="mxp-tm" id="mxpTm" aria-live="off"></span><button type="button" class="mxg-ib" id="mxpFs" aria-label="'+E(T('Full screen'))+'">⛶</button></div>'
-    +'<div class="mxp-stage"><div class="mxp-q" id="mxpQ"></div><div class="mxp-opts" id="mxpOpts"></div><div class="mxp-ans" id="mxpA" hidden></div><canvas id="mxpPen"></canvas></div>'
+    +'<div class="mxp-stage"><div class="mxp-q" id="mxpQ"></div><div class="mxp-body" id="mxpB" hidden></div><div class="mxp-opts" id="mxpOpts"></div><div class="mxp-ans" id="mxpA" hidden></div><canvas id="mxpPen"></canvas></div>'
     +'<div class="mxp-bar"><button type="button" class="mxm-btn sec" id="mxpPrev">← '+E(T('Previous'))+'</button><button type="button" class="mxm-btn sec" id="mxpPenB" aria-pressed="false">✏️ '+E(T('Pen'))+'</button><button type="button" class="mxm-btn sec" id="mxpClr">🧽 '+E(T('Clear'))+'</button>'
     +'<button type="button" class="mxm-btn pri" id="mxpShow">👀 '+E(T('Show answer'))+'</button>'
     +'<span class="mxp-teams"><button type="button" class="mxm-btn sec mxp-ta" id="mxpTA"></button><button type="button" class="mxm-btn sec mxp-tb" id="mxpTB"></button></span>'
@@ -1419,6 +1484,7 @@ function presentDeck(d){
   function teams(){$('mxpTA').textContent='+1 '+teamName('A')+' ('+CLS.A+')';$('mxpTB').textContent='+1 '+teamName('B')+' ('+CLS.B+')';}
   function show(){var s=d.slides[P.i];clearInterval(P.tm);sizePen();ctx.clearRect(0,0,cv.width,cv.height);
     $('mxpN').textContent=(P.i+1)+' / '+d.slides.length;$('mxpQ').textContent=s.q;$('mxpA').hidden=true;
+    var lrn=!!s.learn;$('mxpQ').classList.toggle('mxp-lt',lrn);$('mxpB').hidden=!lrn;$('mxpB').textContent=s.body||'';$('mxpShow').hidden=lrn;ov.querySelector('.mxp-teams').hidden=lrn;
     var st=(s.steps||'').split('\n').map(function(x){return x.trim();}).filter(Boolean);
     $('mxpA').innerHTML='<b>'+E(s.a)+'</b>'+(st.length?'<ol>'+st.map(function(x){return '<li>'+E(x)+'</li>';}).join('')+'</ol>':'');
     var opts=(s.opts&&s.opts.length&&s.a)?shuffle([s.a].concat(s.opts)):[];
@@ -1445,6 +1511,222 @@ function closePresent(fromPop){var P=DK.pv;if(!P)return;DK.pv=null;clearInterval
   if(P.pushed&&fromPop!==true){try{history.back();}catch(e){}}var c=$('content');if(c&&c.querySelector('.mxr-arcade'))renderArcade(c);}
 W.addEventListener('popstate',function(){if(DK.pv)closePresent(true);});
 
+/* =====================================================================
+   1.6.0: Lessons for class mode. Each topic has an idea slide that
+   explains it, a worked example, then practice questions with worked
+   steps, all made for the class's grade. Teach it on the board with the
+   presenter (pen, timer, team points), or copy the practice into
+   "My sets" to edit it. English and French.
+   ===================================================================== */
+function X(e,f){return isFr()?f:e;}
+function ng(n){return n<0?'−'+(-n):String(n);}
+function pn(n){return n<0?'('+ng(n)+')':String(n);}
+function fs(n,d){if(d<0){n=-n;d=-d;}var g=gcd(n,d)||1;n/=g;d/=g;return d===1?ng(n):ng(n)+'/'+d;}
+function dec(x){var s=String(+(+x).toFixed(4));if(s.charAt(0)==='-')s='−'+s.slice(1);return isFr()?s.replace('.',','):s;}
+function U(a,list){var out=[];a=String(a);list.forEach(function(x){x=String(x);if(x!==a&&out.indexOf(x)<0&&!/NaN|undefined|Infinity/.test(x))out.push(x);});return out.slice(0,3);}
+function cop(lo,hi){var d=rnd(Math.max(2,lo),hi),n=rnd(1,d-1);while(gcd(n,d)!==1)n=rnd(1,d-1);return [n,d];}
+function poly(c){/* c = [[coef,power],...] -> "3x² + 2x − 5" */
+  var sup=['','','²','³','⁴','⁵','⁶'],out='';c.forEach(function(t){var k=t[0],p=t[1];if(!k)return;var abs=Math.abs(k),body=p===0?String(abs):(abs===1?'':abs)+'x'+(p===1?'':(sup[p]||'^'+p));
+    out+=out?(k<0?' − ':' + ')+body:(k<0?'−':'')+body;});return out||'0';}
+
+var LESSONS=[
+{id:'place',icon:'🔢',lv:[1,3],n:['Place value','Valeur de position'],
+ idea:['Every digit has a value that depends on its place: ones, tens, hundreds, thousands.\nIn 347, the 3 is worth 300, the 4 is worth 40 and the 7 is worth 7.',
+       'Chaque chiffre a une valeur qui dépend de sa place : unités, dizaines, centaines, milliers.\nDans 347, le 3 vaut 300, le 4 vaut 40 et le 7 vaut 7.'],
+ gen:function(L){var n,s,i;do{n=L<=1?rnd(11,99):L===2?rnd(101,999):rnd(1001,9999);s=String(n);i=rnd(0,s.length-1);}while(s[i]==='0'||s.split(s[i]).length>2);var dg=+s[i],p=Math.pow(10,s.length-1-i),v=dg*p,
+   pl=X(['ones','tens','hundreds','thousands'],['unités','dizaines','centaines','milliers'])[s.length-1-i];
+   return {q:X('What is the value of the digit '+dg+' in '+n+'?','Quelle est la valeur du chiffre '+dg+' dans '+n+' ?'),a:String(v),
+     steps:[X('The '+dg+' is in the '+pl+' place','Le '+dg+' est à la place des '+pl),dg+' × '+p+' = '+v],opts:U(v,[dg,v*10,dg*(p>1?p/10:10),dg+p])};}},
+{id:'addsub',icon:'➕',lv:[1,4],n:['Adding and taking away','Additionner et soustraire'],
+ idea:['Split numbers into tens and ones.\nTo add: add the tens, add the ones, then put them together. 34 + 25 = 50 + 9 = 59.\nTo take away: take away the tens, then the ones. 74 − 31 = 44 − 1 = 43.',
+       'Décompose les nombres en dizaines et unités.\nPour additionner : ajoute les dizaines, puis les unités, puis rassemble. 34 + 25 = 50 + 9 = 59.\nPour soustraire : enlève les dizaines, puis les unités. 74 − 31 = 44 − 1 = 43.'],
+ gen:function(L){var hi=L<=1?20:L===2?99:L===3?499:999,a=rnd(5,hi),b=rnd(2,hi);if(Math.random()<.5){var bt=b-b%10,bo=b%10,s1=a+bt;
+     return {q:a+' + '+b+' = ?',a:String(a+b),steps:(bt?[X('Add the tens: ','Ajoute les dizaines : ')+a+' + '+bt+' = '+s1]:[]).concat([X('Add the ones: ','Ajoute les unités : ')+s1+' + '+bo+' = '+(a+b)]),opts:U(a+b,[a+b+10,a+b-10,a+b+1,a+b-1])};}
+   if(b>a){var t=a;a=b;b=t;}var tt=b-b%10,oo=b%10,m=a-tt;
+   return {q:a+' − '+b+' = ?',a:String(a-b),steps:(tt?[X('Take away the tens: ','Enlève les dizaines : ')+a+' − '+tt+' = '+m]:[]).concat([X('Take away the ones: ','Enlève les unités : ')+m+' − '+oo+' = '+(a-b)]),opts:U(a-b,[a-b+10,a-b-10,a+b,a-b+1])};}},
+{id:'times',icon:'✖️',lv:[2,5],n:['Times tables','Tables de multiplication'],
+ idea:['Multiplying is adding the same number again and again: 4 × 3 = 4 + 4 + 4 = 12.\nThe order does not matter: 4 × 3 = 3 × 4.\nTip: for × 9, do × 10 and take one lot away: 7 × 9 = 70 − 7 = 63.',
+       'Multiplier, c’est additionner le même nombre plusieurs fois : 4 × 3 = 4 + 4 + 4 = 12.\nL’ordre ne compte pas : 4 × 3 = 3 × 4.\nAstuce : pour × 9, fais × 10 et enlève une fois le nombre : 7 × 9 = 70 − 7 = 63.'],
+ gen:function(L){var a=rnd(2,L<=2?5:L===3?10:12),b=rnd(2,L<=3?10:12),p=a*b,st;
+   if(b===9)st=[a+' × 10 = '+(a*10),a*10+' − '+a+' = '+p];else if(a===9)st=[b+' × 10 = '+(b*10),b*10+' − '+b+' = '+p];
+   else if(b>10)st=[a+' × 10 = '+(a*10),a+' × '+(b-10)+' = '+(a*(b-10)),a*10+' + '+a*(b-10)+' = '+p];
+   else st=[a+' × '+(b-1)+' = '+a*(b-1),a*(b-1)+' + '+a+' = '+p];
+   return {q:a+' × '+b+' = ?',a:String(p),steps:st,opts:U(p,[p+a,p-a,a*(b+1)+1,a+b])};}},
+{id:'divide',icon:'➗',lv:[3,6],n:['Division','La division'],
+ idea:['Dividing shares a number into equal groups. 12 ÷ 3 = 4 because 3 groups of 4 make 12.\nDivision is the opposite of times: use your tables. 3 × 4 = 12, so 12 ÷ 3 = 4.\nWhat cannot be shared is the remainder: 14 ÷ 3 = 4 remainder 2.',
+       'Diviser, c’est partager un nombre en groupes égaux. 12 ÷ 3 = 4 car 3 groupes de 4 font 12.\nLa division est l’inverse de la multiplication : utilise tes tables. 3 × 4 = 12, donc 12 ÷ 3 = 4.\nCe qu’on ne peut pas partager, c’est le reste : 14 ÷ 3 = 4 reste 2.'],
+ gen:function(L){var b=rnd(2,L<=3?5:12),k=rnd(2,12),r=L>=5&&Math.random()<.5?rnd(1,b-1):0,a=b*k+r,R=X(' remainder ',' reste '),ans=r?k+R+r:String(k);
+   return {q:a+' ÷ '+b+' = ?',a:ans,steps:[b+' × '+k+' = '+b*k].concat(r?[a+' − '+b*k+' = '+r+X(' left over',' de reste')]:[X('So ','Donc ')+a+' ÷ '+b+' = '+k]),
+     opts:U(ans,r?[k+R+(r+1),(k+1)+R+r,(k-1)+R+(r+b<a?r:1)]:[k+1,k-1,a-b])};}},
+{id:'frac',icon:'🍕',lv:[2,4],games:['c_pizza'],n:['What is a fraction?','Qu’est-ce qu’une fraction ?'],
+ idea:['A fraction is a part of a whole cut into equal parts.\nThe bottom number (denominator) says how many equal parts there are.\nThe top number (numerator) says how many parts we take.\n3/8 of a pizza: cut it into 8 equal slices, take 3.',
+       'Une fraction est une partie d’un tout coupé en parts égales.\nLe nombre du bas (dénominateur) dit en combien de parts égales on coupe.\nLe nombre du haut (numérateur) dit combien de parts on prend.\n3/8 d’une pizza : coupe-la en 8 parts égales, prends-en 3.'],
+ gen:function(L){var d=rnd(3,L<=2?8:12),n=rnd(1,d-1);
+   return {q:X('A pizza is cut into '+d+' equal slices. You eat '+n+'. What fraction of the pizza did you eat?','Une pizza est coupée en '+d+' parts égales. Tu en manges '+n+'. Quelle fraction de la pizza as-tu mangée ?'),a:n+'/'+d,
+     steps:[X(d+' equal slices: the bottom number is '+d,d+' parts égales : le nombre du bas est '+d),X(n+' eaten: the top number is '+n,n+' mangées : le nombre du haut est '+n)],opts:U(n+'/'+d,[d+'/'+n,n+'/'+(d+n),(d-n)+'/'+d])};}},
+{id:'fracof',icon:'🧮',lv:[3,6],n:['Fraction of a number','Fraction d’un nombre'],
+ idea:['To find a fraction of a number: divide by the bottom, then times by the top.\n3/4 of 20: 20 ÷ 4 = 5, then 5 × 3 = 15.',
+       'Pour trouver une fraction d’un nombre : divise par le nombre du bas, puis multiplie par le nombre du haut.\n3/4 de 20 : 20 ÷ 4 = 5, puis 5 × 3 = 15.'],
+ gen:function(L){var d=pick([2,3,4,5,6,8,10]),n=L<=3?1:rnd(1,d-1),m=d*rnd(2,L<=3?6:12),one=m/d,ans=one*n;
+   return {q:X(n+'/'+d+' of '+m+' = ?',n+'/'+d+' de '+m+' = ?'),a:String(ans),steps:[m+' ÷ '+d+' = '+one].concat(n>1?[one+' × '+n+' = '+ans]:[]),opts:U(ans,[one,m-ans,m*n,ans+one])};}},
+{id:'fraccmp',icon:'⚖️',lv:[3,6],n:['Comparing fractions','Comparer des fractions'],
+ idea:['Same bottom number: the bigger top wins. 5/8 > 3/8.\nSame top number: the smaller bottom wins (bigger pieces). 1/3 > 1/5.\nDifferent fractions: change them to the same bottom number first, then compare the tops.',
+       'Même nombre du bas : le plus grand numérateur gagne. 5/8 > 3/8.\nMême nombre du haut : le plus petit dénominateur gagne (les parts sont plus grandes). 1/3 > 1/5.\nSinon : mets-les au même dénominateur, puis compare les numérateurs.'],
+ gen:function(L){var f1=cop(2,L<=4?8:12),f2=cop(2,L<=4?8:12);while(f1[0]*f2[1]===f2[0]*f1[1])f2=cop(2,12);
+   var c=f1[1]*f2[1]/gcd(f1[1],f2[1]),x=f1[0]*c/f1[1],y=f2[0]*c/f2[1],A=f1[0]+'/'+f1[1],B=f2[0]+'/'+f2[1],big=x>y?A:B;
+   return {q:X('Which is bigger: '+A+' or '+B+'?','Laquelle est la plus grande : '+A+' ou '+B+' ?'),a:big,
+     steps:[X('Same bottom number: ','Même dénominateur : ')+c,A+' = '+x+'/'+c+X(' and ',' et ')+B+' = '+y+'/'+c,(x>y?x+' > '+y:y+' > '+x)+X(', so '+big+' is bigger',', donc '+big+' est la plus grande')],
+     opts:[big===A?B:A,X('They are equal','Elles sont égales')]};}},
+{id:'fraceq',icon:'🟰',lv:[4,7],games:['c_pizza'],n:['Equivalent fractions and simplifying','Fractions équivalentes et simplification'],
+ idea:['Times or divide the top and the bottom by the same number and the fraction keeps its value: 1/2 = 2/4 = 3/6.\nTo simplify, divide the top and the bottom by the biggest number that goes into both. 12/18: both ÷ 6 = 2/3.',
+       'Multiplie ou divise le numérateur et le dénominateur par le même nombre : la fraction garde sa valeur. 1/2 = 2/4 = 3/6.\nPour simplifier, divise le haut et le bas par le plus grand nombre qui divise les deux. 12/18 : les deux ÷ 6 = 2/3.'],
+ gen:function(L){var f=cop(2,9),k=rnd(2,L<=5?5:9),N=f[0]*k,D=f[1]*k;
+   if(Math.random()<.5)return {q:X('Simplify ','Simplifie ')+N+'/'+D,a:f[0]+'/'+f[1],steps:[X('The biggest number that goes into '+N+' and '+D+' is '+k,'Le plus grand nombre qui divise '+N+' et '+D+' est '+k),N+' ÷ '+k+' = '+f[0]+',  '+D+' ÷ '+k+' = '+f[1]],opts:U(f[0]+'/'+f[1],[f[0]+'/'+D,N+'/'+f[1],(f[0]+1)+'/'+f[1]])};
+   return {q:f[0]+'/'+f[1]+' = ?/'+D,a:String(N),steps:[f[1]+' × '+k+' = '+D,X('Do the same to the top: ','Fais pareil en haut : ')+f[0]+' × '+k+' = '+N],opts:U(N,[N+k,f[0]+k,D-f[1]+f[0]])};}},
+{id:'fracmix',icon:'🥧',lv:[4,7],n:['Mixed numbers','Nombres fractionnaires'],
+ idea:['A mixed number is a whole number and a fraction: 2 3/4 means 2 wholes and 3/4.\nImproper to mixed: divide. 11/4: 11 ÷ 4 = 2 remainder 3, so 2 3/4.\nMixed to improper: whole × bottom + top. 2 3/4: 2 × 4 + 3 = 11, so 11/4.',
+       'Un nombre fractionnaire, c’est un entier et une fraction : 2 3/4 veut dire 2 unités et 3/4.\nFraction vers nombre fractionnaire : divise. 11/4 : 11 ÷ 4 = 2 reste 3, donc 2 3/4.\nNombre fractionnaire vers fraction : entier × dénominateur + numérateur. 2 3/4 : 2 × 4 + 3 = 11, donc 11/4.'],
+ gen:function(L){var d=rnd(2,9),w=rnd(1,5),r=rnd(1,d-1),N=w*d+r,M=w+' '+r+'/'+d,I=N+'/'+d;
+   if(Math.random()<.5)return {q:X('Write '+I+' as a mixed number','Écris '+I+' en nombre fractionnaire'),a:M,steps:[N+' ÷ '+d+' = '+w+X(' remainder ',' reste ')+r,X(w+' wholes and '+r+'/'+d+' left',w+' entiers et il reste '+r+'/'+d)],opts:U(M,[(w+1)+' '+r+'/'+d,w+' '+d+'/'+r,r+' '+w+'/'+d])};
+   return {q:X('Write '+M+' as an improper fraction','Écris '+M+' sous forme de fraction'),a:I,steps:[w+' × '+d+' = '+w*d,w*d+' + '+r+' = '+N,X('Keep the bottom: ','Garde le dénominateur : ')+I],opts:U(I,[(w*r+d)+'/'+d,(w+r)+'/'+d,N+'/'+(d+w)])};}},
+{id:'fracadd',icon:'➕',lv:[4,8],n:['Adding and subtracting fractions','Additionner et soustraire des fractions'],
+ idea:['Same bottom number: add or take away the tops, keep the bottom. 2/7 + 3/7 = 5/7.\nDifferent bottoms: change both fractions to the same bottom number first.\n1/3 + 1/4 = 4/12 + 3/12 = 7/12. Never add the bottoms!\nSimplify the answer at the end.',
+       'Même dénominateur : additionne ou soustrais les numérateurs, garde le dénominateur. 2/7 + 3/7 = 5/7.\nDénominateurs différents : mets d’abord les deux fractions au même dénominateur.\n1/3 + 1/4 = 4/12 + 3/12 = 7/12. N’additionne jamais les dénominateurs !\nSimplifie la réponse à la fin.'],
+ gen:function(L){var sub=Math.random()<.4,a,b,c,d;
+   if(L<=5){d=rnd(3,12);b=d;a=rnd(1,d-1);c=rnd(1,d-1);}else{var f1=cop(2,10),f2=cop(2,10);while(f2[1]===f1[1])f2=cop(2,10);a=f1[0];b=f1[1];c=f2[0];d=f2[1];}
+   if(sub&&a*d<c*b){var t=a;a=c;c=t;t=b;b=d;d=t;}
+   var m=b*d/gcd(b,d),x=a*m/b,y=c*m/d,top=sub?x-y:x+y,ans=fs(top,m),op=sub?' − ':' + ';
+   var st=b===d?[X('Same bottom number: ','Même dénominateur : ')+a+op+c+' = '+top,top+'/'+m+(ans!==top+'/'+m?' = '+ans:'')]
+     :[X('Same bottom number: ','Même dénominateur : ')+m,a+'/'+b+' = '+x+'/'+m+',  '+c+'/'+d+' = '+y+'/'+m,x+op+y+' = '+top+'  →  '+top+'/'+m+(ans!==top+'/'+m?' = '+ans:'')];
+   return {q:a+'/'+b+op+c+'/'+d+' = ?',a:ans,steps:st,opts:U(ans,[fs(sub?a-c:a+c,b===d?b:b+d),fs(top+1,m),fs(sub?a+c:a+c,b===d?b*2:b*d)])};}},
+{id:'fracmul',icon:'✖️',lv:[5,9],n:['Multiplying and dividing fractions','Multiplier et diviser des fractions'],
+ idea:['To multiply: top × top and bottom × bottom. 2/3 × 3/5 = 6/15 = 2/5.\nTo divide: keep the first fraction, change ÷ to ×, flip the second. 2/3 ÷ 4/5 = 2/3 × 5/4 = 10/12 = 5/6.',
+       'Pour multiplier : numérateur × numérateur et dénominateur × dénominateur. 2/3 × 3/5 = 6/15 = 2/5.\nPour diviser : garde la première fraction, change ÷ en ×, retourne la deuxième. 2/3 ÷ 4/5 = 2/3 × 5/4 = 10/12 = 5/6.'],
+ gen:function(L){var f1=cop(2,L<=6?6:10),f2=cop(2,L<=6?6:10),a=f1[0],b=f1[1],c=f2[0],d=f2[1];
+   if(Math.random()<.5||L<=5){var ans=fs(a*c,b*d);return {q:a+'/'+b+' × '+c+'/'+d+' = ?',a:ans,steps:[X('Tops: ','En haut : ')+a+' × '+c+' = '+a*c+X(',  bottoms: ',',  en bas : ')+b+' × '+d+' = '+b*d,a*c+'/'+b*d+(ans!==a*c+'/'+b*d?' = '+ans:'')],opts:U(ans,[fs(a*d,b*c),fs(a+c,b+d),fs(a*c,b+d)])};}
+   var ans2=fs(a*d,b*c);return {q:a+'/'+b+' ÷ '+c+'/'+d+' = ?',a:ans2,steps:[X('Keep, change, flip: ','Garde, change, retourne : ')+a+'/'+b+' × '+d+'/'+c,a*d+'/'+b*c+(ans2!==a*d+'/'+b*c?' = '+ans2:'')],opts:U(ans2,[fs(a*c,b*d),fs(b*c,a*d),fs(a*d,b*d)])};}},
+{id:'dec',icon:'🔟',lv:[4,7],n:['Decimals','Les nombres décimaux'],
+ idea:['After the decimal point come tenths, hundredths, thousandths. 0.3 = 3/10, 0.07 = 7/100.\nTo add or take away decimals, line up the decimal points.\nUseful ones: 1/2 = 0.5, 1/4 = 0.25, 3/4 = 0.75, 1/5 = 0.2.',
+       'Après la virgule viennent les dixièmes, les centièmes, les millièmes. 0,3 = 3/10, 0,07 = 7/100.\nPour additionner ou soustraire des décimaux, aligne les virgules.\nÀ connaître : 1/2 = 0,5, 1/4 = 0,25, 3/4 = 0,75, 1/5 = 0,2.'],
+ gen:function(L){var r=Math.random();
+   if(r<.35){var F=pick([[1,2],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,10],[3,10],[7,10],[1,20],[3,20],[1,25],[7,100],[13,100]]),v=F[0]/F[1];
+     return {q:X('Write '+F[0]+'/'+F[1]+' as a decimal','Écris '+F[0]+'/'+F[1]+' en nombre décimal'),a:dec(v),steps:[F[0]+' ÷ '+F[1]+' = '+dec(v)],opts:U(dec(v),[dec(v*10),dec(F[0]+F[1]/100),dec(v/10)])};}
+   var a=rnd(11,L<=5?99:999)/10,b=rnd(11,L<=5?99:999)/100,sub=r>.7&&a>b,ans=sub?a-b:a+b,op=sub?' − ':' + ';
+   return {q:dec(a)+op+dec(b)+' = ?',a:dec(ans),steps:[X('Line up the decimal points: ','Aligne les virgules : ')+dec(a.toFixed(2))+op+dec(b),X('Answer: ','Réponse : ')+dec(ans)],opts:U(dec(ans),[dec(sub?ans+.1:ans-.1),dec(sub?a-b*10:a+b*10),dec(ans+.01)])};}},
+{id:'pct',icon:'💯',lv:[6,9],n:['Percentages','Les pourcentages'],
+ idea:['Per cent means out of 100: 35% = 35/100 = 0.35.\n10% is a tenth: divide by 10. 50% is a half. 25% is a quarter.\nTo find p% of a number: number × p ÷ 100. 15% of 80 = 80 × 15 ÷ 100 = 12.',
+       'Pour cent veut dire sur 100 : 35 % = 35/100 = 0,35.\n10 %, c’est un dixième : divise par 10. 50 %, c’est la moitié. 25 %, c’est le quart.\nPour trouver p % d’un nombre : nombre × p ÷ 100. 15 % de 80 = 80 × 15 ÷ 100 = 12.'],
+ gen:function(L){var p=pick([10,20,25,50,75,5,15,30,40,60]),step=100/gcd(p,100),n=step*rnd(1,L<=7?8:20),ans=n*p/100;
+   if(L>=8&&Math.random()<.4){return {q:X('What percent of '+n+' is '+ans+'?','Quel pourcentage de '+n+' représente '+ans+' ?'),a:p+' %',steps:[ans+' ÷ '+n+' = '+dec(ans/n),dec(ans/n)+' × 100 = '+p+' %'],opts:U(p+' %',[(p+5)+' %',(100-p)+' %',(p*2)+' %'])};}
+   return {q:X(p+'% of '+n+' = ?',p+' % de '+n+' = ?'),a:dec(ans),steps:[p+'% = '+p+'/100',n+' × '+p+' ÷ 100 = '+dec(ans)],opts:U(dec(ans),[dec(ans*2),dec(n-ans),dec(ans+n/10)])};}},
+{id:'ratio',icon:'⚗️',lv:[6,9],n:['Ratio and sharing','Ratios et partages'],
+ idea:['A ratio compares amounts: 2 : 3 means for every 2 of one there are 3 of the other.\nTo share in a ratio: add the parts, find one part, then times.\nShare 40 in the ratio 3 : 5. 3 + 5 = 8 parts, 40 ÷ 8 = 5, so 15 and 25.',
+       'Un ratio compare des quantités : 2 : 3 veut dire que pour 2 de l’un, il y a 3 de l’autre.\nPour partager selon un ratio : additionne les parts, trouve une part, puis multiplie.\nPartage 40 selon le ratio 3 : 5. 3 + 5 = 8 parts, 40 ÷ 8 = 5, donc 15 et 25.'],
+ gen:function(L){var a=rnd(1,7),b=rnd(1,7);while(b===a||gcd(a,b)!==1)b=rnd(1,7);var k=rnd(2,12),N=(a+b)*k,big=Math.max(a,b)*k;
+   return {q:X('Share '+N+' in the ratio '+a+' : '+b+'. How much is the bigger share?','Partage '+N+' selon le ratio '+a+' : '+b+'. Combien vaut la plus grande part ?'),a:String(big),
+     steps:[a+' + '+b+' = '+(a+b)+X(' parts',' parts'),N+' ÷ '+(a+b)+' = '+k+X(' (one part)',' (une part)'),Math.max(a,b)+' × '+k+' = '+big],opts:U(big,[Math.min(a,b)*k,N-k,big+k])};}},
+{id:'neg',icon:'🌡️',lv:[6,8],n:['Negative numbers','Les nombres négatifs'],
+ idea:['Negative numbers are below zero, like temperatures in winter.\nAdding a negative is taking away: 5 + (−8) = −3.\nTaking away a negative is adding: 4 − (−6) = 10.\nTimes or divide: same signs give +, different signs give −.',
+       'Les nombres négatifs sont sous zéro, comme les températures en hiver.\nAjouter un négatif, c’est soustraire : 5 + (−8) = −3.\nSoustraire un négatif, c’est ajouter : 4 − (−6) = 10.\nMultiplier ou diviser : mêmes signes donnent +, signes différents donnent −.'],
+ gen:function(L){var a=rnd(-12,12)||-3,b=rnd(-12,12)||-5,o=rnd(0,2),ans,st;
+   if(o===0){ans=a+b;st=[b<0?X('Adding a negative is taking away: ','Ajouter un négatif, c’est soustraire : ')+ng(a)+' − '+(-b)+' = '+ng(ans):ng(a)+' + '+b+' = '+ng(ans)];return {q:ng(a)+' + '+pn(b)+' = ?',a:ng(ans),steps:st,opts:U(ng(ans),[ng(a-b),ng(-ans),ng(ans+1)])};}
+   if(o===1){ans=a-b;st=[b<0?X('Taking away a negative is adding: ','Soustraire un négatif, c’est ajouter : ')+ng(a)+' + '+(-b)+' = '+ng(ans):ng(a)+' − '+b+' = '+ng(ans)];return {q:ng(a)+' − '+pn(b)+' = ?',a:ng(ans),steps:st,opts:U(ng(ans),[ng(a+b),ng(-ans),ng(ans-1)])};}
+   ans=a*b;return {q:ng(a)+' × '+pn(b)+' = ?',a:ng(ans),steps:[Math.abs(a)+' × '+Math.abs(b)+' = '+Math.abs(ans),(a<0)===(b<0)?X('Same signs: the answer is positive','Mêmes signes : la réponse est positive'):X('Different signs: the answer is negative','Signes différents : la réponse est négative')],opts:U(ng(ans),[ng(-ans),ng(a+b),ng(ans+a)])};}},
+{id:'bodmas',icon:'🧩',lv:[5,8],n:['Order of operations','Priorité des opérations'],
+ idea:['Work in this order: brackets first, then powers, then × and ÷ (left to right), then + and − (left to right).\n2 + 3 × 4 = 2 + 12 = 14, not 20.\n(2 + 3) × 4 = 5 × 4 = 20.',
+       'Calcule dans cet ordre : d’abord les parenthèses, puis les puissances, puis × et ÷ (de gauche à droite), puis + et − (de gauche à droite).\n2 + 3 × 4 = 2 + 12 = 14, pas 20.\n(2 + 3) × 4 = 5 × 4 = 20.'],
+ gen:function(L){var a=rnd(2,12),b=rnd(2,9),c=rnd(2,9),o=rnd(0,3),ans,q,st;
+   if(o===0){ans=a+b*c;q=a+' + '+b+' × '+c;st=[X('× first: ','× d’abord : ')+b+' × '+c+' = '+b*c,a+' + '+b*c+' = '+ans];return {q:q+' = ?',a:String(ans),steps:st,opts:U(ans,[(a+b)*c,a*b+c,ans+1])};}
+   if(o===1){ans=(a+b)*c;q='('+a+' + '+b+') × '+c;st=[X('Brackets first: ','Parenthèses d’abord : ')+a+' + '+b+' = '+(a+b),(a+b)+' × '+c+' = '+ans];return {q:q+' = ?',a:String(ans),steps:st,opts:U(ans,[a+b*c,a*c+b,ans-c])};}
+   if(o===2){var m=b*c;a=m+rnd(1,20);ans=a-m/c;q=a+' − '+m+' ÷ '+c;st=[X('÷ first: ','÷ d’abord : ')+m+' ÷ '+c+' = '+m/c,a+' − '+m/c+' = '+ans];return {q:q+' = ?',a:String(ans),steps:st,opts:U(ans,[ans+1,ans+c,a-m])};}
+   ans=a*a-b*c;q=a+'² − '+b+' × '+c;st=[X('Powers first: ','Puissances d’abord : ')+a+'² = '+a*a,X('Then × : ','Puis × : ')+b+' × '+c+' = '+b*c,a*a+' − '+b*c+' = '+ng(ans)];return {q:q+' = ?',a:ng(ans),steps:st,opts:U(ng(ans),[ng((a*a-b)*c),ng(a*2-b*c),ng(ans+b)])};}},
+{id:'pow',icon:'🔺',lv:[6,10],n:['Powers and square roots','Puissances et racines carrées'],
+ idea:['A power says how many times to multiply a number by itself: 5³ = 5 × 5 × 5 = 125.\nA square root goes back: √49 = 7 because 7² = 49.\nLearn the squares up to 15² = 225.',
+       'Une puissance dit combien de fois multiplier un nombre par lui-même : 5³ = 5 × 5 × 5 = 125.\nLa racine carrée fait l’inverse : √49 = 7 car 7² = 49.\nApprends les carrés jusqu’à 15² = 225.'],
+ gen:function(L){var r=Math.random(),sup={2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶'};
+   if(r<.4){var n=rnd(2,15);return {q:'√'+n*n+' = ?',a:String(n),steps:[n+' × '+n+' = '+n*n,X('So ','Donc ')+'√'+n*n+' = '+n],opts:U(n,[n+1,n-1,n*n/2])};}
+   var b=rnd(2,L<=7?6:9),e=b===2?rnd(2,6):rnd(2,3),v=Math.pow(b,e),parts=[];for(var i=0;i<e;i++)parts.push(b);
+   return {q:b+sup[e]+' = ?',a:String(v),steps:[parts.join(' × ')+' = '+v],opts:U(v,[b*e,v+b,Math.pow(b,e-1)])};}},
+{id:'eq',icon:'🔍',lv:[7,10],n:['Solving equations','Résoudre des équations'],
+ idea:['An equation is a balance: do the same thing to both sides.\nUndo the operations in reverse order.\n3x + 5 = 20: take away 5 → 3x = 15, divide by 3 → x = 5.\nCheck: 3 × 5 + 5 = 20 ✓',
+       'Une équation est une balance : fais la même chose des deux côtés.\nDéfais les opérations dans l’ordre inverse.\n3x + 5 = 20 : enlève 5 → 3x = 15, divise par 3 → x = 5.\nVérifie : 3 × 5 + 5 = 20 ✓'],
+ gen:function(L){var x=rnd(-6,12)||4,a=rnd(2,9),b=rnd(1,15),ans='x = '+ng(x);
+   if(L<=7&&Math.random()<.5){var c=x+b;return {q:X('Solve: ','Résous : ')+'x + '+b+' = '+ng(c),a:ans,steps:[X('Take away '+b+' from both sides','Enlève '+b+' des deux côtés'),'x = '+ng(c)+' − '+b+' = '+ng(x)],opts:U(ans,['x = '+ng(c+b),'x = '+ng(-x),'x = '+ng(x+1)])};}
+   var neg=Math.random()<.3,c2=neg?a*x-b:a*x+b,lhs=a+'x '+(neg?'− ':'+ ')+b;
+   return {q:X('Solve: ','Résous : ')+lhs+' = '+ng(c2),a:ans,steps:[(neg?X('Add '+b+' to both sides: ','Ajoute '+b+' des deux côtés : '):X('Take away '+b+' from both sides: ','Enlève '+b+' des deux côtés : '))+a+'x = '+ng(a*x),
+     X('Divide both sides by '+a+': ','Divise les deux côtés par '+a+' : ')+'x = '+ng(x),X('Check: ','Vérifie : ')+a+' × '+pn(x)+(neg?' − ':' + ')+b+' = '+ng(c2)+' ✓'],opts:U(ans,['x = '+ng(neg?x-1:x+1),'x = '+fs(c2,a),'x = '+ng(-x)])};}},
+{id:'area',icon:'📐',lv:[3,7],games:['c_shape'],n:['Area and perimeter','Aire et périmètre'],
+ idea:['Perimeter is the distance all the way around a shape: add all the sides.\nArea is the space inside, in squares. Rectangle: length × width.\nTriangle: base × height ÷ 2.\nA 5 cm by 3 cm rectangle: perimeter 16 cm, area 15 cm².',
+       'Le périmètre est la longueur du tour d’une figure : additionne tous les côtés.\nL’aire est l’espace à l’intérieur, en carrés. Rectangle : longueur × largeur.\nTriangle : base × hauteur ÷ 2.\nUn rectangle de 5 cm sur 3 cm : périmètre 16 cm, aire 15 cm².'],
+ gen:function(L){var l=rnd(3,L<=4?10:20),w=rnd(2,l-1),r=Math.random();
+   if(L>=5&&r<.33){var b=2*rnd(2,10),h=rnd(2,12),A=b*h/2;return {q:X('A triangle has base '+b+' cm and height '+h+' cm. What is its area?','Un triangle a une base de '+b+' cm et une hauteur de '+h+' cm. Quelle est son aire ?'),a:A+' cm²',steps:[b+' × '+h+' = '+b*h,b*h+' ÷ 2 = '+A+' cm²'],opts:U(A+' cm²',[b*h+' cm²',(b+h)+' cm²',(A+b)+' cm²'])};}
+   if(r<.66)return {q:X('A rectangle is '+l+' cm long and '+w+' cm wide. What is its area?','Un rectangle mesure '+l+' cm de long et '+w+' cm de large. Quelle est son aire ?'),a:l*w+' cm²',steps:[X('Area = length × width','Aire = longueur × largeur'),l+' × '+w+' = '+l*w+' cm²'],opts:U(l*w+' cm²',[2*(l+w)+' cm²',(l+w)+' cm²',l*w+l+' cm²'])};
+   return {q:X('A rectangle is '+l+' cm long and '+w+' cm wide. What is its perimeter?','Un rectangle mesure '+l+' cm de long et '+w+' cm de large. Quel est son périmètre ?'),a:2*(l+w)+' cm',steps:[X('Add all four sides','Additionne les quatre côtés'),l+' + '+w+' + '+l+' + '+w+' = '+2*(l+w)+' cm'],opts:U(2*(l+w)+' cm',[l*w+' cm',(l+w)+' cm',2*l+w+' cm'])};}},
+{id:'angle',icon:'📏',lv:[5,8],n:['Angles','Les angles'],
+ idea:['Angles on a straight line add up to 180°.\nAngles in a triangle add up to 180°.\nAngles around a point add up to 360°.\nA right angle is 90°.',
+       'Les angles sur une droite font 180° au total.\nLes angles d’un triangle font 180° au total.\nLes angles autour d’un point font 360° au total.\nUn angle droit mesure 90°.'],
+ gen:function(L){var r=Math.random();
+   if(r<.4){var a=rnd(20,100),b=rnd(20,150-a),c=180-a-b;return {q:X('Two angles of a triangle are '+a+'° and '+b+'°. What is the third angle?','Deux angles d’un triangle mesurent '+a+'° et '+b+'°. Combien mesure le troisième ?'),a:c+'°',steps:[a+' + '+b+' = '+(a+b),'180 − '+(a+b)+' = '+c+'°'],opts:U(c+'°',[360-a-b+'°',(c+10)+'°',(a+b)+'°'])};}
+   if(r<.7){var s=rnd(15,165),t=180-s;return {q:X('Two angles on a straight line. One is '+s+'°. What is the other?','Deux angles sur une droite. L’un mesure '+s+'°. Combien mesure l’autre ?'),a:t+'°',steps:['180 − '+s+' = '+t+'°'],opts:U(t+'°',[(360-s)+'°',(90-s>0?90-s:s+10)+'°',(t+10)+'°'])};}
+   var p=rnd(60,150),q=rnd(40,330-p),u=360-p-q;return {q:X('Three angles around a point: '+p+'°, '+q+'° and ?','Trois angles autour d’un point : '+p+'°, '+q+'° et ?'),a:u+'°',steps:[p+' + '+q+' = '+(p+q),'360 − '+(p+q)+' = '+u+'°'],opts:U(u+'°',[(180-p-q>0?180-p-q:u+20)+'°',(u+10)+'°',(p+q)+'°'])};}},
+{id:'stats',icon:'📊',lv:[6,9],n:['Mean, median and range','Moyenne, médiane et étendue'],
+ idea:['Mean: add all the values and divide by how many there are.\nMedian: put the values in order and take the middle one.\nRange: biggest − smallest.\nFor 3, 7, 8, 10, 12: mean 8, median 8, range 9.',
+       'Moyenne : additionne toutes les valeurs et divise par leur nombre.\nMédiane : range les valeurs dans l’ordre et prends celle du milieu.\nÉtendue : la plus grande − la plus petite.\nPour 3, 7, 8, 10, 12 : moyenne 8, médiane 8, étendue 9.'],
+ gen:function(L){var v=[];for(var i=0;i<4;i++)v.push(rnd(1,20));var s=v.reduce(function(x,y){return x+y;},0),last=5-(s%5);if(last===5)last=0;v.push(last+5*rnd(0,3));if(!v[4])v[4]=5;
+   s=v.reduce(function(x,y){return x+y;},0);while(s%5){v[4]++;s++;}var o=v.slice().sort(function(x,y){return x-y;}),mean=s/5,med=o[2],rg=o[4]-o[0],list=v.join(', '),k=rnd(0,2);
+   if(k===0)return {q:X('Find the mean of: ','Trouve la moyenne de : ')+list,a:String(mean),steps:[v.join(' + ')+' = '+s,s+' ÷ 5 = '+mean],opts:U(mean,[med,s,mean+1])};
+   if(k===1)return {q:X('Find the median of: ','Trouve la médiane de : ')+list,a:String(med),steps:[X('In order: ','Dans l’ordre : ')+o.join(', '),X('The middle value is ','La valeur du milieu est ')+med],opts:U(med,[v[2],mean,o[3]])};
+   return {q:X('Find the range of: ','Trouve l’étendue de : ')+list,a:String(rg),steps:[X('Biggest ','Plus grande ')+o[4]+X(', smallest ',', plus petite ')+o[0],o[4]+' − '+o[0]+' = '+rg],opts:U(rg,[o[4],o[4]+o[0],med])};}},
+{id:'prob',icon:'🎲',lv:[6,10],n:['Probability','Les probabilités'],
+ idea:['Probability = number of ways it can happen ÷ total number of outcomes.\nIt goes from 0 (impossible) to 1 (certain).\nA bag has 3 red and 5 blue balls. P(red) = 3/8.',
+       'Probabilité = nombre de cas favorables ÷ nombre total de cas.\nElle va de 0 (impossible) à 1 (certain).\nUn sac contient 3 boules rouges et 5 bleues. P(rouge) = 3/8.'],
+ gen:function(L){var r=rnd(1,8),b=rnd(1,8),g=rnd(0,6),t=r+b+g,ans=fs(r,t);
+   if(Math.random()<.3){var f=rnd(1,6);return {q:X('You roll a dice. What is the probability of getting a number bigger than '+f+'?','Tu lances un dé. Quelle est la probabilité d’obtenir un nombre plus grand que '+f+' ?'),a:fs(6-f,6),steps:[X((6-f)+' numbers are bigger than '+f,(6-f)+' nombres sont plus grands que '+f),(6-f)+'/6'+(fs(6-f,6)!==(6-f)+'/6'?' = '+fs(6-f,6):'')],opts:U(fs(6-f,6),[fs(f,6),fs(6-f+1,6),(6-f)+'/'+f])};}
+   return {q:X('A bag has '+r+' red, '+b+' blue'+(g?' and '+g+' green':'')+' balls. You pick one. What is the probability it is red?','Un sac contient '+r+' boules rouges, '+b+' bleues'+(g?' et '+g+' vertes':'')+'. Tu en tires une. Quelle est la probabilité qu’elle soit rouge ?'),a:ans,
+     steps:[X('Total: ','Total : ')+[r,b].concat(g?[g]:[]).join(' + ')+' = '+t,X('Red: ','Rouges : ')+r,r+'/'+t+(ans!==r+'/'+t?' = '+ans:'')],opts:U(ans,[fs(r,b),fs(b,t),fs(r,t+r)])};}},
+{id:'pyth',icon:'📐',lv:[8,11],n:['Pythagoras','Le théorème de Pythagore'],
+ idea:['In a right-angled triangle: a² + b² = c², where c is the longest side (the hypotenuse).\nSides 6 and 8: 36 + 64 = 100, so c = √100 = 10.\nFor a shorter side: c² − b² = a².',
+       'Dans un triangle rectangle : a² + b² = c², où c est le plus grand côté (l’hypoténuse).\nCôtés 6 et 8 : 36 + 64 = 100, donc c = √100 = 10.\nPour un petit côté : c² − b² = a².'],
+ gen:function(L){var T3=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[20,21,29]]),k=T3[0]===3?rnd(1,5):rnd(1,2),a=T3[0]*k,b=T3[1]*k,c=T3[2]*k;
+   if(Math.random()<.6)return {q:X('A right-angled triangle has short sides '+a+' and '+b+'. How long is the hypotenuse?','Un triangle rectangle a deux petits côtés de '+a+' et '+b+'. Combien mesure l’hypoténuse ?'),a:String(c),steps:[a+'² + '+b+'² = '+a*a+' + '+b*b+' = '+c*c,'√'+c*c+' = '+c],opts:U(c,[a+b,c+1,b+1])};
+   return {q:X('A right-angled triangle has hypotenuse '+c+' and one side '+a+'. How long is the other side?','Un triangle rectangle a une hypoténuse de '+c+' et un côté de '+a+'. Combien mesure l’autre côté ?'),a:String(b),steps:[c+'² − '+a+'² = '+c*c+' − '+a*a+' = '+b*b,'√'+b*b+' = '+b],opts:U(b,[c-a,c+a,b+1])};}},
+{id:'slope',icon:'📈',lv:[8,11],n:['Straight lines and slope','Droites et pente'],
+ idea:['A straight line is y = mx + b: m is the slope (how steep), b is where it crosses the y-axis.\nSlope between two points = change in y ÷ change in x.\nFrom (1, 2) to (3, 8): (8 − 2) ÷ (3 − 1) = 3.',
+       'Une droite s’écrit y = mx + b : m est la pente (l’inclinaison), b est l’endroit où elle coupe l’axe des y.\nPente entre deux points = variation de y ÷ variation de x.\nDe (1, 2) à (3, 8) : (8 − 2) ÷ (3 − 1) = 3.'],
+ gen:function(L){var m=rnd(-5,6)||2,x1=rnd(-5,5),dx=rnd(1,5),y1=rnd(-9,9),x2=x1+dx,y2=y1+m*dx;
+   if(Math.random()<.5)return {q:X('Find the slope of the line through ('+ng(x1)+', '+ng(y1)+') and ('+ng(x2)+', '+ng(y2)+')','Trouve la pente de la droite passant par ('+ng(x1)+', '+ng(y1)+') et ('+ng(x2)+', '+ng(y2)+')'),a:ng(m),
+     steps:[X('Change in y: ','Variation de y : ')+ng(y2)+' − '+pn(y1)+' = '+ng(y2-y1),X('Change in x: ','Variation de x : ')+ng(x2)+' − '+pn(x1)+' = '+dx,ng(y2-y1)+' ÷ '+dx+' = '+ng(m)],opts:U(ng(m),[ng(-m),fs(dx,m*dx||1),ng(m+1)])};
+   var b=rnd(-9,9),x=rnd(-4,6),y=m*x+b;return {q:'y = '+poly([[m,1],[b,0]])+X('. Find y when x = ',' . Trouve y quand x = ')+ng(x),a:ng(y),steps:['y = '+ng(m)+' × '+pn(x)+(b<0?' − '+(-b):' + '+b),'y = '+ng(m*x)+(b<0?' − '+(-b):' + '+b)+' = '+ng(y)],opts:U(ng(y),[ng(m*x-b),ng(m+x+b),ng(y+m)])};}},
+{id:'quad',icon:'🎯',lv:[9,13],n:['Quadratic equations','Équations du second degré'],
+ idea:['To solve x² + bx + c = 0, find two numbers that multiply to c and add to b.\nx² − 5x + 6 = 0: −2 and −3 multiply to 6 and add to −5.\nSo (x − 2)(x − 3) = 0, and x = 2 or x = 3.',
+       'Pour résoudre x² + bx + c = 0, trouve deux nombres dont le produit est c et la somme est b.\nx² − 5x + 6 = 0 : −2 et −3 ont pour produit 6 et pour somme −5.\nDonc (x − 2)(x − 3) = 0, et x = 2 ou x = 3.'],
+ gen:function(L){var p=rnd(-7,7)||1,q=rnd(-7,7)||-2;if(p>q){var t=p;p=q;q=t;}var B=-(p+q),C=p*q,OR=X(' or ',' ou '),ans=p===q?'x = '+ng(p):'x = '+ng(p)+OR+'x = '+ng(q);
+   function fac(r){return r<0?'(x + '+(-r)+')':r===0?'x':'(x − '+r+')';}
+   return {q:X('Solve: ','Résous : ')+poly([[1,2],[B,1],[C,0]])+' = 0',a:ans,steps:[X('Two numbers that multiply to '+ng(C)+' and add to '+ng(B)+': ','Deux nombres de produit '+ng(C)+' et de somme '+ng(B)+' : ')+ng(-p)+X(' and ',' et ')+ng(-q),fac(p)+fac(q)+' = 0',ans],
+     opts:U(ans,['x = '+ng(-p)+OR+'x = '+ng(-q),'x = '+ng(p+1)+OR+'x = '+ng(q),'x = '+ng(B)+OR+'x = '+ng(C)])};}},
+{id:'deriv',icon:'📉',lv:[11,13],n:['Derivatives','Les dérivées'],
+ idea:['The derivative gives the slope of a curve at each point.\nPower rule: the derivative of xⁿ is n·xⁿ⁻¹. Numbers in front stay; a constant gives 0.\nf(x) = 3x² + 5x − 4  →  f′(x) = 6x + 5.',
+       'La dérivée donne la pente d’une courbe en chaque point.\nRègle des puissances : la dérivée de xⁿ est n·xⁿ⁻¹. Les coefficients restent ; une constante donne 0.\nf(x) = 3x² + 5x − 4  →  f′(x) = 6x + 5.'],
+ gen:function(L){var n=rnd(2,L>=12?4:3),a=rnd(1,6),b=rnd(-9,9)||3,c=rnd(-9,9),f=poly([[a,n],[b,1],[c,0]]),d=poly([[a*n,n-1],[b,0]]);
+   if(Math.random()<.4){var x=rnd(-3,3),v=a*n*Math.pow(x,n-1)+b;return {q:X('f(x) = '+f+'. Find f′('+ng(x)+')','f(x) = '+f+'. Calcule f′('+ng(x)+')'),a:ng(v),steps:['f′(x) = '+d,'f′('+ng(x)+') = '+ng(v)],opts:U(ng(v),[ng(v+b),ng(a*Math.pow(x,n)+b*x+c),ng(-v)])};}
+   return {q:X('Find the derivative of f(x) = ','Trouve la dérivée de f(x) = ')+f,a:"f′(x) = "+d,steps:[poly([[a,n]])+'  →  '+poly([[a*n,n-1]]),poly([[b,1]])+'  →  '+ng(b),ng(c)+'  →  0'],
+     opts:U("f′(x) = "+d,["f′(x) = "+poly([[a*n,n-1],[b,0],[c,0]]),"f′(x) = "+poly([[a,n-1],[b,0]]),"f′(x) = "+poly([[a*n,n+1],[b,0]])])};}}
+];
+function lsnName(t){return isFr()?t.n[1]:t.n[0];}
+function lsnFor(L){return LESSONS.filter(function(t){return L>=t.lv[0]&&L<=t.lv[1];});}
+var LSN={all:false};
+function lessonsPanel(host,L,rerender){
+  var list=LSN.all?LESSONS:lsnFor(L);
+  function gbtn(g,i,big){return '<button type="button" class="mxm-btn '+(big?'pri':'sec')+'" data-t="'+i+'" data-g="'+g.id+'" title="'+E(gName(g,L))+'">'+g.icon+' '+E(T(g.name))+'</button>';}
+  host.innerHTML='<p>'+E(T('Pick a topic and a team game. Every question in the game is about that topic, made for your class.'))+'</p>'
+    +'<label class="mxl-all"><input type="checkbox" id="mxlAll"'+(LSN.all?' checked':'')+'> '+E(T('Show topics for all grades'))+'</label>'
+    +(list.length?'<div class="mxl-grid">'+list.map(function(t){var i=LESSONS.indexOf(t),sp=(t.games||[]).map(function(id){return ALLG.filter(function(g){return g.id===id;})[0];}).filter(Boolean);
+      return '<div class="mxl-card"><div class="mxl-ic">'+t.icon+'</div><div class="mxl-tx"><b>'+E(lsnName(t))+'</b><small>'+E(T(LEVELS[t.lv[0]-1][1]))+(t.lv[1]>t.lv[0]?' \u2013 '+E(T(LEVELS[t.lv[1]-1][1])):'')+'</small></div>'
+        +'<div class="mxl-act">'+sp.map(function(g){return gbtn(g,i,true);}).join('')+CLASS_GAMES.map(function(g){return gbtn(g,i,!sp.length&&g===CLASS_GAMES[0]);}).join('')+'</div></div>';}).join('')+'</div>'
+      :'<p class="mxp-empty">'+E(T('No topics for this grade yet.'))+'</p>');
+  $('mxlAll').onchange=function(){LSN.all=this.checked;rerender();};
+  host.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){var t=LESSONS[+b.dataset.t],g=ALLG.filter(function(x){return x.id===b.dataset.g;})[0];if(g)startGame(g,t);};});
+}
 /* ---------- arcade page (replaces the old Games hub) ---------- */
 function renderArcade(c){
   var L=level(),WD=worldOf(L),shown=CLS.on?CLASS_GAMES:GAMES.filter(function(g){return forGrade(g,L);}),
@@ -1471,12 +1753,14 @@ function renderArcade(c){
       :'<h2 class="mxr-h">✨ '+E(T('Themed games for your class'))+'</h2><div class="mxr-grid">'+mine.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'
        +'<h2 class="mxr-h">🎮 '+E(T('More games for this grade'))+'</h2><div class="mxr-grid">'+rest.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>')
     +'</div>';
-  if(CLS.on){var cl=c.querySelector('.mxr-class'),tabs=D.createElement('div'),sub=CLS.sub==='present'?'present':'team';tabs.className='mxr-sub';tabs.setAttribute('role','tablist');
-    tabs.innerHTML='<button type="button" role="tab" data-s="team" aria-selected="'+(sub==='team')+'">\uD83D\uDC65 '+E(T('Team mode'))+'</button><button type="button" role="tab" data-s="present" aria-selected="'+(sub==='present')+'">\uD83C\uDFA4 '+E(T('Presentation mode'))+'</button>';
+  if(CLS.on){var cl=c.querySelector('.mxr-class'),tabs=D.createElement('div'),sub=CLS.sub==='present'||CLS.sub==='lessons'?CLS.sub:'team';tabs.className='mxr-sub';tabs.setAttribute('role','tablist');
+    tabs.innerHTML='<button type="button" role="tab" data-s="team" aria-selected="'+(sub==='team')+'">\uD83D\uDC65 '+E(T('Team mode'))+'</button><button type="button" role="tab" data-s="present" aria-selected="'+(sub==='present')+'">\uD83C\uDFA4 '+E(T('Presentation mode'))+'</button><button type="button" role="tab" data-s="lessons" aria-selected="'+(sub==='lessons')+'">\uD83D\uDCDA '+E(T('Topic games'))+'</button>';
     cl.parentNode.insertBefore(tabs,cl.nextSibling);
     tabs.querySelectorAll('button').forEach(function(b){b.onclick=function(){CLS.sub=b.dataset.s;saveCls();renderArcade(c);};});
     if(sub==='present'){c.querySelectorAll('.mxr-ex,.mxr-h,.mxr-filter,.mxr-grid').forEach(function(n){n.remove();});var host=D.createElement('div');host.className='mxp-panel';tabs.parentNode.insertBefore(host,tabs.nextSibling);
-      presentPanel(host,L,function(){if(!DK.edit||host.isConnected)renderArcade(c);});}}
+      presentPanel(host,L,function(){if(!DK.edit||host.isConnected)renderArcade(c);});}
+    if(sub==='lessons'){c.querySelectorAll('.mxr-ex,.mxr-h,.mxr-filter,.mxr-grid').forEach(function(n){n.remove();});var lh=D.createElement('div');lh.className='mxp-panel';tabs.parentNode.insertBefore(lh,tabs.nextSibling);
+      lessonsPanel(lh,L,function(){renderArcade(c);});}}
   $('mxaLv').onchange=function(){ls('mx_arcade_level',this.value);renderArcade(c);};
   if($('mxaSearch'))$('mxaSearch').oninput=function(){var q=this.value.trim().toLowerCase();c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.style.display=!q||b.dataset.n.indexOf(q)>=0?'':'none';});};
   c.querySelectorAll('.mxr-modes button').forEach(function(b){b.onclick=function(){CLS.on=b.dataset.m==='class';saveCls();renderArcade(c);};});
@@ -1489,12 +1773,14 @@ function renderArcade(c){
   }
   c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.onclick=function(){startGame(ALLG[+b.dataset.i]);};});
 }
+if(W.trAdd)W.trAdd({"Topic games": "Jeux par thème", "Pick a topic and a team game. Every question in the game is about that topic, made for your class.": "Choisis un thème et un jeu d’équipe. Toutes les questions du jeu portent sur ce thème, adaptées à ta classe.", "No topics for this grade yet.": "Pas encore de thème pour cette année.", "Shape Builder": "Constructeur de formes", "Pizza Fractions": "Fractions pizza", "Each team taps two corners on its grid to build a rectangle with the area or perimeter asked. Right first scores. First team to 5 wins.": "Chaque équipe touche deux coins de sa grille pour construire un rectangle avec l’aire ou le périmètre demandé. La première juste marque. La première équipe à 5 gagne.", "Each team taps slices to shade the fraction asked, then presses Check. Higher grades get pizzas cut into more slices, so you need equivalent fractions. First team to 5 wins.": "Chaque équipe touche des parts pour colorier la fraction demandée, puis appuie sur Vérifier. Dans les grandes classes, les pizzas ont plus de parts : il faut des fractions équivalentes. La première équipe à 5 gagne."});
+if(W.trAdd)W.trAdd({"Lessons": "Leçons", "Teach": "Enseigner", "Copy to my sets": "Copier dans mes séries", "Show topics for all grades": "Voir les thèmes de toutes les années", "No lessons for this grade yet.": "Pas encore de leçon pour cette année.", "Ready-made lessons for the board. Teach starts with the idea and a worked example, then practice questions with the steps. Practice skips straight to the questions.": "Des leçons toutes prêtes pour le tableau. Enseigner commence par l’idée et un exemple corrigé, puis des exercices avec les étapes. Entraînement passe directement aux exercices."});
 /* 1.5.0: French for the class worlds, class team games and Presentation mode */
 if(W.trAdd)W.trAdd({"Farm": "Ferme", "Candy": "Bonbons", "Rainbow": "Arc-en-ciel", "Jungle": "Jungle", "Dino": "Dino", "Island": "Île", "Arctic": "Arctique", "Pirate": "Pirates", "Desert": "Désert", "Volcano": "Volcan", "Haunted": "Hanté", "Robot": "Robots", "Themed games for your class": "Jeux à thème pour ta classe", "More games for this grade": "Plus de jeux pour cette année", "games for this grade": "jeux pour cette année", "class games": "jeux de classe", "Class team games": "Jeux d’équipe en classe", "Both teams play at once": "Les deux équipes jouent en même temps", "Team mode": "Mode équipes", "Presentation mode": "Mode présentation", "Tug of War": "Tir à la corde", "Buzzer Battle": "Bataille de buzzers", "Hot Potato Bomb": "Bombe patate chaude", "Team Race": "Course d’équipes", "Both teams answer the same question. Each right answer pulls the rope one step your way. Pull it 5 steps to win! A wrong answer freezes your team for 2 seconds.": "Les deux équipes répondent à la même question. Chaque bonne réponse tire la corde d’un cran vers toi. Tire-la de 5 crans pour gagner ! Une mauvaise réponse gèle ton équipe 2 secondes.", "Hit your buzzer first, then answer within 6 seconds. Get it wrong and the other team can steal. First team to 7 points wins.": "Appuie sur ton buzzer en premier, puis réponds en moins de 6 secondes. Si tu te trompes, l’autre équipe peut voler la question. La première équipe à 7 points gagne.", "The team holding the bomb must answer right to throw it to the other team. Nobody knows when it blows! If it explodes on your side, the other team scores. First to 3.": "L’équipe qui tient la bombe doit bien répondre pour la lancer à l’autre équipe. Personne ne sait quand elle explose ! Si elle explose de ton côté, l’autre équipe marque. Les premiers à 3 gagnent.", "Each team gets its own questions on its side. Every right answer moves your car forward; a wrong one spins you out. First car over the line wins.": "Chaque équipe a ses propres questions de son côté. Chaque bonne réponse fait avancer ta voiture, une mauvaise te fait déraper. La première voiture à passer la ligne gagne.", "Race! Each team answers its own questions": "Course ! Chaque équipe répond à ses propres questions", "BUZZ": "BUZZ", "Steal chance": "À l’autre équipe de voler !", "Wrong!": "Faux !", "Wrong! Keep holding it": "Faux ! Tu la gardes", "pulls!": "tire !", "frozen!": "gelée !", "spin out!": "dérapage !", "too slow!": "trop lent !", "wins!": "gagne !", "Rematch": "Revanche", "Top players": "Meilleurs joueurs", "Make your own exercises, then present them on the board: big question, timer, pen, reveal the answer and the steps, and points for each team.": "Crée tes propres exercices, puis présente-les au tableau : grande question, minuteur, stylo, réponse et étapes à révéler, et des points pour chaque équipe.", "New exercise set": "Nouvelle série d’exercices", "Quick set for this grade": "Série rapide pour cette année", "No exercise sets yet. Make one, or start with a quick set for this grade and edit it.": "Pas encore de série d’exercices. Crées-en une, ou commence avec une série rapide pour cette année et modifie-la.", "Sign in to keep your sets on all your devices.": "Connecte-toi pour garder tes séries sur tous tes appareils.", "Exercise set": "Série d’exercices", "Set title": "Titre de la série", "e.g. Fractions warm-up": "ex. Échauffement fractions", "Question": "Question", "Answer": "Réponse", "e.g. 3/4 + 1/8 = ?": "ex. 3/4 + 1/8 = ?", "Worked steps (one per line, optional)": "Étapes de la solution (une par ligne, facultatif)", "Wrong choices for multiple choice (comma separated, optional)": "Mauvais choix pour le QCM (séparés par des virgules, facultatif)", "Time (seconds, 0 = no timer)": "Temps (secondes, 0 = pas de minuteur)", "Add exercise": "Ajouter un exercice", "Add 5 for this grade": "En ajouter 5 pour cette année", "Add at least one question.": "Ajoute au moins une question.", "Save and present": "Enregistrer et présenter", "Present": "Présenter", "Presentation": "Présentation", "Delete": "Supprimer", "Delete this exercise set?": "Supprimer cette série d’exercices ?", "Cancel": "Annuler", "Remove": "Retirer", "Move up": "Monter", "Move down": "Descendre", "Previous": "Précédent", "Next": "Suivant", "Finish": "Terminer", "Full screen": "Plein écran", "Practice": "Entraînement", "Untitled": "Sans titre", "exercises": "exercices"});
 W.renderGames=function(c){renderArcade(c);};
 W.addEventListener('mxlang',function(){if(G||BX.on)return;var c=$('content');if(c&&c.querySelector('.mxr-arcade'))renderArcade(c);});
 W.renderGamePlay=function(c){renderArcade(c);};
-W.mxArcade={start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:CLASS_GAMES,forGrade:forGrade,makeQ:makeQ,version:ARCADE_VERSION};
+W.mxArcade={start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:CLASS_GAMES,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
 /* Android back button closes a running game */
 W.addEventListener('popstate',function(){if(G){G.pushed=false;stopGame();}});
 })();
