@@ -461,12 +461,21 @@ function ownerUsers(box) {
           return fbPut('/deletion_backups/' + enc(u), { member: d[0], profile: d[1], role: d[2], comments: d[3], follows: d[4], at: Date.now(), by: ME }, true);
         }).then(function () {
           return Promise.all([fbPut('/deletions/' + enc(u), { at: Date.now(), by: ME }, true)].concat(['/members/', '/profiles/', '/roles/', '/profile_comments/', '/follows/', '/friends/'].map(function (p) { return fbPut(p + enc(u), null, true); })));
-        }).then(function () { names = names.filter(function (x) { return x !== u; }); delete roles[u]; draw(); toast('🗑 @' + u + ' deleted'); })
+        }).then(function () { return wipeArcade(u); }).then(function () { names = names.filter(function (x) { return x !== u; }); delete roles[u]; draw(); toast('🗑 @' + u + ' deleted'); })
           .catch(function () { b.disabled = false; b.textContent = '🗑 Delete'; toast('Could not delete. Check your connection.', 'err'); });
       }
     };
     draw();
   }).catch(function () { $('uList').innerHTML = '<p class="sub">Could not load users. Check your connection.</p>'; });
+}
+/* deleting an account also removes that player's arcade scores (and their top-score entries) and saved exercise sets */
+function wipeArcade(u) {
+  var k = enc(u);
+  return fbGet('/arcade/best/' + k, true).then(function (o) {
+    var jobs = Object.keys(o || {}).map(function (g) { return fbPut('/arcade/top/' + g + '/' + k, null, true).catch(function () {}); });
+    jobs.push(fbPut('/arcade/best/' + k, null, true), fbPut('/arcade/decks/' + k, null, true));
+    return Promise.all(jobs);
+  }).catch(function () {});
 }
 function ownerEmail(box) {
   loadCfg(true).then(function () {
