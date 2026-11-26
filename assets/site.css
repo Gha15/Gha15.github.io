@@ -207,3 +207,4 @@ input.code{letter-spacing:.4em;font-size:1.4rem !important;text-align:center;fon
 .kv.teachrow{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 .urow .rl.tch{background:rgba(34,197,94,.18);color:#86efac}
 .urow .rl.stu{background:rgba(56,189,248,.14);color:#7dd3fc}
+.urow button.own{border-color:rgba(251,191,36,.5);color:#fde68a}

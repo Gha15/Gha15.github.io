@@ -453,7 +453,7 @@ function owner(c, sub) {
   ({ users: ownerUsers, email: ownerEmail, stores: ownerStores })[sub]($('owBody'));
 }
 function ownerUsers(box) {
-  box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), switch them between 🎒 Student and 🍎 Teacher mode, or delete an account. Deleting keeps a backup, so you can undo it from Messages in the app.</p>'
+  box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), switch them between 🎒 Student and 🍎 Teacher mode, add another 👑 owner (you stay an owner), or delete an account. Deleting keeps a backup, so you can undo it from Messages in the app.</p>'
     + '<input class="search" id="uQ" type="search" placeholder="Search users…" aria-label="Search users"><div class="ulist" id="uList"><p class="sub">Loading…</p></div>';
   Promise.all([fbGet('/members', true), fbGet('/roles', true), fbGet('/teachers', true)]).then(function (r) {
     var names = Object.keys(r[0] || {}).sort(), roles = r[1] || {}, teach = r[2] || {}, q = '';
@@ -466,13 +466,27 @@ function ownerUsers(box) {
           + (r0 === 'owner' ? '' : '<span class="rl ' + (teach[u] ? 'tch' : 'stu') + '">' + (teach[u] ? '🍎 Teacher' : '🎒 Student') + '</span><button type="button" data-u="' + esc(u) + '" data-a="teach">' + (teach[u] ? '🎒 Back to student' : '🍎 Make teacher') + '</button>')
           + (locked ? '' : (i < LADDER.length - 1 ? '<button type="button" data-u="' + esc(u) + '" data-a="up">⬆ Promote to ' + LADDER[i + 1] + '</button>' : '')
             + (i > 0 ? '<button type="button" data-u="' + esc(u) + '" data-a="down">⬇ ' + LADDER[i - 1] + '</button>' : '')
-            + '<button type="button" class="del" data-u="' + esc(u) + '" data-a="del">🗑 Delete</button>') + '</div>';
+            + '<button type="button" class="own" data-u="' + esc(u) + '" data-a="own">👑 Make owner</button>'
+            + '<button type="button" class="del" data-u="' + esc(u) + '" data-a="del">🗑 Delete</button>')
+          /* the built-in owner can never be removed; added owners can be */
+          + (r0 === 'owner' && OWNERS.indexOf(u) > -1 ? '<span class="rl">🔒 Main owner</span>' : '')
+          + (r0 === 'owner' && OWNERS.indexOf(u) < 0 && u !== ME ? '<button type="button" data-u="' + esc(u) + '" data-a="unown">✕ Remove owner</button>' : '') + '</div>';
       }).join('') || '<p class="sub">Nobody matches that.</p>';
     }
     $('uQ').oninput = function () { q = this.value.toLowerCase().trim(); draw(); };
     $('uList').onclick = function (e) {
       var b = e.target.closest('button[data-a]'); if (!b) return;
       var u = b.dataset.u, a = b.dataset.a, i = LADDER.indexOf(roleOf(u));
+      if (a === 'own' || a === 'unown') {
+        var mk = a === 'own';
+        if (!confirm(mk ? 'Make @' + u + ' an owner too? They get the 👑 Owner tab with full control (users, email, store buttons), the same as you. You stay an owner.' : 'Remove @' + u + ' as owner? They go back to a normal user.')) return;
+        b.disabled = true;
+        fbPut('/roles/' + enc(u), mk ? 'owner' : null, true).then(function () {
+          if (mk) roles[u] = 'owner'; else delete roles[u]; draw(); toast(mk ? '👑 @' + u + ' is now an owner' : '@' + u + ' is no longer an owner');
+          fbPost('/notifications/' + enc(u), { type: 'role', title: mk ? '👑 You are now an owner' : 'You are no longer an owner', body: '@' + ME + ' changed your role in the club.', at: Date.now(), from: ME }).catch(function () {});
+        }).catch(function () { b.disabled = false; toast('Could not save. Check your connection.', 'err'); });
+        return;
+      }
       if (a === 'teach') {
         var on = !teach[u];
         if (!confirm(on ? 'Make @' + u + ' a teacher? They get the Teacher tab and Matix Present.' : 'Put @' + u + ' back to student mode? They lose the Teacher tab (their quizzes are kept).')) return;

@@ -848,6 +848,7 @@ if (W.trAdd) W.trAdd({
   'That game stopped because nobody had it open for more than a minute.': 'Cette partie s’est arrêtée car personne ne l’a eue ouverte pendant plus d’une minute.',
   'Are you a teacher? Ask the club owner to turn on teacher mode for your account.': 'Tu es enseignant ? Demande au propriétaire du club d’activer le mode enseignant sur ton compte.',
   'Turn off teacher mode? Only the owner can turn it back on.': 'Désactiver le mode enseignant ? Seul le propriétaire peut le réactiver.',
+  '👑 Make owner': '👑 Nommer propriétaire', '✕ Remove owner': '✕ Retirer propriétaire', '🔒 Main owner': '🔒 Propriétaire principal',
   '🍎 Make teacher': '🍎 Passer enseignant', '🎒 Back to student': '🎒 Repasser élève', '🍎 Teacher': '🍎 Enseignant', '🎒 Student': '🎒 Élève', 'Infinity': 'Infini', 'Theta': 'Thêta', 'Integral': 'Intégrale', 'Percent': 'Pour cent', 'Equals': 'Égal', 'Almost': 'Environ',
   'Half': 'Moitié', 'Square': 'Carré', 'Seven': 'Sept', 'Zero': 'Zéro', 'Imaginary': 'Imaginaire', 'Mystery': 'Mystère', 'Star': 'Étoile',
   'Plus': 'Plus', 'Minus': 'Moins', 'Times': 'Fois', 'Divide': 'Divisé', 'Make the QR code bigger': 'Agrandir le code QR', 'Leave the board': 'Quitter le tableau', 'Sound': 'Son', 'Full screen': 'Plein écran'
