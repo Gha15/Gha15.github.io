@@ -452,31 +452,41 @@ function owner(c, sub) {
     }).join('') + '</div><div id="owBody"></div></div>';
   ({ users: ownerUsers, deleted: ownerDeleted, email: ownerEmail, stores: ownerStores })[sub]($('owBody'));
 }
+/* the button groups in User upgrading: [key, label, shown at first] */
+var BTN_GROUPS = [['teach', '🍎 Teacher', true], ['promote', '⬆⬇ Promote / demote', true], ['owner', '👑 Owner', false], ['del', '🗑 Delete', true]];
 function ownerUsers(box) {
   box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), switch them between 🎒 Student and 🍎 Teacher mode, add another 👑 owner (you stay an owner), or delete an account. Deleting keeps a backup, so you can undo it from ♻️ Deleted users.</p>'
     + '<input class="search" id="uQ" type="search" placeholder="Search users…" aria-label="Search users">'
-    + '<label class="radio showown"><input type="checkbox" id="uOwn"' + (ls('mx_show_owner_btns') === '1' ? ' checked' : '') + '> 👑 Show owner buttons (make or remove owners)</label>'
+    + '<fieldset class="showbtns" id="uShow"><legend>Show buttons</legend>' + BTN_GROUPS.map(function (g) { return '<label class="radio"><input type="checkbox" data-g="' + g[0] + '"> ' + g[1] + '</label>'; }).join('') + '</fieldset>'
     + '<div class="ulist" id="uList"><p class="sub">Loading…</p></div>';
-  Promise.all([fbGet('/members', true), fbGet('/roles', true), fbGet('/teachers', true)]).then(function (r) {
-    var names = Object.keys(r[0] || {}).sort(), roles = r[1] || {}, teach = r[2] || {}, q = '', showOwn = ls('mx_show_owner_btns') === '1';
+  Promise.all([fbGet('/members', true), fbGet('/roles', true), fbGet('/teachers', true), fbGet('/site_prefs/' + enc(ME) + '/ownerButtons', true).catch(function () { return null; })]).then(function (r) {
+    var names = Object.keys(r[0] || {}).sort(), roles = r[1] || {}, teach = r[2] || {}, q = '';
+    /* which buttons to show: saved on the owner's account, so it is the same on every device */
+    var show = {}; BTN_GROUPS.forEach(function (g) { show[g[0]] = g[2]; });
+    if (r[3] && typeof r[3] === 'object') { for (var k in show) { if (typeof r[3][k] === 'boolean') show[k] = r[3][k]; } }
+    else if (ls('mx_show_owner_btns') === '1') { show.owner = true; } /* the old one-device setting */
+    box.querySelectorAll('#uShow [data-g]').forEach(function (cb) {
+      cb.checked = show[cb.dataset.g];
+      cb.onchange = function () { show[cb.dataset.g] = cb.checked; draw();
+        fbPut('/site_prefs/' + enc(ME) + '/ownerButtons', show, true).catch(function () { toast('Could not save your button settings. Check your connection.', 'err'); }); };
+    });
     function roleOf(u) { if (OWNERS.indexOf(u) > -1 || roles[u] === 'owner') return 'owner'; var x = String(roles[u] || '').toLowerCase(); return LADDER.indexOf(x) > -1 ? x : 'user'; }
     function draw() {
       var list = names.filter(function (u) { return !q || u.indexOf(q) > -1; });
       $('uList').innerHTML = list.map(function (u) {
         var r0 = roleOf(u), i = LADDER.indexOf(r0), locked = r0 === 'owner' || u === ME;
         return '<div class="urow"><span class="nm">@' + esc(u) + '</span><span class="rl">' + RICON[r0] + ' ' + esc(r0) + '</span>'
-          + (r0 === 'owner' ? '' : '<span class="rl ' + (teach[u] ? 'tch' : 'stu') + '">' + (teach[u] ? '🍎 Teacher' : '🎒 Student') + '</span><button type="button" data-u="' + esc(u) + '" data-a="teach">' + (teach[u] ? '🎒 Back to student' : '🍎 Make teacher') + '</button>')
-          + (locked ? '' : (i < LADDER.length - 1 ? '<button type="button" data-u="' + esc(u) + '" data-a="up">⬆ Promote to ' + LADDER[i + 1] + '</button>' : '')
-            + (i > 0 ? '<button type="button" data-u="' + esc(u) + '" data-a="down">⬇ ' + LADDER[i - 1] + '</button>' : '')
-            + (showOwn ? '<button type="button" class="own" data-u="' + esc(u) + '" data-a="own">👑 Make owner</button>' : '')
-            + '<button type="button" class="del" data-u="' + esc(u) + '" data-a="del">🗑 Delete</button>')
+          + (r0 === 'owner' ? '' : '<span class="rl ' + (teach[u] ? 'tch' : 'stu') + '">' + (teach[u] ? '🍎 Teacher' : '🎒 Student') + '</span>' + (show.teach ? '<button type="button" data-u="' + esc(u) + '" data-a="teach">' + (teach[u] ? '🎒 Back to student' : '🍎 Make teacher') + '</button>' : ''))
+          + (locked ? '' : (show.promote && i < LADDER.length - 1 ? '<button type="button" data-u="' + esc(u) + '" data-a="up">⬆ Promote to ' + LADDER[i + 1] + '</button>' : '')
+            + (show.promote && i > 0 ? '<button type="button" data-u="' + esc(u) + '" data-a="down">⬇ ' + LADDER[i - 1] + '</button>' : '')
+            + (show.owner ? '<button type="button" class="own" data-u="' + esc(u) + '" data-a="own">👑 Make owner</button>' : '')
+            + (show.del ? '<button type="button" class="del" data-u="' + esc(u) + '" data-a="del">🗑 Delete</button>' : ''))
           /* the built-in owner can never be removed; added owners can be */
           + (r0 === 'owner' && OWNERS.indexOf(u) > -1 ? '<span class="rl">🔒 Forever owner</span>' : '')
-          + (showOwn && r0 === 'owner' && OWNERS.indexOf(u) < 0 && u !== ME ? '<button type="button" data-u="' + esc(u) + '" data-a="unown">✕ Remove owner</button>' : '') + '</div>';
+          + (show.owner && r0 === 'owner' && OWNERS.indexOf(u) < 0 && u !== ME ? '<button type="button" data-u="' + esc(u) + '" data-a="unown">✕ Remove owner</button>' : '') + '</div>';
       }).join('') || '<p class="sub">Nobody matches that.</p>';
     }
     $('uQ').oninput = function () { q = this.value.toLowerCase().trim(); draw(); };
-    $('uOwn').onchange = function () { showOwn = this.checked; ls('mx_show_owner_btns', showOwn ? '1' : '0'); draw(); };
     $('uList').onclick = function (e) {
       var b = e.target.closest('button[data-a]'); if (!b) return;
       var u = b.dataset.u, a = b.dataset.a, i = LADDER.indexOf(roleOf(u));

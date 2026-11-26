@@ -209,3 +209,6 @@ input.code{letter-spacing:.4em;font-size:1.4rem !important;text-align:center;fon
 .urow .rl.stu{background:rgba(56,189,248,.14);color:#7dd3fc}
 .urow button.own{border-color:rgba(251,191,36,.5);color:#fde68a}
 .showown{margin:10px 0 4px}
+.showbtns{display:flex;flex-wrap:wrap;gap:6px 18px;border:1px solid var(--line);border-radius:14px;padding:8px 14px 10px;margin:10px 0}
+.showbtns legend{font-weight:800;font-size:.85rem;color:var(--dim);padding:0 6px}
+.showbtns .radio{margin:0}

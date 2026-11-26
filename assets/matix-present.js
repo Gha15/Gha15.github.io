@@ -848,7 +848,7 @@ if (W.trAdd) W.trAdd({
   'That game stopped because nobody had it open for more than a minute.': 'Cette partie s’est arrêtée car personne ne l’a eue ouverte pendant plus d’une minute.',
   'Are you a teacher? Ask the club owner to turn on teacher mode for your account.': 'Tu es enseignant ? Demande au propriétaire du club d’activer le mode enseignant sur ton compte.',
   'Turn off teacher mode? Only the owner can turn it back on.': 'Désactiver le mode enseignant ? Seul le propriétaire peut le réactiver.',
- ' 👑 Show owner buttons (make or remove owners)': ' 👑 Afficher les boutons propriétaire (nommer ou retirer)', '👑 Show owner buttons (make or remove owners)': '👑 Afficher les boutons propriétaire (nommer ou retirer)',
+ 'Show buttons': 'Afficher les boutons', '⬆⬇ Promote / demote': '⬆⬇ Promouvoir / rétrograder', '👑 Owner': '👑 Propriétaire', '🗑 Delete': '🗑 Supprimer', 'Could not save your button settings. Check your connection.': 'Impossible d’enregistrer tes réglages de boutons. Vérifie ta connexion.',
   '👑 Make owner': '👑 Nommer propriétaire', '✕ Remove owner': '✕ Retirer propriétaire', '🔒 Forever owner': '🔒 Propriétaire pour toujours', 'Only owners can see this tab.': 'Seuls les propriétaires voient cet onglet.',
   '🍎 Make teacher': '🍎 Passer enseignant', '🎒 Back to student': '🎒 Repasser élève', '🍎 Teacher': '🍎 Enseignant', '🎒 Student': '🎒 Élève', 'Infinity': 'Infini', 'Theta': 'Thêta', 'Integral': 'Intégrale', 'Percent': 'Pour cent', 'Equals': 'Égal', 'Almost': 'Environ',
   'Half': 'Moitié', 'Square': 'Carré', 'Seven': 'Sept', 'Zero': 'Zéro', 'Imaginary': 'Imaginaire', 'Mystery': 'Mystère', 'Star': 'Étoile',
