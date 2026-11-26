@@ -38,7 +38,7 @@ function toast(msg, kind) {
   D.body.appendChild(t); setTimeout(function () { t.remove(); }, 2800);
 }
 function fr() { try { return W.mxLang && W.mxLang.get() === 'fr'; } catch (e) { return false; } }
-function place(n) { if (fr()) return n + (n === 1 ? 'er' : 'e'); var s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+function place(n) { if (fr()) return n + (n === 1 ? 're' : 'e'); var s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
 function pinFmt(p) { p = String(p || ''); return p.slice(0, 3) + ' ' + p.slice(3); }
 function copy(text) {
   var done = function () { toast('🔗 Link copied'); };
@@ -125,7 +125,7 @@ function finalize(q) {
   o.choices = ch; o.correct = q.type === 'poll' ? [] : cor; return o;
 }
 function problem(o, i) {
-  var n = T('Question') + ' ' + (i + 1) + ': ';
+  var n = T('Question') + ' ' + (i + 1) + (fr() ? ' : ' : ': ');
   if (!o.q && !o.media) return n + T('write the question.');
   if (o.type === 'type') return o.answers.length ? '' : n + T('add at least one accepted answer.');
   if (o.type === 'tf') return '';
@@ -173,6 +173,12 @@ var SAMPLE = { title: 'Matix warm-up', theme: 'galaxy', questions: [
   { type: 'multi', q: 'Which numbers are prime?', choices: ['2', '9', '13', '21'], correct: [0, 2], time: 30, points: 1 },
   { type: 'type', q: 'Write 3/4 as a decimal.', answers: ['0.75'], time: 30, points: 2 },
   { type: 'poll', q: 'What should we practise next?', choices: ['Fractions', 'Geometry', 'Algebra', 'Probability'], correct: [], time: 20, points: 0 }] };
+var SAMPLE_FR = { title: 'Échauffement Matix', theme: 'galaxy', questions: [
+  { type: 'mc', q: '7 × 8 = ?', choices: ['54', '56', '64', '48'], correct: [1], time: 20, points: 1 },
+  { type: 'tf', q: 'La somme des angles d’un triangle est 180°.', choices: ['True', 'False'], correct: [0], time: 10, points: 1 },
+  { type: 'multi', q: 'Quels nombres sont premiers ?', choices: ['2', '9', '13', '21'], correct: [0, 2], time: 30, points: 1 },
+  { type: 'type', q: 'Écris 3/4 sous forme décimale.', answers: ['0,75'], time: 30, points: 2 },
+  { type: 'poll', q: 'Que veux-tu travailler ensuite ?', choices: ['Fractions', 'Géométrie', 'Algèbre', 'Probabilités'], correct: [], time: 20, points: 0 }] };
 function newId() { return 'q' + Date.now().toString(36) + rid(4); }
 
 function list(c) {
@@ -188,12 +194,12 @@ function list(c) {
     var box = $('mxtList'); if (!box) return;
     if (!quizzes.length) {
       box.innerHTML = '<div class="card mxt-empty"><p>No quizzes yet.</p><div class="row-btns"><a class="btn pri" href="#/teacher/new">➕ New quiz</a><button type="button" class="btn ghost" id="mxtSample">✨ Make a sample quiz</button></div></div>';
-      $('mxtSample').onclick = function () { var z = JSON.parse(JSON.stringify(SAMPLE)); z.id = newId(); z.updatedAt = Date.now(); api('/mxquiz/' + enc(u) + '/' + z.id, 'PUT', z).then(function () { list(c); }, function () { toast('Could not save. Check your connection.', 'err'); }); };
+      $('mxtSample').onclick = function () { var z = JSON.parse(JSON.stringify(fr() ? SAMPLE_FR : SAMPLE)); z.id = newId(); z.updatedAt = Date.now(); api('/mxquiz/' + enc(u) + '/' + z.id, 'PUT', z).then(function () { list(c); }, function () { toast('Could not save. Check your connection.', 'err'); }); };
       return;
     }
     box.innerHTML = quizzes.map(function (z, i) {
       return '<article class="mxt-card"><div class="mxt-cover" style="background:' + themeBg(z.theme) + '"><span>' + z.questions.length + ' ' + T(z.questions.length === 1 ? 'question' : 'questions') + '</span></div>'
-        + '<div class="mxt-cx"><h3>' + esc(z.title || T('Untitled quiz')) + '</h3><small>' + esc(theme(z.theme)[1]) + (z.updatedAt ? ' · ' + esc(new Date(z.updatedAt).toLocaleDateString()) : '') + '</small>'
+        + '<div class="mxt-cx"><h3>' + esc(z.title || T('Untitled quiz')) + '</h3><small>' + esc(T(theme(z.theme)[1])) + (z.updatedAt ? ' · ' + esc(new Date(z.updatedAt).toLocaleDateString(fr() ? 'fr-FR' : undefined)) : '') + '</small>'
         + '<div class="mxt-acts"><button type="button" class="btn pri" data-live="' + i + '">▶ Matix Present</button><a class="btn ghost" href="#/teacher/edit/' + enc(z.id) + '">✏️ Edit</a>'
         + '<button type="button" class="btn ghost" data-dup="' + i + '" aria-label="Duplicate" title="Duplicate">⧉</button><button type="button" class="btn ghost" data-del="' + i + '" aria-label="Delete" title="Delete">🗑</button></div></div></article>';
     }).join('');
@@ -214,7 +220,7 @@ function list(c) {
   api('/mxhosts/' + enc(u)).then(function (o) {
     var codes = Object.keys(o || {}).sort(function (a, b) { return (o[b] || 0) - (o[a] || 0); }); var box = $('mxtOpen'); if (!box || !codes.length) return;
     box.innerHTML = '<div class="card mxt-open"><b>🟢 Games still open</b>' + codes.map(function (k) {
-      return '<div class="mxt-orow"><span>PIN <b>' + pinFmt(k) + '</b> · ' + esc(new Date(+o[k] || 0).toLocaleString()) + '</span><span><a class="btn ghost" href="#/live/' + k + '">↩ Resume</a><button type="button" class="btn ghost" data-close="' + k + '">✕ Close</button></span></div>';
+      return '<div class="mxt-orow"><span>PIN <b>' + pinFmt(k) + '</b> · ' + esc(new Date(+o[k] || 0).toLocaleString(fr() ? 'fr-FR' : undefined)) + '</span><span><a class="btn ghost" href="#/live/' + k + '">↩ Resume</a><button type="button" class="btn ghost" data-close="' + k + '">✕ Close</button></span></div>';
     }).join('') + '</div>';
     box.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = function () { closeGame(b.dataset.close).then(function () { list(c); }); }; });
   }).catch(function () {});
@@ -277,7 +283,7 @@ function editor(c, id) {
     function qCard(q, i) {
       var ti = typeInfo(q.type), sg = signs(q.type, 4), isTF = q.type === 'tf', h;
       h = '<div class="mxt-q card" data-i="' + i + '"><div class="mxt-qh"><b class="mxt-qn">' + (i + 1) + '</b>'
-        + '<select data-type aria-label="Question type">' + TYPES.map(function (t) { return '<option value="' + t[0] + '"' + (t[0] === q.type ? ' selected' : '') + '>' + t[1] + ' ' + T(t[2]) + '</option>'; }).join('') + '</select>'
+        + '<select data-type aria-label="' + esc(T('Question type')) + '">' + TYPES.map(function (t) { return '<option value="' + t[0] + '"' + (t[0] === q.type ? ' selected' : '') + '>' + t[1] + ' ' + T(t[2]) + '</option>'; }).join('') + '</select>'
         + '<span class="mxt-sp"></span><button type="button" data-up="' + i + '" aria-label="Move up">▲</button><button type="button" data-dn="' + i + '" aria-label="Move down">▼</button>'
         + '<button type="button" data-cp="' + i + '" aria-label="Duplicate">⧉</button><button type="button" data-rm="' + i + '" aria-label="Remove">✕</button></div>'
         + '<label>Question<textarea data-f="q" rows="2" maxlength="300" placeholder="' + esc(T(isTF ? 'e.g. 0.5 is the same as 1/2' : 'e.g. 3/4 + 1/8 = ?')) + '">' + esc(q.q) + '</textarea></label>'
@@ -641,7 +647,7 @@ function player(root, code0) {
     var av = Math.floor(Math.random() * AV.length), last = ls('mxj_name') || '';
     card('<p class="mxj-game">PIN ' + pinFmt(P.code) + (P.title ? ' · ' + esc(P.title) : '') + '</p><h1>Your name and avatar</h1><div class="mxj-me" id="jMe">' + avHtml(av, 104) + '</div>'
       + '<form id="nf"><input id="jn" class="mxj-name" maxlength="16" autocomplete="off" placeholder="Your name" aria-label="Your name" value="' + esc(last) + '">'
-      + '<div class="mxj-avs" id="jAvs">' + AV.map(function (a, k) { return '<button type="button" data-av="' + k + '" aria-label="' + esc(a[2]) + '" aria-pressed="' + (k === av) + '">' + avHtml(k, 50) + '</button>'; }).join('') + '</div>'
+      + '<div class="mxj-avs" id="jAvs">' + AV.map(function (a, k) { return '<button type="button" data-av="' + k + '" aria-label="' + esc(T(a[2])) + '" aria-pressed="' + (k === av) + '">' + avHtml(k, 50) + '</button>'; }).join('') + '</div>'
       + '<div class="err" id="je" role="alert"></div><button class="mxj-go" id="jgo">Join</button></form><button type="button" class="mxj-link" id="jBack">← Different PIN</button>');
     $('jn').focus();
     $('jAvs').onclick = function (e) { var b = e.target.closest('[data-av]'); if (!b) return; av = +b.dataset.av; $('jMe').innerHTML = avHtml(av, 104); this.querySelectorAll('[data-av]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); }); };
@@ -692,7 +698,7 @@ function player(root, code0) {
     root.dataset.mood = '';
     if (st === 'lobby') {
       card(bar(me) + '<div class="mxj-big">' + avHtml(me.av, 120) + '<h1>You’re in!</h1><p>See your name on the board?</p><p class="sub">Wait for your teacher to start.</p></div>'
-        + '<p class="mxj-lab">Change your avatar</p><div class="mxj-avs sm" id="jAvs">' + AV.map(function (a, k) { return '<button type="button" data-av="' + k + '" aria-label="' + esc(a[2]) + '" aria-pressed="' + (k === +me.av) + '">' + avHtml(k, 44) + '</button>'; }).join('') + '</div>');
+        + '<p class="mxj-lab">Change your avatar</p><div class="mxj-avs sm" id="jAvs">' + AV.map(function (a, k) { return '<button type="button" data-av="' + k + '" aria-label="' + esc(T(a[2])) + '" aria-pressed="' + (k === +me.av) + '">' + avHtml(k, 44) + '</button>'; }).join('') + '</div>');
       $('jAvs').onclick = function (e) { var b = e.target.closest('[data-av]'); if (!b) return; api('/mxlive/' + P.code + '/players/' + P.pid, 'PATCH', { av: +b.dataset.av }).catch(function () {}); };
     } else if (st === 'q') {
       if (!P.answered[i] && !P.checked[i]) {
@@ -709,7 +715,7 @@ function player(root, code0) {
       } else {
         h += '<div class="mxj-tiles n' + sg.length + '">' + sg.map(function (s, k) {
           var lbl = type === 'tf' ? T(k ? 'False' : 'True') : (ch[k] || '');
-          return '<button type="button" class="mxj-tile" data-k="' + k + '" style="--c:' + s.c + '" aria-label="' + esc(T(s.n) + (lbl ? ': ' + lbl : '')) + '" aria-pressed="false"><span>' + s.s + '</span>' + (lbl ? '<small>' + esc(lbl) + '</small>' : '') + '</button>';
+          return '<button type="button" class="mxj-tile" data-k="' + k + '" style="--c:' + s.c + '" aria-label="' + esc(type === 'tf' ? lbl : T(s.n) + (lbl ? ': ' + lbl : '')) + '" aria-pressed="false"><span>' + s.s + '</span>' + (lbl ? '<small>' + esc(lbl) + '</small>' : '') + '</button>';
         }).join('') + '</div>' + (type === 'multi' ? '<p class="mxj-hint">Pick every right answer, then press Send.</p><button type="button" class="mxj-go" id="ms" disabled>Send</button>' : '');
       }
       card(h);
@@ -733,7 +739,7 @@ function player(root, code0) {
       card(bar(me) + '<div class="mxj-big"><div class="mxj-emo">🏆</div><h1><span>You are in</span> ' + place(me.rank || 1) + ' <span>place</span></h1><p class="mxj-pts">' + (+me.score || 0) + ' <span>points</span></p>' + (mv > 0 ? '<p class="mxj-streak">▲ ' + mv + '</p>' : '') + '<p>Look at the board…</p></div>');
     } else if (st === 'end') {
       var r = me.rank || 1;
-      card(bar(me) + '<div class="mxj-big"><div class="mxj-emo">' + (r <= 3 ? ['🥇', '🥈', '🥉'][r - 1] : '🏁') + '</div><h1>Game over</h1><p class="mxj-rank"><span>You finished</span> <b>' + place(r) + '</b></p><p class="mxj-pts">' + (+me.score || 0) + ' <span>points</span></p>'
+      card(bar(me) + '<div class="mxj-big"><div class="mxj-emo">' + (r <= 3 ? ['🥇', '🥈', '🥉'][r - 1] : '🏁') + '</div><h1>Game over</h1><p class="mxj-rank"><span>You finished in</span> <b>' + place(r) + '</b> <span>place</span></p><p class="mxj-pts">' + (+me.score || 0) + ' <span>points</span></p>'
         + '<p>' + (+me.right || 0) + ' <span>right answers</span></p><button type="button" class="mxj-go" id="jAgain">Join another game</button></div>' + (r <= 3 ? confetti() : ''));
       $('jAgain').onclick = function () { ss('mxj_' + P.code, null); codeScreen(); };
     }
@@ -789,7 +795,7 @@ if (W.trAdd) W.trAdd({
   'You’re in!': 'Tu es dedans !', 'See your name on the board?': 'Tu vois ton nom au tableau ?', 'Wait for your teacher to start.': 'Attends que ton enseignant commence.', 'Change your avatar': 'Change ton avatar',
   'Answer sent!': 'Réponse envoyée !', 'Look at the board…': 'Regarde le tableau…', 'Look at the board': 'Regarde le tableau', 'Time’s up!': 'Temps écoulé !', 'Type your answer': 'Tape ta réponse', 'Your answer': 'Ta réponse', 'Send': 'Envoyer', 'Pick every right answer, then press Send.': 'Choisis toutes les bonnes réponses, puis appuie sur Envoyer.',
   'Checking answers…': 'Vérification des réponses…', 'Thanks for voting!': 'Merci d’avoir voté !', 'No vote this time': 'Pas de vote cette fois', 'Correct!': 'Bravo !', 'Answer streak': 'Série de bonnes réponses', 'Not this time': 'Pas cette fois', 'Keep going, you’ve got the next one!': 'Continue, tu vas réussir la prochaine !', 'No answer': 'Pas de réponse',
-  'You are in': 'Tu es', 'place': 'place', 'points': 'points', 'Game over': 'Partie terminée', 'You finished': 'Tu termines', 'right answers': 'bonnes réponses', 'Join another game': 'Rejoindre une autre partie',
+  'You are in': 'Tu es à la', 'place': 'place', 'You finished in': 'Tu termines à la', 'points': 'points', 'Game over': 'Partie terminée', 'You finished': 'Tu termines', 'right answers': 'bonnes réponses', 'Join another game': 'Rejoindre une autre partie',
   'You were removed from the game': 'Tu as été retiré de la partie', 'The game was closed': 'La partie a été fermée', 'Could not send. Try again.': 'Impossible d’envoyer. Réessaie.',
   'Join a game': 'Rejoindre une partie', 'Teacher tools': 'Outils enseignant', 'Turn on': 'Activer', 'Turn off': 'Désactiver', 'On': 'Activé', 'Off': 'Désactivé', '🍎 Teacher tools': '🍎 Outils enseignant',
   ' 🍎 I’m a teacher (make quizzes and run Matix Present in class)': ' 🍎 Je suis enseignant (créer des quiz et lancer Matix Present en classe)',
@@ -798,6 +804,13 @@ if (W.trAdd) W.trAdd({
   '🍎 I’m a teacher: turn on teacher tools': '🍎 Je suis enseignant : activer les outils', '🍎 Teacher tools are on': '🍎 Outils enseignant activés', 'Teacher tools are off': 'Outils enseignant désactivés',
   'Slideshow': 'Diaporama', 'Opening…': 'Ouverture…', 'The slideshow is closed.': 'Le diaporama est fermé.', '▶ Open it again': '▶ L’ouvrir à nouveau', 'Home': 'Accueil',
   'This slideshow does not exist (it may have been deleted).': 'Ce diaporama n’existe pas (il a peut-être été supprimé).', 'Could not load the slideshow. Check your connection.': 'Impossible de charger le diaporama. Vérifie ta connexion.',
+  'Also show the question and answers on the students’ devices': 'Afficher aussi la question et les réponses sur les appareils des élèves', 'Shuffle the question order each game': 'Mélanger l’ordre des questions à chaque partie',
+  'Make quizzes, then run them live on the smart board with 🎯 Matix Present. Students join at': 'Crée des quiz, puis lance-les en direct sur le tableau avec 🎯 Matix Present. Les élèves rejoignent sur',
+  'with the Game PIN. They do not need an account.': 'avec le code PIN. Ils n’ont pas besoin de compte.', 'No slideshows yet.': 'Pas encore de diaporama.',
+  'https://… (image or YouTube)': 'https://… (image ou YouTube)', 'Question type': 'Type de question',
+  '✉️ Connect email': '✉️ Connecter un e-mail', '✉️ Change email': '✉️ Changer d’e-mail', 'Copy the link to this game': 'Copier le lien de ce jeu', 'Copy the link to this slideshow': 'Copier le lien de ce diaporama',
+  'Matix home': 'Accueil Matix', 'Root': 'Racine', 'Infinity': 'Infini', 'Theta': 'Thêta', 'Integral': 'Intégrale', 'Percent': 'Pour cent', 'Equals': 'Égal', 'Almost': 'Environ',
+  'Half': 'Moitié', 'Square': 'Carré', 'Seven': 'Sept', 'Zero': 'Zéro', 'Imaginary': 'Imaginaire', 'Mystery': 'Mystère', 'Star': 'Étoile',
   'Plus': 'Plus', 'Minus': 'Moins', 'Times': 'Fois', 'Divide': 'Divisé', 'Make the QR code bigger': 'Agrandir le code QR', 'Leave the board': 'Quitter le tableau', 'Sound': 'Son', 'Full screen': 'Plein écran'
 });
 
