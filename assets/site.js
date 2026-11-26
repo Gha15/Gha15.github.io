@@ -385,9 +385,9 @@ function account(c) {
       + '<div class="row-btns">' + (em && !ver ? '<button type="button" class="btn pri" id="acVerify">✅ Verify my email</button>' : '')
       + '<button type="button" class="btn ghost" id="acEmail">✉️ ' + (em ? 'Change email' : 'Connect email') + '</button>'
       + '<button type="button" class="btn ghost" id="acPw">🔑 Change password</button></div><div id="acStep"></div><div class="err" id="acErr" role="alert"></div>'
-      + '<div class="kv teachrow"><span>🍎 Teacher tools</span><b>' + (isTeacher() ? 'On' : 'Off') + '</b>' + (isOwner() ? '' : '<button type="button" class="btn ghost" id="acTeach">' + (TEACH ? 'Turn off' : 'Turn on') + '</button>') + '</div>'
-      + '<p class="sub" style="margin:6px 0 0">Teachers get the Teacher tab: make quizzes and run them live in class with Matix Present.</p>';
-    if ($('acTeach')) $('acTeach').onclick = function () { var b = this; b.disabled = true; setTeacher(!TEACH).then(function () { toast(TEACH ? '🍎 Teacher tools are on' : 'Teacher tools are off'); account(c); }, function () { b.disabled = false; toast('Could not save. Check your connection.', 'err'); }); };
+      + '<div class="kv teachrow"><span>🍎 Teacher tools</span><b>' + (isTeacher() ? 'On' : 'Off') + '</b>' + (TEACH && !isOwner() ? '<button type="button" class="btn ghost" id="acTeach">Turn off</button>' : '') + '</div>'
+      + '<p class="sub" style="margin:6px 0 0">' + (isTeacher() ? 'Teachers get the Teacher tab: make quizzes and run them live in class with Matix Present.' : 'Are you a teacher? Ask the club owner to turn on teacher mode for your account.') + '</p>';
+    if ($('acTeach')) $('acTeach').onclick = function () { if (!confirm('Turn off teacher mode? Only the owner can turn it back on.')) return; var b = this; b.disabled = true; setTeacher(false).then(function () { toast(TEACH ? '🍎 Teacher tools are on' : 'Teacher tools are off'); account(c); }, function () { b.disabled = false; toast('Could not save. Check your connection.', 'err'); }); };
     if ($('acShow')) $('acShow').onclick = function () { var s = this.textContent === 'Show'; $('acEm').textContent = s ? em : maskEmail(em); this.textContent = s ? 'Hide' : 'Show'; };
     var er = $('acErr'), step = $('acStep');
     function codeStep(purpose, email) {
@@ -453,16 +453,17 @@ function owner(c, sub) {
   ({ users: ownerUsers, email: ownerEmail, stores: ownerStores })[sub]($('owBody'));
 }
 function ownerUsers(box) {
-  box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), or delete an account. Deleting keeps a backup, so you can undo it from Messages in the app.</p>'
+  box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), switch them between 🎒 Student and 🍎 Teacher mode, or delete an account. Deleting keeps a backup, so you can undo it from Messages in the app.</p>'
     + '<input class="search" id="uQ" type="search" placeholder="Search users…" aria-label="Search users"><div class="ulist" id="uList"><p class="sub">Loading…</p></div>';
-  Promise.all([fbGet('/members', true), fbGet('/roles', true)]).then(function (r) {
-    var names = Object.keys(r[0] || {}).sort(), roles = r[1] || {}, q = '';
+  Promise.all([fbGet('/members', true), fbGet('/roles', true), fbGet('/teachers', true)]).then(function (r) {
+    var names = Object.keys(r[0] || {}).sort(), roles = r[1] || {}, teach = r[2] || {}, q = '';
     function roleOf(u) { if (OWNERS.indexOf(u) > -1 || roles[u] === 'owner') return 'owner'; var x = String(roles[u] || '').toLowerCase(); return LADDER.indexOf(x) > -1 ? x : 'user'; }
     function draw() {
       var list = names.filter(function (u) { return !q || u.indexOf(q) > -1; });
       $('uList').innerHTML = list.map(function (u) {
         var r0 = roleOf(u), i = LADDER.indexOf(r0), locked = r0 === 'owner' || u === ME;
         return '<div class="urow"><span class="nm">@' + esc(u) + '</span><span class="rl">' + RICON[r0] + ' ' + esc(r0) + '</span>'
+          + (r0 === 'owner' ? '' : '<span class="rl ' + (teach[u] ? 'tch' : 'stu') + '">' + (teach[u] ? '🍎 Teacher' : '🎒 Student') + '</span><button type="button" data-u="' + esc(u) + '" data-a="teach">' + (teach[u] ? '🎒 Back to student' : '🍎 Make teacher') + '</button>')
           + (locked ? '' : (i < LADDER.length - 1 ? '<button type="button" data-u="' + esc(u) + '" data-a="up">⬆ Promote to ' + LADDER[i + 1] + '</button>' : '')
             + (i > 0 ? '<button type="button" data-u="' + esc(u) + '" data-a="down">⬇ ' + LADDER[i - 1] + '</button>' : '')
             + '<button type="button" class="del" data-u="' + esc(u) + '" data-a="del">🗑 Delete</button>') + '</div>';
@@ -472,6 +473,16 @@ function ownerUsers(box) {
     $('uList').onclick = function (e) {
       var b = e.target.closest('button[data-a]'); if (!b) return;
       var u = b.dataset.u, a = b.dataset.a, i = LADDER.indexOf(roleOf(u));
+      if (a === 'teach') {
+        var on = !teach[u];
+        if (!confirm(on ? 'Make @' + u + ' a teacher? They get the Teacher tab and Matix Present.' : 'Put @' + u + ' back to student mode? They lose the Teacher tab (their quizzes are kept).')) return;
+        b.disabled = true;
+        Promise.all([fbPut('/teachers/' + enc(u), on ? true : null, true), fbPatch('/members/' + enc(u), { teacher: on })]).then(function () {
+          if (on) teach[u] = true; else delete teach[u]; draw(); toast(on ? '🍎 @' + u + ' is now a teacher' : '🎒 @' + u + ' is back to student mode');
+          fbPost('/notifications/' + enc(u), { type: 'role', title: on ? '🍎 Teacher mode is on' : '🎒 You are back to student mode', body: on ? 'You now have the Teacher tab on matixthemathclub.com: make quizzes and run them live with Matix Present.' : 'Teacher mode was turned off for your account.', at: Date.now(), from: ME }).catch(function () {});
+        }).catch(function () { b.disabled = false; toast('Could not save. Check your connection.', 'err'); });
+        return;
+      }
       if (a === 'up' || a === 'down') {
         var nr = LADDER[i + (a === 'up' ? 1 : -1)];
         if (!confirm((a === 'up' ? 'Promote' : 'Demote') + ' @' + u + ' to ' + nr + '?')) return;
@@ -567,8 +578,7 @@ function ownerStores(box) {
 /* ---------- 🍎 teacher tab + 🎯 Matix Present board ---------- */
 function teacherGate(c) {
   c.innerHTML = '<div class="gate"><div style="font-size:3rem">🍎</div><h1>Teacher tools</h1><p class="sub">Make quizzes and run them live on the smart board with Matix Present. Students join from their phones or tablets with a Game PIN, no account needed.</p>'
-    + '<button type="button" class="btn pri" id="tOn">🍎 I’m a teacher: turn on teacher tools</button></div>';
-  $('tOn').onclick = function () { var b = this; b.disabled = true; setTeacher(true).then(function () { toast('🍎 Teacher tools are on'); }, function () { b.disabled = false; toast('Could not save. Check your connection.', 'err'); }); };
+    + '<p class="sub"><b>Are you a teacher? Ask the club owner to turn on teacher mode for your account.</b></p><a class="btn ghost" href="/join/">🎯 Join a game</a></div>';
 }
 function teacher(c, parts) {
   if (!W.mxPresent) { c.innerHTML = '<div class="page"><p>Matix Present could not load.</p></div>'; return; }

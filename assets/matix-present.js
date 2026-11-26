@@ -77,6 +77,28 @@ function watch(path, cb) {
   return { close: function () { try { es.close(); } catch (e) {} } };
 }
 
+/* ---------------- games nobody has open stop by themselves ----------------
+   Every browser showing a game (the board or a student's device) writes
+   /mxlive/<PIN>/alive every 15 s. A game not seen for more than a minute is
+   closed: it is deleted the next time anybody looks at it. */
+var ALIVE_MS = 60000, BEAT_MS = 15000;
+function beat(code) { return api('/mxlive/' + code + '/alive', 'PUT', TS).catch(function () {}); }
+function heartbeat(code) { beat(code); return setInterval(function () { beat(code); }, BEAT_MS); }
+/* resolves true (and deletes the game) when nobody has had it open for a minute */
+function stale(code) {
+  return Promise.all([api('/mxlive/' + code + '/alive'), api('/mxlive/' + code + '/meta')]).then(function (r) {
+    var meta = r[1]; if (!meta) return false;
+    var seen = typeof r[0] === 'number' ? r[0] : (typeof meta.createdAt === 'number' ? meta.createdAt : 0);
+    if (Date.now() + OFF - seen <= ALIVE_MS) return false;
+    var jobs = [api('/mxlive/' + code, 'DELETE')];
+    if (meta.host) jobs.push(api('/mxhosts/' + enc(meta.host) + '/' + code, 'DELETE'));
+    return Promise.all(jobs).then(function () { return true; }, function () { return true; });
+  }).catch(function () { return false; });
+}
+function sweep() {
+  fetch(FB + '/mxlive.json?shallow=true').then(function (r) { return r.json(); }).then(function (o) { Object.keys(o || {}).slice(0, 60).forEach(function (k) { stale(k); }); }).catch(function () {});
+}
+
 /* ---------------- shared look: answer signs, avatars, styles ---------------- */
 var SH = [{ s: '+', c: '#e53950', n: 'Plus' }, { s: '−', c: '#2f6fe0', n: 'Minus' }, { s: '×', c: '#e0a100', n: 'Times' }, { s: '÷', c: '#1f9d55', n: 'Divide' }];
 var TFSH = [{ s: '=', c: '#1f9d55', n: 'True' }, { s: '≠', c: '#e53950', n: 'False' }];
@@ -217,7 +239,12 @@ function list(c) {
     draw();
   }).catch(function () { var b = $('mxtList'); if (b) b.innerHTML = '<p class="sub">Could not load your quizzes. Check your connection.</p>'; });
   /* games that are still open on some board */
+  sweep();
   api('/mxhosts/' + enc(u)).then(function (o) {
+    var all = Object.keys(o || {});
+    return Promise.all(all.map(function (k) { return stale(k).then(function (gone) { return gone ? null : api('/mxlive/' + k + '/meta').then(function (m) { if (!m) { api('/mxhosts/' + enc(u) + '/' + k, 'DELETE'); return null; } return k; }); }); }))
+      .then(function (ks) { var r = {}; ks.forEach(function (k) { if (k) r[k] = o[k]; }); return r; });
+  }).then(function (o) {
     var codes = Object.keys(o || {}).sort(function (a, b) { return (o[b] || 0) - (o[a] || 0); }); var box = $('mxtOpen'); if (!box || !codes.length) return;
     box.innerHTML = '<div class="card mxt-open"><b>🟢 Games still open</b>' + codes.map(function (k) {
       return '<div class="mxt-orow"><span>PIN <b>' + pinFmt(k) + '</b> · ' + esc(new Date(+o[k] || 0).toLocaleString(fr() ? 'fr-FR' : undefined)) + '</span><span><a class="btn ghost" href="#/live/' + k + '">↩ Resume</a><button type="button" class="btn ghost" data-close="' + k + '">✕ Close</button></span></div>';
@@ -248,11 +275,11 @@ function startLive(z, btn) {
   pickCode(0).then(function (code) {
     var order = z.questions.map(function (_, i) { return i; }); if (z.shuffle) order = shuffle(order);
     return api('/mxlive/' + code, 'PUT', { meta: { host: u, quiz: z.id, title: z.title || '', theme: z.theme || 'galaxy', n: order.length, order: order, createdAt: TS },
-      pub: { state: 'lobby', i: -1, title: z.title || '', theme: z.theme || 'galaxy', n: order.length } })
+      pub: { state: 'lobby', i: -1, title: z.title || '', theme: z.theme || 'galaxy', n: order.length }, alive: TS })
       .then(function () { return api('/mxhosts/' + enc(u) + '/' + code, 'PUT', Date.now()); })
       .then(function () {
-        /* close my games older than 12 hours */
-        api('/mxhosts/' + enc(u)).then(function (o) { Object.keys(o || {}).forEach(function (k) { if (k !== code && Date.now() - (+o[k] || 0) > 12 * 3600e3) closeGame(k); }); }).catch(function () {});
+        /* close my other games that nobody has open */
+        api('/mxhosts/' + enc(u)).then(function (o) { Object.keys(o || {}).forEach(function (k) { if (k !== code) stale(k).then(function (gone) { if (!gone) api('/mxlive/' + k + '/meta').then(function (m) { if (!m) api('/mxhosts/' + enc(u) + '/' + k, 'DELETE'); }); }); }); }).catch(function () {});
         location.hash = '#/live/' + code;
       });
   }).catch(function () { if (btn) btn.disabled = false; toast('Could not start the game. Check your connection.', 'err'); });
@@ -389,7 +416,7 @@ var LV = null;
 function stop(keep) {
   if (!LV || (keep && LV.code === String(keep))) return;
   var H = LV; LV = null; H.dead = true;
-  if (H.w) H.w.close(); clearInterval(H.tk); D.removeEventListener('keydown', H.key);
+  if (H.w) H.w.close(); clearInterval(H.tk); clearInterval(H.hb); D.removeEventListener('keydown', H.key);
   if (H.ov && H.ov.parentNode) H.ov.parentNode.removeChild(H.ov);
   D.body.classList.remove('mxl-on');
   try { if (D.fullscreenElement) D.exitFullscreen(); } catch (e) {}
@@ -412,8 +439,9 @@ function live(c, code) {
   if (LV && LV.code === code && !LV.dead) { c.innerHTML = '<div class="page"><p class="sub">Matix Present is open.</p><a class="btn ghost" href="#/teacher">← Teacher</a></div>'; return; }
   stop();
   c.innerHTML = '<div class="page"><p class="sub">Loading Matix Present…</p></div>';
-  Promise.all([api('/mxlive/' + code + '/meta'), api('/mxlive/' + code + '/pub')]).then(function (r) {
+  stale(code).then(function (gone) { return gone ? [null, null, true] : Promise.all([api('/mxlive/' + code + '/meta'), api('/mxlive/' + code + '/pub')]); }).then(function (r) {
     var meta = r[0], pub = r[1];
+    if (r[2]) { msgPage(c, 'This game stopped', esc(T('Nobody had it open for more than a minute, so it was closed. Start a new game from the Teacher page.'))); return; }
     if (!meta || !pub) { msgPage(c, 'This game is closed', esc(T('This Matix Present game does not exist any more.'))); return; }
     if (meta.host !== me()) { msgPage(c, 'Only the teacher can run this board', esc(T('This game belongs to')) + ' <b>@' + esc(meta.host) + '</b>. ' + esc(T('Students join at')) + ' <a href="/join/?c=' + code + '">' + esc(location.host) + '/join</a>.'); return; }
     return api('/mxquiz/' + enc(meta.host) + '/' + enc(meta.quiz)).then(function (z) {
@@ -448,6 +476,7 @@ function host(code, meta, quiz, pub0) {
   };
   D.addEventListener('keydown', H.key);
   syncClock(base + '/clk/host');
+  H.hb = heartbeat(code);
   H.w = watch(base, function (s) {
     if (H.dead) return;
     if (!s || !s.pub) { stop(); location.hash = '#/teacher'; toast('The game was closed.'); return; }
@@ -619,7 +648,7 @@ function confetti() {
    ===================================================================== */
 function player(root, code0) {
   var P = { code: '', pid: '', ws: [], answered: {}, view: '', checked: {} };
-  function closeAll() { P.ws.forEach(function (w) { w.close(); }); P.ws = []; clearInterval(P.tk); }
+  function closeAll() { P.ws.forEach(function (w) { w.close(); }); P.ws = []; clearInterval(P.tk); clearInterval(P.hb); }
   function card(h) { root.dataset.mood = ''; root.innerHTML = '<div class="mxj-card">' + h + '</div>'; }
   function codeScreen(err, val) {
     closeAll(); P.view = '';
@@ -632,8 +661,9 @@ function player(root, code0) {
     $('jf').onsubmit = function (e) { e.preventDefault(); var c = inp.value.replace(/\D/g, ''); if (c.length !== 6) { $('je').textContent = T('The Game PIN has 6 digits.'); return; } $('jgo').disabled = true; tryCode(c); };
   }
   function tryCode(code) {
-    Promise.all([api('/mxlive/' + code + '/pub'), Promise.resolve(JSON.parse(ss('mxj_' + code) || 'null'))]).then(function (r) {
+    stale(code).then(function (gone) { return Promise.all([gone ? null : api('/mxlive/' + code + '/pub'), JSON.parse(ss('mxj_' + code) || 'null'), gone]); }).then(function (r) {
       var pub = r[0], saved = r[1];
+      if (r[2]) return codeScreen('That game stopped because nobody had it open for more than a minute.', code);
       if (!pub) return codeScreen('No game with that PIN. Check the board.', code);
       if (pub.state === 'end') return codeScreen('That game has finished.', code);
       P.code = code; P.title = pub.title || '';
@@ -675,6 +705,7 @@ function player(root, code0) {
     card('<p class="sub">Loading…</p>');
     var base = '/mxlive/' + P.code;
     syncClock(base + '/clk/' + P.pid);
+    P.hb = heartbeat(P.code);
     P.ws.push(watch(base + '/pub', function (v) { P.pub = v; P.gotPub = true; render(); }));
     P.ws.push(watch(base + '/players/' + P.pid, function (v) { if (v) P.seen = true; P.me = v; render(); }));
     P.tk = setInterval(tickP, 250);
@@ -809,7 +840,12 @@ if (W.trAdd) W.trAdd({
   'with the Game PIN. They do not need an account.': 'avec le code PIN. Ils n’ont pas besoin de compte.', 'No slideshows yet.': 'Pas encore de diaporama.',
   'https://… (image or YouTube)': 'https://… (image ou YouTube)', 'Question type': 'Type de question',
   '✉️ Connect email': '✉️ Connecter un e-mail', '✉️ Change email': '✉️ Changer d’e-mail', 'Copy the link to this game': 'Copier le lien de ce jeu', 'Copy the link to this slideshow': 'Copier le lien de ce diaporama',
-  'Matix home': 'Accueil Matix', 'Root': 'Racine', 'Infinity': 'Infini', 'Theta': 'Thêta', 'Integral': 'Intégrale', 'Percent': 'Pour cent', 'Equals': 'Égal', 'Almost': 'Environ',
+  'Matix home': 'Accueil Matix', 'Root': 'Racine',
+  'This game stopped': 'Cette partie s’est arrêtée', 'Nobody had it open for more than a minute, so it was closed. Start a new game from the Teacher page.': 'Personne ne l’a eue ouverte pendant plus d’une minute, elle a donc été fermée. Lance une nouvelle partie depuis la page Enseignant.',
+  'That game stopped because nobody had it open for more than a minute.': 'Cette partie s’est arrêtée car personne ne l’a eue ouverte pendant plus d’une minute.',
+  'Are you a teacher? Ask the club owner to turn on teacher mode for your account.': 'Tu es enseignant ? Demande au propriétaire du club d’activer le mode enseignant sur ton compte.',
+  'Turn off teacher mode? Only the owner can turn it back on.': 'Désactiver le mode enseignant ? Seul le propriétaire peut le réactiver.',
+  '🍎 Make teacher': '🍎 Passer enseignant', '🎒 Back to student': '🎒 Repasser élève', '🍎 Teacher': '🍎 Enseignant', '🎒 Student': '🎒 Élève', 'Infinity': 'Infini', 'Theta': 'Thêta', 'Integral': 'Intégrale', 'Percent': 'Pour cent', 'Equals': 'Égal', 'Almost': 'Environ',
   'Half': 'Moitié', 'Square': 'Carré', 'Seven': 'Sept', 'Zero': 'Zéro', 'Imaginary': 'Imaginaire', 'Mystery': 'Mystère', 'Star': 'Étoile',
   'Plus': 'Plus', 'Minus': 'Moins', 'Times': 'Fois', 'Divide': 'Divisé', 'Make the QR code bigger': 'Agrandir le code QR', 'Leave the board': 'Quitter le tableau', 'Sound': 'Son', 'Full screen': 'Plein écran'
 });
