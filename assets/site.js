@@ -580,9 +580,9 @@ function teacherGate(c) {
   c.innerHTML = '<div class="gate"><div style="font-size:3rem">🍎</div><h1>Teacher tools</h1><p class="sub">Make quizzes and run them live on the smart board with Matix Present. Students join from their phones or tablets with a Game PIN, no account needed.</p>'
     + '<p class="sub"><b>Are you a teacher? Ask the club owner to turn on teacher mode for your account.</b></p><a class="btn ghost" href="/join/">🎯 Join a game</a></div>';
 }
-function teacher(c, parts) {
+function teacher(c, parts, Q) {
   if (!W.mxPresent) { c.innerHTML = '<div class="page"><p>Matix Present could not load.</p></div>'; return; }
-  if (parts[0] === 'live') W.mxPresent.live(c, parts[1]); else W.mxPresent.page(c, parts);
+  if (parts[0] === 'live') W.mxPresent.live(c, parts[1]); else W.mxPresent.page(c, parts, Q);
 }
 /* a slideshow (diaporama) link: open to anybody, no account needed */
 function present(c, parts) {
@@ -598,7 +598,9 @@ function present(c, parts) {
 
 /* ---------------- router ---------------- */
 function route() {
-  var c = $('content'), parts = (location.hash.replace(/^#\/?/, '') || 'home').split('/'), r = parts[0] || 'home';
+  /* #/page/part/part?key=value : the part after ? is kept as settings for the page */
+  var hash = location.hash.replace(/^#\/?/, ''), qi = hash.indexOf('?'), Q = new URLSearchParams(qi > -1 ? hash.slice(qi + 1) : '');
+  var c = $('content'), parts = ((qi > -1 ? hash.slice(0, qi) : hash) || 'home').split('/'), r = parts[0] || 'home';
   if (W.mxPresent) W.mxPresent.stop(r === 'live' ? parts[1] : null);
   if (r === 'users') r = 'owner';
   if (r === 'join') { location.href = '/join/' + (parts[1] ? '?c=' + enc(parts[1]) : ''); return; }
@@ -611,9 +613,11 @@ function route() {
       /* a game's own link: open the arcade, then the game (closing it goes back to the arcade) */
       try { history.replaceState(null, '', '#/games'); } catch (e) {}
       games(c); W.mxArcade.start(decodeURIComponent(parts[1]));
+    } else if (W.mxArcade && W.mxArcade.openState && (parts[1] === 'class' || parts[1] === 'home' || Q.get('mode'))) {
+      W.mxArcade.openState({ cls: parts[1] === 'class', sub: parts[2], mode: Q.get('mode'), presentation: Q.get('presentation') }, c);
     } else games(c);
   }
-  else if (r === 'teacher' || r === 'live') { if (!ME) needSignIn(c, 'the Teacher tools'); else if (!isTeacher() && !TEACH_OK) c.innerHTML = '<div class="page"><p class="sub">Loading…</p></div>'; else if (!isTeacher()) teacherGate(c); else teacher(c, parts); }
+  else if (r === 'teacher' || r === 'live') { if (!ME) needSignIn(c, 'the Teacher tools'); else if (!isTeacher() && !TEACH_OK) c.innerHTML = '<div class="page"><p class="sub">Loading…</p></div>'; else if (!isTeacher()) teacherGate(c); else teacher(c, parts, Q); }
   else if (r === 'present') present(c, parts);
   else if (r === 'account') { if (!ME) needSignIn(c, 'your account'); else account(c); }
   else if (r === 'owner') owner(c, parts[1]);

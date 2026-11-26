@@ -1926,7 +1926,26 @@ function renderArcade(c){
     var host=$('mxpHost');presentPanel(host,L,function(){if(!DK.edit||host.isConnected)renderArcade(c);});
   }
   c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.onclick=function(){startGame(ALLG[+b.dataset.i]);};});
+  syncUrl();
 }
+/* the address always shows where you are, so any screen can be sent as a link:
+   #/games  ·  #/games/class  ·  #/games/class/present  ·  #/games/class/present?mode=edit&presentation=<id>  ·  ?mode=new */
+function arcadeUrl(){var h='#/games';if(!CLS.on)return h;h+='/class';if(CLS.sub!=='present')return h;h+='/present';
+  if(DK.edit){var saved=dkLoad().some(function(d){return d.id===DK.edit.id;});h+=saved?'?mode=edit&presentation='+encodeURIComponent(DK.edit.id):'?mode=new';}return h;}
+function syncUrl(){if(!W.FB||G||DK.pv||!/^#\/games(\/|\?|$)/.test(location.hash||''))return;var h=arcadeUrl();if(location.hash!==h)try{history.replaceState(null,'',h);}catch(e){}}
+/* open the arcade on the screen a link asks for */
+function openState(o,c){o=o||{};
+  if(o.cls!=null){CLS.on=!!o.cls;if(o.cls)CLS.sub=o.sub==='present'?'present':'board';saveCls();}
+  DK.edit=null;
+  var draw=function(){if(c&&c.isConnected!==false)renderArcade(c);};
+  if(CLS.on&&CLS.sub==='present'&&o.mode==='new'){var L=level();DK.edit={id:dkId(),title:'',grade:L,slides:[{q:'',a:'',steps:'',opts:[],time:30}]};}
+  else if(CLS.on&&CLS.sub==='present'&&o.mode==='edit'&&o.presentation){
+    var d=dkLoad().filter(function(x){return x.id===o.presentation;})[0];
+    if(d)DK.edit=JSON.parse(JSON.stringify(d));
+    else if(who()){fbJ('/arcade/decks/'+encodeURIComponent(who())+'/'+encodeURIComponent(o.presentation)).then(function(r){if(r&&r.slides){r.slides=Array.isArray(r.slides)?r.slides:Object.keys(r.slides).map(function(k){return r.slides[k];});
+      var L2=dkLoad();if(!L2.some(function(x){return x.id===r.id;})){L2.unshift(r);dkSave();}DK.edit=JSON.parse(JSON.stringify(r));draw();}})['catch'](function(){});}
+  }
+  draw();}
 if(W.trAdd)W.trAdd({"Board activities": "Activités au tableau", "For the smart board: call a student to the board. They do the activity and press Check. Show answer explains it, and Next student makes a new one.": "Pour le tableau interactif : appelle un élève au tableau. Il fait l’activité et appuie sur Vérifier. Voir la réponse l’explique, et Élève suivant en crée une nouvelle.", "Show activities for all grades": "Voir les activités de toutes les années", "Area": "Aire", "Perimeter": "Périmètre", "Fractions": "Fractions", "Quick questions by topic": "Questions rapides par thème", "One question at a time with four big answers. Pick a topic:": "Une question à la fois avec quatre grandes réponses. Choisis un thème :", "Work it out on the board": "Résous au tableau", "smart-board activities": "activités au tableau"});
 if(W.trAdd)W.trAdd({"Topic games": "Jeux par thème", "Pick a topic and a team game. Every question in the game is about that topic, made for your class.": "Choisis un thème et un jeu d’équipe. Toutes les questions du jeu portent sur ce thème, adaptées à ta classe.", "No topics for this grade yet.": "Pas encore de thème pour cette année.", "Shape Builder": "Constructeur de formes", "Pizza Fractions": "Fractions pizza", "Each team taps two corners on its grid to build a rectangle with the area or perimeter asked. Right first scores. First team to 5 wins.": "Chaque équipe touche deux coins de sa grille pour construire un rectangle avec l’aire ou le périmètre demandé. La première juste marque. La première équipe à 5 gagne.", "Each team taps slices to shade the fraction asked, then presses Check. Higher grades get pizzas cut into more slices, so you need equivalent fractions. First team to 5 wins.": "Chaque équipe touche des parts pour colorier la fraction demandée, puis appuie sur Vérifier. Dans les grandes classes, les pizzas ont plus de parts : il faut des fractions équivalentes. La première équipe à 5 gagne."});
 if(W.trAdd)W.trAdd({"Lessons": "Leçons", "Teach": "Enseigner", "Copy to my sets": "Copier dans mes séries", "Show topics for all grades": "Voir les thèmes de toutes les années", "No lessons for this grade yet.": "Pas encore de leçon pour cette année.", "Ready-made lessons for the board. Teach starts with the idea and a worked example, then practice questions with the steps. Practice skips straight to the questions.": "Des leçons toutes prêtes pour le tableau. Enseigner commence par l’idée et un exemple corrigé, puis des exercices avec les étapes. Entraînement passe directement aux exercices."});
@@ -1940,7 +1959,7 @@ function presentShared(u,id,fail){fbJ('/arcade/decks/'+encodeURIComponent(u)+'/'
   if(!d||!d.slides){if(fail)fail('none');return;}d.slides=Array.isArray(d.slides)?d.slides:Object.keys(d.slides).map(function(k){return d.slides[k];});
   try{history.replaceState(null,'','#/present');}catch(e){}presentDeck(d,'#/present/'+encodeURIComponent(u)+'/'+encodeURIComponent(id));})['catch'](function(){if(fail)fail('net');});}
 if(W.trAdd)W.trAdd({"Copy the link to this game":"Copier le lien de ce jeu","Copy the link to this slideshow":"Copier le lien de ce diaporama","Copy this link:":"Copie ce lien :"});
-W.mxArcade={has:function(id){return ALLG.some(function(x){return x.id===id;});},presentShared:presentShared,start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:BOARD,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,board:BOARD,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
+W.mxArcade={openState:openState,has:function(id){return ALLG.some(function(x){return x.id===id;});},presentShared:presentShared,start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:BOARD,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,board:BOARD,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
 /* Android back button closes a running game */
 W.addEventListener('popstate',function(){if(G){G.pushed=false;stopGame();}});
 })();

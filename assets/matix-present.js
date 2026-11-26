@@ -183,9 +183,12 @@ function media(url, big) {
    🍎 Teacher page
    ===================================================================== */
 function me() { return W.mxUser || null; }
-function page(c, parts) {
+/* #/teacher  ·  #/teacher?mode=new  ·  #/teacher?mode=edit&quiz=<id>  (old #/teacher/new and #/teacher/edit/<id> still work) */
+function page(c, parts, Q) {
   stop();
-  if (parts[1] === 'new') return editor(c, null);
+  var mode = Q && Q.get('mode'), qid = Q && Q.get('quiz');
+  if (mode === 'new' || parts[1] === 'new') return editor(c, null);
+  if (mode === 'edit' && qid) return editor(c, qid);
   if (parts[1] === 'edit' && parts[2]) return editor(c, decodeURIComponent(parts[2]));
   list(c);
 }
@@ -207,7 +210,7 @@ function list(c) {
   var u = me(), origin = location.origin;
   c.innerHTML = '<div class="page mxt"><h1>🍎 <span>Teacher</span></h1>'
     + '<p class="sub">Make quizzes, then run them live on the smart board with 🎯 Matix Present. Students join at <b>' + esc(location.host) + '/join</b> with the Game PIN. They do not need an account.</p>'
-    + '<div class="row-btns"><a class="btn pri" href="#/teacher/new">➕ New quiz</a><a class="btn ghost" href="/join/" target="_blank" rel="noopener">🎯 Student join page</a></div>'
+    + '<div class="row-btns"><a class="btn pri" href="#/teacher?mode=new">➕ New quiz</a><a class="btn ghost" href="/join/" target="_blank" rel="noopener">🎯 Student join page</a></div>'
     + '<div id="mxtOpen"></div>'
     + '<h2 class="mxt-h">📚 My quizzes</h2><div id="mxtList" class="mxt-grid"><p class="sub">Loading…</p></div>'
     + '<h2 class="mxt-h">🎞️ My slideshows</h2><p class="sub">Your exercise sets from Interactive games → In class → Presentation mode. Each one has its own link that anybody can open, no account needed.</p><div id="mxtDecks" class="mxt-decks"><p class="sub">Loading…</p></div></div>';
@@ -215,14 +218,14 @@ function list(c) {
   function draw() {
     var box = $('mxtList'); if (!box) return;
     if (!quizzes.length) {
-      box.innerHTML = '<div class="card mxt-empty"><p>No quizzes yet.</p><div class="row-btns"><a class="btn pri" href="#/teacher/new">➕ New quiz</a><button type="button" class="btn ghost" id="mxtSample">✨ Make a sample quiz</button></div></div>';
+      box.innerHTML = '<div class="card mxt-empty"><p>No quizzes yet.</p><div class="row-btns"><a class="btn pri" href="#/teacher?mode=new">➕ New quiz</a><button type="button" class="btn ghost" id="mxtSample">✨ Make a sample quiz</button></div></div>';
       $('mxtSample').onclick = function () { var z = JSON.parse(JSON.stringify(fr() ? SAMPLE_FR : SAMPLE)); z.id = newId(); z.updatedAt = Date.now(); api('/mxquiz/' + enc(u) + '/' + z.id, 'PUT', z).then(function () { list(c); }, function () { toast('Could not save. Check your connection.', 'err'); }); };
       return;
     }
     box.innerHTML = quizzes.map(function (z, i) {
       return '<article class="mxt-card"><div class="mxt-cover" style="background:' + themeBg(z.theme) + '"><span>' + z.questions.length + ' ' + T(z.questions.length === 1 ? 'question' : 'questions') + '</span></div>'
         + '<div class="mxt-cx"><h3>' + esc(z.title || T('Untitled quiz')) + '</h3><small>' + esc(T(theme(z.theme)[1])) + (z.updatedAt ? ' · ' + esc(new Date(z.updatedAt).toLocaleDateString(fr() ? 'fr-FR' : undefined)) : '') + '</small>'
-        + '<div class="mxt-acts"><button type="button" class="btn pri" data-live="' + i + '">▶ Matix Present</button><a class="btn ghost" href="#/teacher/edit/' + enc(z.id) + '">✏️ Edit</a>'
+        + '<div class="mxt-acts"><button type="button" class="btn pri" data-live="' + i + '">▶ Matix Present</button><a class="btn ghost" href="#/teacher?mode=edit&amp;quiz=' + enc(z.id) + '">✏️ Edit</a>'
         + '<button type="button" class="btn ghost" data-dup="' + i + '" aria-label="Duplicate" title="Duplicate">⧉</button><button type="button" class="btn ghost" data-del="' + i + '" aria-label="Delete" title="Delete">🗑</button></div></div></article>';
     }).join('');
     box.querySelectorAll('[data-live]').forEach(function (b) { b.onclick = function () { startLive(quizzes[+b.dataset.live], b); }; });
@@ -399,7 +402,7 @@ function editor(c, id) {
         if (errs.length) { $('qzErr').innerHTML = errs.slice(0, 5).map(esc).join('<br>'); $('qzErr').scrollIntoView({ block: 'center' }); return; }
         $('qzSave').disabled = $('qzPlay').disabled = true;
         api('/mxquiz/' + enc(u) + '/' + Q.id, 'PUT', out).then(function () {
-          toast('✅ Quiz saved');
+          toast('✅ Quiz saved'); id = Q.id;
           if (play) startLive(loadQuiz(out)); else location.hash = '#/teacher';
         }).catch(function () { $('qzSave').disabled = $('qzPlay').disabled = false; $('qzErr').textContent = T('Could not save. Check your connection.'); });
       }
