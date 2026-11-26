@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Join a game · Matix Present</title>
+<meta name="description" content="Join a Matix Present math game: type the Game PIN from the board, pick a name and a math avatar. No account needed.">
+<meta name="theme-color" content="#0b0c18">
+<link rel="icon" href="/assets/matix-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/matix-icon.svg">
+<meta property="og:title" content="Join a Matix Present game">
+<meta property="og:description" content="Type the Game PIN from the board. No account needed.">
+<link rel="stylesheet" href="/assets/site.css?v=9">
+<link rel="stylesheet" href="/assets/matix-present.css?v=1">
+</head>
+<body>
+<header class="mxj-top">
+  <a href="/" aria-label="Matix home"><img src="/assets/matix-icon.svg" alt="" width="30" height="30"><img src="/assets/matix-logo-light.svg" alt="MATIX" height="20"></a>
+  <button type="button" class="langbtn" id="langBtn" translate="no">🌐 <b>EN</b></button>
+</header>
+<main class="mxj" id="mxj"><noscript>Turn on JavaScript to join a game.</noscript></main>
+<script src="/assets/i18n.js?v=6"></script>
+<script src="/assets/matix-present.js?v=1"></script>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), code = q.get('c') || q.get('code') || q.get('pin') || '';
+  if (!code) { var m = location.pathname.match(/\/join\/(\d{6})\/?$/); if (m) code = m[1]; }
+  window.mxPresent.player(document.getElementById('mxj'), code);
+})();
+</script>
+</body>
+</html>

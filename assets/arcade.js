@@ -19,7 +19,7 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function clamp(x,a,b){return x<a?a:(x>b?b:x);}
 /* ARCADE_VERSION: bump it whenever games change. The app compares it with the website's
    /arcade/version.json and loads the newer arcade straight from the website. */
-var ARCADE_VERSION=21;
+var ARCADE_VERSION=22;
 var IMG_DIR=(function(){try{var s=(D.currentScript&&D.currentScript.src)||'',m=s.match(/^(https?:\/\/[^\/]*matixthemathclub\.com)\//);if(m)return m[1]+'/arcade/img/';}catch(e){}
   return W.MX_ARCADE_IMG||'/arcade/img/';})();
 
@@ -168,6 +168,8 @@ function saveCls(){ls('mx_arcade_class',JSON.stringify(CLS));}
 function teamName(t){var n=CLS['n'+t]||('Team '+t);return n==='Team '+t?T(n):n;}
 function best(id){return parseInt(ls('mx_arcade_best_'+id)||'0',10)||0;}
 function setBest(id,v){if(v>best(id))ls('mx_arcade_best_'+id,String(v));}
+/* on the website every game and slideshow has its own link (#/games/<id>, #/present/<user>/<set>) */
+function ownUrl(){return !!W.FB&&/^#\/(games|present)/.test(location.hash||'');}
 function startGame(def,topic){
   TOPIC=topic||null;
   var had=!!(G&&G.pushed);if(G)G.pushed=false;
@@ -176,10 +178,12 @@ function startGame(def,topic){
   ov.innerHTML='<div class="mxg-hud"><button type="button" class="mxg-ib" id="mxgX" aria-label="'+E(T('Exit game'))+'">✕</button>'
     +'<div class="mxg-tt"><b>'+def.icon+' '+E(gName(def,level()))+(topic?' \u00b7 '+E(lsnName(topic)):'')+(def.versus?' \u00b7 '+E(teamName('A'))+' vs '+E(teamName('B')):(CLS.on&&!def.board?' \u00b7 '+E(teamName(CLS.turn)):''))+'</b><span id="mxgQ" aria-live="polite"></span></div>'
     +'<div class="mxg-stat"><span id="mxgLives" aria-label="'+E(T('Lives'))+'"></span><span class="mxg-sc" id="mxgScore">0</span></div>'
+    +(ownUrl()&&!topic?'<button type="button" class="mxg-ib" id="mxgShare" aria-label="'+E(T('Copy the link to this game'))+'" title="'+E(T('Copy the link to this game'))+'">🔗</button>':'')
     +'<button type="button" class="mxg-ib" id="mxgPause" aria-label="'+E(T('Pause'))+'">⏸</button></div>'
     +'<div class="mxg-bigq" id="mxgBigQ" aria-hidden="true"></div><canvas id="mxgCv"></canvas><div class="mxg-end" id="mxgEnd" hidden></div><div class="mxg-msg" id="mxgMsg"></div>';
   D.body.appendChild(ov);D.body.classList.add('mxg-on');
-  var pushed=had;if(!had){try{history.pushState({mxg:1},'');pushed=true;}catch(e){}}
+  var pushed=had;if(!had){try{history.pushState({mxg:1},'',ownUrl()&&!topic?'#/games/'+encodeURIComponent(def.id):undefined);pushed=true;}catch(e){}}
+  if($('mxgShare'))$('mxgShare').onclick=function(){var u=location.origin+'/games/'+encodeURIComponent(def.id);if(W.mxPresent&&W.mxPresent.copy)W.mxPresent.copy(u);else prompt(T('Copy this link:'),u);};
   var cv=$('mxgCv'),ctx=cv.getContext('2d');
   G={def:def,ov:ov,cv:cv,ctx:ctx,w:0,h:0,score:0,lives:3,t:0,run:true,paused:false,raf:0,last:0,L:level(),state:{},pops:[],pushed:pushed};
   if(TOPIC)G.L=Math.min(TOPIC.lv[1],Math.max(TOPIC.lv[0],G.L));
@@ -1375,12 +1379,13 @@ function presentPanel(host,L,rerender){
   host.innerHTML='<p>'+E(T('Make your own exercises, then present them on the board: big question, timer, pen, reveal the answer and the steps, and points for each team.'))+'</p>'
     +'<div class="mxp-actions"><button type="button" class="mxm-btn pri" id="mxpNew">➕ '+E(T('New exercise set'))+'</button><button type="button" class="mxm-btn sec" id="mxpAuto">✨ '+E(T('Quick set for this grade'))+'</button></div>'
     +(list.length?'<div class="mxp-list">'+list.map(function(d,i){return '<div class="mxp-row"><div><b>'+E(d.title||T('Untitled'))+'</b><small>'+(d.slides||[]).length+' '+E(T('exercises'))+' · '+E(T((LEVELS[(d.grade||3)-1]||LEVELS[2])[1]))+'</small></div>'
-      +'<span><button type="button" class="mxm-btn pri" data-play="'+i+'">▶ '+E(T('Present'))+'</button><button type="button" class="mxm-btn sec" data-edit="'+i+'">✏️</button><button type="button" class="mxm-btn sec" data-del="'+i+'" aria-label="'+E(T('Delete'))+'">🗑</button></span></div>';}).join('')+'</div>'
+      +'<span><button type="button" class="mxm-btn pri" data-play="'+i+'">▶ '+E(T('Present'))+'</button>'+(who()&&W.FB?'<button type="button" class="mxm-btn sec" data-link="'+i+'" aria-label="'+E(T('Copy the link to this slideshow'))+'" title="'+E(T('Copy the link to this slideshow'))+'">🔗</button>':'')+'<button type="button" class="mxm-btn sec" data-edit="'+i+'">✏️</button><button type="button" class="mxm-btn sec" data-del="'+i+'" aria-label="'+E(T('Delete'))+'">🗑</button></span></div>';}).join('')+'</div>'
       :'<p class="mxp-empty">'+E(T('No exercise sets yet. Make one, or start with a quick set for this grade and edit it.'))+'</p>')
     +(who()?'':'<p class="mxp-note">'+E(T('Sign in to keep your sets on all your devices.'))+'</p>');
   $('mxpNew').onclick=function(){DK.edit={id:dkId(),title:'',grade:L,slides:[{q:'',a:'',steps:'',opts:[],time:30}]};rerender();};
   $('mxpAuto').onclick=function(){DK.edit={id:dkId(),title:T('Practice')+' · '+T(LEVELS[L-1][1]),grade:L,slides:dkFill(L,8)};rerender();};
-  host.querySelectorAll('[data-play]').forEach(function(b){b.onclick=function(){presentDeck(list[+b.dataset.play]);};});
+  host.querySelectorAll('[data-play]').forEach(function(b){b.onclick=function(){var d=list[+b.dataset.play],p=deckPath(d);if(p)dkPush(d);presentDeck(d,p?'#'+p:'');};});
+  host.querySelectorAll('[data-link]').forEach(function(b){b.onclick=function(){var d=list[+b.dataset.link];dkPush(d);var u=location.origin+deckPath(d);if(W.mxPresent&&W.mxPresent.copy)W.mxPresent.copy(u);else prompt(T('Copy this link:'),u);};});
   host.querySelectorAll('[data-edit]').forEach(function(b){b.onclick=function(){DK.edit=JSON.parse(JSON.stringify(list[+b.dataset.edit]));rerender();};});
   host.querySelectorAll('[data-del]').forEach(function(b){b.onclick=function(){var d=list[+b.dataset.del];if(!confirm(T('Delete this exercise set?')+' '+(d.title||'')))return;list.splice(+b.dataset.del,1);dkSave();dkDrop(d.id);rerender();};});
   dkSync(rerender);
@@ -1414,7 +1419,8 @@ function editDeck(host,L,rerender){
 }
 
 /* full-screen presenter */
-function presentDeck(d){
+function deckPath(d){var u=who();return u&&d&&d.id?'/present/'+encodeURIComponent(u)+'/'+encodeURIComponent(d.id):'';}
+function presentDeck(d,url){
   if(!d||!d.slides||!d.slides.length)return;
   closePresent();
   var ov=D.createElement('div');ov.id='mxpOv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label',d.title||T('Presentation'));ov.tabIndex=-1;
@@ -1452,7 +1458,7 @@ function presentDeck(d){
   cv.addEventListener('pointermove',function(e){if(!drawing)return;var p=pos(e);ctx.lineTo(p[0],p[1]);ctx.stroke();});
   cv.addEventListener('pointerup',function(){drawing=false;});
   ov.addEventListener('keydown',function(e){if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(e.key==='Escape')closePresent();else if(e.key==='ArrowRight'||e.key==='PageDown')go(1);else if(e.key==='ArrowLeft'||e.key==='PageUp')go(-1);else if(e.key===' '||e.key==='Enter'){e.preventDefault();reveal();}});
-  try{history.pushState({mxp:1},'');P.pushed=true;}catch(e){}
+  try{history.pushState({mxp:1},'',url&&ownUrl()?url:undefined);P.pushed=true;}catch(e){}
   show();try{ov.focus();}catch(e){}
 }
 function closePresent(fromPop){var P=DK.pv;if(!P)return;DK.pv=null;clearInterval(P.tm);W.removeEventListener('resize',P.rs);if(P.ov.parentNode)P.ov.parentNode.removeChild(P.ov);D.body.classList.remove('mxg-on');
@@ -1929,7 +1935,12 @@ if(W.trAdd)W.trAdd({"Farm": "Ferme", "Candy": "Bonbons", "Rainbow": "Arc-en-ciel
 W.renderGames=function(c){renderArcade(c);};
 W.addEventListener('mxlang',function(){if(G||BX.on)return;var c=$('content');if(c&&c.querySelector('.mxr-arcade'))renderArcade(c);});
 W.renderGamePlay=function(c){renderArcade(c);};
-W.mxArcade={start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:BOARD,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,board:BOARD,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
+/* open someone's slideshow from its link (no account needed) */
+function presentShared(u,id,fail){fbJ('/arcade/decks/'+encodeURIComponent(u)+'/'+encodeURIComponent(id)).then(function(d){
+  if(!d||!d.slides){if(fail)fail('none');return;}d.slides=Array.isArray(d.slides)?d.slides:Object.keys(d.slides).map(function(k){return d.slides[k];});
+  try{history.replaceState(null,'','#/present');}catch(e){}presentDeck(d,'#/present/'+encodeURIComponent(u)+'/'+encodeURIComponent(id));})['catch'](function(){if(fail)fail('net');});}
+if(W.trAdd)W.trAdd({"Copy the link to this game":"Copier le lien de ce jeu","Copy the link to this slideshow":"Copier le lien de ce diaporama","Copy this link:":"Copie ce lien :"});
+W.mxArcade={has:function(id){return ALLG.some(function(x){return x.id===id;});},presentShared:presentShared,start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:BOARD,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,board:BOARD,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
 /* Android back button closes a running game */
 W.addEventListener('popstate',function(){if(G){G.pushed=false;stopGame();}});
 })();

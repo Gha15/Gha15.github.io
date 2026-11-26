@@ -10,8 +10,14 @@
   var p = location.pathname, q = location.search + location.hash;
   var m = p.match(/^\/(?:temp\/)?users\/([a-z0-9_-]+)\/?$/i);
   if (m) { location.replace('/temp/users/index.html?u=' + encodeURIComponent(m[1].toLowerCase())); return; }
+  /* every page of the new site has its own clean link: /games/<id>, /teacher, /live/<PIN>, /present/<user>/<set>, /account, /join/<PIN> */
+  var j = p.match(/^\/join\/(\d{6})\/?$/);
+  if (j) { location.replace('/join/?c=' + j[1]); return; }
+  var oldGames = ['mathescape','mathfight','mathplane','mathtree','mathwar','virtualpetgame','styles.css','script.js','index.html'];
+  var seg = p.replace(/\/+$/, '').split('/').slice(1), first = seg[0] || '';
+  var spa = ['games','teacher','live','present','account','owner'];
+  if (spa.indexOf(first) > -1 && !(first === 'games' && seg[1] && oldGames.indexOf(seg[1]) > -1)) { location.replace('/#/' + seg.join('/') + location.search); return; }
   var old = ['FAQ','aboutus','button','chat','contactus','daily-challenge','docs','funny','games','ideas','install','lessons','membersonly','merch','messages','secretitems','usefulotherstuffcauseicannotgetanotherdomain','users','index.html'];
-  var first = p.split('/')[1] || '';
   if (old.indexOf(first) > -1) { location.replace('/temp' + p + q); }
 })();
 </script>

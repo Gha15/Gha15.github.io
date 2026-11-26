@@ -201,3 +201,7 @@ input.code{letter-spacing:.4em;font-size:1.4rem !important;text-align:center;fon
 .langbtn+.who{margin-left:0}
 .legal{font-size:.8rem;color:var(--dim);text-align:center;margin:12px 0 0}
 .legal a{color:var(--blue)}
+
+/* 🍎 teacher: sign-up box + account row (Matix Present lives in matix-present.css) */
+.modal-card label.check.teach{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);border-radius:12px;padding:10px 12px}
+.kv.teachrow{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}

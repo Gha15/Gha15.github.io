@@ -23,6 +23,8 @@ The site is active and deployed at: **[matixthemathclub.com](https://matixthemat
 *   **Lessons Portal:** A structured syllabus hub containing math content and practice materials.
 *   **Training Ground:** An interactive subsection featuring tools like the **Matrix Problem Generator** to practice linear algebra and math mechanics.
 *   **Math Fight:** A gaming space designed for competitive mathematical matches.
+*   **🍎 Teacher tab + 🎯 Matix Present:** teachers (tick *I'm a teacher* when creating an account, or turn it on in *My account*) make quizzes with a style and five question types (Quiz, True or false, Multiple answers, Type answer, Poll, optional picture/YouTube video), then run them live on the smart board. Students join at **[/join](https://matixthemathclub.com/join)** with the Game PIN or QR code, no account needed, pick a name and a math avatar, and answer with coloured math-sign buttons (+ − × ÷). Timer, points for speed, streaks, leaderboard, podium and CSV results. Code: `assets/matix-present.js`.
+*   **A link for everything:** `/games/<game id>`, `/teacher`, `/live/<PIN>`, `/present/<user>/<set>` (slideshows, open to anybody) and `/join/<PIN>` (clean paths are sent to the app by `404.html`).
 *   **Idea Submission Form:** A community feedback route for submitting feature suggestions directly to the platform.
 
 ---
