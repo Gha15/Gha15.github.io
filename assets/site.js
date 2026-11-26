@@ -445,15 +445,15 @@ function games(c) { if (typeof W.renderGames === 'function') W.renderGames(c); e
 var LADDER = ['user', 'member', 'admin', 'manager'], RICON = { user: '🙂', member: '🎓', admin: '⭐', manager: '🛡️', owner: '👑' };
 function owner(c, sub) {
   if (!isOwner()) { home(c); return; }
-  sub = ['users', 'email', 'stores'].indexOf(sub) > -1 ? sub : 'users';
+  sub = ['users', 'deleted', 'email', 'stores'].indexOf(sub) > -1 ? sub : 'users';
   c.innerHTML = '<div class="page"><h1>👑 Owner</h1><p class="sub">Only owners can see this tab.</p>'
-    + '<div class="tabs" role="tablist">' + [['users', '⬆️ User upgrading'], ['email', '📮 Email sending'], ['stores', '🛒 Store buttons']].map(function (t) {
+    + '<div class="tabs" role="tablist">' + [['users', '⬆️ User upgrading'], ['deleted', '♻️ Deleted users'], ['email', '📮 Email sending'], ['stores', '🛒 Store buttons']].map(function (t) {
       return '<a role="tab" class="tab" href="#/owner/' + t[0] + '" aria-selected="' + (sub === t[0]) + '">' + t[1] + '</a>';
     }).join('') + '</div><div id="owBody"></div></div>';
-  ({ users: ownerUsers, email: ownerEmail, stores: ownerStores })[sub]($('owBody'));
+  ({ users: ownerUsers, deleted: ownerDeleted, email: ownerEmail, stores: ownerStores })[sub]($('owBody'));
 }
 function ownerUsers(box) {
-  box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), switch them between 🎒 Student and 🍎 Teacher mode, add another 👑 owner (you stay an owner), or delete an account. Deleting keeps a backup, so you can undo it from Messages in the app.</p>'
+  box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), switch them between 🎒 Student and 🍎 Teacher mode, add another 👑 owner (you stay an owner), or delete an account. Deleting keeps a backup, so you can undo it from ♻️ Deleted users.</p>'
     + '<input class="search" id="uQ" type="search" placeholder="Search users…" aria-label="Search users">'
     + '<label class="radio showown"><input type="checkbox" id="uOwn"' + (ls('mx_show_owner_btns') === '1' ? ' checked' : '') + '> 👑 Show owner buttons (make or remove owners)</label>'
     + '<div class="ulist" id="uList"><p class="sub">Loading…</p></div>';
@@ -509,7 +509,7 @@ function ownerUsers(box) {
           fbPost('/notifications/' + enc(u), { type: 'role', title: RICON[nr] + ' You are now ' + (nr === 'admin' ? 'an ' : 'a ') + nr, body: '@' + ME + ' changed your role in the club.', at: Date.now(), from: ME }).catch(function () {});
         }).catch(function () { b.disabled = false; toast('Could not save. Check your connection.', 'err'); });
       } else if (a === 'del') {
-        if (!confirm('Delete @' + u + '? Their account, profile, role, comments and follows are removed. A backup is kept so you can undo it from Messages in the app.')) return;
+        if (!confirm('Delete @' + u + '? Their account, profile, role, comments and follows are removed. A backup is kept so you can undo it from Owner → ♻️ Deleted users.')) return;
         b.disabled = true; b.textContent = 'Deleting…';
         Promise.all(['/members/', '/profiles/', '/roles/', '/profile_comments/', '/follows/'].map(function (p) { return fbGet(p + enc(u), true); })).then(function (d) {
           return fbPut('/deletion_backups/' + enc(u), { member: d[0], profile: d[1], role: d[2], comments: d[3], follows: d[4], at: Date.now(), by: ME }, true);
@@ -530,6 +530,42 @@ function wipeArcade(u) {
     jobs.push(fbPut('/arcade/best/' + k, null, true), fbPut('/arcade/decks/' + k, null, true));
     return Promise.all(jobs);
   }).catch(function () {});
+}
+/* ♻️ bring back an account that was deleted by mistake, from the backup kept when it was deleted */
+function ownerDeleted(box) {
+  box.innerHTML = '<p class="sub">Accounts deleted from the Owner tab are kept as a backup. Restore brings back the account (same password), profile, role, profile comments and follows. Friends, game scores and exercise sets are not in the backup.</p><div class="ulist" id="dList"><p class="sub">Loading…</p></div>';
+  fbGet('/deletion_backups', true).then(function (o) {
+    o = o || {};
+    var names = Object.keys(o).filter(function (u) { return o[u] && typeof o[u] === 'object'; }).sort(function (a, b) { return (o[b].at || 0) - (o[a].at || 0); });
+    function draw() {
+      $('dList').innerHTML = names.length ? names.map(function (u) {
+        var d = o[u], role = String(d.role || 'user');
+        return '<div class="urow"><span class="nm">@' + esc(u) + '<small>Deleted ' + (d.at ? esc(new Date(d.at).toLocaleString()) : '') + (d.by ? ' by @' + esc(d.by) : '') + '</small></span>'
+          + '<span class="rl">' + (RICON[role] || '🙂') + ' ' + esc(role) + '</span>'
+          + (d.member ? '<button type="button" class="own" data-u="' + esc(u) + '">♻️ Restore</button>' : '<span class="rl">No account data</span>') + '</div>';
+      }).join('') : '<p class="sub">No deleted accounts. 🎉</p>';
+    }
+    $('dList').onclick = function (e) {
+      var b = e.target.closest('button[data-u]'); if (!b) return;
+      var u = b.dataset.u, d = o[u];
+      if (!confirm('Restore @' + u + '? Their account comes back with the same password' + (d.role ? ' and the role ' + d.role : '') + '.')) return;
+      b.disabled = true; b.textContent = 'Restoring…';
+      fbGet('/members/' + enc(u), true).then(function (cur) {
+        if (cur) { toast('Someone made a new account called @' + u + ' since. It cannot be restored.', 'err'); b.disabled = false; b.textContent = '♻️ Restore'; return; }
+        /* the backup holds the account exactly as stored (password still scrambled), so it is written back as it is */
+        var jobs = [fbPut('/members/' + enc(u), d.member, true)];
+        if (d.profile) jobs.push(fbPut('/profiles/' + enc(u), d.profile, true));
+        if (d.role) jobs.push(fbPut('/roles/' + enc(u), d.role, true));
+        if (d.comments) jobs.push(fbPut('/profile_comments/' + enc(u), d.comments, true));
+        if (d.follows) jobs.push(fbPut('/follows/' + enc(u), d.follows, true));
+        return Promise.all(jobs).then(function () { return Promise.all([fbPut('/deletions/' + enc(u), null, true), fbPut('/deletion_backups/' + enc(u), null, true)]); }).then(function () {
+          names = names.filter(function (x) { return x !== u; }); delete o[u]; draw(); toast('♻️ @' + u + ' is back');
+          fbPost('/notifications/' + enc(u), { type: 'role', title: '♻️ Your account was restored', body: '@' + ME + ' brought your Matix account back.', at: Date.now(), from: ME }).catch(function () {});
+        });
+      }).catch(function () { b.disabled = false; b.textContent = '♻️ Restore'; toast('Could not restore. Check your connection.', 'err'); });
+    };
+    draw();
+  }).catch(function () { $('dList').innerHTML = '<p class="sub">Could not load deleted accounts. Check your connection.</p>'; });
 }
 function ownerEmail(box) {
   loadCfg(true).then(function () {
