@@ -33,7 +33,7 @@ var FB = 'https://matix-1d538-default-rtdb.firebaseio.com';
 W.FB = FB; /* the arcade uses it to sync best scores */
 var PLAY_TEST_DEFAULT = 'https://play.google.com/apps/testing/com.matixmathclubappandroid.app';
 var PLAY = 'https://play.google.com/store/apps/details?id=com.matixmathclubappandroid.app';
-var OWNERS = ['ghadi'];
+var OWNERS = ['ghadi', 'yara']; /* forever owners: always owners, can never be removed or deleted */
 var CODE_MIN = 15, MAX_TRIES = 5, RESEND_MS = 45000;
 function $(id) { return D.getElementById(id); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -446,7 +446,7 @@ var LADDER = ['user', 'member', 'admin', 'manager'], RICON = { user: '🙂', mem
 function owner(c, sub) {
   if (!isOwner()) { home(c); return; }
   sub = ['users', 'email', 'stores'].indexOf(sub) > -1 ? sub : 'users';
-  c.innerHTML = '<div class="page"><h1>👑 Owner</h1><p class="sub">Only you can see this tab.</p>'
+  c.innerHTML = '<div class="page"><h1>👑 Owner</h1><p class="sub">Only owners can see this tab.</p>'
     + '<div class="tabs" role="tablist">' + [['users', '⬆️ User upgrading'], ['email', '📮 Email sending'], ['stores', '🛒 Store buttons']].map(function (t) {
       return '<a role="tab" class="tab" href="#/owner/' + t[0] + '" aria-selected="' + (sub === t[0]) + '">' + t[1] + '</a>';
     }).join('') + '</div><div id="owBody"></div></div>';
@@ -454,9 +454,11 @@ function owner(c, sub) {
 }
 function ownerUsers(box) {
   box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), switch them between 🎒 Student and 🍎 Teacher mode, add another 👑 owner (you stay an owner), or delete an account. Deleting keeps a backup, so you can undo it from Messages in the app.</p>'
-    + '<input class="search" id="uQ" type="search" placeholder="Search users…" aria-label="Search users"><div class="ulist" id="uList"><p class="sub">Loading…</p></div>';
+    + '<input class="search" id="uQ" type="search" placeholder="Search users…" aria-label="Search users">'
+    + '<label class="radio showown"><input type="checkbox" id="uOwn"' + (ls('mx_show_owner_btns') === '1' ? ' checked' : '') + '> 👑 Show owner buttons (make or remove owners)</label>'
+    + '<div class="ulist" id="uList"><p class="sub">Loading…</p></div>';
   Promise.all([fbGet('/members', true), fbGet('/roles', true), fbGet('/teachers', true)]).then(function (r) {
-    var names = Object.keys(r[0] || {}).sort(), roles = r[1] || {}, teach = r[2] || {}, q = '';
+    var names = Object.keys(r[0] || {}).sort(), roles = r[1] || {}, teach = r[2] || {}, q = '', showOwn = ls('mx_show_owner_btns') === '1';
     function roleOf(u) { if (OWNERS.indexOf(u) > -1 || roles[u] === 'owner') return 'owner'; var x = String(roles[u] || '').toLowerCase(); return LADDER.indexOf(x) > -1 ? x : 'user'; }
     function draw() {
       var list = names.filter(function (u) { return !q || u.indexOf(q) > -1; });
@@ -466,14 +468,15 @@ function ownerUsers(box) {
           + (r0 === 'owner' ? '' : '<span class="rl ' + (teach[u] ? 'tch' : 'stu') + '">' + (teach[u] ? '🍎 Teacher' : '🎒 Student') + '</span><button type="button" data-u="' + esc(u) + '" data-a="teach">' + (teach[u] ? '🎒 Back to student' : '🍎 Make teacher') + '</button>')
           + (locked ? '' : (i < LADDER.length - 1 ? '<button type="button" data-u="' + esc(u) + '" data-a="up">⬆ Promote to ' + LADDER[i + 1] + '</button>' : '')
             + (i > 0 ? '<button type="button" data-u="' + esc(u) + '" data-a="down">⬇ ' + LADDER[i - 1] + '</button>' : '')
-            + '<button type="button" class="own" data-u="' + esc(u) + '" data-a="own">👑 Make owner</button>'
+            + (showOwn ? '<button type="button" class="own" data-u="' + esc(u) + '" data-a="own">👑 Make owner</button>' : '')
             + '<button type="button" class="del" data-u="' + esc(u) + '" data-a="del">🗑 Delete</button>')
           /* the built-in owner can never be removed; added owners can be */
-          + (r0 === 'owner' && OWNERS.indexOf(u) > -1 ? '<span class="rl">🔒 Main owner</span>' : '')
-          + (r0 === 'owner' && OWNERS.indexOf(u) < 0 && u !== ME ? '<button type="button" data-u="' + esc(u) + '" data-a="unown">✕ Remove owner</button>' : '') + '</div>';
+          + (r0 === 'owner' && OWNERS.indexOf(u) > -1 ? '<span class="rl">🔒 Forever owner</span>' : '')
+          + (showOwn && r0 === 'owner' && OWNERS.indexOf(u) < 0 && u !== ME ? '<button type="button" data-u="' + esc(u) + '" data-a="unown">✕ Remove owner</button>' : '') + '</div>';
       }).join('') || '<p class="sub">Nobody matches that.</p>';
     }
     $('uQ').oninput = function () { q = this.value.toLowerCase().trim(); draw(); };
+    $('uOwn').onchange = function () { showOwn = this.checked; ls('mx_show_owner_btns', showOwn ? '1' : '0'); draw(); };
     $('uList').onclick = function (e) {
       var b = e.target.closest('button[data-a]'); if (!b) return;
       var u = b.dataset.u, a = b.dataset.a, i = LADDER.indexOf(roleOf(u));
