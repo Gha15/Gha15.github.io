@@ -37,6 +37,38 @@ function cnt(o) { return Object.keys(o || {}).length; }
 function schoolCode() { var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s2 = ''; for (var i = 0; i < 6; i++) s2 += a[Math.floor(Math.random() * a.length)]; return s2; }
 var WORDS = ['cat', 'sun', 'owl', 'fox', 'star', 'moon', 'tree', 'bee', 'frog', 'kite', 'leaf', 'cake', 'ship', 'fish', 'bear', 'lion'];
 function kidPass() { return WORDS[Math.floor(Math.random() * WORDS.length)] + (10 + Math.floor(Math.random() * 90)); }
+/* "Name" or "Name, password" (comma, semicolon or tab) per line -> [{name, pw}] */
+function parseLines(txt, max) {
+  return String(txt || '').split('\n').map(function (l) { var a = l.split(/\t|;|,/), n = (a[0] || '').trim(), pw = (a.slice(1).join(',') || '').trim(); return n ? { name: n.slice(0, 40), pw: pw } : null; }).filter(Boolean).slice(0, max);
+}
+function badPw(rows) { return rows.filter(function (r) { return r.pw && (r.pw.length < 4 || r.pw.length > 40); })[0]; }
+var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', xlsxP = null;
+function loadXlsx() { if (W.XLSX) return Promise.resolve(W.XLSX); return xlsxP || (xlsxP = new Promise(function (ok, no) { var sc = D.createElement('script'); sc.src = XLSX_URL; sc.onload = function () { ok(W.XLSX); }; sc.onerror = function () { xlsxP = null; no(); }; D.head.appendChild(sc); })); }
+/* read the first sheet of an Excel or CSV file: column A = name, column B = password (optional). A header row is skipped. */
+function readSheet(file) {
+  return loadXlsx().then(function (X) { return file.arrayBuffer().then(function (buf) {
+    var wb = X.read(buf, { type: 'array' }), ws = wb.Sheets[wb.SheetNames[0]], rows = X.utils.sheet_to_json(ws, { header: 1, blankrows: false, raw: false });
+    var hdr = rows[0] || [], ni = 0, pi = 1;
+    if (hdr.some(function (h) { return /name|nom|pr[ée]nom|password|mot de passe|pass/i.test(String(h || '')); })) {
+      hdr.forEach(function (h, i) { h = String(h || ''); if (/password|mot de passe|pass|mdp/i.test(h)) pi = i; else if (/name|nom/i.test(h) && ni === 0 && !/user/i.test(h)) ni = i; });
+      rows = rows.slice(1);
+    }
+    return rows.map(function (r) { var n = String(r[ni] == null ? '' : r[ni]).trim(), pw = String(r[pi] == null ? '' : r[pi]).trim(); return n ? n + (pw ? ', ' + pw : '') : ''; }).filter(Boolean).join('\n');
+  }); });
+}
+/* "📄 Upload an Excel sheet" button that fills the textarea, so the list can be checked before making the accounts */
+function uploadBox(id) {
+  return '<div class="mxs-up"><label class="btn ghost" for="' + id + 'F">📄 ' + esc(T('Upload an Excel sheet')) + '</label><input type="file" id="' + id + 'F" accept=".xlsx,.xls,.csv,.ods" hidden>'
+    + '<small>' + esc(T('Column A: name. Column B: password (optional; left empty, Matix makes one).')) + '</small></div>';
+}
+function wireUpload(id, ta, er) {
+  var f = $(id + 'F'); if (!f) return;
+  f.onchange = function () { var file = f.files[0]; if (!file) return; er.textContent = '';
+    readSheet(file).then(function (txt) { if (!txt) { er.textContent = T('No names found in the first sheet.'); return; } ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + txt; toast('📄 ' + txt.split('\n').length + ' ' + T('names read. Check them, then make the accounts.')); })
+      .catch(function () { er.textContent = T('Could not read that file. Save it as .xlsx or .csv and try again.'); }).then(function () { f.value = ''; });
+  };
+}
+function askPw(who) { var p = prompt(T('New password for') + ' ' + who + ' (' + T('at least 4 characters') + ')', kidPass()); if (p == null) return null; p = p.trim(); if (p.length < 4 || p.length > 40) { toast('Use a password with at least 4 characters.', 'err'); return null; } return p; }
 function normU(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9_]/g, '').slice(0, 20); }
 
 /* ---------------- teacher: my classes ---------------- */
@@ -97,7 +129,7 @@ function classPage(c, cid, made) {
       + '<h2>🎒 ' + esc(T('Students')) + ' (' + names.length + ')</h2>'
       + '<p class="sub">' + esc(T('Students sign in with “🎒 I’m a student” on matixthemathclub.com or in the Matix app, with the username and password below.')) + '</p>'
       + (names.length ? '<div class="ulist" id="mxsSt">' + names.map(function (u) { return '<div class="urow"><span class="nm">' + esc(st[u]) + '<small>@' + esc(u) + '</small></span><button type="button" data-pw="' + esc(u) + '">🔑 ' + esc(T('New password')) + '</button><button type="button" class="del" data-rm="' + esc(u) + '">🗑 ' + esc(T('Delete')) + '</button></div>'; }).join('') + '</div>' : '<p class="sub">' + esc(T('No students yet.')) + '</p>')
-      + '<form id="mxsAdd" class="card mxs-form"><label>' + esc(T('Add students: one first name per line')) + '<textarea id="mxsKids" rows="4" placeholder="Lina&#10;Omar&#10;Sami"></textarea></label><button class="btn pri" id="mxsAddGo">➕ ' + esc(T('Make their accounts')) + '</button><div class="err" id="mxsAE" role="alert"></div></form>'
+      + '<form id="mxsAdd" class="card mxs-form"><label>' + esc(T('Add students: one first name per line. To pick a password, add it after a comma.')) + '<textarea id="mxsKids" rows="4" placeholder="Lina&#10;Omar, sun42&#10;Sami"></textarea></label>' + uploadBox('mxsKids') + '<button class="btn pri" id="mxsAddGo">➕ ' + esc(T('Make their accounts')) + '</button><div class="err" id="mxsAE" role="alert"></div></form>'
       + '<div id="mxsLogins"></div>'
       + '<h2>📝 ' + esc(T('Homework')) + '</h2>'
       + (hids.length ? '<div class="mxs-hw">' + hids.map(function (h) { var o = hw[h], d = done[h] || {}, k = cnt(d);
@@ -110,18 +142,20 @@ function classPage(c, cid, made) {
       + '<button class="btn pri" id="mxsHwGo">📝 ' + esc(T('Give this homework')) + '</button><div class="err" id="mxsHE" role="alert"></div></form>'
       + '<h2>⚙️ ' + esc(T('Class')) + '</h2><button type="button" class="btn ghost del" id="mxsDelC">🗑 ' + esc(T('Delete this class and its student accounts')) + '</button>';
     if (made && made.length) showLogins(made, x);
+    wireUpload('mxsKids', $('mxsKids'), $('mxsAE'));
     var again = function () { classPage(c, cid); };
     $('mxsAdd').onsubmit = function (e) {
       e.preventDefault(); var er = $('mxsAE'); er.textContent = '';
-      var kids = $('mxsKids').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 60);
+      var kids = parseLines($('mxsKids').value, 200), bad = badPw(kids);
       if (!kids.length) { er.textContent = T('Type at least one first name.'); return; }
+      if (bad) { er.textContent = bad.name + ': ' + T('a password needs 4 to 40 characters.'); return; }
       $('mxsAddGo').disabled = true;
       var made = [];
-      kids.reduce(function (p, name) { return p.then(function () { return makeKid(name, cid, x).then(function (r) { if (r) made.push(r); }); }); }, Promise.resolve())
+      kids.reduce(function (p, name) { return p.then(function () { return makeKid(name.name, cid, x, name.pw).then(function (r) { if (r) made.push(r); }); }); }, Promise.resolve())
         .then(function () { toast('🎒 ' + made.length + ' ' + T('accounts made')); classPage(c, cid, made); })
         .catch(function () { $('mxsAddGo').disabled = false; er.textContent = T('Could not save. Check your connection.'); });
     };
-    $('mxsC').querySelectorAll('[data-pw]').forEach(function (b) { b.onclick = function () { var u = b.dataset.pw, p = kidPass(); if (!confirm(T('Give @') + u + ' ' + T('a new password?'))) return;
+    $('mxsC').querySelectorAll('[data-pw]').forEach(function (b) { b.onclick = function () { var u = b.dataset.pw, p = askPw(st[u] + ' (@' + u + ')'); if (!p) return;
       S().fbPatch('/members/' + enc(u), { password: p, passwordChangedAt: Date.now(), sessionRev: Date.now() }).then(function () { showLogins([{ name: st[u], u: u, p: p }], x); }).catch(function () { toast('Could not save. Check your connection.', 'err'); }); }; });
     $('mxsC').querySelectorAll('[data-rm]').forEach(function (b) { b.onclick = function () { var u = b.dataset.rm; if (!confirm(T('Delete the account of') + ' ' + st[u] + ' (@' + u + ')? ' + T('Their homework results are deleted too.'))) return;
       b.disabled = true; deleteKid(u, cid).then(again, function () { b.disabled = false; toast('Could not delete. Check your connection.', 'err'); }); }; });
@@ -138,20 +172,20 @@ function classPage(c, cid, made) {
       deleteClass(cid, x).then(function () { toast('🗑 ' + T('Class deleted')); location.hash = '#/teacher/classes'; }, function () { toast('Could not delete. Check your connection.', 'err'); }); };
   }).catch(function () { $('mxsC').innerHTML = '<p class="sub">' + esc(T('Could not load. Check your connection.')) + '</p>'; });
 }
-function showLogins(list, x, teachers) {
-  var box = $('mxsLogins'); if (!box || !list.length) return;
-  box.innerHTML = '<div class="card mxs-logins"><h3>🔑 ' + esc(T(teachers ? 'Logins to give your teachers' : 'Logins to give your students')) + '</h3><p class="sub">' + esc(T('Write them down or print them now: passwords are not shown again (you can always make a new one).')) + '</p>'
+function showLogins(list, x, teachers, boxId) {
+  var box = $(boxId || 'mxsLogins'); if (!box || !list.length) return;
+  box.innerHTML = '<div class="card mxs-logins"><h3>🔑 ' + esc(T(teachers === 'admins' ? 'Logins to give the new administrators' : teachers ? 'Logins to give your teachers' : 'Logins to give your students')) + '</h3><p class="sub">' + esc(T('Write them down or print them now: passwords are not shown again (you can always make a new one).')) + '</p>'
     + '<table class="mxs-t"><tr><th>' + esc(T('Name')) + '</th><th>' + esc(T('Username')) + '</th><th>' + esc(T('Password')) + '</th></tr>' + list.map(function (k) { return '<tr><td>' + esc(k.name) + '</td><td><b>' + esc(k.u) + '</b></td><td><b>' + esc(k.p) + '</b></td></tr>'; }).join('') + '</table>'
-    + '<p class="sub">' + esc(T(teachers ? 'Sign in at matixthemathclub.com or in the Matix app, then open 🍎 Teacher.' : 'Sign in at matixthemathclub.com or in the Matix app with “🎒 I’m a student”.')) + '</p><button type="button" class="btn pri" id="mxsPrint">🖨 ' + esc(T('Print')) + '</button></div>';
+    + '<p class="sub">' + esc(T(teachers === 'admins' ? 'Sign in at matixthemathclub.com, then open 🏫 School.' : teachers ? 'Sign in at matixthemathclub.com or in the Matix app, then open 🍎 Teacher.' : 'Sign in at matixthemathclub.com or in the Matix app with “🎒 I’m a student”.')) + '</p><button type="button" class="btn pri" id="mxsPrint">🖨 ' + esc(T('Print')) + '</button></div>';
   $('mxsPrint').onclick = function () { var w = W.open('', '_blank'); if (!w) return; w.document.write('<title>' + esc(x.name) + '</title><style>body{font:16px system-ui;padding:20px}td,th{border:1px solid #999;padding:8px 12px}table{border-collapse:collapse}</style><h2>' + esc(x.name) + '</h2>' + box.querySelector('table').outerHTML + '<p>matixthemathclub.com · 🎒 I’m a student</p>'); w.document.close(); w.print(); };
 }
-function makeKid(name, cid, x) {
+function makeKid(name, cid, x, pw) {
   var base = normU(name) || 'student', tries = 0;
   function attempt() {
     var u = base + (10 + Math.floor(Math.random() * 990)); tries++;
     return S().fbGet('/members/' + enc(u), true).then(function (ex) {
       if (ex) return tries < 6 ? attempt() : null;
-      var p = kidPass(), now = Date.now();
+      var p = pw || kidPass(), now = Date.now();
       return S().fbPut('/members/' + enc(u), { password: p, joinedAt: now, student: true, testUser: true, displayName: name, school: x.school, cls: cid, madeBy: S().me() }).then(function () {
         return Promise.all([S().fbPut('/profiles/' + enc(u), { displayName: name, bio: '', updatedAt: now }),
           put('/student_of/' + enc(u), { cls: cid, school: x.school, teacher: x.teacher, name: name }), put('/classes/' + enc(cid) + '/students/' + enc(u), name)]);
@@ -198,8 +232,8 @@ function admin(c, parts) {
   }).catch(function () { $('mxaB').innerHTML = '<p class="sub">' + esc(T('Could not load. Check your connection.')) + '</p>'; });
 }
 function schoolPage(c, sid, sc, made) {
-  Promise.all([raw('/classes'), raw('/teacher_school')]).then(function (r) {
-    var cls = r[0] || {}, ts = r[1] || {}, cids = Object.keys(cls).filter(function (k) { return cls[k] && cls[k].school === sid; });
+  Promise.all([raw('/classes'), raw('/teacher_school'), raw('/school_admins')]).then(function (r) {
+    var cls = r[0] || {}, ts = r[1] || {}, sa = r[2] || {}, adm = Object.keys(sa).filter(function (u) { return sa[u] && sa[u][sid]; }).sort(), cids = Object.keys(cls).filter(function (k) { return cls[k] && cls[k].school === sid; });
     var tch = Object.keys(ts).filter(function (u) { return ts[u] && ts[u][sid]; });
     cids.forEach(function (k) { if (tch.indexOf(cls[k].teacher) < 0) tch.push(cls[k].teacher); }); tch.sort();
     var kids = cids.reduce(function (a, k) { return a + cnt(cls[k].students); }, 0);
@@ -207,26 +241,41 @@ function schoolPage(c, sid, sc, made) {
       + '<div class="card mxa-code"><span>' + esc(T('School code for teachers')) + '</span><b>' + esc(sc.code || '—') + '</b><small>' + esc(T('Teachers type this code when they make a class, to join your school.')) + '</small><button type="button" class="btn ghost" id="mxaNewCode">🔄 ' + esc(T('New code')) + '</button></div>'
       + '<p class="sub">🍎 ' + tch.length + ' ' + esc(T('teachers')) + ' · 📚 ' + cids.length + ' ' + esc(T('classes')) + ' · 🎒 ' + kids + ' ' + esc(T('students')) + '</p>'
       + '<h2>🍎 ' + esc(T('Teachers')) + '</h2><div class="ulist">' + (tch.map(function (u) { var n = cids.filter(function (k) { return cls[k].teacher === u; }).length;
-          return '<div class="urow"><span class="nm">@' + esc(u) + '<small>' + n + ' ' + esc(T('classes')) + '</small></span><button type="button" data-out="' + esc(u) + '">' + esc(T('Remove from school')) + '</button><button type="button" class="del" data-delt="' + esc(u) + '">🗑 ' + esc(T('Delete account')) + '</button></div>'; }).join('') || '<p class="sub">' + esc(T('No teachers yet.')) + '</p>') + '</div>'
-      + '<form id="mxaT" class="card mxs-form"><label>' + esc(T('Add teachers: one name per line')) + '<textarea id="mxaTN" rows="3" placeholder="Ms Haddad&#10;Mr Karam"></textarea></label><button class="btn pri" id="mxaTGo">➕ ' + esc(T('Make their teacher accounts')) + '</button><div class="err" id="mxaTE" role="alert"></div></form><div id="mxsLogins"></div>'
+          return '<div class="urow"><span class="nm">@' + esc(u) + '<small>' + n + ' ' + esc(T('classes')) + '</small></span><button type="button" data-tpw="' + esc(u) + '">🔑 ' + esc(T('New password')) + '</button><button type="button" data-out="' + esc(u) + '">' + esc(T('Remove from school')) + '</button><button type="button" class="del" data-delt="' + esc(u) + '">🗑 ' + esc(T('Delete account')) + '</button></div>'; }).join('') || '<p class="sub">' + esc(T('No teachers yet.')) + '</p>') + '</div>'
+      + '<form id="mxaT" class="card mxs-form"><label>' + esc(T('Add teachers: one name per line. To pick a password, add it after a comma.')) + '<textarea id="mxaTN" rows="3" placeholder="Ms Haddad&#10;Mr Karam, cedar2026"></textarea></label>' + uploadBox('mxaTN') + '<button class="btn pri" id="mxaTGo">➕ ' + esc(T('Make their teacher accounts')) + '</button><div class="err" id="mxaTE" role="alert"></div></form><div id="mxsLogins"></div>'
+      + '<h2>🏫 ' + esc(T('School administrators')) + '</h2><p class="sub">' + esc(T('Administrators can add teachers and other administrators, and see and delete everything in this school.')) + '</p><div class="ulist">'
+      + adm.map(function (u) { return '<div class="urow"><span class="nm">@' + esc(u) + (u === S().me() ? '<small>' + esc(T('you')) + '</small>' : '') + '</span>' + (u === S().me() ? '' : '<button type="button" data-apw="' + esc(u) + '">🔑 ' + esc(T('New password')) + '</button><button type="button" data-aout="' + esc(u) + '">' + esc(T('Remove administrator')) + '</button>') + '</div>'; }).join('') + '</div>'
+      + '<form id="mxaA" class="card mxs-form"><label>' + esc(T('Add administrators: one name per line. To pick a password, add it after a comma.')) + '<textarea id="mxaAN" rows="2" placeholder="Mrs Saad, cedar-admin1"></textarea></label>' + uploadBox('mxaAN') + '<button class="btn pri" id="mxaAGo">➕ ' + esc(T('Make their administrator accounts')) + '</button><div class="err" id="mxaAE" role="alert"></div></form><div id="mxsLoginsA"></div>'
       + '<h2>📚 ' + esc(T('Classes')) + '</h2>' + (cids.map(function (k) { var x = cls[k], st = x.students || {};
           return '<details class="card mxo-c"><summary>📚 <b>' + esc(x.name) + '</b> · ' + esc(gName(x.grade)) + ' · 🍎 @' + esc(x.teacher) + ' · 🎒 ' + cnt(st) + '</summary><div class="ulist">'
             + Object.keys(st).sort().map(function (u) { return '<div class="urow"><span class="nm">' + esc(st[u]) + '<small>@' + esc(u) + '</small></span><button type="button" class="del" data-kid="' + esc(u) + '" data-c="' + esc(k) + '">🗑 ' + esc(T('Delete student')) + '</button></div>'; }).join('')
             + '</div><a class="btn ghost" href="#/teacher/classes/' + enc(k) + '">' + esc(T('Open the class')) + '</a> <button type="button" class="btn ghost del" data-cls="' + esc(k) + '">🗑 ' + esc(T('Delete class')) + '</button></details>'; }).join('') || '<p class="sub">' + esc(T('No classes yet.')) + '</p>')
       + '<h2>⚙️ ' + esc(T('School')) + '</h2><button type="button" class="btn ghost del" id="mxaDel">🗑 ' + esc(T('Delete the school, its classes and student accounts')) + '</button>';
-    if (made && made.length) showLogins(made, sc, true);
+    if (made && made.length) showLogins(made, sc, made.admins ? 'admins' : true, made.admins ? 'mxsLoginsA' : 'mxsLogins');
+    wireUpload('mxaTN', $('mxaTN'), $('mxaTE')); wireUpload('mxaAN', $('mxaAN'), $('mxaAE'));
     var again = function () { schoolPage(c, sid, sc); };
     function fail() { toast('Could not save. Check your connection.', 'err'); again(); }
     $('mxaNewCode').onclick = function () { if (!confirm(T('Make a new code? The old one stops working.'))) return; sc.code = schoolCode(); put('/schools/' + enc(sid) + '/code', sc.code).then(again, fail); };
     $('mxaT').onsubmit = function (e) {
-      e.preventDefault(); var names = $('mxaTN').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean).slice(0, 40);
-      if (!names.length) { $('mxaTE').textContent = T('Type at least one name.'); return; } $('mxaTGo').disabled = true; var made = [];
-      names.reduce(function (pr, n) { return pr.then(function () { return makeTeacher(n, sid).then(function (x) { if (x) made.push(x); }); }); }, Promise.resolve())
+      e.preventDefault(); var names = parseLines($('mxaTN').value, 100), bad = badPw(names);
+      if (!names.length) { $('mxaTE').textContent = T('Type at least one name.'); return; }
+      if (bad) { $('mxaTE').textContent = bad.name + ': ' + T('a password needs 4 to 40 characters.'); return; } $('mxaTGo').disabled = true; var made = [];
+      names.reduce(function (pr, n) { return pr.then(function () { return makeTeacher(n.name, sid, n.pw).then(function (x) { if (x) made.push(x); }); }); }, Promise.resolve())
         .then(function () { toast('🍎 ' + made.length + ' ' + T('accounts made')); schoolPage(c, sid, sc, made); }, fail);
+    };
+    $('mxaA').onsubmit = function (e) {
+      e.preventDefault(); var names = parseLines($('mxaAN').value, 20), bad = badPw(names);
+      if (!names.length) { $('mxaAE').textContent = T('Type at least one name.'); return; }
+      if (bad) { $('mxaAE').textContent = bad.name + ': ' + T('a password needs 4 to 40 characters.'); return; } $('mxaAGo').disabled = true; var made = []; made.admins = true;
+      names.reduce(function (pr, n) { return pr.then(function () { return makeTeacher(n.name, sid, n.pw, true).then(function (x) { if (x) made.push(x); }); }); }, Promise.resolve())
+        .then(function () { toast('🏫 ' + made.length + ' ' + T('accounts made')); schoolPage(c, sid, sc, made); }, fail);
     };
     $('mxaB').onclick = function (e) {
       var b = e.target.closest('button'); if (!b) return;
-      if (b.dataset.out) { if (!confirm(T('Remove') + ' @' + b.dataset.out + ' ' + T('from the school? Their classes stay.'))) return; put('/teacher_school/' + enc(b.dataset.out) + '/' + enc(sid), null).then(again, fail); }
+      if (b.dataset.tpw || b.dataset.apw) { var pu = b.dataset.tpw || b.dataset.apw, np = askPw('@' + pu); if (!np) return;
+        S().fbPatch('/members/' + enc(pu), { password: np, passwordChangedAt: Date.now(), sessionRev: Date.now() }).then(function () { toast('🔑 @' + pu + ': ' + np); }, fail); }
+      else if (b.dataset.aout) { if (!confirm(T('Remove') + ' @' + b.dataset.aout + ' ' + T('as an administrator of this school? Their account stays.'))) return; put('/school_admins/' + enc(b.dataset.aout) + '/' + enc(sid), null).then(again, fail); }
+      else if (b.dataset.out) { if (!confirm(T('Remove') + ' @' + b.dataset.out + ' ' + T('from the school? Their classes stay.'))) return; put('/teacher_school/' + enc(b.dataset.out) + '/' + enc(sid), null).then(again, fail); }
       else if (b.dataset.delt) { var u = b.dataset.delt, theirs = cids.filter(function (k) { return cls[k].teacher === u; });
         if (!confirm(T('Delete the teacher account') + ' @' + u + ', ' + theirs.length + ' ' + T('classes and their student accounts?'))) return; b.disabled = true;
         theirs.reduce(function (pr, k) { return pr.then(function () { return deleteClass(k, cls[k]); }); }, Promise.resolve())
@@ -237,15 +286,15 @@ function schoolPage(c, sid, sc, made) {
     };
   }).catch(function () { $('mxaB').innerHTML = '<p class="sub">' + esc(T('Could not load. Check your connection.')) + '</p>'; });
 }
-function makeTeacher(name, sid) {
-  var base = normU(name) || 'teacher', tries = 0;
+function makeTeacher(name, sid, pw, isAdm) {
+  var base = normU(name) || (isAdm ? 'admin' : 'teacher'), tries = 0;
   function attempt() {
     var u = base + (10 + Math.floor(Math.random() * 990)); tries++;
     return S().fbGet('/members/' + enc(u), true).then(function (ex) {
       if (ex) return tries < 6 ? attempt() : null;
-      var p = kidPass() + kidPass().slice(-2), now = Date.now();
-      return S().fbPut('/members/' + enc(u), { password: p, joinedAt: now, teacher: true, testUser: true, displayName: name, school: sid, madeBy: S().me() }).then(function () {
-        return Promise.all([S().fbPut('/profiles/' + enc(u), { displayName: name, bio: '', updatedAt: now }), put('/teachers/' + enc(u), true), put('/teacher_school/' + enc(u) + '/' + enc(sid), true)]);
+      var p = pw || kidPass() + kidPass().slice(-2), now = Date.now();
+      return S().fbPut('/members/' + enc(u), { password: p, joinedAt: now, teacher: true, schoolAdmin: !!isAdm, testUser: true, displayName: name, school: sid, madeBy: S().me() }).then(function () {
+        return Promise.all([S().fbPut('/profiles/' + enc(u), { displayName: name, bio: '', updatedAt: now }), put('/teachers/' + enc(u), true), put('/teacher_school/' + enc(u) + '/' + enc(sid), true)].concat(isAdm ? [put('/school_admins/' + enc(u) + '/' + enc(sid), true)] : []));
       }).then(function () { return { name: name, u: u, p: p }; });
     });
   }
@@ -311,6 +360,18 @@ if (W.trAdd) W.trAdd({
   'Delete student': 'Supprimer l’élève', 'Delete class': 'Supprimer la classe', 'schools': 'écoles', 'classes': 'classes', 'teachers': 'enseignants', 'No school': 'Sans école', 'made by': 'créée par', 'No classes.': 'Aucune classe.', 'Delete school': 'Supprimer l’école', 'No schools yet.': 'Pas encore d’école.',
   'Teachers': 'Enseignants', 'Remove teacher': 'Retirer enseignant', 'No teachers.': 'Aucun enseignant.', 'Delete the student account': 'Supprimer le compte élève', 'and its': 'et ses', 'student accounts?': 'comptes d’élèves ?', 'Delete the school': 'Supprimer l’école', 'classes and': 'classes et',
   'Remove teacher mode from': 'Retirer le mode enseignant à', 'Their classes stay until you delete them.': 'Ses classes restent jusqu’à ce que tu les supprimes.', 'Could not delete. Check your connection.': 'Impossible de supprimer. Vérifie ta connexion.'
+});
+if (W.trAdd) W.trAdd({
+  'Upload an Excel sheet': 'Importer une feuille Excel', 'Column A: name. Column B: password (optional; left empty, Matix makes one).': 'Colonne A : nom. Colonne B : mot de passe (facultatif ; s’il est vide, Matix en crée un).',
+  'No names found in the first sheet.': 'Aucun nom trouvé dans la première feuille.', 'names read. Check them, then make the accounts.': 'noms lus. Vérifie-les, puis crée les comptes.',
+  'Could not read that file. Save it as .xlsx or .csv and try again.': 'Impossible de lire ce fichier. Enregistre-le en .xlsx ou .csv et réessaie.', 'New password for': 'Nouveau mot de passe pour', 'at least 4 characters': 'au moins 4 caractères',
+  'Use a password with at least 4 characters.': 'Utilise un mot de passe d’au moins 4 caractères.', 'a password needs 4 to 40 characters.': 'un mot de passe doit avoir entre 4 et 40 caractères.',
+  'Add students: one first name per line. To pick a password, add it after a comma.': 'Ajouter des élèves : un prénom par ligne. Pour choisir un mot de passe, ajoute-le après une virgule.',
+  'Add teachers: one name per line. To pick a password, add it after a comma.': 'Ajouter des enseignants : un nom par ligne. Pour choisir un mot de passe, ajoute-le après une virgule.',
+  'Add administrators: one name per line. To pick a password, add it after a comma.': 'Ajouter des administrateurs : un nom par ligne. Pour choisir un mot de passe, ajoute-le après une virgule.',
+  'School administrators': 'Administrateurs de l’école', 'Administrators can add teachers and other administrators, and see and delete everything in this school.': 'Les administrateurs peuvent ajouter des enseignants et d’autres administrateurs, et tout voir et supprimer dans cette école.',
+  'you': 'toi', 'Remove administrator': 'Retirer l’administrateur', 'Make their administrator accounts': 'Créer leurs comptes administrateur', 'Logins to give the new administrators': 'Identifiants à donner aux nouveaux administrateurs',
+  'Sign in at matixthemathclub.com, then open 🏫 School.': 'Connecte-toi sur matixthemathclub.com, puis ouvre 🏫 École.', 'as an administrator of this school? Their account stays.': 'comme administrateur de cette école ? Son compte reste.'
 });
 W.mxSchool = { teacher: teacher, owner: owner, admin: admin };
 })();

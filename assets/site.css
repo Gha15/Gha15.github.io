@@ -227,3 +227,4 @@ input.code{letter-spacing:.4em;font-size:1.4rem !important;text-align:center;fon
 .btn.del,button.del{color:#f87171}
 .urow .nm small{display:block;opacity:.65;font-weight:600}
 .mxa-code{display:grid;gap:6px;max-width:420px;text-align:center;margin:12px 0}.mxa-code b{font-size:2.4rem;letter-spacing:.2em;font-family:ui-monospace,monospace}.mxa-code small{opacity:.7}
+.mxs-up{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}.mxs-up label.btn{cursor:pointer;font-weight:800}.mxs-up small{opacity:.75;font-weight:600}
