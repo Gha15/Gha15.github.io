@@ -19,7 +19,7 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function clamp(x,a,b){return x<a?a:(x>b?b:x);}
 /* ARCADE_VERSION: bump it whenever games change. The app compares it with the website's
    /arcade/version.json and loads the newer arcade straight from the website. */
-var ARCADE_VERSION=24;
+var ARCADE_VERSION=25;
 var IMG_DIR=(function(){try{var s=(D.currentScript&&D.currentScript.src)||'',m=s.match(/^(https?:\/\/[^\/]*matixthemathclub\.com)\//);if(m)return m[1]+'/arcade/img/';}catch(e){}
   return W.MX_ARCADE_IMG||'/arcade/img/';})();
 
@@ -2036,7 +2036,7 @@ function presentShared(u,id,fail){fbJ('/arcade/decks/'+encodeURIComponent(u)+'/'
   if(!d||!d.slides){if(fail)fail('none');return;}d.slides=Array.isArray(d.slides)?d.slides:Object.keys(d.slides).map(function(k){return d.slides[k];});
   try{history.replaceState(null,'','#/present');}catch(e){}presentDeck(d,'#/present/'+encodeURIComponent(u)+'/'+encodeURIComponent(id));})['catch'](function(){if(fail)fail('net');});}
 if(W.trAdd)W.trAdd({"Copy the link to this game":"Copier le lien de ce jeu","Copy the link to this slideshow":"Copier le lien de ce diaporama","Copy this link:":"Copie ce lien :"});
-W.mxArcade={levels:LEVELS,openLesson:openLesson,openState:openState,has:function(id){return ALLG.some(function(x){return x.id===id;});},presentShared:presentShared,start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:BOARD,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,board:BOARD,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
+W.mxArcade={levels:LEVELS,openLesson:openLesson,quest:playQuest,homework:fillHomework,openState:openState,has:function(id){return ALLG.some(function(x){return x.id===id;});},presentShared:presentShared,start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:BOARD,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,board:BOARD,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
 /* Android back button closes a running game */
 W.addEventListener('popstate',function(){if(G){G.pushed=false;stopGame();}});
 })();
