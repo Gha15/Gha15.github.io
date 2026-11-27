@@ -36,3 +36,12 @@ html.light .mxj-top{background:rgba(255,255,255,.88)}
   background:var(--card);border:1px solid var(--line)}
 .themebtn:hover{border-color:#a78bfa}
 .langbtn+.themebtn{margin-left:0}
+/* dark islands keep the dark colours in light mode: the phone picture, games, smart board, live quiz */
+html.light .phone,html.light #mxgOv,html.light #mxbOv,html.light #mxpOv,html.light .mxl,html.light .mxj,html.light .mxg-card,html.light .store.testing{
+  --bg:#0b0c18;--bg2:#12132a;--card:#17182f;--ink:#f5f6ff;--dim:#a9adc9;--line:rgba(255,255,255,.12);color:#f5f6ff}
+/* pale badges and labels made for the dark background */
+html.light .urow .rl{color:#6d28d9}
+html.light .pill.ok,html.light .urow .rl.tch{color:#15803d}
+html.light .urow .rl.stu{color:#0369a1}
+html.light .btn.del,html.light button.del{color:#dc2626}
+html.light .mxt-cover span{color:#fff}
