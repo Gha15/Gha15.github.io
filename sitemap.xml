@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
    <url>
-      <loc>https://matixthemathclub.com/</loc>
-      <lastmod>2026-11-19</lastmod>
+      <loc>https://www.matixthemathclub.com/</loc>
+      <lastmod>2026-11-27</lastmod>
       <changefreq>weekly</changefreq>
       <priority>1.0</priority>
    </url>
    <url>
-      <loc>https://matixthemathclub.com/join/</loc>
-      <lastmod>2026-11-26</lastmod>
+      <loc>https://www.matixthemathclub.com/join/</loc>
+      <lastmod>2026-11-27</lastmod>
+      <changefreq>weekly</changefreq>
+      <priority>0.8</priority>
    </url>
    <url>
-      <loc>https://matixthemathclub.com/privacy/</loc>
-      <lastmod>2026-11-19</lastmod>
+      <loc>https://www.matixthemathclub.com/privacy/</loc>
+      <lastmod>2026-11-27</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://www.matixthemathclub.com/delete-account/</loc>
+      <lastmod>2026-11-27</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.4</priority>
    </url>
 </urlset>

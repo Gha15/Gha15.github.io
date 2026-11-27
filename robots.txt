@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /temp/
+Disallow: /temp
+Disallow: /tools/
+Disallow: /dev-server.js
 
-Sitemap: https://matixthemathclub.com/sitemap.xml
+Sitemap: https://www.matixthemathclub.com/sitemap.xml

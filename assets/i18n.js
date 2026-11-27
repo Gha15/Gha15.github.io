@@ -226,6 +226,8 @@ function boot(){
   run(D.body);observe();
 }
 W.trAdd=function(o){for(var k in o)FR[k]=o[k];};
+/* 1.8.0: student sign-in and classes */
+W.trAdd({"My class": "Ma classe", "🎒 I’m a student": "🎒 Je suis élève", "I’m a student": "Je suis élève", "🎒 I’m a student ": "🎒 Je suis élève", "Your teacher made your account. Type the username and password your teacher gave you.": "Ton enseignant a créé ton compte. Écris le nom d’utilisateur et le mot de passe qu’il t’a donnés.", "Forgot your password? Ask your teacher for a new one.": "Mot de passe oublié ? Demande-en un nouveau à ton enseignant.", "e.g. lina245": "ex. lina245", "My classes and homework": "Mes classes et devoirs", "🏫 Schools": "🏫 Écoles", "✕ Not a teacher": "✕ Pas enseignant", "🍎 Make teacher": "🍎 Rendre enseignant"});
 /* 1.5.0: privacy notice and beta button */
 W.trAdd({"By signing in or creating an account you agree to our": "En te connectant ou en créant un compte, tu acceptes notre", "Privacy Policy": "Politique de confidentialité", "Join the beta": "Rejoindre la bêta", "Pre-releases on Google Play": "Versions en avant-première sur Google Play", "Get it on": "Disponible sur", "Play Store link (normal release)": "Lien Play Store (version normale)", "Open testing link (pre-releases)": "Lien du test ouvert (avant-premières)", "🧪 Show the “Join the beta” button (open testing)": "🧪 Afficher le bouton « Rejoindre la bêta » (test ouvert)", "The testing link should start with https://play.google.com/": "Le lien du test doit commencer par https://play.google.com/", "The Play Store link should start with https://play.google.com/": "Le lien Play Store doit commencer par https://play.google.com/"});
 W.tr=tr;W.FRG=FRG;W.trq=trq;W.mxLang={get:function(){return lang;},set:setLang};

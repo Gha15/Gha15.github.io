@@ -19,7 +19,7 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function clamp(x,a,b){return x<a?a:(x>b?b:x);}
 /* ARCADE_VERSION: bump it whenever games change. The app compares it with the website's
    /arcade/version.json and loads the newer arcade straight from the website. */
-var ARCADE_VERSION=22;
+var ARCADE_VERSION=24;
 var IMG_DIR=(function(){try{var s=(D.currentScript&&D.currentScript.src)||'',m=s.match(/^(https?:\/\/[^\/]*matixthemathclub\.com)\//);if(m)return m[1]+'/arcade/img/';}catch(e){}
   return W.MX_ARCADE_IMG||'/arcade/img/';})();
 
@@ -1872,6 +1872,80 @@ var BQUIZ=mkBoard({id:'quiz',topic:'any',icon:'🙋',lv:[1,13],name:['Quick ques
     else{ctx.globalAlpha=.25;label(ctx,(TOPIC||LESSONS[0]).icon,a.x+a.w/2,a.y+a.h/2,Math.min(160,a.h*.7),'#fff',false);ctx.globalAlpha=1;}}});
 
 ALLG=GAMES.concat(BOARD);
+/* =====================================================================
+   1.8.0: At home, the arcade teaches with games.
+   📚 Learn with games: pick a topic → an easy lesson (the idea and a worked
+   example with its steps) → 🧭 Topic Quest, a game where every question is
+   about that topic and a wrong answer shows the steps. Area, perimeter and
+   fraction topics also open their hands-on activities.
+   📝 Homework: students whose teacher made their account (/student_of/<u>)
+   see the homework the teacher gave (/homework/<class>), do the easy lesson,
+   then the exercises; the score goes to /homework_done/<class>/<hw>/<u>.
+   ===================================================================== */
+var TQUEST={id:'t_quest',icon:'🧭',name:'Topic Quest',thumb:'star.png',bg:'bg_space.jpg',themed:true,assets:['bg_dino.jpg','sp_dino.png'],
+  desc:'Every question is about the topic you learned. A wrong answer shows you the steps.',
+  init:function(g){var s=g.state;s.parts=[];s.n=0;s.right=0;s.hop=0;s.hw=g.hw||null;s.w=worldOf(g.L)[0];this.next(g);},
+  next:function(g){var s=g.state;if(s.hw&&s.n>=s.hw.n){this.finish(g);return;}var t=TOPIC||LESSONS[0],q=t.gen(g.L);s.q=q;s.opts=shuffle([String(q.a)].concat((q.opts||[]).slice(0,3)));s.show=null;s.n++;setQ(q.q);},
+  update:function(g,dt){var s=g.state;if(s.hop>0)s.hop-=dt;},
+  draw:function(g,ctx){var s=g.state;cover(ctx,IMG['bg_'+s.w+'.jpg'],g.w,g.h);ctx.fillStyle='rgba(10,10,30,.25)';ctx.fillRect(0,0,g.w,g.h);
+    var top=btnsTop(g),sz=Math.min(g.w*.4,top-80,220),cy=(top+20)/2+Math.sin(g.t*3)*5-(s.hop>0?Math.sin(s.hop/.4*Math.PI)*sz*.25:0);spr(ctx,IMG['sp_'+s.w+'.png'],g.w/2,cy,sz);
+    label(ctx,(s.hw?s.n+' / '+s.hw.n:'✔ '+s.right),g.w-60,30,22,'#fde68a');
+    if(s.show){ctx.fillStyle='rgba(15,16,40,.92)';rr(ctx,20,20,g.w-40,top-40,22);ctx.fill();var y=40;
+      y+=tw(ctx,X('The answer is ','La réponse est ')+s.q.a,g.w/2,y,g.w-80,Math.min(30,g.w/22),'#86efac')+10;
+      (s.q.steps||[]).forEach(function(st){y+=tw(ctx,st,g.w/2,y,g.w-80,Math.min(24,g.w/28),'#fff')+6;});
+      tw(ctx,X('Tap to go on','Touche pour continuer'),g.w/2,top-70,g.w-80,18,'#fde68a');s.btns=[];}
+    else choiceBtns(g,ctx,s.opts,top,62);
+    drawParts(ctx,s.parts,1/60);},
+  pick:function(g,v){var s=g.state;if(v===String(s.q.a)){s.right++;addScore(10);s.hop=.4;burst(s.parts,g.w/2,g.h*.35,'#22c55e');this.next(g);}
+    else{s.show=true;if(!s.hw)hurt();}},
+  down:function(g,x,y){var s=g.state;if(g.over)return;if(s.show){s.show=null;this.next(g);return;}var b=hitBtn(g,x,y);if(b)this.pick(g,String(b.v));},
+  key:function(g,k){var s=g.state;if(s.show&&(k==='Enter'||k===' ')){s.show=null;this.next(g);return;}var b=keyBtn(g,k);if(b)this.pick(g,String(b.v));},
+  finish:function(g){var s=g.state,hw=s.hw;g.over=true;g.paused=true;var u=who();
+    if(u)fbJ('/homework_done/'+encodeURIComponent(hw.cls)+'/'+encodeURIComponent(hw.hid)+'/'+encodeURIComponent(u),'PUT',{right:s.right,n:hw.n,at:Date.now()})['catch'](function(){});
+    var end=$('mxgEnd');end.hidden=false;var stars=s.right===hw.n?3:s.right>=hw.n/2?2:1;
+    end.innerHTML='<div class="mxg-card"><div class="mxg-big">'+'⭐'.repeat(stars)+'</div><h2>'+E(T('Homework done!'))+'</h2><p class="mxg-final">'+s.right+' / '+hw.n+'</p><p>'+E(T('Your teacher can see your score.'))+'</p>'
+      +'<div class="mxg-btns"><button type="button" class="mxm-btn pri" id="mxgQuit">'+E(T('Back to my class'))+'</button></div></div>';
+    $('mxgQuit').onclick=function(){stopGame();};if(stars===3&&typeof W.lxConfetti==='function')try{W.lxConfetti();}catch(e){}}
+};
+function lsnBoard(t){var m={area:['area','perim'],frac:['frac'],fraceq:['frac'],fracadd:['frac'],fracof:['frac'],fraccmp:['frac']}[t.id]||[];return BOARD.filter(function(d){return m.indexOf(d.topic)>-1;});}
+function playQuest(t,hw){var L=hw?Math.min(t.lv[1],Math.max(t.lv[0],+hw.grade||level())):Math.min(t.lv[1],Math.max(t.lv[0],level())),w=worldOf(L)[0];
+  TQUEST.assets=['bg_'+w+'.jpg','sp_'+w+'.png'];TQUEST.lives=hw?false:undefined;closeLesson();startGame(TQUEST,t);if(G){G.L=L;G.hw=hw||null;G.state.hw=G.hw;}}
+function closeLesson(){var o=$('mxlOv');if(o)o.remove();}
+/* the easy lesson: the idea, then a worked example with its steps, then play */
+function openLesson(t,hw){closeLesson();var L=Math.min(t.lv[1],Math.max(t.lv[0],hw?(+hw.grade||level()):level())),ex=t.gen(L),fr=isFr(),acts=hw?[]:lsnBoard(t);
+  var o=D.createElement('div');o.id='mxlOv';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label',lsnName(t));
+  o.innerHTML='<div class="mxl-box"><button type="button" class="mxl-x" id="mxlX" aria-label="'+E(T('Close'))+'">✕</button>'
+    +'<div class="mxl-hd"><span class="mxl-big">'+t.icon+'</span><div><small>'+(hw?'📝 '+E(T('Homework'))+' · ':'')+E(T(LEVELS[L-1][1]))+'</small><h2>'+E(lsnName(t))+'</h2></div></div>'
+    +(hw&&hw.note?'<p class="mxl-note">💬 '+E(hw.note)+'</p>':'')
+    +'<h3>💡 '+E(T('The idea'))+'</h3><p class="mxl-idea">'+E(fr?t.idea[1]:t.idea[0])+'</p>'
+    +'<h3>✏️ '+E(T('Example'))+'</h3><div class="mxl-ex"><p class="mxl-q">'+E(ex.q)+'</p><button type="button" class="mxm-btn sec" id="mxlSteps">👀 '+E(T('Show the steps'))+'</button>'
+    +'<ol class="mxl-steps" id="mxlSt" hidden>'+(ex.steps||[]).map(function(s){return '<li>'+E(s)+'</li>';}).join('')+'<li class="mxl-a">✔ '+E(ex.a)+'</li></ol></div>'
+    +'<div class="mxl-go"><button type="button" class="mxm-btn pri" id="mxlPlay">'+(hw?'📝 '+E(T('Start the exercises'))+' ('+hw.n+')':'🧭 '+E(T('Play Topic Quest')))+'</button></div>'
+    +(acts.length?'<h3>🖐️ '+E(T('Try it with your hands'))+'</h3><div class="mxb-chips">'+acts.map(function(d){return '<button type="button" class="mxb-chip" data-act="'+ALLG.indexOf(d)+'">'+d.icon+' '+E(T(d.name))+'</button>';}).join('')+'</div>':'')
+    +'</div>';
+  D.body.appendChild(o);
+  $('mxlX').onclick=closeLesson;o.addEventListener('click',function(e){if(e.target===o)closeLesson();});o.addEventListener('keydown',function(e){if(e.key==='Escape')closeLesson();});
+  $('mxlSteps').onclick=function(){$('mxlSt').hidden=false;this.remove();};
+  $('mxlPlay').onclick=function(){playQuest(t,hw);};
+  o.querySelectorAll('[data-act]').forEach(function(b){b.onclick=function(){closeLesson();startGame(ALLG[+b.dataset.act]);};});
+  try{$('mxlPlay').focus();}catch(e){}}
+/* 📝 the student's homework, filled in after the page is drawn */
+function fillHomework(c){var u=who(),box=c.querySelector('#mxhw');if(!u||!box)return;
+  fbJ('/student_of/'+encodeURIComponent(u)).then(function(st){if(!st||!st.cls||!box.isConnected)return;
+    return Promise.all([fbJ('/homework/'+encodeURIComponent(st.cls)),fbJ('/homework_done/'+encodeURIComponent(st.cls)),fbJ('/classes/'+encodeURIComponent(st.cls)+'/name')]).then(function(r){
+      var hw=r[0]||{},dn=r[1]||{},ids=Object.keys(hw).sort(function(a,b){return (hw[b].at||0)-(hw[a].at||0);});if(!box.isConnected)return;
+      box.innerHTML='<h2 class="mxr-h">📝 '+E(T('Homework from your teacher'))+(r[2]?' · '+E(r[2]):'')+'</h2>'
+        +(ids.length?'<div class="mxr-grid mxb-grid">'+ids.map(function(h){var x=hw[h],t=LESSONS.filter(function(l){return l.id===x.topic;})[0],d=dn[h]&&dn[h][u];if(!t)return '';
+          return '<button type="button" class="mxr-card mxb-card'+(d?' mxhw-done':'')+'" data-hw="'+E(h)+'"><span class="mxb-ic">'+(d?'✅':t.icon)+'</span><span class="mxr-tx"><b>'+E(lsnName(t))+'</b><small>'+x.n+' '+E(T('questions'))+(x.note?' · '+E(x.note):'')+'</small><em>'+(d?E(T('Done'))+': '+d.right+' / '+d.n:'@'+E(x.by||st.teacher||'')+' · '+E(T('to do')))+'</em></span></button>';}).join('')+'</div>'
+          :'<p class="mxb-note">'+E(T('No homework right now. Play the games below!'))+'</p>');
+      box.querySelectorAll('[data-hw]').forEach(function(b){b.onclick=function(){var h=b.dataset.hw,x=hw[h],t=LESSONS.filter(function(l){return l.id===x.topic;})[0];if(t)openLesson(t,{cls:st.cls,hid:h,n:+x.n||10,grade:x.grade,note:x.note});};});
+    });})['catch'](function(){});}
+if(W.trAdd)W.trAdd({'Topic Quest':'Quête du thème','Every question is about the topic you learned. A wrong answer shows you the steps.':'Chaque question porte sur le thème que tu as appris. Une mauvaise réponse te montre les étapes.',
+  'Homework done!':'Devoir terminé !','Your teacher can see your score.':'Ton enseignant peut voir ton score.','Back to my class':'Retour à ma classe','Homework':'Devoirs','The idea':'L’idée','Example':'Exemple','Show the steps':'Voir les étapes',
+  'Start the exercises':'Commencer les exercices','Play Topic Quest':'Jouer à la Quête du thème','Try it with your hands':'Essaie avec tes mains','Homework from your teacher':'Les devoirs de ton enseignant','questions':'questions','Done':'Fait','to do':'à faire',
+  'No homework right now. Play the games below!':'Pas de devoir pour l’instant. Joue aux jeux ci-dessous !','Learn with games':'Apprendre en jouant','Pick a topic: an easy lesson, then a game about it.':'Choisis un thème : une leçon facile, puis un jeu sur ce thème.','Close':'Fermer'});
+
+ALLG.push(TQUEST);
 /* ---------- arcade page (replaces the old Games hub) ---------- */
 function renderArcade(c){
   var L=level(),WD=worldOf(L),shown=GAMES.filter(function(g){return forGrade(g,L);}),
@@ -1905,7 +1979,8 @@ function renderArcade(c){
     +'<div class="mxr-hero mxr-world" style="background-image:linear-gradient(120deg,rgba(18,10,60,.72),rgba(18,10,60,.25)),url('+IMG_DIR+'bg_'+WD[0]+'_w.jpg)"><img class="mxr-wsp" src="'+IMG_DIR+'sp_'+WD[0]+'.png" alt=""><div><span class="mxr-wtag">'+E(T(LEVELS[L-1][1]))+' · '+[0,1,2,3,4,5,6,7].map(function(j){return themeFor(L,j)[1];}).join(' ')+'</span><h1>🎮 '+E(T('Matix Arcade'))+'</h1><p>'+E(T('Real games, real maths. Pick your grade and the games and questions are made for it.'))+' '+GAMES.length+' '+E(T('games'))+', '+BOARD.length+' '+E(T('smart-board activities'))+'.</p></div></div>'
     +'<div class="mxr-modes" role="tablist" aria-label="'+E(T('Where are you playing?'))+'"><button type="button" role="tab" data-m="home" aria-selected="'+(!CLS.on)+'">🏠 '+E(T('At home'))+'</button><button type="button" role="tab" data-m="class" aria-selected="'+CLS.on+'">🏫 '+E(T('In class'))+'</button></div>'
     +'<label class="mxr-lv"><span>'+E(T(CLS.on?'Pick the class':'Difficulty'))+'</span><select id="mxaLv" aria-label="'+E(T('Grade'))+'">'+LEVELS.map(function(l){return '<option value="'+l[0]+'"'+(+l[0]===L?' selected':'')+'>'+E(T(l[1]))+'</option>';}).join('')+'</select></label>'
-    +(CLS.on?classHtml:'<div class="mxr-filter"><span>'+shown.length+' '+E(T('games for this grade'))+'</span> <input type="search" id="mxaSearch" class="mxr-search" placeholder="'+E(T('Search games'))+'" aria-label="'+E(T('Search games'))+'"></div>'
+    +(CLS.on?classHtml:'<div id="mxhw"></div><h2 class="mxr-h">📚 '+E(T('Learn with games'))+'</h2><p class="mxb-note">'+E(T('Pick a topic: an easy lesson, then a game about it.'))+'</p><div class="mxb-chips mxl-topics">'+LESSONS.filter(function(t){return L>=t.lv[0]&&L<=t.lv[1];}).map(function(t){return '<button type="button" class="mxb-chip" data-lt="'+LESSONS.indexOf(t)+'">'+t.icon+' '+E(lsnName(t))+'</button>';}).join('')+'</div>'
+      +'<div class="mxr-filter"><span>'+shown.length+' '+E(T('games for this grade'))+'</span> <input type="search" id="mxaSearch" class="mxr-search" placeholder="'+E(T('Search games'))+'" aria-label="'+E(T('Search games'))+'"></div>'
       +(!mine.length?'<div class="mxr-grid">'+shown.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'
       :'<h2 class="mxr-h">✨ '+E(T('Themed games for your class'))+'</h2><div class="mxr-grid">'+mine.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'
        +'<h2 class="mxr-h">🎮 '+E(T('More games for this grade'))+'</h2><div class="mxr-grid">'+rest.map(function(g){return card(g,ALLG.indexOf(g),NEWIDS[g.id]);}).join('')+'</div>'))
@@ -1926,6 +2001,8 @@ function renderArcade(c){
     var host=$('mxpHost');presentPanel(host,L,function(){if(!DK.edit||host.isConnected)renderArcade(c);});
   }
   c.querySelectorAll('.mxr-card[data-i]').forEach(function(b){b.onclick=function(){startGame(ALLG[+b.dataset.i]);};});
+  c.querySelectorAll('[data-lt]').forEach(function(b){b.onclick=function(){openLesson(LESSONS[+b.dataset.lt]);};});
+  if(!CLS.on)fillHomework(c);
   syncUrl();
 }
 /* the address always shows where you are, so any screen can be sent as a link:
@@ -1959,7 +2036,7 @@ function presentShared(u,id,fail){fbJ('/arcade/decks/'+encodeURIComponent(u)+'/'
   if(!d||!d.slides){if(fail)fail('none');return;}d.slides=Array.isArray(d.slides)?d.slides:Object.keys(d.slides).map(function(k){return d.slides[k];});
   try{history.replaceState(null,'','#/present');}catch(e){}presentDeck(d,'#/present/'+encodeURIComponent(u)+'/'+encodeURIComponent(id));})['catch'](function(){if(fail)fail('net');});}
 if(W.trAdd)W.trAdd({"Copy the link to this game":"Copier le lien de ce jeu","Copy the link to this slideshow":"Copier le lien de ce diaporama","Copy this link:":"Copie ce lien :"});
-W.mxArcade={openState:openState,has:function(id){return ALLG.some(function(x){return x.id===id;});},presentShared:presentShared,start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:BOARD,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,board:BOARD,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
+W.mxArcade={levels:LEVELS,openLesson:openLesson,openState:openState,has:function(id){return ALLG.some(function(x){return x.id===id;});},presentShared:presentShared,start:function(id){var g=ALLG.filter(function(x){return x.id===id;})[0];if(g)startGame(g);},games:ALLG,classGames:BOARD,forGrade:forGrade,makeQ:makeQ,lessons:LESSONS,board:BOARD,startTopic:function(gid,tid){var g=ALLG.filter(function(x){return x.id===gid;})[0],t=LESSONS.filter(function(x){return x.id===tid;})[0];if(g&&t)startGame(g,t);},version:ARCADE_VERSION};
 /* Android back button closes a running game */
 W.addEventListener('popstate',function(){if(G){G.pushed=false;stopGame();}});
 })();

@@ -212,3 +212,17 @@ input.code{letter-spacing:.4em;font-size:1.4rem !important;text-align:center;fon
 .showbtns{display:flex;flex-wrap:wrap;gap:6px 18px;border:1px solid var(--line);border-radius:14px;padding:8px 14px 10px;margin:10px 0}
 .showbtns legend{font-weight:800;font-size:.85rem;color:var(--dim);padding:0 6px}
 .showbtns .radio{margin:0}
+/* 🏫 schools: classes, students, homework */
+.mxs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:12px 0}
+.mxs-card{display:flex;flex-direction:column;gap:4px;padding:16px;border-radius:18px;border:1px solid var(--line,rgba(255,255,255,.12));background:var(--card,#17182f);color:inherit;text-decoration:none}
+.mxs-card:hover{border-color:#a78bfa}.mxs-card small{opacity:.7}.mxs-card span{font-weight:800;margin-top:6px}
+.mxs-form{display:grid;gap:10px;max-width:560px;margin:12px 0}
+.mxs-form label{display:grid;gap:6px;font-weight:700}
+.mxs-form input,.mxs-form select,.mxs-form textarea{min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,rgba(255,255,255,.18));background:transparent;color:inherit;font:inherit}
+.mxs-form select option{color:#111}
+.mxs-t{border-collapse:collapse;margin:10px 0;width:100%;max-width:560px}.mxs-t td,.mxs-t th{border:1px solid var(--line,rgba(255,255,255,.15));padding:8px 10px;text-align:left}
+.mxs-hw details{margin:8px 0}.mxs-hw summary{cursor:pointer;line-height:1.5}
+.mxs-logins{border:2px solid #fbbf24}
+.mxo-s{margin:12px 0}.mxo-s>summary,.mxo-c>summary{cursor:pointer;padding:6px 0;line-height:1.5}.mxo-c{margin:8px 0 8px 14px}
+.btn.del,button.del{color:#f87171}
+.urow .nm small{display:block;opacity:.65;font-weight:600}

@@ -33,7 +33,7 @@ var FB = 'https://matix-1d538-default-rtdb.firebaseio.com';
 W.FB = FB; /* the arcade uses it to sync best scores */
 var PLAY_TEST_DEFAULT = 'https://play.google.com/apps/testing/com.matixmathclubappandroid.app';
 var PLAY = 'https://play.google.com/store/apps/details?id=com.matixmathclubappandroid.app';
-var OWNERS = ['ghadi', 'yara']; /* forever owners: always owners, can never be removed or deleted */
+var OWNERS = ['ghadi', 'yara', 'marwan']; /* forever owners: always owners, can never be removed or deleted */
 var CODE_MIN = 15, MAX_TRIES = 5, RESEND_MS = 45000;
 function $(id) { return D.getElementById(id); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -137,19 +137,20 @@ function attachEmail(u, e) {
 }
 
 /* ---------------- account state ---------------- */
-var ME = null, ROLE = 'user', TEACH = false, TEACH_OK = false;
+var ME = null, ROLE = 'user', TEACH = false, TEACH_OK = false, STUDENT = null;
 function getUser() { return ss('mx_user') || ls('mx_site_user') || null; }
 function setUser(u, keep) {
   ss('mx_user', u); ss('matix_auth_user', u);
   if (keep) ls('mx_site_user', u); else ls('mx_site_user', null);
-  ME = u; ROLE = 'user'; TEACH = false; loadRole().then(paintAuth);
+  ME = u; ROLE = 'user'; TEACH = false; STUDENT = null; loadRole().then(paintAuth);
 }
-function signOut() { ss('mx_user', null); ss('matix_auth_user', null); ls('mx_site_user', null); ME = null; ROLE = 'user'; TEACH = false; paintAuth(); location.hash = '#/'; }
+function signOut() { ss('mx_user', null); ss('matix_auth_user', null); ls('mx_site_user', null); ME = null; ROLE = 'user'; TEACH = false; STUDENT = null; paintAuth(); location.hash = '#/'; }
 function isOwner() { return !!ME && (OWNERS.indexOf(ME) > -1 || ROLE === 'owner'); }
 function isTeacher() { return !!ME && (TEACH || isOwner()); }
 function loadRole() {
   if (!ME) return Promise.resolve('user');
   TEACH_OK = false;
+  fbGet('/student_of/' + enc(ME), true).then(function (st) { var was = !!STUDENT; STUDENT = st || null; if (was !== !!STUDENT) paintAuth(); }).catch(function () {});
   fbGet('/teachers/' + enc(ME), true).then(function (t) { var was = TEACH; TEACH = !!t || TEACH; TEACH_OK = true; if (was !== TEACH || /^#\/(teacher|live)/.test(location.hash)) paintAuth(); }).catch(function () { TEACH_OK = true; });
   return fbGet('/roles/' + enc(ME), true).then(function (r) { ROLE = String(r || '').toLowerCase() || 'user'; if (OWNERS.indexOf(ME) > -1) ROLE = 'owner'; return ROLE; })
     .catch(function () { return ROLE; });
@@ -205,7 +206,14 @@ function showView(v, arg) {
       + '<div class="err" id="aE" role="alert"></div><button class="btn pri wide" id="aGo">Sign in</button></form>'
       + '<p class="legal">By signing in or creating an account you agree to our <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</p>'
       + '<p class="swap"><button type="button" class="link" id="aForgot">Forgot your password?</button></p>'
-      + '<p class="swap">New to Matix? <button type="button" class="link" id="aJoin">Create an account</button></p>';
+      + '<p class="swap">New to Matix? <button type="button" class="link" id="aJoin">Create an account</button></p>'
+      + '<p class="swap"><button type="button" class="btn ghost" id="aKid">🎒 I’m a student</button></p>';
+  } else if (v === 'kid') {
+    h = '<h2 id="authTitle">🎒 I’m a student</h2><p class="sub">Your teacher made your account. Type the username and password your teacher gave you.</p><form id="af">'
+      + fld('Username', 'aU', 'text', 'username', 'e.g. lina245') + fld('Password', 'aP', 'password', 'current-password')
+      + '<label class="check"><input type="checkbox" id="aK"' + (KEEP ? ' checked' : '') + '> Keep me signed in on this device</label>'
+      + '<div class="err" id="aE" role="alert"></div><button class="btn pri wide" id="aGo">Sign in</button></form>'
+      + '<p class="swap">Forgot your password? Ask your teacher for a new one.</p><p class="swap"><button type="button" class="link" id="aIn">← Back to sign in</button></p>';
   } else if (v === 'join') {
     h = '<h2 id="authTitle">Create your Matix account</h2><p class="sub">It works in the app too. We send a code to your email to check it is yours.</p><form id="af">'
       + fld('Username', 'aU', 'text', 'username', 'yourname') + fld('Email', 'aM', 'email', 'email', 'you@example.com') + fld('Password', 'aP', 'password', 'new-password')
@@ -231,7 +239,7 @@ function showView(v, arg) {
   b.innerHTML = h;
   var f = b.querySelector('input'); if (f) f.focus();
   function on(id, fn) { var n = $(id); if (n) n.onclick = fn; }
-  on('aJoin', function () { showView('join'); }); on('aIn', function () { showView('signin'); }); on('aForgot', function () { showView('forgot'); });
+  on('aJoin', function () { showView('join'); }); on('aKid', function () { showView('kid'); }); on('aIn', function () { showView('signin'); }); on('aForgot', function () { showView('forgot'); });
   on('aLater', function () { closeAuth(); toast('You can verify your email any time from your account.'); });
   on('aResend', function () { issueCode(arg.u, v === 'reset' ? 'reset' : 'verify', arg.email, v === 'verify' ? { email: arg.email } : undefined).then(function () { toast('📬 New code sent'); }, function (x) { $('aE').textContent = sendErr(x); }); });
   $('af').onsubmit = function (e) {
@@ -239,7 +247,7 @@ function showView(v, arg) {
     var go = $('aGo'), er = $('aE'); er.textContent = ''; go.disabled = true;
     var done = function () { go.disabled = false; };
     var keep = $('aK') ? $('aK').checked : KEEP; KEEP = keep;
-    if (v === 'signin') {
+    if (v === 'signin' || v === 'kid') {
       signIn($('aU').value, $('aP').value).then(function (r) { done(); if (r && r.ok) { closeAuth(); setUser(r.ok, keep); toast('👋 Signed in as @' + r.ok); } else er.textContent = r; });
     } else if (v === 'join') {
       var asT = $('aT') && $('aT').checked;
@@ -288,7 +296,7 @@ function paintAuth() {
   W.mxUser = ME; /* the arcade syncs best scores for the signed-in player */
   var who = $('who'), menu = $('menu');
   /* the menu: Join is always there (students need no account) */
-  menu.innerHTML = (ME ? '<a href="#/games" data-r="games">🎮 <span>Interactive games</span></a>' : '')
+  menu.innerHTML = (ME ? (STUDENT ? '<a href="#/games" data-r="games">🎒 <span>My class</span></a>' : '<a href="#/games" data-r="games">🎮 <span>Interactive games</span></a>') : '')
     + (isTeacher() ? '<a href="#/teacher" data-r="teacher">🍎 <span>Teacher</span></a>' : '')
     + '<a href="/join/" data-r="join">🎯 <span>Join a game</span></a>'
     + '<a href="#/" data-r="home">📲 <span>Download app</span></a>';
@@ -445,17 +453,17 @@ function games(c) { if (typeof W.renderGames === 'function') W.renderGames(c); e
 var LADDER = ['user', 'member', 'admin', 'manager'], RICON = { user: '🙂', member: '🎓', admin: '⭐', manager: '🛡️', owner: '👑' };
 function owner(c, sub) {
   if (!isOwner()) { home(c); return; }
-  sub = ['users', 'deleted', 'email', 'stores'].indexOf(sub) > -1 ? sub : 'users';
+  sub = ['users', 'schools', 'deleted', 'email', 'stores'].indexOf(sub) > -1 ? sub : 'users';
   c.innerHTML = '<div class="page"><h1>👑 Owner</h1><p class="sub">Only owners can see this tab.</p>'
-    + '<div class="tabs" role="tablist">' + [['users', '⬆️ User upgrading'], ['deleted', '♻️ Deleted users'], ['email', '📮 Email sending'], ['stores', '🛒 Store buttons']].map(function (t) {
+    + '<div class="tabs" role="tablist">' + [['users', '⬆️ User upgrading'], ['schools', '🏫 Schools'], ['deleted', '♻️ Deleted users'], ['email', '📮 Email sending'], ['stores', '🛒 Store buttons']].map(function (t) {
       return '<a role="tab" class="tab" href="#/owner/' + t[0] + '" aria-selected="' + (sub === t[0]) + '">' + t[1] + '</a>';
     }).join('') + '</div><div id="owBody"></div></div>';
-  ({ users: ownerUsers, deleted: ownerDeleted, email: ownerEmail, stores: ownerStores })[sub]($('owBody'));
+  ({ users: ownerUsers, schools: function (b) { if (W.mxSchool) W.mxSchool.owner(b); else b.textContent = 'Schools could not load.'; }, deleted: ownerDeleted, email: ownerEmail, stores: ownerStores })[sub]($('owBody'));
 }
 /* the button groups in User upgrading: [key, label, shown at first] */
 var BTN_GROUPS = [['teach', '🍎 Teacher', true], ['promote', '⬆⬇ Promote / demote', true], ['owner', '👑 Owner', false], ['del', '🗑 Delete', true]];
 function ownerUsers(box) {
-  box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), switch them between 🎒 Student and 🍎 Teacher mode, add another 👑 owner (you stay an owner), or delete an account. Deleting keeps a backup, so you can undo it from ♻️ Deleted users.</p>'
+  box.innerHTML = '<p class="sub">Promote members step by step (user → member → admin → manager), turn 🍎 Teacher mode on or off, add another 👑 owner (you stay an owner), or delete an account. Deleting keeps a backup, so you can undo it from ♻️ Deleted users.</p>'
     + '<input class="search" id="uQ" type="search" placeholder="Search users…" aria-label="Search users">'
     + '<fieldset class="showbtns" id="uShow"><legend>Show buttons</legend>' + BTN_GROUPS.map(function (g) { return '<label class="radio"><input type="checkbox" data-g="' + g[0] + '"> ' + g[1] + '</label>'; }).join('') + '</fieldset>'
     + '<div class="ulist" id="uList"><p class="sub">Loading…</p></div>';
@@ -476,7 +484,7 @@ function ownerUsers(box) {
       $('uList').innerHTML = list.map(function (u) {
         var r0 = roleOf(u), i = LADDER.indexOf(r0), locked = r0 === 'owner' || u === ME;
         return '<div class="urow"><span class="nm">@' + esc(u) + '</span><span class="rl">' + RICON[r0] + ' ' + esc(r0) + '</span>'
-          + (r0 === 'owner' ? '' : '<span class="rl ' + (teach[u] ? 'tch' : 'stu') + '">' + (teach[u] ? '🍎 Teacher' : '🎒 Student') + '</span>' + (show.teach ? '<button type="button" data-u="' + esc(u) + '" data-a="teach">' + (teach[u] ? '🎒 Back to student' : '🍎 Make teacher') + '</button>' : ''))
+          + (r0 === 'owner' ? '' : (teach[u] ? '<span class="rl tch">🍎 Teacher</span>' : '') + (show.teach ? '<button type="button" data-u="' + esc(u) + '" data-a="teach">' + (teach[u] ? '✕ Not a teacher' : '🍎 Make teacher') + '</button>' : ''))
           + (locked ? '' : (show.promote && i < LADDER.length - 1 ? '<button type="button" data-u="' + esc(u) + '" data-a="up">⬆ Promote to ' + LADDER[i + 1] + '</button>' : '')
             + (show.promote && i > 0 ? '<button type="button" data-u="' + esc(u) + '" data-a="down">⬇ ' + LADDER[i - 1] + '</button>' : '')
             + (show.owner ? '<button type="button" class="own" data-u="' + esc(u) + '" data-a="own">👑 Make owner</button>' : '')
@@ -502,11 +510,11 @@ function ownerUsers(box) {
       }
       if (a === 'teach') {
         var on = !teach[u];
-        if (!confirm(on ? 'Make @' + u + ' a teacher? They get the Teacher tab and Matix Present.' : 'Put @' + u + ' back to student mode? They lose the Teacher tab (their quizzes are kept).')) return;
+        if (!confirm(on ? 'Make @' + u + ' a teacher? They get the Teacher tab, Matix Present and classes.' : 'Turn teacher mode off for @' + u + '? They lose the Teacher tab (their quizzes and classes are kept).')) return;
         b.disabled = true;
         Promise.all([fbPut('/teachers/' + enc(u), on ? true : null, true), fbPatch('/members/' + enc(u), { teacher: on })]).then(function () {
-          if (on) teach[u] = true; else delete teach[u]; draw(); toast(on ? '🍎 @' + u + ' is now a teacher' : '🎒 @' + u + ' is back to student mode');
-          fbPost('/notifications/' + enc(u), { type: 'role', title: on ? '🍎 Teacher mode is on' : '🎒 You are back to student mode', body: on ? 'You now have the Teacher tab on matixthemathclub.com: make quizzes and run them live with Matix Present.' : 'Teacher mode was turned off for your account.', at: Date.now(), from: ME }).catch(function () {});
+          if (on) teach[u] = true; else delete teach[u]; draw(); toast(on ? '🍎 @' + u + ' is now a teacher' : '@' + u + ' is no longer a teacher');
+          fbPost('/notifications/' + enc(u), { type: 'role', title: on ? '🍎 Teacher mode is on' : 'Teacher mode is off', body: on ? 'You now have the Teacher tab on matixthemathclub.com: make quizzes and run them live with Matix Present.' : 'Teacher mode was turned off for your account.', at: Date.now(), from: ME }).catch(function () {});
         }).catch(function () { b.disabled = false; toast('Could not save. Check your connection.', 'err'); });
         return;
       }
@@ -521,16 +529,20 @@ function ownerUsers(box) {
       } else if (a === 'del') {
         if (!confirm('Delete @' + u + '? Their account, profile, role, comments and follows are removed. A backup is kept so you can undo it from Owner → ♻️ Deleted users.')) return;
         b.disabled = true; b.textContent = 'Deleting…';
-        Promise.all(['/members/', '/profiles/', '/roles/', '/profile_comments/', '/follows/'].map(function (p) { return fbGet(p + enc(u), true); })).then(function (d) {
-          return fbPut('/deletion_backups/' + enc(u), { member: d[0], profile: d[1], role: d[2], comments: d[3], follows: d[4], at: Date.now(), by: ME }, true);
-        }).then(function () {
-          return Promise.all([fbPut('/deletions/' + enc(u), { at: Date.now(), by: ME }, true)].concat(['/members/', '/profiles/', '/roles/', '/profile_comments/', '/follows/', '/friends/'].map(function (p) { return fbPut(p + enc(u), null, true); })));
-        }).then(function () { return wipeArcade(u); }).then(function () { names = names.filter(function (x) { return x !== u; }); delete roles[u]; draw(); toast('🗑 @' + u + ' deleted'); })
+        deleteAccount(u).then(function () { names = names.filter(function (x) { return x !== u; }); delete roles[u]; draw(); toast('🗑 @' + u + ' deleted'); })
           .catch(function () { b.disabled = false; b.textContent = '🗑 Delete'; toast('Could not delete. Check your connection.', 'err'); });
       }
     };
     draw();
   }).catch(function () { $('uList').innerHTML = '<p class="sub">Could not load users. Check your connection.</p>'; });
+}
+/* delete an account (a backup is kept for ♻️ Deleted users) */
+function deleteAccount(u) {
+  return Promise.all(['/members/', '/profiles/', '/roles/', '/profile_comments/', '/follows/'].map(function (p) { return fbGet(p + enc(u), true); })).then(function (d) {
+    return fbPut('/deletion_backups/' + enc(u), { member: d[0], profile: d[1], role: d[2], comments: d[3], follows: d[4], at: Date.now(), by: ME }, true);
+  }).then(function () {
+    return Promise.all([fbPut('/deletions/' + enc(u), { at: Date.now(), by: ME }, true)].concat(['/members/', '/profiles/', '/roles/', '/profile_comments/', '/follows/', '/friends/'].map(function (p) { return fbPut(p + enc(u), null, true); })));
+  }).then(function () { return wipeArcade(u); });
 }
 /* deleting an account also removes that player's arcade scores (and their top-score entries) and saved exercise sets */
 function wipeArcade(u) {
@@ -645,7 +657,11 @@ function teacherGate(c) {
 }
 function teacher(c, parts, Q) {
   if (!W.mxPresent) { c.innerHTML = '<div class="page"><p>Matix Present could not load.</p></div>'; return; }
-  if (parts[0] === 'live') W.mxPresent.live(c, parts[1]); else W.mxPresent.page(c, parts, Q);
+  if (parts[0] === 'live') { W.mxPresent.live(c, parts[1]); return; }
+  if (parts[1] === 'classes') { if (W.mxSchool) W.mxSchool.teacher(c, parts); return; }
+  W.mxPresent.page(c, parts, Q);
+  /* the teacher's classes and homework live next to their quizzes */
+  var rb = c.querySelector('.row-btns'); if (rb && !rb.querySelector('.mxs-link')) { var a = D.createElement('a'); a.className = 'btn ghost mxs-link'; a.href = '#/teacher/classes'; a.textContent = '🏫 ' + (typeof W.tr === 'function' ? W.tr('My classes and homework') : 'My classes and homework'); rb.insertBefore(a, rb.children[1] || null); }
 }
 /* a slideshow (diaporama) link: open to anybody, no account needed */
 function present(c, parts) {
@@ -690,6 +706,7 @@ function route() {
 }
 
 W.addEventListener('mxlang', function () { try { paintAuth(); } catch (e) {} });
+W.mxSite = { fbGet: fbGet, fbPut: fbPut, fbPatch: fbPatch, fbPost: fbPost, toast: toast, me: function () { return ME; }, isOwner: isOwner, isTeacher: isTeacher, deleteAccount: deleteAccount };
 function boot() {
   wireModal();
   ME = getUser();
