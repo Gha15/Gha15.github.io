@@ -11,9 +11,11 @@
 <meta property="og:title" content="Matix the Math Club">
 <meta property="og:description" content="Learn math from Grade 1 to college in one-minute videos, then play it.">
 <meta property="og:image" content="https://matixthemathclub.com/assets/posters/pythagoras.jpg">
+<script>try{var t=localStorage.getItem("matix_theme");if(t?t==="light":matchMedia("(prefers-color-scheme: light)").matches)document.documentElement.classList.add("light");}catch(e){}</script>
 <link rel="stylesheet" href="/assets/site.css?v=13">
 <link rel="stylesheet" href="/assets/arcade.css?v=24">
 <link rel="stylesheet" href="/assets/matix-present.css?v=1">
+<link rel="stylesheet" href="/assets/theme.css?v=1">
 <link rel="canonical" href="https://www.matixthemathclub.com/">
 </head>
 <body>
@@ -26,6 +28,7 @@
     <a href="#/" data-r="home">📲 <span>Download app</span></a>
   </nav>
   <button type="button" class="langbtn" id="langBtn" translate="no">🌐 <b>EN</b></button>
+  <button type="button" class="themebtn" id="themeBtn" aria-label="Light or dark mode">🌙</button>
   <div class="who" id="who"></div>
 </header>
 
@@ -51,5 +54,8 @@
 <script src="/assets/matix-present.js?v=8"></script>
 <script src="/assets/matix-school.js?v=4"></script>
 <script src="/assets/site.js?v=19"></script>
+<script>(function(){var R=document.documentElement,b=document.getElementById('themeBtn'),m=document.querySelector('meta[name=theme-color]');
+function paint(){var l=R.classList.contains('light');b.textContent=l?'🌙':'☀️';b.title=l?'Dark mode':'Light mode';if(m)m.content=l?'#f6f4ff':'#0b0c18';}
+b.onclick=function(){R.classList.toggle('light');try{localStorage.setItem('matix_theme',R.classList.contains('light')?'light':'dark');}catch(e){}paint();};paint();})();</script>
 </body>
 </html>

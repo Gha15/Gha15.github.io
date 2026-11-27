@@ -1,0 +1,38 @@
+/* matixthemathclub.com — light mode (html.light). Dark stays the default look;
+   the ☀️/🌙 button in the top bar switches, saved in localStorage "matix_theme".
+   Full-screen game, smart-board and Matix Present screens stay dark on purpose. */
+html.light{
+  --bg:#f6f4ff;--bg2:#ffffff;--card:#ffffff;--ink:#1a1b33;--dim:#55597a;--line:rgba(26,27,51,.13);
+  --accent:#ea580c;--blue:#0284c7;--green:#16a34a;--gold:#d97706;
+  color-scheme:light;
+}
+html.light body{background:var(--bg);color:var(--ink)}
+html.light .top{background:rgba(255,255,255,.85)}
+html.light .brand-word,html.light .hero-logo{filter:invert(1) hue-rotate(180deg)}
+html.light .menu a:hover,html.light a.chip:hover{background:rgba(26,27,51,.06)}
+html.light .chip .role,html.light .eyebrow{color:#c2410c}
+html.light .btn.pri,html.light .mxm-btn.pri{background:#1a1b33;color:#fff}
+html.light .btn.ghost{background:rgba(26,27,51,.04)}
+html.light .btn.ghost:hover{background:rgba(26,27,51,.09)}
+html.light .mxm-btn.sec{background:rgba(26,27,51,.06);color:var(--ink);border-color:var(--line)}
+html.light .store.locked{background:rgba(26,27,51,.06)}
+html.light .store.locked:hover{border-color:var(--line)}
+html.light .hero{background:radial-gradient(900px 500px at 15% 10%,rgba(139,92,246,.2),transparent 60%),radial-gradient(700px 500px at 90% 80%,rgba(249,115,22,.16),transparent 60%),var(--bg)}
+html.light .feat .art{background-color:#e9e5ff}
+html.light .modal{background:rgba(20,20,40,.45)}
+html.light .modal-card input:not([type=checkbox]),html.light .opt,html.light .urow button,
+html.light .page input:not([type=checkbox]):not([type=radio]):not(.search),
+html.light .mxt textarea,html.light .mxt select,html.light .mxt-qh button,html.light .mxt-orow{background:#fff;color:var(--ink)}
+html.light .mxt select option{background:#fff;color:var(--ink)}
+html.light .prog{background:rgba(26,27,51,.1)}
+html.light .err,html.light .mxt .err,html.light .pill.no,html.light .urow button.del{color:#dc2626}
+html.light .urow button.own{color:#b45309}
+html.light .toast{background:#1a1b33;color:#fff}
+html.light .mxr-search{background:#fff}
+html.light .mxl-box{background:#fff;color:var(--ink)}
+html.light .mxj-top{background:rgba(255,255,255,.88)}
+/* the theme button */
+.themebtn{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;border-radius:999px;cursor:pointer;font:inherit;font-size:1.1rem;color:inherit;
+  background:var(--card);border:1px solid var(--line)}
+.themebtn:hover{border-color:#a78bfa}
+.langbtn+.themebtn{margin-left:0}
