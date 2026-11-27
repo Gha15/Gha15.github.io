@@ -137,19 +137,21 @@ function attachEmail(u, e) {
 }
 
 /* ---------------- account state ---------------- */
-var ME = null, ROLE = 'user', TEACH = false, TEACH_OK = false, STUDENT = null;
+var ME = null, ROLE = 'user', TEACH = false, TEACH_OK = false, STUDENT = null, ADMIN = false;
 function getUser() { return ss('mx_user') || ls('mx_site_user') || null; }
 function setUser(u, keep) {
   ss('mx_user', u); ss('matix_auth_user', u);
   if (keep) ls('mx_site_user', u); else ls('mx_site_user', null);
-  ME = u; ROLE = 'user'; TEACH = false; STUDENT = null; loadRole().then(paintAuth);
+  ME = u; ROLE = 'user'; TEACH = false; STUDENT = null; ADMIN = false; loadRole().then(paintAuth);
 }
-function signOut() { ss('mx_user', null); ss('matix_auth_user', null); ls('mx_site_user', null); ME = null; ROLE = 'user'; TEACH = false; STUDENT = null; paintAuth(); location.hash = '#/'; }
+function signOut() { ss('mx_user', null); ss('matix_auth_user', null); ls('mx_site_user', null); ME = null; ROLE = 'user'; TEACH = false; STUDENT = null; ADMIN = false; paintAuth(); location.hash = '#/'; }
 function isOwner() { return !!ME && (OWNERS.indexOf(ME) > -1 || ROLE === 'owner'); }
 function isTeacher() { return !!ME && (TEACH || isOwner()); }
+function isAdmin() { return !!ME && (ADMIN || isOwner()); }
 function loadRole() {
   if (!ME) return Promise.resolve('user');
   TEACH_OK = false;
+  fbGet('/school_admins/' + enc(ME), true).then(function (a) { var was = ADMIN; ADMIN = !!a; if (was !== ADMIN) paintAuth(); }).catch(function () {});
   fbGet('/student_of/' + enc(ME), true).then(function (st) { var was = !!STUDENT; STUDENT = st || null; if (was !== !!STUDENT) paintAuth(); }).catch(function () {});
   fbGet('/teachers/' + enc(ME), true).then(function (t) { var was = TEACH; TEACH = !!t || TEACH; TEACH_OK = true; if (was !== TEACH || /^#\/(teacher|live)/.test(location.hash)) paintAuth(); }).catch(function () { TEACH_OK = true; });
   return fbGet('/roles/' + enc(ME), true).then(function (r) { ROLE = String(r || '').toLowerCase() || 'user'; if (OWNERS.indexOf(ME) > -1) ROLE = 'owner'; return ROLE; })
@@ -171,7 +173,7 @@ function signIn(id, pass) {
     });
   }).catch(function () { return 'Could not reach Matix. Check your connection.'; });
 }
-function join(rawU, email, pass, teacher) {
+function join(rawU, email, pass, teacher, admin) {
   var u = normU(rawU); email = normE(email);
   if (u.length < 2) return Promise.resolve('Pick a username with at least 2 letters or numbers.');
   if (!validEmail(email)) return Promise.resolve('Enter a real email address.');
@@ -181,10 +183,12 @@ function join(rawU, email, pass, teacher) {
     return emailFree(email, u).then(function (free) {
       if (!free) return 'That email is already used by another account.';
       var rec = { password: pass, joinedAt: Date.now(), testUser: true, email: email, emailVerified: false };
-      if (teacher) rec.teacher = true;
+      if (teacher || admin) rec.teacher = true;
+      if (admin) rec.schoolAdmin = true;
       return fbPut('/members/' + enc(u), rec).then(function () {
         fbPut('/profiles/' + enc(u), { displayName: u, bio: '', updatedAt: Date.now() }).catch(function () {});
-        if (teacher) { TEACH = true; fbPut('/teachers/' + enc(u), true, true).catch(function () {}); }
+        if (teacher || admin) { TEACH = true; fbPut('/teachers/' + enc(u), true, true).catch(function () {}); }
+        if (admin) { ADMIN = true; fbPut('/school_admins/' + enc(u) + '/_', true, true).catch(function () {}); }
         return { ok: u, email: email };
       });
     });
@@ -218,6 +222,7 @@ function showView(v, arg) {
     h = '<h2 id="authTitle">Create your Matix account</h2><p class="sub">It works in the app too. We send a code to your email to check it is yours.</p><form id="af">'
       + fld('Username', 'aU', 'text', 'username', 'yourname') + fld('Email', 'aM', 'email', 'email', 'you@example.com') + fld('Password', 'aP', 'password', 'new-password')
       + '<label class="check teach"><input type="checkbox" id="aT"> 🍎 I’m a teacher (make quizzes and run Matix Present in class)</label>'
+      + '<label class="check teach"><input type="checkbox" id="aA"> 🏫 I’m a school administrator (I make the school and add its teachers)</label>'
       + '<label class="check"><input type="checkbox" id="aK"' + (KEEP ? ' checked' : '') + '> Keep me signed in on this device</label>'
       + '<div class="err" id="aE" role="alert"></div><button class="btn pri wide" id="aGo">Create account</button></form>'
       + '<p class="legal">By signing in or creating an account you agree to our <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</p>'
@@ -250,10 +255,10 @@ function showView(v, arg) {
     if (v === 'signin' || v === 'kid') {
       signIn($('aU').value, $('aP').value).then(function (r) { done(); if (r && r.ok) { closeAuth(); setUser(r.ok, keep); toast('👋 Signed in as @' + r.ok); } else er.textContent = r; });
     } else if (v === 'join') {
-      var asT = $('aT') && $('aT').checked;
-      join($('aU').value, $('aM').value, $('aP').value, asT).then(function (r) {
+      var asT = $('aT') && $('aT').checked, asA = $('aA') && $('aA').checked;
+      join($('aU').value, $('aM').value, $('aP').value, asT, asA).then(function (r) {
         done(); if (!(r && r.ok)) { er.textContent = r; return; }
-        setUser(r.ok, keep); if (asT) TEACH = true; toast('🎉 Welcome to Matix, @' + r.ok + '!');
+        setUser(r.ok, keep); if (asT || asA) TEACH = true; if (asA) { ADMIN = true; location.hash = '#/school'; } toast('🎉 Welcome to Matix, @' + r.ok + '!');
         loadCfg().then(function () {
           if (!emailReady()) { closeAuth(); return; }
           issueCode(r.ok, 'verify', r.email, { email: r.email }).then(function () { showView('verify', { u: r.ok, email: r.email }); }, function () { closeAuth(); toast('We could not send the code now. Verify later from your account.'); });
@@ -298,6 +303,7 @@ function paintAuth() {
   /* the menu: Join is always there (students need no account) */
   menu.innerHTML = (ME ? (STUDENT ? '<a href="#/games" data-r="games">🎒 <span>My class</span></a>' : '<a href="#/games" data-r="games">🎮 <span>Interactive games</span></a>') : '')
     + (isTeacher() ? '<a href="#/teacher" data-r="teacher">🍎 <span>Teacher</span></a>' : '')
+    + (isAdmin() ? '<a href="#/school" data-r="school">🏫 <span>School</span></a>' : '')
     + '<a href="/join/" data-r="join">🎯 <span>Join a game</span></a>'
     + '<a href="#/" data-r="home">📲 <span>Download app</span></a>';
   menu.hidden = false;
@@ -467,8 +473,8 @@ function ownerUsers(box) {
     + '<input class="search" id="uQ" type="search" placeholder="Search users…" aria-label="Search users">'
     + '<fieldset class="showbtns" id="uShow"><legend>Show buttons</legend>' + BTN_GROUPS.map(function (g) { return '<label class="radio"><input type="checkbox" data-g="' + g[0] + '"> ' + g[1] + '</label>'; }).join('') + '</fieldset>'
     + '<div class="ulist" id="uList"><p class="sub">Loading…</p></div>';
-  Promise.all([fbGet('/members', true), fbGet('/roles', true), fbGet('/teachers', true), fbGet('/site_prefs/' + enc(ME) + '/ownerButtons', true).catch(function () { return null; })]).then(function (r) {
-    var names = Object.keys(r[0] || {}).sort(), roles = r[1] || {}, teach = r[2] || {}, q = '';
+  Promise.all([fbGet('/members', true), fbGet('/roles', true), fbGet('/teachers', true), fbGet('/site_prefs/' + enc(ME) + '/ownerButtons', true).catch(function () { return null; }), fbGet('/school_admins', true).catch(function () { return null; })]).then(function (r) {
+    var names = Object.keys(r[0] || {}).sort(), roles = r[1] || {}, teach = r[2] || {}, adm = r[4] || {}, q = '';
     /* which buttons to show: saved on the owner's account, so it is the same on every device */
     var show = {}; BTN_GROUPS.forEach(function (g) { show[g[0]] = g[2]; });
     if (r[3] && typeof r[3] === 'object') { for (var k in show) { if (typeof r[3][k] === 'boolean') show[k] = r[3][k]; } }
@@ -484,7 +490,7 @@ function ownerUsers(box) {
       $('uList').innerHTML = list.map(function (u) {
         var r0 = roleOf(u), i = LADDER.indexOf(r0), locked = r0 === 'owner' || u === ME;
         return '<div class="urow"><span class="nm">@' + esc(u) + '</span><span class="rl">' + RICON[r0] + ' ' + esc(r0) + '</span>'
-          + (r0 === 'owner' ? '' : (teach[u] ? '<span class="rl tch">🍎 Teacher</span>' : '') + (show.teach ? '<button type="button" data-u="' + esc(u) + '" data-a="teach">' + (teach[u] ? '✕ Not a teacher' : '🍎 Make teacher') + '</button>' : ''))
+          + (r0 === 'owner' ? '' : (teach[u] ? '<span class="rl tch">🍎 Teacher</span>' : '') + (adm[u] ? '<span class="rl tch">🏫 School admin</span>' : '') + (show.teach ? '<button type="button" data-u="' + esc(u) + '" data-a="teach">' + (teach[u] ? '✕ Not a teacher' : '🍎 Make teacher') + '</button><button type="button" data-u="' + esc(u) + '" data-a="adm">' + (adm[u] ? '✕ Not a school admin' : '🏫 Make school admin') + '</button>' : ''))
           + (locked ? '' : (show.promote && i < LADDER.length - 1 ? '<button type="button" data-u="' + esc(u) + '" data-a="up">⬆ Promote to ' + LADDER[i + 1] + '</button>' : '')
             + (show.promote && i > 0 ? '<button type="button" data-u="' + esc(u) + '" data-a="down">⬇ ' + LADDER[i - 1] + '</button>' : '')
             + (show.owner ? '<button type="button" class="own" data-u="' + esc(u) + '" data-a="own">👑 Make owner</button>' : '')
@@ -506,6 +512,13 @@ function ownerUsers(box) {
           if (mk) roles[u] = 'owner'; else delete roles[u]; draw(); toast(mk ? '👑 @' + u + ' is now an owner' : '@' + u + ' is no longer an owner');
           fbPost('/notifications/' + enc(u), { type: 'role', title: mk ? '👑 You are now an owner' : 'You are no longer an owner', body: '@' + ME + ' changed your role in the club.', at: Date.now(), from: ME }).catch(function () {});
         }).catch(function () { b.disabled = false; toast('Could not save. Check your connection.', 'err'); });
+        return;
+      }
+      if (a === 'adm') {
+        var on2 = !adm[u]; if (!confirm(on2 ? 'Make @' + u + ' a school administrator? They can make a school, add its teachers and see everything in it.' : 'Remove school administrator from @' + u + '? Their schools stay.')) return;
+        b.disabled = true;
+        (on2 ? fbPut('/school_admins/' + enc(u) + '/_', true, true) : fbGet('/school_admins/' + enc(u), true).then(function (o) { var keep = {}; Object.keys(o || {}).forEach(function (k) { if (k !== '_') keep[k] = null; }); return fbPut('/school_admins/' + enc(u), null, true); }))
+          .then(function () { if (on2) adm[u] = { _: true }; else delete adm[u]; draw(); toast(on2 ? '🏫 @' + u + ' is a school administrator' : '@' + u + ' is no longer a school administrator'); }, function () { b.disabled = false; toast('Could not save. Check your connection.', 'err'); });
         return;
       }
       if (a === 'teach') {
@@ -697,16 +710,17 @@ function route() {
     } else games(c);
   }
   else if (r === 'teacher' || r === 'live') { if (!ME) needSignIn(c, 'the Teacher tools'); else if (!isTeacher() && !TEACH_OK) c.innerHTML = '<div class="page"><p class="sub">Loading…</p></div>'; else if (!isTeacher()) teacherGate(c); else teacher(c, parts, Q); }
+  else if (r === 'school') { if (!ME) needSignIn(c, 'your school'); else if (!isAdmin()) { c.innerHTML = '<div class="gate"><div style="font-size:3rem">🏫</div><h1>School administrators</h1><p class="sub">This page is for the person who makes the school. Ask the club owner if you need it.</p></div>'; } else if (W.mxSchool) W.mxSchool.admin(c, parts); }
   else if (r === 'present') present(c, parts);
   else if (r === 'account') { if (!ME) needSignIn(c, 'your account'); else account(c); }
   else if (r === 'owner') owner(c, parts[1]);
   else { r = 'home'; home(c); }
-  D.title = { games: 'Interactive games · Matix', account: 'My account · Matix', owner: 'Owner · Matix', teacher: 'Teacher · Matix', live: 'Matix Present', present: 'Slideshow · Matix' }[r] || 'Matix the Math Club';
+  D.title = { games: 'Interactive games · Matix', account: 'My account · Matix', owner: 'Owner · Matix', school: 'School · Matix', teacher: 'Teacher · Matix', live: 'Matix Present', present: 'Slideshow · Matix' }[r] || 'Matix the Math Club';
   if (r !== 'home') { try { c.focus({ preventScroll: true }); } catch (e) {} W.scrollTo(0, 0); }
 }
 
 W.addEventListener('mxlang', function () { try { paintAuth(); } catch (e) {} });
-W.mxSite = { fbGet: fbGet, fbPut: fbPut, fbPatch: fbPatch, fbPost: fbPost, toast: toast, me: function () { return ME; }, isOwner: isOwner, isTeacher: isTeacher, deleteAccount: deleteAccount };
+W.mxSite = { fbGet: fbGet, fbPut: fbPut, fbPatch: fbPatch, fbPost: fbPost, toast: toast, me: function () { return ME; }, isOwner: isOwner, isTeacher: isTeacher, isAdmin: isAdmin, deleteAccount: deleteAccount };
 function boot() {
   wireModal();
   ME = getUser();

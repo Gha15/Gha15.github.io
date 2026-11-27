@@ -34,6 +34,7 @@ function gName(g) { var r = GRADES()[(+g || 3) - 1]; return T(r ? r[1] : 'Grade 
 function lessons() { return (W.mxArcade && W.mxArcade.lessons) || []; }
 function topicName(id) { var t = lessons().filter(function (x) { return x.id === id; })[0]; if (!t) return id; var fr = W.mxLang && W.mxLang.get() === 'fr'; return t.icon + ' ' + (fr ? t.n[1] : t.n[0]); }
 function cnt(o) { return Object.keys(o || {}).length; }
+function schoolCode() { var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s2 = ''; for (var i = 0; i < 6; i++) s2 += a[Math.floor(Math.random() * a.length)]; return s2; }
 var WORDS = ['cat', 'sun', 'owl', 'fox', 'star', 'moon', 'tree', 'bee', 'frog', 'kite', 'leaf', 'cake', 'ship', 'fish', 'bear', 'lion'];
 function kidPass() { return WORDS[Math.floor(Math.random() * WORDS.length)] + (10 + Math.floor(Math.random() * 90)); }
 function normU(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9_]/g, '').slice(0, 20); }
@@ -49,25 +50,32 @@ function teacher(c, parts) {
     + '<label>' + esc(T('Class name')) + '<input id="mxsN" maxlength="40" placeholder="' + esc(T('e.g. 5B maths')) + '" required></label>'
     + '<label>' + esc(T('Grade')) + '<select id="mxsG">' + GRADES().map(function (g) { return '<option value="' + g[0] + '"' + (g[0] === '5' ? ' selected' : '') + '>' + esc(T(g[1])) + '</option>'; }).join('') + '</select></label>'
     + '<label>' + esc(T('School')) + '<select id="mxsS"></select></label><label id="mxsSNl">' + esc(T('New school name')) + '<input id="mxsSN" maxlength="60" placeholder="' + esc(T('e.g. Cedar Hill School')) + '"></label>'
+    + '<label id="mxsCl">' + esc(T('School code (from your school administrator)')) + '<input id="mxsC" maxlength="8" autocapitalize="characters" placeholder="ABC123"></label>'
     + '<button class="btn pri" id="mxsGo">' + esc(T('Make the class')) + '</button><div class="err" id="mxsE" role="alert"></div></form></div>';
-  Promise.all([raw('/classes'), raw('/schools')]).then(function (r) {
-    var cls = r[0] || {}, sch = r[1] || {}, mine = Object.keys(cls).filter(function (k) { return cls[k] && cls[k].teacher === me; });
-    var mySchools = Object.keys(sch).filter(function (k) { return sch[k] && (sch[k].by === me || mine.some(function (c2) { return cls[c2].school === k; })); });
+  Promise.all([raw('/classes'), raw('/schools'), raw('/teacher_school/' + enc(me))]).then(function (r) {
+    var cls = r[0] || {}, sch = r[1] || {}, ts = r[2] || {}, mine = Object.keys(cls).filter(function (k) { return cls[k] && cls[k].teacher === me; });
+    var mySchools = Object.keys(sch).filter(function (k) { return sch[k] && (S().isOwner() || ts[k] || sch[k].by === me || mine.some(function (c2) { return cls[c2].school === k; })); });
     $('mxsList').innerHTML = mine.length ? mine.map(function (k) { var x = cls[k];
       return '<a class="mxs-card" href="#/teacher/classes/' + enc(k) + '"><b>' + esc(x.name) + '</b><small>' + esc(sch[x.school] ? sch[x.school].name : '') + ' · ' + esc(gName(x.grade)) + '</small><span>🎒 ' + cnt(x.students) + ' ' + esc(T('students')) + '</span></a>';
     }).join('') : '<p class="sub">' + esc(T('No classes yet. Make your first one below.')) + '</p>';
     var sel = $('mxsS');
-    sel.innerHTML = mySchools.map(function (k) { return '<option value="' + esc(k) + '">' + esc(sch[k].name) + '</option>'; }).join('') + '<option value="__new">➕ ' + esc(T('A new school')) + '</option>';
-    function showNew() { $('mxsSNl').hidden = sel.value !== '__new'; }
+    sel.innerHTML = mySchools.map(function (k) { return '<option value="' + esc(k) + '">' + esc(sch[k].name) + '</option>'; }).join('') + '<option value="__code">🔑 ' + esc(T('Join a school with its code')) + '</option>' + (S().isOwner() || S().isAdmin() ? '<option value="__new">➕ ' + esc(T('A new school')) + '</option>' : '') + '<option value="">' + esc(T('No school')) + '</option>';
+    if (!mySchools.length) sel.value = '__code';
+    function showNew() { $('mxsSNl').hidden = sel.value !== '__new'; $('mxsCl').hidden = sel.value !== '__code'; }
     sel.onchange = showNew; showNew();
     $('mxsNew').onsubmit = function (e) {
       e.preventDefault(); var er = $('mxsE'); er.textContent = '';
       var name = $('mxsN').value.trim(), g = +$('mxsG').value, sid = sel.value;
       if (!name) { er.textContent = T('Give the class a name.'); return; }
       var mk = Promise.resolve(sid);
+      if (sid === '__code') {
+        var code = $('mxsC').value.trim().toUpperCase(), hit = Object.keys(sch).filter(function (k) { return sch[k] && String(sch[k].code || '').toUpperCase() === code; })[0];
+        if (!code || !hit) { er.textContent = T('No school has that code. Ask your school administrator for it.'); return; }
+        sid = hit; mk = put('/teacher_school/' + enc(me) + '/' + hit, true).then(function () { return hit; });
+      }
       if (sid === '__new') {
         var sn = $('mxsSN').value.trim(); if (!sn) { er.textContent = T('Type the school name.'); return; }
-        sid = 's' + rid(9); mk = put('/schools/' + sid, { name: sn, by: me, at: Date.now() }).then(function () { return sid; });
+        sid = 's' + rid(9); mk = put('/schools/' + sid, { name: sn, by: me, code: schoolCode(), at: Date.now() }).then(function () { return sid; });
       }
       $('mxsGo').disabled = true;
       mk.then(function (s2) { var cid = 'c' + rid(9); return put('/classes/' + cid, { name: name, school: s2, teacher: me, grade: g, at: Date.now() }).then(function () { location.hash = '#/teacher/classes/' + enc(cid); }); })
@@ -130,11 +138,11 @@ function classPage(c, cid, made) {
       deleteClass(cid, x).then(function () { toast('🗑 ' + T('Class deleted')); location.hash = '#/teacher/classes'; }, function () { toast('Could not delete. Check your connection.', 'err'); }); };
   }).catch(function () { $('mxsC').innerHTML = '<p class="sub">' + esc(T('Could not load. Check your connection.')) + '</p>'; });
 }
-function showLogins(list, x) {
+function showLogins(list, x, teachers) {
   var box = $('mxsLogins'); if (!box || !list.length) return;
-  box.innerHTML = '<div class="card mxs-logins"><h3>🔑 ' + esc(T('Logins to give your students')) + '</h3><p class="sub">' + esc(T('Write them down or print them now: passwords are not shown again (you can always make a new one).')) + '</p>'
+  box.innerHTML = '<div class="card mxs-logins"><h3>🔑 ' + esc(T(teachers ? 'Logins to give your teachers' : 'Logins to give your students')) + '</h3><p class="sub">' + esc(T('Write them down or print them now: passwords are not shown again (you can always make a new one).')) + '</p>'
     + '<table class="mxs-t"><tr><th>' + esc(T('Name')) + '</th><th>' + esc(T('Username')) + '</th><th>' + esc(T('Password')) + '</th></tr>' + list.map(function (k) { return '<tr><td>' + esc(k.name) + '</td><td><b>' + esc(k.u) + '</b></td><td><b>' + esc(k.p) + '</b></td></tr>'; }).join('') + '</table>'
-    + '<p class="sub">' + esc(T('Sign in at matixthemathclub.com or in the Matix app with “🎒 I’m a student”.')) + '</p><button type="button" class="btn pri" id="mxsPrint">🖨 ' + esc(T('Print')) + '</button></div>';
+    + '<p class="sub">' + esc(T(teachers ? 'Sign in at matixthemathclub.com or in the Matix app, then open 🍎 Teacher.' : 'Sign in at matixthemathclub.com or in the Matix app with “🎒 I’m a student”.')) + '</p><button type="button" class="btn pri" id="mxsPrint">🖨 ' + esc(T('Print')) + '</button></div>';
   $('mxsPrint').onclick = function () { var w = W.open('', '_blank'); if (!w) return; w.document.write('<title>' + esc(x.name) + '</title><style>body{font:16px system-ui;padding:20px}td,th{border:1px solid #999;padding:8px 12px}table{border-collapse:collapse}</style><h2>' + esc(x.name) + '</h2>' + box.querySelector('table').outerHTML + '<p>matixthemathclub.com · 🎒 I’m a student</p>'); w.document.close(); w.print(); };
 }
 function makeKid(name, cid, x) {
@@ -167,6 +175,88 @@ function deleteClass(cid, x) {
     .then(function () { return Promise.all([put('/homework/' + enc(cid), null), put('/homework_done/' + enc(cid), null), put('/classes/' + enc(cid), null)]); });
 }
 
+
+/* ---------------- 🏫 school administrator: the person who makes the school ---------------- */
+function admin(c, parts) {
+  var me = S().me(), sid = parts[1] ? decodeURIComponent(parts[1]) : '';
+  c.innerHTML = '<div class="page mxs"><div id="mxaB"><p class="sub">' + esc(T('Loading…')) + '</p></div></div>';
+  Promise.all([raw('/schools'), raw('/school_admins/' + enc(me))]).then(function (r) {
+    var sch = r[0] || {}, mine = r[1] || {}, own = S().isOwner();
+    var list = Object.keys(sch).filter(function (k) { return sch[k] && (own || mine[k] || sch[k].by === me); });
+    if (sid && list.indexOf(sid) > -1) return schoolPage(c, sid, sch[sid]);
+    if (!sid && list.length === 1 && !own) { location.hash = '#/school/' + enc(list[0]); return; }
+    $('mxaB').innerHTML = '<h1>🏫 ' + esc(T('My school')) + '</h1><p class="sub">' + esc(T('You make the school. Then you add its teachers, and they make their classes and student accounts. You can see and delete everything in your school.')) + '</p>'
+      + (list.length ? '<div class="mxs-grid">' + list.map(function (k) { return '<a class="mxs-card" href="#/school/' + enc(k) + '"><b>🏫 ' + esc(sch[k].name) + '</b><small>' + esc(T('Code')) + ': ' + esc(sch[k].code || '—') + (sch[k].by ? ' · @' + esc(sch[k].by) : '') + '</small></a>'; }).join('') + '</div>' : '')
+      + '<h2>➕ ' + esc(T('Make a school')) + '</h2><form id="mxaNew" class="card mxs-form"><label>' + esc(T('School name')) + '<input id="mxaN" maxlength="60" placeholder="' + esc(T('e.g. Cedar Hill School')) + '" required></label>'
+      + '<button class="btn pri" id="mxaGo">' + esc(T('Make the school')) + '</button><div class="err" id="mxaE" role="alert"></div></form>';
+    $('mxaNew').onsubmit = function (e) {
+      e.preventDefault(); var n = $('mxaN').value.trim(); if (!n) { $('mxaE').textContent = T('Type the school name.'); return; }
+      $('mxaGo').disabled = true; var id = 's' + rid(9);
+      Promise.all([put('/schools/' + id, { name: n, by: me, code: schoolCode(), at: Date.now() }), put('/school_admins/' + enc(me) + '/' + id, true)])
+        .then(function () { location.hash = '#/school/' + enc(id); }, function () { $('mxaGo').disabled = false; $('mxaE').textContent = T('Could not save. Check your connection.'); });
+    };
+  }).catch(function () { $('mxaB').innerHTML = '<p class="sub">' + esc(T('Could not load. Check your connection.')) + '</p>'; });
+}
+function schoolPage(c, sid, sc, made) {
+  Promise.all([raw('/classes'), raw('/teacher_school')]).then(function (r) {
+    var cls = r[0] || {}, ts = r[1] || {}, cids = Object.keys(cls).filter(function (k) { return cls[k] && cls[k].school === sid; });
+    var tch = Object.keys(ts).filter(function (u) { return ts[u] && ts[u][sid]; });
+    cids.forEach(function (k) { if (tch.indexOf(cls[k].teacher) < 0) tch.push(cls[k].teacher); }); tch.sort();
+    var kids = cids.reduce(function (a, k) { return a + cnt(cls[k].students); }, 0);
+    $('mxaB').innerHTML = '<p><a href="#/school">← ' + esc(T('My school')) + '</a></p><h1>🏫 ' + esc(sc.name) + '</h1>'
+      + '<div class="card mxa-code"><span>' + esc(T('School code for teachers')) + '</span><b>' + esc(sc.code || '—') + '</b><small>' + esc(T('Teachers type this code when they make a class, to join your school.')) + '</small><button type="button" class="btn ghost" id="mxaNewCode">🔄 ' + esc(T('New code')) + '</button></div>'
+      + '<p class="sub">🍎 ' + tch.length + ' ' + esc(T('teachers')) + ' · 📚 ' + cids.length + ' ' + esc(T('classes')) + ' · 🎒 ' + kids + ' ' + esc(T('students')) + '</p>'
+      + '<h2>🍎 ' + esc(T('Teachers')) + '</h2><div class="ulist">' + (tch.map(function (u) { var n = cids.filter(function (k) { return cls[k].teacher === u; }).length;
+          return '<div class="urow"><span class="nm">@' + esc(u) + '<small>' + n + ' ' + esc(T('classes')) + '</small></span><button type="button" data-out="' + esc(u) + '">' + esc(T('Remove from school')) + '</button><button type="button" class="del" data-delt="' + esc(u) + '">🗑 ' + esc(T('Delete account')) + '</button></div>'; }).join('') || '<p class="sub">' + esc(T('No teachers yet.')) + '</p>') + '</div>'
+      + '<form id="mxaT" class="card mxs-form"><label>' + esc(T('Add teachers: one name per line')) + '<textarea id="mxaTN" rows="3" placeholder="Ms Haddad&#10;Mr Karam"></textarea></label><button class="btn pri" id="mxaTGo">➕ ' + esc(T('Make their teacher accounts')) + '</button><div class="err" id="mxaTE" role="alert"></div></form><div id="mxsLogins"></div>'
+      + '<h2>📚 ' + esc(T('Classes')) + '</h2>' + (cids.map(function (k) { var x = cls[k], st = x.students || {};
+          return '<details class="card mxo-c"><summary>📚 <b>' + esc(x.name) + '</b> · ' + esc(gName(x.grade)) + ' · 🍎 @' + esc(x.teacher) + ' · 🎒 ' + cnt(st) + '</summary><div class="ulist">'
+            + Object.keys(st).sort().map(function (u) { return '<div class="urow"><span class="nm">' + esc(st[u]) + '<small>@' + esc(u) + '</small></span><button type="button" class="del" data-kid="' + esc(u) + '" data-c="' + esc(k) + '">🗑 ' + esc(T('Delete student')) + '</button></div>'; }).join('')
+            + '</div><a class="btn ghost" href="#/teacher/classes/' + enc(k) + '">' + esc(T('Open the class')) + '</a> <button type="button" class="btn ghost del" data-cls="' + esc(k) + '">🗑 ' + esc(T('Delete class')) + '</button></details>'; }).join('') || '<p class="sub">' + esc(T('No classes yet.')) + '</p>')
+      + '<h2>⚙️ ' + esc(T('School')) + '</h2><button type="button" class="btn ghost del" id="mxaDel">🗑 ' + esc(T('Delete the school, its classes and student accounts')) + '</button>';
+    if (made && made.length) showLogins(made, sc, true);
+    var again = function () { schoolPage(c, sid, sc); };
+    function fail() { toast('Could not save. Check your connection.', 'err'); again(); }
+    $('mxaNewCode').onclick = function () { if (!confirm(T('Make a new code? The old one stops working.'))) return; sc.code = schoolCode(); put('/schools/' + enc(sid) + '/code', sc.code).then(again, fail); };
+    $('mxaT').onsubmit = function (e) {
+      e.preventDefault(); var names = $('mxaTN').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean).slice(0, 40);
+      if (!names.length) { $('mxaTE').textContent = T('Type at least one name.'); return; } $('mxaTGo').disabled = true; var made = [];
+      names.reduce(function (pr, n) { return pr.then(function () { return makeTeacher(n, sid).then(function (x) { if (x) made.push(x); }); }); }, Promise.resolve())
+        .then(function () { toast('🍎 ' + made.length + ' ' + T('accounts made')); schoolPage(c, sid, sc, made); }, fail);
+    };
+    $('mxaB').onclick = function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.out) { if (!confirm(T('Remove') + ' @' + b.dataset.out + ' ' + T('from the school? Their classes stay.'))) return; put('/teacher_school/' + enc(b.dataset.out) + '/' + enc(sid), null).then(again, fail); }
+      else if (b.dataset.delt) { var u = b.dataset.delt, theirs = cids.filter(function (k) { return cls[k].teacher === u; });
+        if (!confirm(T('Delete the teacher account') + ' @' + u + ', ' + theirs.length + ' ' + T('classes and their student accounts?'))) return; b.disabled = true;
+        theirs.reduce(function (pr, k) { return pr.then(function () { return deleteClass(k, cls[k]); }); }, Promise.resolve())
+          .then(function () { return S().deleteAccount(u); }).then(function () { return Promise.all([put('/teachers/' + enc(u), null), put('/teacher_school/' + enc(u), null)]); }).then(again, fail); }
+      else if (b.dataset.kid) { if (!confirm(T('Delete the student account') + ' @' + b.dataset.kid + '?')) return; b.disabled = true; deleteKid(b.dataset.kid, b.dataset.c).then(again, fail); }
+      else if (b.dataset.cls) { var x = cls[b.dataset.cls]; if (!confirm(T('Delete the class') + ' “' + x.name + '” ' + T('and its') + ' ' + cnt(x.students) + ' ' + T('student accounts?'))) return; b.disabled = true; deleteClass(b.dataset.cls, x).then(again, fail); }
+      else if (b.id === 'mxaDel') { if (!confirm(T('Delete the school') + ' “' + sc.name + '”, ' + cids.length + ' ' + T('classes and') + ' ' + kids + ' ' + T('student accounts?'))) return; b.disabled = true; deleteSchool(sid, cids, cls, tch).then(function () { location.hash = '#/school'; }, fail); }
+    };
+  }).catch(function () { $('mxaB').innerHTML = '<p class="sub">' + esc(T('Could not load. Check your connection.')) + '</p>'; });
+}
+function makeTeacher(name, sid) {
+  var base = normU(name) || 'teacher', tries = 0;
+  function attempt() {
+    var u = base + (10 + Math.floor(Math.random() * 990)); tries++;
+    return S().fbGet('/members/' + enc(u), true).then(function (ex) {
+      if (ex) return tries < 6 ? attempt() : null;
+      var p = kidPass() + kidPass().slice(-2), now = Date.now();
+      return S().fbPut('/members/' + enc(u), { password: p, joinedAt: now, teacher: true, testUser: true, displayName: name, school: sid, madeBy: S().me() }).then(function () {
+        return Promise.all([S().fbPut('/profiles/' + enc(u), { displayName: name, bio: '', updatedAt: now }), put('/teachers/' + enc(u), true), put('/teacher_school/' + enc(u) + '/' + enc(sid), true)]);
+      }).then(function () { return { name: name, u: u, p: p }; });
+    });
+  }
+  return attempt();
+}
+function deleteSchool(sid, cids, cls, tch) {
+  return cids.reduce(function (pr, k) { return pr.then(function () { return deleteClass(k, cls[k]); }); }, Promise.resolve())
+    .then(function () { return Promise.all(tch.map(function (u) { return put('/teacher_school/' + enc(u) + '/' + enc(sid), null); })); })
+    .then(function () { return raw('/school_admins'); }).then(function (a) { var jobs = [put('/schools/' + enc(sid), null)]; Object.keys(a || {}).forEach(function (u) { if (a[u] && a[u][sid]) jobs.push(put('/school_admins/' + enc(u) + '/' + enc(sid), null)); }); return Promise.all(jobs); });
+}
+
 /* ---------------- owner: every school, teacher, class and student ---------------- */
 function owner(box) {
   box.innerHTML = '<p class="sub">' + esc(T('Every school, teacher, class and student. Only owners can see this. Deleting a school or class also deletes its student accounts.')) + '</p><div id="mxoS"><p class="sub">' + esc(T('Loading…')) + '</p></div>';
@@ -183,7 +273,7 @@ function owner(box) {
       + (sids.length ? sids.map(function (s) { var list = bySchool[s] || [];
         return '<details class="card mxo-s" open><summary>🏫 <b>' + esc(s === '_' ? T('No school') : sch[s].name) + '</b>' + (s !== '_' && sch[s].by ? ' · ' + esc(T('made by')) + ' @' + esc(sch[s].by) : '') + ' · ' + list.length + ' ' + esc(T('classes')) + '</summary>'
           + (list.map(classHtml).join('') || '<p class="sub">' + esc(T('No classes.')) + '</p>')
-          + (s !== '_' ? '<button type="button" class="btn ghost del" data-sch="' + esc(s) + '">🗑 ' + esc(T('Delete school')) + '</button>' : '') + '</details>'; }).join('') : '<p class="sub">' + esc(T('No schools yet.')) + '</p>')
+          + (s !== '_' ? '<a class="btn ghost" href="#/school/' + enc(s) + '">🏫 ' + esc(T('Open as administrator')) + '</a> <button type="button" class="btn ghost del" data-sch="' + esc(s) + '">🗑 ' + esc(T('Delete school')) + '</button>' : '') + '</details>'; }).join('') : '<p class="sub">' + esc(T('No schools yet.')) + '</p>')
       + '<h3>🍎 ' + esc(T('Teachers')) + '</h3><div class="ulist">' + (Object.keys(tch).filter(function (u) { return tch[u]; }).sort().map(function (u) {
           var n = cids.filter(function (k) { return cls[k].teacher === u; }).length;
           return '<div class="urow"><span class="nm">@' + esc(u) + '<small>' + n + ' ' + esc(T('classes')) + '</small></span><button type="button" class="del" data-tch="' + esc(u) + '">✕ ' + esc(T('Remove teacher')) + '</button></div>'; }).join('') || '<p class="sub">' + esc(T('No teachers.')) + '</p>') + '</div>';
@@ -194,7 +284,7 @@ function owner(box) {
       else if (b.dataset.cls) { var x = cls[b.dataset.cls]; if (!confirm(T('Delete the class') + ' “' + x.name + '” ' + T('and its') + ' ' + cnt(x.students) + ' ' + T('student accounts?'))) return; b.disabled = true; deleteClass(b.dataset.cls, x).then(again, fail); }
       else if (b.dataset.sch) { var s = b.dataset.sch, list = bySchool[s] || [], n = list.reduce(function (a, k) { return a + cnt(cls[k].students); }, 0);
         if (!confirm(T('Delete the school') + ' “' + sch[s].name + '”, ' + list.length + ' ' + T('classes and') + ' ' + n + ' ' + T('student accounts?'))) return; b.disabled = true;
-        list.reduce(function (p, k) { return p.then(function () { return deleteClass(k, cls[k]); }); }, Promise.resolve()).then(function () { return put('/schools/' + enc(s), null); }).then(again, fail); }
+        raw('/teacher_school').then(function (ts) { var tl = Object.keys(ts || {}).filter(function (u) { return ts[u] && ts[u][s]; }); return deleteSchool(s, list, cls, tl); }).then(again, fail); }
       else if (b.dataset.tch) { var u = b.dataset.tch; if (!confirm(T('Remove teacher mode from') + ' @' + u + '? ' + T('Their classes stay until you delete them.'))) return; b.disabled = true;
         Promise.all([put('/teachers/' + enc(u), null), S().fbPatch('/members/' + enc(u), { teacher: false })]).then(again, fail); }
     };
@@ -202,6 +292,7 @@ function owner(box) {
   }).catch(function () { $('mxoS').innerHTML = '<p class="sub">' + esc(T('Could not load. Check your connection.')) + '</p>'; });
 }
 
+if (W.trAdd) W.trAdd({"My school": "Mon école", "You make the school. Then you add its teachers, and they make their classes and student accounts. You can see and delete everything in your school.": "Tu crées l’école. Ensuite tu ajoutes ses enseignants, qui créent leurs classes et les comptes de leurs élèves. Tu peux tout voir et tout supprimer dans ton école.", "Code": "Code", "Make a school": "Créer une école", "School name": "Nom de l’école", "Make the school": "Créer l’école", "School code for teachers": "Code de l’école pour les enseignants", "Teachers type this code when they make a class, to join your school.": "Les enseignants tapent ce code en créant une classe, pour rejoindre ton école.", "New code": "Nouveau code", "Remove from school": "Retirer de l’école", "Delete account": "Supprimer le compte", "No teachers yet.": "Pas encore d’enseignant.", "Add teachers: one name per line": "Ajouter des enseignants : un nom par ligne", "Make their teacher accounts": "Créer leurs comptes enseignants", "Classes": "Classes", "Open the class": "Ouvrir la classe", "No classes yet.": "Pas encore de classe.", "Delete the school, its classes and student accounts": "Supprimer l’école, ses classes et les comptes élèves", "Make a new code? The old one stops working.": "Créer un nouveau code ? L’ancien ne marchera plus.", "Type at least one name.": "Écris au moins un nom.", "Remove": "Retirer", "from the school? Their classes stay.": "de l’école ? Ses classes restent.", "Delete the teacher account": "Supprimer le compte enseignant", "classes and their student accounts?": "classes et les comptes de leurs élèves ?", "Open as administrator": "Ouvrir comme administrateur", "administrator": "administrateur", "School code (from your school administrator)": "Code de l’école (donné par l’administrateur)", "Join a school with its code": "Rejoindre une école avec son code", "No school has that code. Ask your school administrator for it.": "Aucune école n’a ce code. Demande-le à l’administrateur de ton école."});
 if (W.trAdd) W.trAdd({
   'My classes': 'Mes classes', 'Teacher': 'Enseignant', 'Loading…': 'Chargement…', 'New class': 'Nouvelle classe', 'Class name': 'Nom de la classe', 'e.g. 5B maths': 'ex. 5e B maths', 'Grade': 'Année', 'School': 'École',
   'New school name': 'Nom de la nouvelle école', 'e.g. Cedar Hill School': 'ex. École des Cèdres', 'Make the class': 'Créer la classe', 'students': 'élèves', 'No classes yet. Make your first one below.': 'Pas encore de classe. Crée la première ci-dessous.',
@@ -221,5 +312,5 @@ if (W.trAdd) W.trAdd({
   'Teachers': 'Enseignants', 'Remove teacher': 'Retirer enseignant', 'No teachers.': 'Aucun enseignant.', 'Delete the student account': 'Supprimer le compte élève', 'and its': 'et ses', 'student accounts?': 'comptes d’élèves ?', 'Delete the school': 'Supprimer l’école', 'classes and': 'classes et',
   'Remove teacher mode from': 'Retirer le mode enseignant à', 'Their classes stay until you delete them.': 'Ses classes restent jusqu’à ce que tu les supprimes.', 'Could not delete. Check your connection.': 'Impossible de supprimer. Vérifie ta connexion.'
 });
-W.mxSchool = { teacher: teacher, owner: owner };
+W.mxSchool = { teacher: teacher, owner: owner, admin: admin };
 })();

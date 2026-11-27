@@ -226,3 +226,4 @@ input.code{letter-spacing:.4em;font-size:1.4rem !important;text-align:center;fon
 .mxo-s{margin:12px 0}.mxo-s>summary,.mxo-c>summary{cursor:pointer;padding:6px 0;line-height:1.5}.mxo-c{margin:8px 0 8px 14px}
 .btn.del,button.del{color:#f87171}
 .urow .nm small{display:block;opacity:.65;font-weight:600}
+.mxa-code{display:grid;gap:6px;max-width:420px;text-align:center;margin:12px 0}.mxa-code b{font-size:2.4rem;letter-spacing:.2em;font-family:ui-monospace,monospace}.mxa-code small{opacity:.7}
